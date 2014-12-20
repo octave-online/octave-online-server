@@ -1,0 +1,3 @@
+[submodule "src/boris-typedefs"]
+	path = front/src/boris-typedefs
+	url = https://github.com/borisyankov/DefinitelyTyped.git
