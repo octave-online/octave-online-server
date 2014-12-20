@@ -52,7 +52,11 @@ module P {
 		Passport.serializeUser((user, cb) => {
 			cb(null, user.id);
 		});
-		Passport.deserializeUser(User.findById);
+		Passport.deserializeUser((user, cb) => {
+			User.findById(user, cb);
+		});
+
+		Util.log("Initialized Passport");
 	}
 }
 

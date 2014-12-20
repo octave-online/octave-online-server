@@ -6,12 +6,13 @@ import Mime = require("mime");
 import Util = require("util");
 import Config = require("./config");
 import Mongo = require("./mongo");
-import Passport = require("./passport");
-import ExpressApp = require("./express");
+import Passport = require("./passport_setup");
+import ExpressApp = require("./express_setup");
+import Middleware = require("./session_middleware");
 import SocketIoApp = require("./socketio");
 
-Mongo.connect().then(function(){
-	Passport.init();
-	var app = ExpressApp.init();
-	var io = SocketIoApp.init(app);
-});
+Mongo.connect()
+	.then(Passport.init)
+	.then(Middleware.init)
+	.then(ExpressApp.init)
+	.then(SocketIoApp.init);
