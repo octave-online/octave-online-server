@@ -1,0 +1,17 @@
+{
+  "name": "octave-online-front",
+  "version": "1.0.0",
+  "description": "Front server for Octave Online",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shane Carr",
+  "license": "X11",
+  "dependencies": {
+    "mime": "^1.2.11",
+    "mongoose": "^3.8.21",
+    "promise-ts": "^0.2.2",
+    "string": "^3.0.0"
+  }
+}

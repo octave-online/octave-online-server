@@ -1,0 +1,24 @@
+///<reference path='boris-typedefs/node/node.d.ts'/>
+///<reference path='boris-typedefs/socket.io/socket.io.d.ts'/>
+///<reference path='typedefs/socketio-wildcard.d.ts'/>
+
+import SocketIO = require("socket.io");
+import Http = require("http");
+import SocketIOWildcard = require("socketio-wildcard");
+import Middleware = require("session_middleware");
+import SocketConnect = require("./socket_connect");
+import Express = require("express");
+
+module S {
+	export function init(app:Http.Server){
+		var io = SocketIO(app)
+			.use(SocketIOWildcard())
+			.use((socket,next)=>{
+				// Parse the session using middleware
+				Middleware(socket.request, <Express.Response>{}, next);
+			})
+			.on("connection", SocketConnect);
+	}
+}
+
+export = S;

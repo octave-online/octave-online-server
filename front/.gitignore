@@ -1,0 +1,4 @@
+.idea/
+build/
+config/app.json
+node_modules/
