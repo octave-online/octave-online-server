@@ -20,7 +20,7 @@ module S {
 				// Parse the session using middleware
 				Middleware.middleware(socket.request, <Express.Response>{}, next);
 			})
-			.on("connection", SocketConnect);
+			.on("connection", SocketConnect.onConnection);
 
 		Util.log("Initialized Socket.IO Server");
 	}

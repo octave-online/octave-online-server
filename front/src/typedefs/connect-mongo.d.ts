@@ -1,4 +1,6 @@
+/// <reference path="../boris-typedefs/express/express.d.ts"/>
+
 declare module 'connect-mongo' {
-	function F(q:any):any; // suppress TypeScript errors
-	export = F;
+	function constructor(q:any):any;
+	export = constructor;
 }

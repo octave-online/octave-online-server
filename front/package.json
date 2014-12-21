@@ -9,7 +9,9 @@
   "author": "Shane Carr",
   "license": "X11",
   "dependencies": {
+    "compression": "^1.2.2",
     "connect-mongo": "^0.4.2",
+    "eventemitter2": "^0.4.14",
     "express": "^4.10.6",
     "express-session": "^1.9.3",
     "mime": "^1.2.11",
@@ -17,6 +19,7 @@
     "passport": "^0.2.1",
     "passport-google": "^0.3.0",
     "promise-ts": "^0.2.2",
+    "serve-static": "^1.7.1",
     "socket.io": "^1.2.1",
     "socketio-file-upload": "^0.3.2",
     "socketio-wildcard": "^0.1.1",

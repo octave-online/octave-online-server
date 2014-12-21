@@ -1,6 +1,7 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/express/express.d.ts'/>
 ///<reference path='typedefs/siofu.d.ts'/>
+///<reference path='typedefs/express-static.d.ts'/>
 
 import Config = require("./config");
 import Express = require("express");
@@ -9,10 +10,14 @@ import Passport = require("passport");
 import Siofu = require("socketio-file-upload");
 import Http = require("http");
 import Util = require("util");
+import ServeStatic = require("serve-static");
+import Compression = require("compression");
 
 module ExpressApp {
 	export function init(){
 		app = Express()
+			.use(Compression())
+			.use(ServeStatic("../octave-connect/public_html"))
 			.use(Middleware.middleware)
 			.use(Passport.initialize())
 			.use(Passport.session())
