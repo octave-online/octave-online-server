@@ -9,6 +9,7 @@ import RedisHandler = require("./redis_handler");
 
 interface ISocketCustom extends SocketIO.Socket {
 	once(event:string, listener:Function);
+	removeListener(event:string, listener:Function);
 	handler: SocketHandler;
 }
 
@@ -22,14 +23,8 @@ class SocketHandler {
 		// Set up the socket
 		this.socket.emit("init");
 		this.socket.once("init", this.onInit);
-
-		// Set up Redis
-		this.redis = new RedisHandler();
-		this.redis.on("oo.sesscode", (sessCode)=>{
-			this.socket.emit("sesscode", {
-				sesscode: sessCode
-			});
-		});
+		this.socket.once("disconnect", this.onDisconnect);
+		this.socket.on("*", this.onInput);
 
 		Util.log("Socket Connected");
 	}
@@ -44,11 +39,40 @@ class SocketHandler {
 		return sess && sess.passport && sess.passport.user;
 	}
 
-	private onInit = (data:any):void => {
-		this.redis.setSessCode(data && data.sessCode).then(()=>{
-			Util.log("All done");
-		});
+	private close():void {
+		this.socket.removeListener("*", this.onInput);
+		if (this.redis) {
+			this.redis.close();
+			this.redis.removeAllListeners();
+		}
 	}
+
+
+	private onInit = (data:any):void => {
+		// Set up Redis
+		this.redis = new RedisHandler(data && data.sessCode);
+		this.redis.on("oo.sesscode", (sessCode)=> {
+			this.socket.emit("sesscode", {
+				sesscode: sessCode
+			});
+		});
+
+		// Blindly pass all data from Redis to the client
+		this.redis.on("oo.data", (obj)=> {
+			this.socket.emit(obj.name, obj.data);
+		});
+	};
+
+	private onDisconnect = ():void => {
+		this.close();
+	};
+
+	private onInput = (name:string, data):void=> {
+		this.redis.input({
+			name: name,
+			data: data
+		});
+	};
 }
 
 export = SocketHandler;

@@ -19,6 +19,7 @@
     "passport": "^0.2.1",
     "passport-google": "^0.3.0",
     "promise-ts": "^0.2.2",
+    "redis": "^0.12.1",
     "serve-static": "^1.7.1",
     "socket.io": "^1.2.1",
     "socketio-file-upload": "^0.3.2",
