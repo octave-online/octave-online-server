@@ -9,7 +9,6 @@ import ConnectMongo = require("connect-mongo");
 import Config = require("./config");
 import Mongo = require("./mongo");
 import Express = require("express");
-import Util = require("util");
 
 module M {
 	export function init() {
@@ -25,7 +24,7 @@ module M {
 			store: store
 		});
 
-		Util.log("Initialized Session Store");
+		console.log("Initialized Session Store");
 	}
 
 	export var middleware:Express.RequestHandler;

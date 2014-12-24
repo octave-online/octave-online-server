@@ -3,7 +3,6 @@
 ///<reference path='../node_modules/promise-ts/promise-ts.d.ts'/>
 
 import Mime = require("mime");
-import Util = require("util");
 import Config = require("./config");
 import Mongo = require("./mongo");
 import Passport = require("./passport_setup");

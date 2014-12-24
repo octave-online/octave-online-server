@@ -10,7 +10,6 @@ import Middleware = require("./session_middleware");
 import SocketConnect = require("./socket_connect");
 import ExpressApp = require("./express_setup");
 import Express = require("express");
-import Util = require("util");
 
 module S {
 	export function init(){
@@ -22,7 +21,7 @@ module S {
 			})
 			.on("connection", SocketConnect.onConnection);
 
-		Util.log("Initialized Socket.IO Server");
+		console.log("Initialized Socket.IO Server");
 	}
 }
 

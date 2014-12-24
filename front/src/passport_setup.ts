@@ -7,7 +7,6 @@
 import Passport = require("passport");
 import Config = require("./config");
 import Google = require("passport-google");
-import Util = require("util");
 import User = require("./user_model");
 
 var baseUrl = Config.url.protocol + "://" + Config.url.hostname + "/";
@@ -27,19 +26,18 @@ var strategy = new (Google.Strategy)({
 			}
 			if (user) {
 				// Returning user
-				Util.log("Returning User Signing In");
-				Util.log(user.consoleText);
+				console.log("Returning User", user.consoleText);
 				done(null, user);
 			} else {
 				// Make a new user
-				Util.log("New User Sigining In");
+				console.log("Creating New User");
 				User.create({
 					openid: {
 						identifier: identifier,
 						profile: profile
 					}
 				}, (err, user) => {
-					Util.log(user.consoleText);
+					console.log("New User", user.consoleText);
 					done(err, user);
 				});
 			}
@@ -56,7 +54,7 @@ module P {
 			User.findById(user, cb);
 		});
 
-		Util.log("Initialized Passport");
+		console.log("Initialized Passport");
 	}
 }
 

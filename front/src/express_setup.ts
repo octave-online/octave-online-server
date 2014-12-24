@@ -9,7 +9,6 @@ import Middleware = require("./session_middleware");
 import Passport = require("passport");
 import Siofu = require("socketio-file-upload");
 import Http = require("http");
-import Util = require("util");
 import ServeStatic = require("serve-static");
 import Compression = require("compression");
 
@@ -45,7 +44,7 @@ module ExpressApp {
 				res.send(404, "Unknown route");
 			}).listen(Config.url.port);
 
-		Util.log("Initialized Express Server");
+		console.log("Initialized Express Server");
 	}
 
 	export var app:Http.Server;
