@@ -1,6 +1,5 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/mime/mime.d.ts'/>
-///<reference path='../node_modules/promise-ts/promise-ts.d.ts'/>
 
 import Mime = require("mime");
 import Config = require("./config");

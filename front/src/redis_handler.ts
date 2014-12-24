@@ -5,135 +5,107 @@
 import Redis = require("redis");
 import Crypto = require("crypto");
 import EventEmitter2 = require("eventemitter2");
-import Util = require("util");
+import IRedis = require("./typedefs/iredis");
+import Config = require("./config");
 
-// Hack to add multi() to the TypeScript RedisClient interface
-interface IRedisClient extends Redis.RedisClient {
-	multi(commands?:any[]):IRedisClient;
-	exec(cb);
-}
-var outputClient:IRedisClient = <IRedisClient> Redis.createClient();
-var pushClient:IRedisClient = <IRedisClient> Redis.createClient();
-var infoClient:IRedisClient = <IRedisClient> Redis.createClient();
-outputClient.psubscribe("oo.output:*");
-
-interface IRedisMessage {
-	name:string
-	data:any
-}
-
-var disconnectMessage:IRedisMessage = {
-	name: "disconect",
-	data: {}
-};
+var outputClient:IRedis.Client = <IRedis.Client> Redis.createClient();
+var pushClient:IRedis.Client = <IRedis.Client> Redis.createClient();
+var destroyUClient:IRedis.Client = <IRedis.Client> Redis.createClient();
+var expireClient:IRedis.Client = <IRedis.Client> Redis.createClient();
+outputClient.psubscribe(IRedis.Chan.output("*"));
+destroyUClient.subscribe(IRedis.Chan.destroyU);
+expireClient.subscribe("__keyevent@0__:expired");
 
 class RedisHandler extends EventEmitter2.EventEmitter2 {
 	public sessCode:string;
-	private ready:boolean = false;
 
 	constructor(sessCode:string) {
 		super();
 		this.sessCode = sessCode;
 
-		if (!this.sessCode) {
-			// Case 1: No sessCode given
-			Util.log("Case 1: No sessCode given");
-			this.makeSessCode(()=> {
-				this.askForOctave();
-				this.subscribe();
-			});
-
-		} else {
-			this.isValid((valid:boolean)=> {
-
-				if (valid) {
-					// Case 2: Valid sessCode given
-					Util.log("Case 2: Valid sessCode given");
-					this.subscribe();
-
-				} else {
-					// Case 3: Invalid sessCode given
-					Util.log("Case 3: Invalid sessCode given");
-					this.makeSessCode(()=> {
-						this.askForOctave();
-						this.subscribe();
-					});
-				}
-			});
-		}
+		// Add event listeners for Redis
+		this.subscribe();
 	}
 
-	public input(obj:IRedisMessage) {
-		if (!this.ready) return;
-		pushClient.publish("oo.input:" + this.sessCode, JSON.stringify(obj));
+	public input(name:string, data:any) {
+		var inputMessage:IRedis.Message = {
+			name: name,
+			data: data
+		};
+
+		pushClient.publish(IRedis.Chan.input(this.sessCode), JSON.stringify(inputMessage));
 	}
 
-	public close() {
+	public destroyD(message:string) {
+		console.log("Sending Destroy-D", message, this.sessCode);
+
+		var destroyMessage:IRedis.DestroyMessage = {
+			sessCode: this.sessCode,
+			message: message
+		};
+
+		// Tell Redis to destroy our sessCode
+		var multi = pushClient.multi();
+		multi.del(IRedis.Chan.session(this.sessCode));
+		multi.del(IRedis.Chan.input(this.sessCode));
+		multi.del(IRedis.Chan.output(this.sessCode));
+		multi.zrem(IRedis.Chan.needsOctave, this.sessCode);
+		multi.publish(IRedis.Chan.destroyD, JSON.stringify(destroyMessage));
+		multi.exec((err)=> {
+			if (err) console.log("REDIS ERROR", err);
+		});
+
+		// Relieve local memory
 		this.unsubscribe();
+	}
 
+	private touchInterval;
+
+	private touch = () => {
 		var multi = pushClient.multi();
-		multi.publish("oo.input:" + this.sessCode, JSON.stringify(disconnectMessage));
-		multi.del("oo.online:" + this.sessCode);
+		multi.expire(IRedis.Chan.input(this.sessCode), Config.redis.expire.timeout);
+		multi.expire(IRedis.Chan.session(this.sessCode), Config.redis.expire.timeout);
 		multi.exec((err)=> {
-			if (err) return console.log("REDIS ERROR", err);
+			if (err) console.log("REDIS ERROR", err);
 		});
-	}
-
-	private makeSessCode(next) {
-		Util.log("Starting to make sessCode");
-		Crypto.pseudoRandomBytes(12, (err, buf) => {
-			if (err) {
-				return next(err);
-			}
-
-			this.sessCode = buf.toString("hex");
-			this.emit("oo.sesscode", this.sessCode);
-			Util.log("Made sessCode: " + this.sessCode);
-
-			next();
-		});
-	}
-
-	private isValid(next) {
-		infoClient.exists("oo.online:" + this.sessCode, (err, exists)=> {
-			if (err) return console.log("REDIS ERROR", err);
-			next(exists);
-		});
-	}
-
-	private askForOctave() {
-		var multi = pushClient.multi();
-		multi.rpush("oo.needs-octave", this.sessCode);
-		multi.set("oo.online:" + this.sessCode, true);
-		multi.exec((err)=> {
-			if (err) return console.log("REDIS ERROR", err);
-		});
-	}
+	};
 
 	private subscribe() {
 		outputClient.on("pmessage", this.pMessageListener);
-		this.ready = true;
+		destroyUClient.on("message", this.destroyUListener);
+		expireClient.on("message", this.expireListener);
+		this.touch();
+		this.touchInterval = setInterval(this.touch, Config.redis.expire.interval * 1000);
 	}
 
 	private unsubscribe() {
 		outputClient.removeListener("pmessage", this.pMessageListener);
-		this.ready = false;
+		destroyUClient.removeListener("message", this.destroyUListener);
+		expireClient.removeListener("message", this.expireListener);
+		clearInterval(this.touchInterval);
 	}
 
 	private pMessageListener = (pattern, channel, message) => {
-		var match = /^oo\.output:(\w+)$/.exec(channel);
-		if (!match) return;
-		if (match[1] !== this.sessCode && match[1] !== "broadcast") return;
+		var obj = IRedis.checkPMessage(channel, message, this.sessCode);
+		if (obj) this.emit("data", obj.name, obj.data);
+	};
 
-		var obj:IRedisMessage;
-		try {
-			obj = JSON.parse(message);
-		} catch (e) {
-			return console.log("JSON PARSE ERROR", e);
+	private destroyUListener = (channel, message) => {
+		var _message = IRedis.checkDestroyMessage(message, this.sessCode);
+
+		if (_message) {
+			this.emit("destroy-u", _message);
+			this.unsubscribe();
 		}
-		if (!obj.name) return;
+	};
 
-		this.emit("oo.data", obj);
+	private expireListener = (channel, message) => {
+		if(IRedis.checkExpired(message, this.sessCode)){
+			// If the session becomes expired, trigger a destroy event
+			// both upstream and downstream.
+			this.destroyD("Octave Session Expired");
+			this.emit("destroy-u", "Octave Session Expired");
+		}
 	};
 }
 

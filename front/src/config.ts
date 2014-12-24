@@ -15,6 +15,12 @@ interface IAppConfig {
 		secret: string;
 		max_age: number;
 	}
+	redis: {
+		expire: {
+			interval: number;
+			timeout: number;
+		}
+	}
 }
 
 var appConfig:IAppConfig = require("../config/app.json");
