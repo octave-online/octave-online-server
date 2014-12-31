@@ -1,0 +1,7 @@
+app/vendor/
+app/js/
+app/css/
+dist/
+node_modules/
+.idea/
+.sass-cache/

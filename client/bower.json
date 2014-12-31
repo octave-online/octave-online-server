@@ -1,0 +1,9 @@
+{
+  "name": "RequireJS Starter",
+  "version": "1.0.0",
+  "dependencies": {
+    "requirejs": "latest",
+    "jquery": "latest",
+    "knockoutjs": "latest"
+  }
+}

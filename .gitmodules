@@ -1,0 +1,3 @@
+[submodule "app/src/boris-typedefs"]
+	path = client/app/src/boris-typedefs
+	url = https://github.com/borisyankov/DefinitelyTyped.git
