@@ -1,5 +1,817 @@
-$color1: #123456;
+// Styles for Octave Online
+// Compiler: SASS 3.2.3 and Compass 0.12.2
+@import "compass";
+@import "util";
 
-body {
-  background-color: $color1;
+$header_height: 40px;
+$header_border: 4px;
+$header_padding: 2px;
+$prompt_font_size: 16px;
+$prompt_sign_width: 20px;
+$prompt_height: $prompt_font_size*4/3;
+$console_font_size: 16px;
+$plot_controls_height: 20px;
+$editor_toolbar_height: 20px;
+$min_width: 680px;
+$min_height: 250px;
+
+// Font Variables
+$code_font_family: "Consolas", monospace;
+$unicode_font_family: "Arial Unicode", "Lucida Sans Unicode", "DejaVu Sans", "GNU Unifont", sans-serif;
+$body_font: 400 14px/1.2em "Rambla", sans-serif;
+$heading_font_family: "Bangers", "Impact", sans-serif;
+
+@mixin dropzone-active{
+	background-color: #f2d97d; // Old browsers
+	@include filter-gradient(#f2d97d, #f9b939, horizontal); // IE6-9 fallback on horizontal gradient
+	@include background-image-with-ms(radial-gradient(center, ellipse cover,  #f2d97d 0%,#f9b939 100%));
 }
+
+@mixin big-button{
+	background-color: #fac695; // Old browsers
+	@include filter-gradient(#fac695, #ef8d31, horizontal); // IE6-9 fallback on horizontal gradient
+	@include background-image-with-ms(radial-gradient(center, ellipse cover,  #fac695 0%,#f5ab66 47%,#ef8d31 100%));
+}
+
+@mixin big-button-active{
+	background-color: #ffa84c; // Old browsers
+	@include filter-gradient(#ffa84c, #ff7b0d, horizontal); // IE6-9 fallback on horizontal gradient
+	@include background-image-with-ms(radial-gradient(center, ellipse cover,  #ffa84c 0%,#ff7b0d 100%));
+}
+
+@mixin site-control-button-gradient-light{
+	background-color: #fff; // Old browsers
+	@include filter-gradient(#fff, #d9d9d9, vertical); // IE6-9
+	@include background-image-with-ms(linear-gradient(top, #fff 0%, #d9d9d9 100%));
+}
+@mixin site-control-button-gradient-lighter{
+	background-color: #f29382; // Old browsers
+	@include filter-gradient(#fff, #f29382, vertical); // IE6-9
+	@include background-image-with-ms(linear-gradient(top, #fff 0%, #f29382 100%));
+}
+
+// Sanscons
+$all-employed-sanscon-icons: document, open, download, save, trash, close, arrow1_ne, download, arrow1_sw;
+$all-employed-sanscon-colors: white, black;
+
+@function sanscon-url($icon, $color){
+	@return url(../images/sanscons/gif/#{$color}/16x16/#{$icon}.gif);
+}
+@mixin sanscon-base{
+	background-repeat: no-repeat;
+	background-position: center center;
+	width: 18px;
+	height: 20px;
+	display: inline-block;
+	cursor: pointer;
+}
+@mixin sanscon-static($id, $color){
+	@include sanscon-base;
+	background-image: sanscon-url($id, $color);
+}
+@mixin sanscon($id){
+	@include sanscon-base;
+	@each $sanscon-color in $all-employed-sanscon-colors {
+		body[data-sanscons-color="#{$sanscon-color}"] & {
+			background-image: sanscon-url($id, $sanscon-color);
+		}
+	}
+}
+
+// Callouts
+$callout_color: #369AFF;
+@mixin callout($shadowoffset, $direction:up){
+	position: absolute;
+	border: 3px solid $callout_color;
+	border-radius: 5px;
+	box-shadow: 0px $shadowoffset 16px 0px rgba(40, 40, 40, 0.75);
+
+	// Arrow
+	&::before{
+		content: " ";
+		position: absolute;
+		width: 0;
+		height: 0;
+		border: 10px solid;
+		@if $direction == "up" {
+			border-color: transparent $callout_color $callout_color transparent;
+		}
+		@else {
+			border-color: $callout_color transparent transparent $callout_color;
+		}
+	}
+}
+
+// General Purpose Styles
+body{
+	font: $body_font;
+	vertical-align: middle;
+}
+h1, h2, h3, h4, h5, h6{
+	font-family: $heading_font_family;
+}
+kbd{
+	white-space: nowrap;
+}
+.modified{
+	font-style: italic;
+	text-decoration: underline;
+}
+.divide{
+	display: inline-block;
+	width: 0.6em;
+}
+a img{
+	border: none;
+}
+
+// Header
+header{
+	position: absolute;
+	top: 0;
+	right: 0;
+	height: $header_height - $header_border;
+	left: 0;
+	border-bottom-width: $header_border;
+	border-bottom-style: solid;
+	min-width: $min_width;
+
+	a{
+		color: inherit;
+		text-decoration: underline;
+		cursor: pointer;
+	}
+	h1 {
+		font-weight: normal;
+		font-size: $header_height*1.05;
+		line-height: $header_height;
+		height: $header_height;
+		margin: 0px $header_padding 0;
+		vertical-align: middle;
+
+		.beta{
+			font-family: $unicode_font_family;
+			position: relative;
+			top: -$header_height*0.3;
+			font-size: $header_height*0.6;
+			font-style: italic;
+		}
+	}
+	#site-controls{
+		position: absolute;
+		top: $header_padding;
+		right: $header_padding;
+
+		$site_control_item_height: $header_height - 2*$header_padding;
+
+		.site-control-item{
+			font-size: 1.2em;
+			float: right;
+			margin-left: 0.3em;
+			height: $site_control_item_height;
+			line-height: $site_control_item_height;
+			* {
+				vertical-align: middle;
+			}
+		}
+		.site-control-btn{
+			@include site-control-button-gradient-light;
+			color: black;
+			border: 1px solid #ccc;
+			padding: 0 4px;
+			border-radius: 4px;
+			height: $site_control_item_height - 10px;
+			line-height: $site_control_item_height - 5px;
+			margin-top: 2px;
+
+			&:hover{
+				@include site-control-button-gradient-lighter;
+			}
+
+			a {
+				text-decoration: none;
+			}
+		}
+		#twitter-follow-holder{
+			margin-top: -2px;
+		}
+		#change-skin{
+			cursor: pointer;
+		}
+		#login{
+			a {
+				text-decoration: none;
+				img{
+					margin-top: -4px;
+				}
+			}
+		}
+		#logout_icon{
+			@include sanscon(trackback);
+		}
+
+		#login-promo{
+			@include callout(4px, up);
+			top: $header_height + 10px;
+			right: 35px;
+			width: 180px;
+			height: 160px;
+			text-align: center;
+			z-index: 50;
+			padding: 10px 10px;
+			display: none;
+
+			// Arrow
+			&::before {
+				right: 10px;
+				top: -20px;
+			}
+
+			// Text Flow
+			& > span {
+				display: block;
+				line-height: 1em;
+				&.l1{
+					font-size: 2em;
+				}
+				&.l2{
+					font-size: 3em;
+				}
+				&.l3{
+					font-size: 1.3em;
+					margin-top: 10px;
+				}
+				&.l4{
+					font-size: 1em;
+					margin-top: 10px;
+					cursor: pointer;
+					text-decoration: underline;
+				}
+			}
+		}
+	}
+}
+
+// Privacy Policy
+#privacy{
+	position: fixed;
+	top: 20%;
+	bottom: 20%;
+	left: 20%;
+	right: 20%;
+	background: inherit;
+	white-space: pre-wrap;
+	overflow: auto;
+	padding: 1em;
+	z-index: 100;
+	border-radius: 1em;
+}
+
+// Site Loading Div
+#site_loading{
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	width: 0;
+	height: 0;
+	z-index: 200;
+
+	& > img{
+		position: absolute;
+		top: -100px;
+		left: -100px;
+		width: 200px;
+		height: 200px;
+	}
+
+	#site_loading_patience{
+		position: absolute;
+		top: 110px;
+		left: -180px;
+		width: 340px;
+		height: 30px;
+		padding: 10px;
+		text-align: center;
+	}
+}
+
+// Large Dialog Ad Div
+#bigdialog{
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 300;
+	background: rgba(128, 128, 128, .8);
+	display: none;
+
+	#bd_outer{
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 0;
+		height: 0;
+
+		#bd_inner{
+			position: absolute;
+			top: -170px;
+			left: -178px;
+			width: 356px;
+			height: 340px;
+
+			#bd_title{
+				display: block;
+				position: absolute;
+				top: 7px;
+				width: 100%;
+				text-align: center;
+				font-style: italic;
+			}
+
+			#bd_holder {
+				position: absolute;
+				top: 30px;
+				left: 10px;
+				width: 336px;
+				height: 280px;
+			}
+
+			#bd_block {
+				position: absolute;
+				padding: 30px 10px 10px;
+				top: 30px;
+				left: 10px;
+				width: 316px;
+				height: 240px;
+				text-align: center;
+				font-size: 2em;
+				line-height: 1em;
+			}
+
+			#bd_closebtn{
+				@include sanscon(close);
+				display: block;
+				position: absolute;
+				top: 5px;
+				right: 5px;
+			}
+
+			#bd_dismiss{
+				display: block;
+				position: absolute;
+				bottom: 7px;
+				width: 100%;
+				text-align: center;
+				text-decoration: underline;
+				cursor: pointer;
+			}
+		}
+	}
+}
+
+// Onboarding Div
+#onboarding{
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background: rgba(128, 128, 128, .8);
+	z-index: 300;
+	min-width: $min_width;
+
+	& > * {
+		position: absolute;
+		top: 10%;
+		right: 18%;
+		bottom: 10%;
+		left: 18%;
+		overflow: auto;
+		padding: 20px;
+		background: white;
+		font-size: 1.2em;
+		line-height: 1.5em;
+
+		& > h2{
+			margin: 0;
+			padding: 0;
+			font-size: 2em;
+		}
+
+		& > figure{
+			width: 90%;
+			margin: 10px auto;
+			padding: 5px;
+			border-radius: 10px;
+			border: 1px solid black;
+
+			& > img{
+				display: block;
+				margin: 5px auto;
+			}
+		}
+
+		#onboarding-start{
+			@include big-button;
+			display: block;
+			margin: 10px auto;
+			padding: 0.5em;
+			font-size: 1.5em;
+			cursor: pointer;
+			border-radius: 1em;
+			border: none;
+			background-color: blue;
+
+			&:active{
+				@include big-button-active;
+			}
+		}
+		#onboarding-close{
+			@include sanscon(close);
+			display: block;
+			position: absolute;
+			top: 10px;
+			right: 10px;
+		}
+	}
+}
+
+// Panel Container
+div#container{
+	position: absolute;
+	top: $header_height;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	overflow: hidden;
+	min-width: $min_width;
+	min-height: $min_height;
+
+	// File List
+	#files_container {
+		position: absolute;
+		width: 150px;
+		-ms-overflow-style: -ms-autohiding-scrollbar;
+
+		#files_toolbar{
+			height: $editor_toolbar_height;
+			border: none;
+			padding-left: 3px;
+
+			#files_toolbar_create{
+				@include sanscon(document);
+			}
+			#files_toolbar_upload{
+				@include sanscon(open);
+			}
+			#files_toolbar_refresh{
+				@include sanscon(loop);
+			}
+		}
+
+		#files_list_container{
+			height: calc(100% - #{$editor_toolbar_height});
+
+			&.drag-over{
+				@include dropzone-active;
+				#files_drop_notification{
+					color: black;
+				}
+			}
+
+			#files_drop_notification{
+				position: relative;
+				display: block;
+				padding: 10px 10px 0;
+				text-align: center;
+			}
+
+			ul{
+				list-style-type: none;
+				padding-left: 0;
+				margin: 0;
+
+				li {
+					cursor: pointer;
+					padding: 0.1em;
+					white-space: nowrap;
+					overflow: hidden;
+					border: none;
+
+					&.file_active{
+					}
+				}
+			}
+		}
+	}
+
+	// Editor
+	#open_container{
+		position: absolute;
+		height: 100%;
+		width: 400px;
+		overflow: hidden;
+
+		#editor_toolbar{
+			height: $editor_toolbar_height;
+			border: none;
+			line-height: $editor_toolbar_height;
+			vertical-align: middle;
+			white-space: nowrap;
+
+			#editor_filename{
+				padding-left: 5px;
+				font-weight: bold;
+				overflow: hidden;
+			}
+			#editor_btn_container{
+				position: absolute;
+				top: 0;
+				right: 0;
+				width: auto;
+				height: $editor_toolbar_height;
+				text-align: right;
+				background: inherit;
+				padding-right: 3px;
+
+				#editor_runit{
+					@include sanscon(play);
+				}
+				#editor_download{
+					@include sanscon(download);
+				}
+				#editor_rename{
+					@include sanscon(edit);
+				}
+				#editor_save{
+					@include sanscon(save);
+				}
+				#editor_delete{
+					@include sanscon(trash);
+				}
+				#editor_close{
+					@include sanscon(close);
+				}
+			}
+		}
+
+		.editor_nofile{
+			padding: 5px;
+			vertical-align: middle;
+
+			h2{
+				font-size: 1.5em;
+				line-height: 1.5em;
+			}
+
+			kbd{
+				display: inline-block;
+				border: 1px dotted black;
+				padding: 0 2px;
+			}
+
+			tt.sanscon-create{
+				@include sanscon(document);
+				cursor: default;
+			}
+		}
+
+		div#ace_editor{
+			position: relative;
+			top: 0px;
+			left: 0px;
+			width: 100%;
+			bottom: 0px;
+			// height: calc(100% - $editor_toolbar_height);
+		}
+	}
+
+	// Plot
+	#output_panel{
+		overflow: hidden;
+
+		#plot_container{
+			text-align: center;
+			position: absolute;
+			top: 0px;
+			right: 0px;
+			bottom: 40%;
+			left: 40%;
+			background-color: inherit;
+			box-shadow: 0px 0px 10px 5px black;
+			border-bottom-left-radius: 10px;
+			color: black;
+			background-color: white;
+
+			&.fullscreen{
+				position: fixed;
+				top: 20px;
+				right: 20px;
+				bottom: 20px;
+				left: 20px;
+				z-index: 100;
+			}
+
+			#plot_controls_container{
+				position: absolute;
+				bottom: 0;
+				left: 4px;
+				right: 5px;
+				height: $plot_controls_height;
+				text-align: left;
+
+				#plot_close_btn{
+					@include sanscon-static(arrow1_ne, black);
+				}
+
+				#plot_download_btn{
+					@include sanscon-static(download, black);
+				}
+
+				#plot_info{
+					float: right;
+					font-style: oblique;
+				}
+			}
+
+			#plot_figure_container{
+				position: absolute;
+				top: 0;
+				left: 0;
+				bottom: $plot_controls_height;
+				width: 100%;
+
+				#plot_svg_container{
+					position: absolute;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+
+					svg{
+						position: absolute;
+						top: 0;
+						left: 0;
+						width: 100%;
+						height: 100%;
+					}
+				}
+
+				#plot_loading{
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					width: 0;
+					height: 0;
+
+					& > img{
+						position: absolute;
+						top: -50px;
+						left: -50px;
+						width: 100px;
+						height: 100px;
+					}
+				}
+
+				#plot_canvas_container{
+					position: absolute;
+					width: 0;
+					height: 0;
+					overflow: hidden;
+				}
+			}
+		}
+
+		#plot_opener{
+			@include sanscon(arrow1_sw);
+			position: absolute;
+			top: 0;
+			right: 0;
+			width: 30px;
+			height: 30px;
+			background-position: right top;
+			cursor: pointer;
+		}
+
+		// Console
+		#console_container{
+			position: absolute;
+			width: 100%;
+			height: 100%;
+
+			pre#console {
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: $prompt_height;
+
+				text-align: left;
+				overflow: auto;
+				font-size: $console_font_size;
+				line-height: $console_font_size*1.3;
+				font-family: $code_font_family;
+				padding: 1ex;
+				margin: 0;
+
+				span.prompt_row{
+					font-weight: bold;
+				}
+				span.prompt_error{
+					font-style: italic;
+				}
+			}
+			div#type_here {
+				@include callout(0px, down);
+				bottom: $prompt_height + 25px;
+				left: 10px;
+				height: 95px;
+				width: 400px;
+				padding: 10px;
+				display: none;
+
+				// Arrow
+				&::before {
+					left: 10px;
+					bottom: -20px;
+				}
+
+				// Text Flow
+				& > span {
+					display: block;
+					line-height: 1em;
+					&.l1{
+						font-size: 2em;
+					}
+					&.l2{
+						margin-top: 5px;
+						font-size: 1.2em;
+						kbd {
+							color: green;
+						}
+					}
+					&.l3{
+						margin-top: 10px;
+						font-size: 1.2em;
+						color: #999;
+					}
+				}
+			}
+			div#runtime_controls_container{
+				position: absolute;
+				left: 0;
+				bottom: 0;
+				width: 100%;
+				height: $prompt_height;
+
+				#signal{
+					@include sanscon-static(close, red);
+					position: absolute;
+					top: 2px;
+					left: 3px;
+				}
+				#seconds_remaining_container{
+					position: absolute;
+					top: 5px;
+					left: 25px;
+					
+					#seconds_remaining{
+						font-family: $code_font_family;
+					}
+				}
+			}
+			div#prompt_container{
+				position: absolute;
+				left: 0;
+				bottom: 0;
+				width: 100%;
+				height: $prompt_height;
+
+				div#prompt_sign{
+					position: absolute;
+					left: 0;
+					bottom: 0;
+					width: $prompt_sign_width;
+					height: $prompt_height;
+					text-align: right;
+					font-size: $prompt_height;
+					padding-top: 4px;
+					font-family: $unicode_font_family;
+				}
+				div#prompt {
+					position: absolute;
+					bottom: 0;
+					right: 0;
+					left: $prompt_sign_width;
+					height: $prompt_height;
+
+					font-size: $prompt_font_size;
+					line-height: $prompt_font_size;
+				}
+			}
+		}
+	}
+}
+
+input[type='text'],input[type='number'],textarea {font-size:16px;}

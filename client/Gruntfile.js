@@ -54,9 +54,21 @@ module.exports = function (grunt) {
 				dest: "dist/js/require.js"
 			},
 			images: {
-				cwd: "app/images/",
+				cwd: "app/images",
 				src: "**",
-				dest: "dist/images/",
+				dest: "dist/images",
+				expand: true
+			},
+			js: {
+				cwd: "app/js",
+				src: ["modernizr-201406b.js"],
+				dest: "dist/js",
+				expand: true
+			},
+			other: {
+				cwd: "app",
+				src: ["favicon.ico"],
+				dest: "dist",
 				expand: true
 			}
 		},
