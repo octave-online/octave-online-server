@@ -52,6 +52,12 @@ module.exports = function (grunt) {
 			requirejs: {
 				src: "app/vendor/requirejs/require.js",
 				dest: "dist/js/require.js"
+			},
+			images: {
+				cwd: "app/images/",
+				src: "**",
+				dest: "dist/images/",
+				expand: true
 			}
 		},
 		"regex-replace": {
