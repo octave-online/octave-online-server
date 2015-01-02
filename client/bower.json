@@ -4,6 +4,13 @@
   "dependencies": {
     "requirejs": "latest",
     "jquery": "latest",
-    "knockoutjs": "latest"
+    "knockoutjs": "latest",
+    "jquery.cookie": "latest",
+    "jquery-md5": "latest",
+    "purl": "latest",
+    "canvg": "latest",
+    "ace-builds": "latest",
+    "knockout-ace": "https://github.com/vote539/knockout-ace.git",
+    "splittr": "~1.0.0"
   }
 }

@@ -100,7 +100,6 @@ module.exports = function (grunt) {
 	});
 
 	grunt.registerTask("default", [
-		"typescript",
 		"requirejs",
 		"compass:dist",
 		"copy",

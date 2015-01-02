@@ -1,0 +1,53 @@
+Privacy Policy
+==============
+
+Octave Online values the privacy of our users.  In order to provide you with the utmost quality of service, we collect the following information:
+
+- Historical transcripts of Octave commands and output.
+- When logging in via Google, we collect your OpenID, name, and email address.
+
+The above information will be kept safe on our servers.  We do not give away personally identifiable information to third parties (unless required by law).  We may aggregate information to learn the most popular features of the application, among other metrics.
+
+Octave Online reserves the right to send you email announcements about Octave Online.  Such announcements will be released only for major updates and reports.
+
+Octave Online may also save cookies to your computer.  These cookies help us keep you logged in during a session and between sessions.  Disabling cookies will limit the features we are able to provide.
+
+If you have any questions about Octave Online's privacy policy, please contact us at: webmaster@octave-online.net
+
+
+
+End User License Agreement
+==========================
+
+This copy of Octave Online ("the Software Product") and accompanying documentation is licensed and not sold. This Software Product is protected by copyright laws and treaties, as well as laws and treaties related to other forms of intellectual property. Octave Online LLC or its subsidiaries, affiliates, and suppliers (collectively "Octave Online") own intellectual property rights in the Software Product. The Licensee's ("you" or "your") license to download, use, copy, or change the Software Product is subject to these rights and to all the terms and conditions of this End User License Agreement ("Agreement"). 
+  
+Acceptance 
+YOU ACCEPT AND AGREE TO BE BOUND BY THE TERMS OF THIS AGREEMENT BY USING, DOWNLOADING, COPYING, OR REPRODUCING THE SOFTWARE. IF YOU DO NOT AGREE TO ALL OF THE TERMS OF THIS AGREEMENT, YOU MUST IMMEDIATELY CEASE ALL USE OF THE SOFTWARE.
+  
+Restrictions on Alteration 
+You may not modify the Software Product or create any derivative work of the Software Product or its accompanying documentation without written consent of Octave Online. Derivative works include but are not limited to translations. You may not alter any files or libraries in any portion of the Software Product. You may not reproduce the database portion or create any tables or reports relating to the database portion. 
+  
+Restrictions on Copying 
+You may not copy any part of the Software Product except to the extent that licensed use inherently demands the creation of a temporary copy stored in computer memory and not permanently affixed on storage medium. You may make one archival copy which must be stored on a medium other than a computer hard drive. 
+  
+Disclaimer of Warranties and Limitation of Liability 
+UNLESS OTHERWISE EXPLICITLY AGREED TO IN WRITING BY OCTAVE ONLINE, OCTAVE ONLINE MAKES NO OTHER WARRANTIES, EXPRESS OR IMPLIED, IN FACT OR IN LAW, INCLUDING, BUT NOT LIMITED TO, ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE OTHER THAN AS SET FORTH IN THIS AGREEMENT OR IN THE LIMITED WARRANTY DOCUMENTS PROVIDED WITH THE SOFTWARE PRODUCT. 
+  
+Octave Online makes no warranty that the Software Product will meet your requirements or operate under your specific conditions of use. Octave Online makes no warranty that operation of the Software Product will be secure, error free, or free from interruption. YOU MUST DETERMINE WHETHER THE SOFTWARE PRODUCT SUFFICIENTLY MEETS YOUR REQUIREMENTS FOR SECURITY AND UNINTERRUPTABILITY. YOU BEAR SOLE RESPONSIBILITY AND ALL LIABILITY FOR ANY LOSS INCURRED DUE TO FAILURE OF THE SOFTWARE PRODUCT TO MEET YOUR REQUIREMENTS. OCTAVE ONLINE WILL NOT, UNDER ANY CIRCUMSTANCES, BE RESPONSIBLE OR LIABLE FOR THE LOSS OF DATA ON ANY COMPUTER OR INFORMATION STORAGE DEVICE. 
+  
+UNDER NO CIRCUMSTANCES SHALL OCTAVE ONLINE, ITS DIRECTORS, OFFICERS, EMPLOYEES OR AGENTS BE LIABLE TO YOU OR ANY OTHER PARTY FOR INDIRECT, CONSEQUENTIAL, SPECIAL, INCIDENTAL, PUNITIVE, OR EXEMPLARY DAMAGES OF ANY KIND (INCLUDING LOST REVENUES OR PROFITS OR LOSS OF BUSINESS) RESULTING FROM THIS AGREEMENT, OR FROM THE FURNISHING, PERFORMANCE, INSTALLATION, OR USE OF THE SOFTWARE PRODUCT, WHETHER DUE TO A BREACH OF CONTRACT, BREACH OF WARRANTY, OR THE NEGLIGENCE OF OCTAVE ONLINE OR ANY OTHER PARTY, EVEN IF OCTAVE ONLINE IS ADVISED BEFOREHAND OF THE POSSIBILITY OF SUCH DAMAGES. TO THE EXTENT THAT THE APPLICABLE JURISDICTION LIMITS OCTAVE ONLINE'S ABILITY TO DISCLAIM ANY IMPLIED WARRANTIES, THIS DISCLAIMER SHALL BE EFFECTIVE TO THE MAXIMUM EXTENT PERMITTED. 
+  
+Limitation of Remedies and Damages 
+Your remedy for a breach of this Agreement or of any warranty included in this Agreement is the correction or replacement of the Software Product. Selection of whether to correct or replace shall be solely at the discretion of Octave Online. Octave Online reserves the right to substitute a functionally equivalent copy of the Software Product as a replacement. If Octave Online is unable to provide a replacement or substitute Software Product or corrections to the Software Product, your sole alternate remedy shall be a refund of the purchase price for the Software Product exclusive of any costs for shipping and handling. 
+  
+Any claim must be made within the applicable warranty period. All warranties cover only defects arising under normal use and do not include malfunctions or failure resulting from misuse, abuse, neglect, alteration, problems with electrical power, acts of nature, unusual temperatures or humidity, improper installation, or damage determined by Octave Online to have been caused by you. All limited warranties on the Software Product are granted only to you and are non-transferable. You agree to indemnify and hold Octave Online harmless from all claims, judgments, liabilities, expenses, or costs arising from your breach of this Agreement and/or acts or omissions. 
+  
+Governing Law, Jurisdiction and Costs 
+This Agreement is governed by the laws of Missouri, without regard to Missouri's conflict or choice of law provisions. 
+  
+Severability 
+If any provision of this Agreement shall be held to be invalid or unenforceable, the remainder of this Agreement shall remain in full force and effect. To the extent any express or implied restrictions are not permitted by applicable laws, these express or implied restrictions shall remain in force and effect to the maximum extent permitted by such applicable laws. 
+  
+
+
+(click to close)
