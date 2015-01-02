@@ -8,10 +8,10 @@ import EventEmitter2 = require("eventemitter2");
 import IRedis = require("./typedefs/iredis");
 import Config = require("./config");
 
-var outputClient:IRedis.Client = <IRedis.Client> Redis.createClient();
-var pushClient:IRedis.Client = <IRedis.Client> Redis.createClient();
-var destroyUClient:IRedis.Client = <IRedis.Client> Redis.createClient();
-var expireClient:IRedis.Client = <IRedis.Client> Redis.createClient();
+var outputClient = IRedis.createClient();
+var pushClient = IRedis.createClient();
+var destroyUClient = IRedis.createClient();
+var expireClient = IRedis.createClient();
 outputClient.psubscribe(IRedis.Chan.output("*"));
 destroyUClient.subscribe(IRedis.Chan.destroyU);
 expireClient.subscribe("__keyevent@0__:expired");

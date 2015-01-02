@@ -1,6 +1,7 @@
 ///<reference path='../boris-typedefs/redis/redis.d.ts'/>
 
 import Redis = require("redis");
+import Config = require("../config");
 
 module IRedis {
 	// Hack to add multi() to the TypeScript RedisClient interface
@@ -14,9 +15,25 @@ module IRedis {
 		name:string
 		data:any
 	}
-	export interface DestroyMessage{
+	export interface DestroyMessage {
 		sessCode:string
 		message:string
+	}
+	export interface RebootRequestMessage {
+		id:string
+		isRequest:boolean
+		token:string // the token of the server sending this message
+		priority?:number // only on requests
+		response?:boolean // only on responses
+	}
+
+	// Function to create a new Redis connection
+	export function createClient():Client{
+		console.log("Connecting to", Config.redis.hostname);
+		return <Client> Redis.createClient(
+			Config.redis.port,
+			Config.redis.hostname,
+			Config.redis.options);
 	}
 
 	// Channel names
@@ -24,6 +41,7 @@ module IRedis {
 		needsOctave: "oo:needs-octave",
 		destroyD: "oo:destroy-d",
 		destroyU: "oo:destroy-u",
+		rebootRequest: "oo:reboot-request",
 		session: function (sessCode:string):string {
 			return "oo:session:" + sessCode;
 		},
@@ -57,7 +75,7 @@ module IRedis {
 	}
 	
 	// Match a destroy message
-	export function checkDestroyMessage(message:string, sessCode:string):string{
+	export function checkDestroyMessage(message:string, sessCode:string):string {
 		var _sessCode:string;
 		var _message:string;
 		try {
@@ -68,15 +86,26 @@ module IRedis {
 			return;
 		}
 		
-		if(sessCode === _sessCode){
+		if (sessCode === _sessCode) {
 			return _message;
-		}else{
+		} else {
 			return null;
 		}
 	}
 
+	// Match a reboot request message
+	export function checkRebootRequestMessage(message:string):RebootRequestMessage {
+		var obj:RebootRequestMessage;
+		try {
+			obj = JSON.parse(message);
+		} catch (e) {
+			return null;
+		}
+		return obj;
+	}
+
 	// Match an expired notification
-	export function checkExpired(message:string, sessCode:string):boolean{
+	export function checkExpired(message:string, sessCode:string):boolean {
 		var match = /^oo:(input|output):(\w+)$/.exec(message);
 		if (!match) return null;
 		var _sessCode:string = match[2];

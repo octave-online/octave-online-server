@@ -16,7 +16,7 @@ module ExpressApp {
 	export function init(){
 		app = Express()
 			.use(Compression())
-			.use(ServeStatic("../octave-connect/public_html"))
+			.use(ServeStatic("../octave-online-client/app"))
 			.use(Middleware.middleware)
 			.use(Passport.initialize())
 			.use(Passport.session())

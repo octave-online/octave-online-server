@@ -8,7 +8,7 @@ import EventEmitter2 = require("eventemitter2");
 import IUser = require("./user_interface");
 import IRedis = require("./typedefs/iredis");
 
-var infoClient:IRedis.Client = <IRedis.Client> Redis.createClient();
+var infoClient = IRedis.createClient();
 
 class RedisHelper extends EventEmitter2.EventEmitter2 {
 	constructor() {

@@ -16,6 +16,9 @@ interface IAppConfig {
 		max_age: number;
 	}
 	redis: {
+		hostname: string;
+		port: number;
+		options: any;
 		expire: {
 			interval: number;
 			timeout: number;

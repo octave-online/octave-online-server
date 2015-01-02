@@ -105,7 +105,7 @@ class SocketHandler {
 
 	private log(..._args:any[]):void {
 		var args = Array.prototype.slice.apply(arguments);
-		args.unshift(this.socket.id + " - ");
+		args.unshift("[" + this.socket.id + "]");
 		console.log.apply(this, args);
 	}
 
