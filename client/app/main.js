@@ -19,7 +19,7 @@ require.config({
     "blob": "vendor/blob/Blob",
 
     // NPM Libraries
-    "siofu": "../node_modules/socketio-file-upload/client",
+    "SocketIOFileUpload": "../node_modules/socketio-file-upload/client",
     "socket.io": "../node_modules/socket.io-client/socket.io",
 
     // Local Libraries

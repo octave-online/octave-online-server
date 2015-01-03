@@ -2,6 +2,7 @@
 // Compiler: SASS 3.2.3 and Compass 0.12.2
 @import "compass";
 @import "util";
+@import "../vendor/splittr/splittr";
 
 $header_height: 40px;
 $header_border: 4px;
@@ -206,6 +207,9 @@ header{
 				}
 			}
 		}
+		#logout{
+			display: none;
+		}
 		#logout_icon{
 			@include sanscon(trackback);
 		}
@@ -254,6 +258,7 @@ header{
 
 // Privacy Policy
 #privacy{
+	display: none;
 	position: fixed;
 	top: 20%;
 	bottom: 20%;
@@ -450,8 +455,8 @@ div#container{
 
 	// File List
 	#files_container {
+		width: 0;
 		position: absolute;
-		width: 150px;
 		-ms-overflow-style: -ms-autohiding-scrollbar;
 
 		#files_toolbar{
@@ -508,9 +513,9 @@ div#container{
 
 	// Editor
 	#open_container{
+		width: 0;
 		position: absolute;
 		height: 100%;
-		width: 400px;
 		overflow: hidden;
 
 		#editor_toolbar{
@@ -592,6 +597,7 @@ div#container{
 		overflow: hidden;
 
 		#plot_container{
+			display: none;
 			text-align: center;
 			position: absolute;
 			top: 0px;
@@ -659,6 +665,7 @@ div#container{
 				}
 
 				#plot_loading{
+					display: none;
 					position: absolute;
 					top: 50%;
 					left: 50%;
@@ -759,6 +766,7 @@ div#container{
 				}
 			}
 			div#runtime_controls_container{
+				display: none;
 				position: absolute;
 				left: 0;
 				bottom: 0;

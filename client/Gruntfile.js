@@ -45,29 +45,21 @@ module.exports = function (grunt) {
 			}
 		},
 		copy: {
-			html: {
-				src: "app/index.html",
-				dest: "dist/index.html"
-			},
 			requirejs: {
 				src: "app/vendor/requirejs/require.js",
 				dest: "dist/js/require.js"
 			},
-			images: {
-				cwd: "app/images",
-				src: "**",
-				dest: "dist/images",
-				expand: true
-			},
-			js: {
-				cwd: "app/js",
-				src: ["modernizr-201406b.js"],
-				dest: "dist/js",
-				expand: true
-			},
 			other: {
 				cwd: "app",
-				src: ["favicon.ico"],
+				src: [
+					"index.html",
+					"favicon.ico",
+					"privacy.txt",
+					"compatibility.html",
+					"images/**",
+					"js/modernizr-201406b.js",
+					"js/startup.js"
+				],
 				dest: "dist",
 				expand: true
 			}
@@ -80,8 +72,7 @@ module.exports = function (grunt) {
 						name: "requirejs",
 						search: "<!-- Begin RequireJS -->"
 						+ "[\\s\\S]+?<!-- End RequireJS -->",
-						replace: "<script src=\"js/require.js\"></script>\n"
-						+ "<script>\nrequire([\"js/app\"]);\n</script>\n",
+						replace: "<script src=\"js/require.js\"></script>\n",
 						flags: "g"
 					}
 				]
@@ -105,5 +96,7 @@ module.exports = function (grunt) {
 		"copy",
 		"regex-replace"
 	]);
+
+	grunt.registerTask("sass", ["compass:dev"]);
 
 };
