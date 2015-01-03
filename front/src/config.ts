@@ -1,6 +1,9 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 
 interface IAppConfig {
+	static: {
+		path: string;
+	}
 	mongodb: {
 		hostname: string;
 		db: string;
