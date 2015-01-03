@@ -9,8 +9,16 @@ import ExpressApp = require("./express_setup");
 import Middleware = require("./session_middleware");
 import SocketIoApp = require("./socketio");
 
-Mongo.connect()
-	.then(Passport.init)
-	.then(Middleware.init)
-	.then(ExpressApp.init)
-	.then(SocketIoApp.init);
+Mongo.connect((err)=>{
+	if (err) {
+		console.log("Error Connecting to Mongo", err);
+		return;
+	}
+
+	console.log("Connected to Mongo");
+
+	Passport.init();
+	Middleware.init();
+	ExpressApp.init();
+	SocketIoApp.init();
+});

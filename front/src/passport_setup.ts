@@ -1,6 +1,5 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/passport/passport.d.ts'/>
-///<reference path='../node_modules/promise-ts/promise-ts.d.ts'/>
 ///<reference path='typedefs/passport-google.d.ts'/>
 ///<reference path='user_interface.ts'/>
 

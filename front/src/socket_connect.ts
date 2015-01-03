@@ -1,6 +1,5 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/socket.io/socket.io.d.ts'/>
-///<reference path='../node_modules/promise-ts/promise-ts.d.ts'/>
 
 import User = require("./user_model");
 import IUser = require("./user_interface");
