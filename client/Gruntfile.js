@@ -1,5 +1,4 @@
 module.exports = function (grunt) {
-	grunt.loadNpmTasks("grunt-typescript");
 	grunt.loadNpmTasks("grunt-contrib-requirejs");
 	grunt.loadNpmTasks("grunt-contrib-compass");
 	grunt.loadNpmTasks("grunt-contrib-watch");
@@ -8,16 +7,6 @@ module.exports = function (grunt) {
 
 	grunt.initConfig({
 		pkg: grunt.file.readJSON("package.json"),
-		typescript: {
-			base: {
-				src: ["app/src/*.ts"],
-				dest: "app/js",
-				options: {
-					module: "amd",
-					basePath: "app/src"
-				}
-			}
-		},
 		requirejs: {
 			compile: {
 				options: {
@@ -79,10 +68,6 @@ module.exports = function (grunt) {
 			}
 		},
 		watch: {
-			typescript: {
-				files: "app/src/**/*.ts",
-				tasks: ["typescript:base"]
-			},
 			compass: {
 				files: "app/sass/**/*.scss",
 				tasks: ["compass:dev"]
