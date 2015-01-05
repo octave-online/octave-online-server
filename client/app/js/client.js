@@ -670,9 +670,7 @@ function($, ko, canvg, splittr, Base64, download,
 				if (OctMethods.socket.expectedConnectionStatus === true) {
 					// The server disconnected from us
 					OctMethods.console.writeError(
-						"Whoops! Your connection to Octave Online was lost.\n" +
-						"You will be automatically reconnected once we can\n" +
-						"establish a connection.\n");
+						"Connection lost.  Attempting to reconnect...\n");
 					doSessionClose();
 				}
 			}
