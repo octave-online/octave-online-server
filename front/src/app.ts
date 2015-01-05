@@ -8,6 +8,7 @@ import Passport = require("./passport_setup");
 import ExpressApp = require("./express_setup");
 import Middleware = require("./session_middleware");
 import SocketIoApp = require("./socketio");
+import RedisHelper = require("./redis_helper");
 
 Mongo.connect((err)=>{
 	if (err) {
@@ -22,3 +23,5 @@ Mongo.connect((err)=>{
 	ExpressApp.init();
 	SocketIoApp.init();
 });
+
+RedisHelper.startHeartbeat();

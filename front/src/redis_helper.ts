@@ -1,14 +1,18 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/redis/redis.d.ts'/>
 ///<reference path='boris-typedefs/eventemitter2/eventemitter2.d.ts'/>
+///<reference path='typedefs/redis_heartbeat.d.ts'/>
 
 import Redis = require("redis");
 import Crypto = require("crypto");
 import EventEmitter2 = require("eventemitter2");
 import IUser = require("./user_interface");
 import IRedis = require("./typedefs/iredis");
+import Heartbeat = require("redis-heartbeat");
+import Config = require("./config");
 
 var infoClient = IRedis.createClient();
+var heartbeatClient = IRedis.createClient();
 
 class RedisHelper extends EventEmitter2.EventEmitter2 {
 	constructor() {
@@ -53,6 +57,14 @@ class RedisHelper extends EventEmitter2.EventEmitter2 {
 		multi.set(IRedis.Chan.input(sessCode), time);
 		multi.set(IRedis.Chan.output(sessCode), time);
 		multi.exec(next);
+	}
+
+	public startHeartbeat() {
+		new Heartbeat({
+			name: "oo-front",
+			identifier: "oo-front-" + String(new Date().valueOf()),
+			client: heartbeatClient
+		});
 	}
 
 	private makeSessCode(next:(err:Error, sessCode:string)=>void) {
