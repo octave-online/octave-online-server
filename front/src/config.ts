@@ -13,6 +13,10 @@ interface IAppConfig {
 		hostname: string;
 		port: number;
 	}
+	google: {
+		oauth_key: string;
+		oauth_secret: string;
+	}
 	cookie: {
 		name: string;
 		secret: string;

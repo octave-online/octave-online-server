@@ -11,6 +11,7 @@ import Siofu = require("socketio-file-upload");
 import Http = require("http");
 import ServeStatic = require("serve-static");
 import Compression = require("compression");
+import BodyParser = require("body-parser")
 
 module ExpressApp {
 	export function init(){
@@ -18,13 +19,18 @@ module ExpressApp {
 			.use(Compression())
 			.use(ServeStatic(Config.static.path))
 			.use(Middleware.middleware)
+			.use(BodyParser.urlencoded({ extended: true }))
 			.use(Passport.initialize())
 			.use(Passport.session())
 			.use(Siofu.router)
-			.get("/auth/google", Passport.authenticate("google", {
+			.post("/auth/persona", Passport.authenticate("persona", {
+				successRedirect: "/",
 				failureRedirect: "/login/failure"
 			}))
-			.get("/auth/google/return", Passport.authenticate("google", {
+			.get("/auth/google", Passport.authenticate("google", {
+				scope: "profile email"
+			}))
+			.get("/auth/google/callback", Passport.authenticate("google", {
 				successRedirect: "/",
 				failureRedirect: "/login/failure"
 			}))

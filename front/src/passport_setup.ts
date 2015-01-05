@@ -5,18 +5,23 @@
 
 import Passport = require("passport");
 import Config = require("./config");
-import Google = require("passport-google");
+import GoogleOAuth = require("passport-google-oauth");
+import Persona = require("passport-persona");
 import User = require("./user_model");
 
-var baseUrl = Config.url.protocol + "://" + Config.url.hostname + "/";
-var returnUrl = baseUrl + "auth/google/return";
+var baseUrl = Config.url.protocol + "://" + Config.url.hostname
+	+ ":" + Config.url.port + "/";
+var callbackUrl = baseUrl + "auth/google/callback";
 
-var strategy = new (Google.Strategy)({
-		returnURL: returnUrl,
-		realm: baseUrl,
-		stateless: true
+var googleStrategy = new (GoogleOAuth.OAuth2Strategy)({
+		callbackURL: callbackUrl,
+		clientID: Config.google.oauth_key,
+		clientSecret: Config.google.oauth_secret
 	},
-	function (identifier, profile, done) {
+	function (accessToken, refreshToken, profile, done) {
+		console.log("Google Callback", arguments);
+		console.log(profile.emails);
+		/*
 		User.findOne({
 			"openid.identifier": identifier
 		}, (err, user)=> {
@@ -41,11 +46,20 @@ var strategy = new (Google.Strategy)({
 				});
 			}
 		});
+		*/
 	});
 
-module P {
+var personaStrategy = new (Persona.Strategy)({
+		audience: baseUrl
+	},
+	function (email, done) {
+		console.log("Persona Callback", email);
+	});
+
+module PassportSetup {
 	export function init(){
-		Passport.use(strategy);
+		Passport.use(googleStrategy);
+		Passport.use(personaStrategy);
 		Passport.serializeUser((user, cb) => {
 			cb(null, user.id);
 		});
@@ -57,4 +71,4 @@ module P {
 	}
 }
 
-export = P
+export = PassportSetup

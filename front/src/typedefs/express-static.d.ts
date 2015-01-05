@@ -11,3 +11,9 @@ declare module 'compression' {
 	function constructor():express.RequestHandler;
 	export = constructor;
 }
+
+declare module 'body-parser' {
+	import express = require('express');
+	function json():express.RequestHandler;
+	function urlencoded(options:any):express.RequestHandler;
+}
