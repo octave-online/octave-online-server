@@ -1,6 +1,6 @@
 define(["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
 		"splittr", "SocketIOFileUpload", "js/anal", "js/onboarding",
-		"knockout-ace", "ace/mode/octave", "ace/ext/language_tools"],
+		"knockout-ace", "ko-flash", "ace/mode/octave", "ace/ext/language_tools"],
 
 	function (ko, io, OctMethods, ace, $, isMobile,
 	          splittr, SocketIOFileUpload, anal, onboarding) {
@@ -11,6 +11,7 @@ define(["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
 		// Make conveinence variable references
 		var viewModel = OctMethods.ko.viewModel;
 		var allOctFiles = OctMethods.ko.allOctFiles;
+		var workspaceVars = viewModel.vars;
 
 		// Run Knockout
 		ko.applyBindings(viewModel);
@@ -28,6 +29,7 @@ define(["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
 		socket.on("plotd", OctMethods.socketListeners.plotd);
 		socket.on("plote", OctMethods.socketListeners.plote);
 		socket.on("ctrl", OctMethods.socketListeners.ctrl);
+		socket.on("workspace", OctMethods.socketListeners.workspace);
 		socket.on("program", OctMethods.socketListeners.program);
 		socket.on("enrollres", OctMethods.socketListeners.enrollres);
 		socket.on("sesscode", OctMethods.socketListeners.sesscode);
@@ -45,6 +47,19 @@ define(["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
 						value: filenameNoExtension,
 						meta: "file"
 					};
+				}));
+			}
+		});
+
+		// Autocompletion with workspace variables:
+		ace.require("ace/ext/language_tools").addCompleter({
+			getCompletions: function (editor, session, pos, prefix, callback) {
+				console.log("Workspace variable completions");
+				callback(null, ko.utils.arrayMap(workspaceVars(), function(v){
+					return {
+						value: v.symbol(),
+						meta: "var"
+					}
 				}));
 			}
 		});

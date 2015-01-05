@@ -3,6 +3,7 @@
 @import "compass";
 @import "util";
 @import "../vendor/splittr/splittr";
+@import "compass/css3/transition";
 
 $header_height: 40px;
 $header_border: 4px;
@@ -101,6 +102,24 @@ $callout_color: #369AFF;
 			border-color: $callout_color transparent transparent $callout_color;
 		}
 	}
+}
+
+// Transition Delays
+.transition-duration-instant{
+	@include transition-duration(0s);
+}
+.transition-duration-fast{
+	@include transition-duration(0.5s);
+}
+.transition-duration-medium{
+	@include transition-duration(1s);
+}
+.transition-duration-slow{
+	@include transition-duration(2s);
+}
+
+.transition-property-bgcolor{
+	@include transition-property(background-color);
 }
 
 // General Purpose Styles
@@ -816,6 +835,39 @@ div#container{
 
 					font-size: $prompt_font_size;
 					line-height: $prompt_font_size;
+				}
+			}
+		}
+	}
+
+	// Workspace
+	#workspace_panel{
+		width: 0;
+		position: absolute;
+		height: 100%;
+		overflow: auto;
+		-ms-overflow-style: -ms-autohiding-scrollbar;
+
+		#workspace_header{
+			height: $editor_toolbar_height;
+			border: none;
+			text-align: center;
+		}
+
+		#workspace_content{
+			height: calc(100% - #{$editor_toolbar_height});
+
+			ul{
+				list-style-type: none;
+				padding-left: 0;
+				margin: 0;
+
+				li {
+					cursor: pointer;
+					padding: 0.1em;
+					white-space: nowrap;
+					overflow: hidden;
+					border: none;
 				}
 			}
 		}

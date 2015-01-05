@@ -164,7 +164,7 @@
 	</div>
 </div>
 
-<div id="container" data-splittr="vertical dynamic 0 0">
+<div id="container" data-splittr="vertical dynamic 0 0 50">
 	<div id="files_container" data-splittr-collapsible>
 		<div id="files_toolbar" class="theme-header">
 			<span id="files_toolbar_create" title="Create empty file"></span>
@@ -237,6 +237,19 @@
 			</p>
 		</div>
 		<!-- /ko -->
+	</div>
+	<div id="workspace_panel">
+		<div id="workspace_header" class="theme-header">
+			Vars
+		</div>
+		<div id="workspace_content">
+			<ul data-bind="foreach: vars">
+				<li data-bind="click: showDetails, attr: { title: typeExplanation }, flash: value">
+					<span class="workspace_type" data-bind="text: typeString"></span>
+					<span class="workspace_symb" data-bind="text: symbol"></span>
+				</li>
+			</ul>
+		</div>
 	</div>
 	<div id="output_panel">
 		<div id="console_container">

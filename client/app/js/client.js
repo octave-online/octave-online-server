@@ -3,10 +3,12 @@
 define(
 	["jquery", "knockout", "canvg", "splittr", "base64", "js/download",
 		"js/anal", "base64-toblob", "ismobile", "exports", "js/octfile",
+		"js/vars", "ko-takeArray",
 		"jquery.md5", "jquery.purl", "ace/theme/crimson_editor",
 		"ace/theme/merbivore_soft"],
 function($, ko, canvg, splittr, Base64, download,
-         anal, b64ToBlob, isMobile, exports, OctFile){
+         anal, b64ToBlob, isMobile, exports, OctFile,
+         Var, koTakeArray){
 
 	/* * * * START KNOCKOUT SETUP * * * */
 
@@ -29,8 +31,10 @@ function($, ko, canvg, splittr, Base64, download,
 
 	// Initialize MVVM variables
 	var allOctFiles = ko.observableArray([]);
+	var workspaceVars = ko.observableArray([]);
 	var viewModel = window.viewModel = {
 		files: allOctFiles,
+		vars: workspaceVars,
 		openFile: ko.observable(),
 		close: function(){
 			OctMethods.editor.close();
@@ -61,7 +65,7 @@ function($, ko, canvg, splittr, Base64, download,
 				return item.filename() === filename;
 			});
 		}
-	}
+	};
 
 	/* * * * END KNOCKOUT, START EDITOR/CONSOLE/PROMPT * * * */
 
@@ -564,6 +568,7 @@ function($, ko, canvg, splittr, Base64, download,
 				$("#login").hide();
 				$("#login-promo").hide();
 				$("#name").text(data.name);
+				splittr.resize($("#workspace_panel")[0], 350);
 				splittr.resize($("#open_container")[0], 300);
 				splittr.resize($("#files_container")[0], 100);
 
@@ -616,6 +621,12 @@ function($, ko, canvg, splittr, Base64, download,
 				}else if(data.command.substr(0,6) === "enroll"){
 					OctMethods.prompt.askForEnroll(data.command.substr(7));
 				}
+			},
+			workspace: function(data){
+				// update workspace variables
+				koTakeArray(Var, workspaceVars, "symbol",
+					data.vars, "symbol");
+				workspaceVars.sort(Var.sorter);
 			},
 			enrollres: function(data){
 				if(data.err){

@@ -40,6 +40,11 @@ header{
 	border-bottom-color: $color3;
 }
 
+// Flashing Style
+.ko-flash{
+	background-color: lighten($color2, 20%);
+}
+
 #privacy{
 	border: 0.5em solid $color3;
 }
@@ -60,6 +65,14 @@ header{
 		&.file_active{
 			background: $color3;
 		}
+	}
+}
+
+#workspace_panel{
+	background: $color2;
+
+	.workspace_type {
+		color: $color3;
 	}
 }
 
