@@ -183,8 +183,7 @@
 	<div id="open_container">
 		<!-- ko if: openFile -->
 		<div id="editor_toolbar" class="theme-header">
-			<span id="editor_filename"
-			data-bind="text: openFile().filename, css: { 'modified': openFile().isModified }"></span>
+			<span id="editor_filename" data-bind="text: openFile().filename, css: { 'modified': openFile().isModified }"></span>
 
 			<div id="editor_btn_container">
 				<!-- ko if: openFile().runnable -->
@@ -200,9 +199,7 @@
 			</div>
 		</div>
 		<!-- ko template: { if: openFile().editable, afterRender: editorRendered } -->
-		<div id="editor"
-		data-bind="ace: openFile().content, aceOptions: { theme: viewModel.selectedSkin().rawAceTheme, mode: 'octave' }"
-		style="height: calc(100% - 20px);"></div>
+		<div id="editor" data-bind="ace: openFile().content, aceOptions: { theme: viewModel.selectedSkin().rawAceTheme, mode: 'octave' }" style="height: calc(100% - 20px);"></div>
 		<!-- the editor won't work unless there is an inline height style -->
 		<!-- /ko -->
 		<!-- ko template: { ifnot: openFile().editable, afterRender: editorUnRendered } -->
@@ -246,72 +243,51 @@
 			<pre id="console"></pre>
 			<div id="type_here">
 				<span class="l1">Want an interactive session?</span>
-				<span class="l2">This is a live Octave command prompt.  Type expressions here and press enter, like <kbd>sin(pi/3)</kbd> or <kbd>help
-					fplot</kbd></span>
-					<span class="l3">Tip: Sign in to run script files.</span>
-				</div>
-				<div id="prompt_container">
-					<div id="prompt_sign">&#x25B7;</div>
-					<div id="prompt"></div>
-				</div>
-				<div id="runtime_controls_container">
-					<span id="signal" title="Stop Currently Running Command (send SIGINT)"></span>
-					<span id="seconds_remaining_container">
-						Seconds Remaining:
-						<span id="seconds_remaining">0</span>
-					</span>
-				</div>
+				<span class="l2">This is a live Octave command prompt.  Type expressions here and press enter, like <kbd>sin(pi/3)</kbd> or <kbd>help fplot</kbd></span>
+				<span class="l3">Tip: Sign in to run script files.</span>
 			</div>
-			<span id="plot_opener" title="Expand Plot Window"></span>
-
-			<div id="plot_container">
-				<div id="plot_figure_container" title="Click to zoom">
-					<div id="plot_svg_container"></div>
-					<div id="plot_loading">
-						<img src="images/spinner.svg" alt="Loading&hellip;"/>
-					</div>
-					<div id="plot_canvas_container">
-						<canvas id="plot_canvas" width="600" height="400"></canvas>
-					</div>
-				</div>
-				<div id="plot_controls_container">
-					<span id="plot_close_btn" title="Collapse Plot Window"></span>
-					<span id="plot_download_btn" title="Download Plot as Image"></span>
-					<span id="plot_info">Plot</span>
-				</div>
+			<div id="prompt_container">
+				<div id="prompt_sign">&#x25B7;</div>
+				<div id="prompt"></div>
 			</div>
-		</div>
-	</div>
-
-	<div id="privacy"></div>
-	<div id="site_loading">
-		<img src="images/spinner.svg" alt="Loading&hellip;"/>
-		<span id="site_loading_patience" style="display:none;">Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.</span>
-	</div>
-	<div id="bigdialog">
-		<div id="bd_outer">
-			<div id="bd_inner">
-				<span id="bd_title">
-					Message from our Sponsors:
-				</span>
-
-				<div id="bd_block">
-					Looks like you use AdBlock!<br/><br/>
-					We hate ads as much as you do, but they help support Octave Online. Please consider turning off AdBlock
-					on Octave Online. Thanks!
-				</div>
-				<div id="bd_holder"></div>
-				<span id="bd_closebtn" data-purpose="close"></span>
-				<span id="bd_dismiss" data-purpose="close">
-					dismiss
+			<div id="runtime_controls_container">
+				<span id="signal" title="Stop Currently Running Command (send SIGINT)"></span>
+				<span id="seconds_remaining_container">
+					Seconds Remaining:
+					<span id="seconds_remaining">0</span>
 				</span>
 			</div>
 		</div>
-	</div>
+		<span id="plot_opener" title="Expand Plot Window"></span>
 
-	<!-- Begin RequireJS -->
-	<script data-main="main" src="vendor/requirejs/require.js"></script>
-	<!-- End RequireJS -->
-	<script src="js/startup.js"></script>
+		<div id="plot_container">
+			<div id="plot_figure_container" title="Click to zoom">
+				<div id="plot_svg_container"></div>
+				<div id="plot_loading">
+					<img src="images/spinner.svg" alt="Loading&hellip;"/>
+				</div>
+				<div id="plot_canvas_container">
+					<canvas id="plot_canvas" width="600" height="400"></canvas>
+				</div>
+			</div>
+			<div id="plot_controls_container">
+				<span id="plot_close_btn" title="Collapse Plot Window"></span>
+				<span id="plot_download_btn" title="Download Plot as Image"></span>
+				<span id="plot_info">Plot</span>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="privacy"></div>
+<div id="site_loading">
+	<img src="images/spinner.svg" alt="Loading&hellip;"/>
+	<span id="site_loading_patience" style="display:none;">Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.</span>
+</div>
+
+<!-- Begin RequireJS -->
+<script data-main="main" src="vendor/requirejs/require.js"></script>
+<!-- End RequireJS -->
+<script src="js/startup.js"></script>
 </body>
 </html>
