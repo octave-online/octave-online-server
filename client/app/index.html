@@ -91,14 +91,17 @@
 			<span class="l3">Sign in so you can save, edit, upload, and run Octave script files.</span>
 			<span class="l4" data-purpose="close">dismiss</span>
 		</div>
-		<div id="login" class="site-control-item"><a href="/auth/google">
-			<img src="images/google.ico" alt="Google"/>
-			<span>Sign In</span>
-		</a></div>
-		<div id="logout" class="site-control-item">
-			<span id="name"></span>
-			<a href="/logout" id="logout_icon" title="Sign Out"></a>
+		<!-- ko ifnot: currentUser -->
+		<div id="login-item" class="site-control-item site-control-btn">
+			<a id="login-link" data-bind="click: doLogin">Sign In</a>
 		</div>
+		<!-- /ko -->
+		<!-- ko if: currentUser -->
+		<div id="logout-item" class="site-control-item">
+			<span data-bind="text: currentUser().name"></span>
+			<a id="logout_icon" title="Sign Out" data-bind="click: doLogout"></a>
+		</div>
+		<!-- /ko -->
 		<div class="site-control-item site-control-btn" id="feedback-btn">
 			<a href="javascript:void(0)"
 			data-uv-lightbox="classic_widget"
@@ -125,7 +128,7 @@
 	</div>
 </header>
 
-<div id="onboarding">
+<div id="onboarding" data-purpose="popover">
 	<div>
 		<h2>Welcome to Octave Online.</h2>
 
@@ -297,6 +300,19 @@
 	<img src="images/spinner.svg" alt="Loading&hellip;"/>
 	<span id="site_loading_patience" style="display:none;">Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.</span>
 </div>
+
+<div id="login_box" data-purpose="popover"><div><div>
+	<p class="login_description">
+		How do you want to sign in?
+	</p>
+	<img id="sign_in_with_email" class="login_btn" src="images/sign-in-with-persona.png" alt="Sign in with Email" />
+	<img id="sign_in_with_google" class="login_btn" src="images/sign-in-with-google.png" alt="Sign in with Google" />
+	<hr />
+	<p class="login_bottom">
+		Signed in before but need to change your email address?  Click "Feedback" and create a ticket.  We will change it for you.
+	</p>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
 
 <!-- Begin RequireJS -->
 <script data-main="main" src="vendor/requirejs/require.js"></script>

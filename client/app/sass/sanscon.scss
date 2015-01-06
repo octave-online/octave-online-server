@@ -1,0 +1,28 @@
+// Sanscon (Icon) Mixins
+
+$all-employed-sanscon-icons: document, open, download, save, trash, close, arrow1_ne, download, arrow1_sw;
+$all-employed-sanscon-colors: white, black;
+
+@function sanscon-url($icon, $color){
+	@return url(../images/sanscons/gif/#{$color}/16x16/#{$icon}.gif);
+}
+@mixin sanscon-base{
+	background-repeat: no-repeat;
+	background-position: center center;
+	width: 18px;
+	height: 20px;
+	display: inline-block;
+	cursor: pointer;
+}
+@mixin sanscon-static($id, $color){
+	@include sanscon-base;
+	background-image: sanscon-url($id, $color);
+}
+@mixin sanscon($id){
+	@include sanscon-base;
+	@each $sanscon-color in $all-employed-sanscon-colors {
+		body[data-sanscons-color="#{$sanscon-color}"] & {
+			background-image: sanscon-url($id, $sanscon-color);
+		}
+	}
+}

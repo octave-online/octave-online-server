@@ -3,7 +3,7 @@ define(["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
 		"knockout-ace", "ko-flash", "ace/mode/octave", "ace/ext/language_tools"],
 
 	function (ko, io, OctMethods, ace, $, isMobile,
-	          splittr, SocketIOFileUpload, anal, onboarding) {
+	          splittr, SocketIOFileUpload, anal) {
 
 		// Initial GUI setup
 		splittr.init();
@@ -208,27 +208,18 @@ define(["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
 			OctMethods.prompt.focus();
 			anal.sitecontrol("theme");
 		});
-		$("#logout_icon").click(function () {
-			onboarding.reset();
-			if (confirm("You are being signed out of Octave Online.\n\n" +
-				"If you are using a shared computer, make sure to sign out " +
-				"of your Google account as well.  Click 'OK' to open your " +
-				"Google account dashboard.")) {
-				window.open("https://accounts.google.com/");
-			}
-		});
 		$("#twitter-follow-holder").click(function () {
 			anal.sitecontrol("twitter");
 		});
 		$("#feedback-btn").click(function () {
 			anal.sitecontrol("feedback");
 		});
-		OctMethods.load.startPatience();
-		$("#bigdialog").find("[data-purpose='close']").click(function () {
-			// Clicking on a close button in the ad dialog window
-			$("#bigdialog").fadeOut(500);
+		$("[data-purpose='close']").click(function () {
+			// Clicking on a close button in a popover box
+			$(this).closest("[data-purpose='popover']").fadeOut(250);
 			OctMethods.prompt.focus();
 		});
+		OctMethods.load.startPatience();
 
 		/* * * * END GUI * * * */
 

@@ -87,11 +87,6 @@ header{
 	background-color: rgba(255, 255, 255, 0.8);
 }
 
-#bd_inner{
-	background-color: white;
-	color: black;
-	#bd_block{
-		background-color: $color1;
-		color: black;
-	}
+#login_box > div > div {
+	background-color: $colorbkg;
 }

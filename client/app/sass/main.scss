@@ -2,6 +2,8 @@
 // Compiler: SASS 3.2.3 and Compass 0.12.2
 @import "compass";
 @import "util";
+@import "sanscon";
+@import "popover";
 @import "../vendor/splittr/splittr";
 @import "compass/css3/transition";
 
@@ -52,33 +54,7 @@ $heading_font_family: "Bangers", "Impact", sans-serif;
 	@include background-image-with-ms(linear-gradient(top, #fff 0%, #f29382 100%));
 }
 
-// Sanscons
-$all-employed-sanscon-icons: document, open, download, save, trash, close, arrow1_ne, download, arrow1_sw;
-$all-employed-sanscon-colors: white, black;
 
-@function sanscon-url($icon, $color){
-	@return url(../images/sanscons/gif/#{$color}/16x16/#{$icon}.gif);
-}
-@mixin sanscon-base{
-	background-repeat: no-repeat;
-	background-position: center center;
-	width: 18px;
-	height: 20px;
-	display: inline-block;
-	cursor: pointer;
-}
-@mixin sanscon-static($id, $color){
-	@include sanscon-base;
-	background-image: sanscon-url($id, $color);
-}
-@mixin sanscon($id){
-	@include sanscon-base;
-	@each $sanscon-color in $all-employed-sanscon-colors {
-		body[data-sanscons-color="#{$sanscon-color}"] & {
-			background-image: sanscon-url($id, $sanscon-color);
-		}
-	}
-}
 
 // Callouts
 $callout_color: #369AFF;
@@ -218,13 +194,8 @@ header{
 		#change-skin{
 			cursor: pointer;
 		}
-		#login{
-			a {
-				text-decoration: none;
-				img{
-					margin-top: -4px;
-				}
-			}
+		#login-item{
+			cursor: pointer;
 		}
 		#logout{
 			display: none;
@@ -319,78 +290,36 @@ header{
 	}
 }
 
-// Large Dialog Ad Div
-#bigdialog{
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 300;
-	background: rgba(128, 128, 128, .8);
+// Login Box
+#login_box{
+	@include popover(270px, 230px, 300);
 	display: none;
 
-	#bd_outer{
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 0;
-		height: 0;
+	.login_description{
+		text-align: center;
+		font-size: 1.2em;
+	}
 
-		#bd_inner{
-			position: absolute;
-			top: -170px;
-			left: -178px;
-			width: 356px;
-			height: 340px;
+	.login_btn{
+		display: block;
+		position: relative;
+		margin: 10px auto;
+		width: 200px;
+		height: auto;
+		cursor: pointer;
+	}
 
-			#bd_title{
-				display: block;
-				position: absolute;
-				top: 7px;
-				width: 100%;
-				text-align: center;
-				font-style: italic;
-			}
+	hr{
+		margin: 20px auto 10px;
+		border: none;
+		width: 90%;
+		height: 1px;
+		background-color: #999;
+	}
 
-			#bd_holder {
-				position: absolute;
-				top: 30px;
-				left: 10px;
-				width: 336px;
-				height: 280px;
-			}
-
-			#bd_block {
-				position: absolute;
-				padding: 30px 10px 10px;
-				top: 30px;
-				left: 10px;
-				width: 316px;
-				height: 240px;
-				text-align: center;
-				font-size: 2em;
-				line-height: 1em;
-			}
-
-			#bd_closebtn{
-				@include sanscon(close);
-				display: block;
-				position: absolute;
-				top: 5px;
-				right: 5px;
-			}
-
-			#bd_dismiss{
-				display: block;
-				position: absolute;
-				bottom: 7px;
-				width: 100%;
-				text-align: center;
-				text-decoration: underline;
-				cursor: pointer;
-			}
-		}
+	.login_bottom{
+		text-align: center;
+		margin: 0 10px;
 	}
 }
 

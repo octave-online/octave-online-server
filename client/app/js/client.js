@@ -3,12 +3,12 @@
 define(
 	["jquery", "knockout", "canvg", "splittr", "base64", "js/download",
 		"js/anal", "base64-toblob", "ismobile", "exports", "js/octfile",
-		"js/vars", "ko-takeArray",
+		"js/vars", "ko-takeArray", "require",
 		"jquery.md5", "jquery.purl", "ace/theme/crimson_editor",
 		"ace/theme/merbivore_soft"],
 function($, ko, canvg, splittr, Base64, download,
          anal, b64ToBlob, isMobile, exports, OctFile,
-         Var, koTakeArray){
+         Var, koTakeArray, require){
 
 	/* * * * START KNOCKOUT SETUP * * * */
 
@@ -34,13 +34,32 @@ function($, ko, canvg, splittr, Base64, download,
 	var workspaceVars = ko.observableArray([]);
 	var viewModel = window.viewModel = {
 		files: allOctFiles,
-		vars: workspaceVars,
 		openFile: ko.observable(),
 		close: function(){
 			OctMethods.editor.close();
 		},
 		availableSkins: availableSkins,
 		selectedSkin: ko.observable(availableSkins()[0]),
+		vars: workspaceVars,
+
+		// Sign In / Sign Out
+		currentUser: ko.observable(),
+		doLogin: function(){
+			$("#login_box").show();
+			if(!require.defined("js/login")){
+				require(["js/login"], function(L){
+					$("#sign_in_with_email").click(function () {
+						 L.login(false);
+					});
+					$("#sign_in_with_google").click(function () {
+						 L.login(true);
+					});
+				});
+			}
+		},
+		doLogout: function(){
+			require(["js/login"], function(L){ L.logout(); });
+		},
 
 		editorRendered: function(){
 			var editor = ko.aceEditors.get("editor");
@@ -546,15 +565,9 @@ function($, ko, canvg, splittr, Base64, download,
 				return download(blob, octfile.filename());
 			},
 			user: function(data){
-				if(OctMethods.editor.initialized){
-					// Socket.IO must have reconnected.
-					// Do not double-add files.
-					return false;
-				}
-				OctMethods.editor.initialized = true;
 
-				// Load relevant user information into the API
-				OctMethods.prompt.legalTime = data.legalTime;
+				// Load files
+				OctMethods.editor.reset();
 				$.each(data.files, function(filename, filedata){
 					if(filedata.isText){
 						OctMethods.editor.add(filename, Base64.decode(filedata.content));
@@ -563,17 +576,26 @@ function($, ko, canvg, splittr, Base64, download,
 					}
 				});
 
-				// Set up the UI
-				$("#logout").show();
-				$("#login").hide();
-				$("#login-promo").hide();
-				$("#name").text(data.name);
-				splittr.resize($("#workspace_panel")[0], 350);
-				splittr.resize($("#open_container")[0], 300);
-				splittr.resize($("#files_container")[0], 100);
+				// One-time methods
+				if (!OctMethods.editor.initialized) {
+					OctMethods.editor.initialized = true;
 
-				// Analytics
-				anal.signedin();
+					// Legal runtime
+					OctMethods.prompt.legalTime = data.legalTime;
+
+					// Set up the UI
+					splittr.resize($("#workspace_panel")[0], 350);
+					splittr.resize($("#open_container")[0], 300);
+					splittr.resize($("#files_container")[0], 100);
+
+					// Trigger Knockout
+					viewModel.currentUser({
+						name: data.name
+					});
+
+					// Analytics
+					anal.signedin();
+				}
 			},
 			fileadd: function(data){
 				if(data.isText){
@@ -770,7 +792,6 @@ function($, ko, canvg, splittr, Base64, download,
 			reset: function(){
 				viewModel.openFile(null);
 				allOctFiles.removeAll();
-				OctMethods.editor.initialized = false;
 			}
 		},
 

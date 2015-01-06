@@ -22,6 +22,10 @@ require.config({
 		"webfont": [
 			"http://ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont",
 			"/js-default/webfont"
+		],
+		"persona": [
+			"https://login.persona.org/include",
+			"/js-default/persona"
 		]
 	},
 	shim:{
@@ -33,6 +37,9 @@ require.config({
 		},
 		"analytics": {
 			exports: "ga"
+		},
+		"persona": {
+			exports: "navigator.id"
 		}
 	}
 });
@@ -51,7 +58,10 @@ window.addthis_share = {
 		twitter: "Check out @OctaveOnline -- a free online MATLAB-like prompt! {{url}}"
 	}
 };
-require(["webfont", "js/anal", "twitter", "addthis", "uservoice"], function(WebFont, anal){
+require(["webfont", "js/anal",
+	"twitter", "addthis", "uservoice"],
+	function(WebFont, anal){
+
 	// Fonts
 	WebFont.load({
 		google: {
@@ -59,9 +69,7 @@ require(["webfont", "js/anal", "twitter", "addthis", "uservoice"], function(WebF
 		}
 	});
 
-	// Adsense
-	window.adsbygoogle = [];
-
 	// Analytics
 	anal.pageview();
+
 });

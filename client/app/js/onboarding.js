@@ -10,15 +10,9 @@ define(["jquery", "jquery.cookie"], function($){
 	}
 
 	// Set event listeners for the onboarding div
-	$onboarding.find("[data-purpose='close']").each(function(){
-		$(this).click(function(){
-			$.cookie("oo_onboarding_complete", "true", {
-				expires: 1000
-			});
-			$onboarding.fadeOut(200);
-
-			// We need to use require() here because of a circular reference
-			require("client").prompt.focus();
+	$onboarding.find("[data-purpose='close']").click(function(){
+		$.cookie("oo_onboarding_complete", "true", {
+			expires: 1000
 		});
 	});
 
