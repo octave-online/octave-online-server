@@ -8,10 +8,39 @@ import Config = require("./config");
 import GoogleOAuth = require("passport-google-oauth");
 import Persona = require("passport-persona");
 import User = require("./user_model");
+import IUser = require("./user_interface");
 
 var baseUrl = Config.url.protocol + "://" + Config.url.hostname
 	+ ":" + Config.url.port + "/";
 var callbackUrl = baseUrl + "auth/google/callback";
+
+function findOrCreateUser(email:string, profile:any,
+		done:(err:Error, user?:IUser)=>void) {
+	User.findOne({
+		email: email
+	}, (err, user) => {
+		if (err) {
+			return done(err);
+		}
+
+		if (user) {
+			// Returning user
+			console.log("Returning User", user.consoleText);
+			done(null, user);
+
+		} else {
+			// Make a new user
+			console.log("Creating New User");
+			User.create({
+				email: email,
+				profile: profile
+			}, (err, user) => {
+				console.log("New User", user.consoleText);
+				done(err, user);
+			});
+		}
+	});
+}
 
 var googleStrategy = new (GoogleOAuth.OAuth2Strategy)({
 		callbackURL: callbackUrl,
@@ -19,41 +48,16 @@ var googleStrategy = new (GoogleOAuth.OAuth2Strategy)({
 		clientSecret: Config.google.oauth_secret
 	},
 	function (accessToken, refreshToken, profile, done) {
-		console.log("Google Callback", arguments);
-		console.log(profile.emails);
-		/*
-		User.findOne({
-			"openid.identifier": identifier
-		}, (err, user)=> {
-			if (err) {
-				return done(err);
-			}
-			if (user) {
-				// Returning user
-				console.log("Returning User", user.consoleText);
-				done(null, user);
-			} else {
-				// Make a new user
-				console.log("Creating New User");
-				User.create({
-					openid: {
-						identifier: identifier,
-						profile: profile
-					}
-				}, (err, user) => {
-					console.log("New User", user.consoleText);
-					done(err, user);
-				});
-			}
-		});
-		*/
-	});
+		console.log("Google Login", profile.emails[0].value);
+		findOrCreateUser(profile.emails[0].value, profile._json, done);
+	});	
 
 var personaStrategy = new (Persona.Strategy)({
 		audience: baseUrl
 	},
 	function (email, done) {
 		console.log("Persona Callback", email);
+		findOrCreateUser(email, {}, done);
 	});
 
 module PassportSetup {
