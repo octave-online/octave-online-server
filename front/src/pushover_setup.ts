@@ -27,13 +27,7 @@ repos.on("fetch", function (fetch) {
 });
 
 // Make a router to handle requests for the repos
-var _router = Express.Router();
-
-// Request authorization
-_router.use(BasicAuth.middleware("Octave Online Repos"));
-
-// Check authorization
-_router.get("*", function(req, res, next){
+function _router(req, res, next){
 	var url = Url.parse(req.url);
 	var m = url.pathname.match(/^\/(\w+\.git)/);
 	if (!m) return res.sendStatus(404);
@@ -62,10 +56,17 @@ _router.get("*", function(req, res, next){
 		}
 
 		// We should be all good now.  Give request to Pushover.
+		// 
+		// We need to do this req.pause() hack because Pushover doesn't support
+		// Express servers out of the box.
+		// 
+		// See https://github.com/substack/pushover/issues/30
+		// 
+		req.pause();
 		repos.handle(req, res);
-
+		req.resume();
 	});
-});
+};
 
 module PushoverHandler {
 	export var router:Express.RequestHandler = _router;

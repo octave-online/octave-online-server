@@ -13,6 +13,7 @@ import ServeStatic = require("serve-static");
 import Compression = require("compression");
 import BodyParser = require("body-parser");
 import PushoverHandler = require("./pushover_setup");
+import BasicAuth = require("./basic_auth");
 
 module ExpressApp {
 	export function init(){
@@ -23,6 +24,7 @@ module ExpressApp {
 			.use(BodyParser.urlencoded({ extended: true }))
 			.use(Passport.initialize())
 			.use(Passport.session())
+			.use("/repos", BasicAuth.middleware("Octave Online Repos"))
 			.use("/repos", PushoverHandler.router)
 			.use(Siofu.router)
 			.post("/auth/persona", Passport.authenticate("persona", {
@@ -49,10 +51,10 @@ module ExpressApp {
 				res.end("define('"+req.params.id+"',function(){return function(){}});");
 			})
 			.get("*", function(req, res){
-				res.send(404, "Unknown route");
+				res.sendStatus(404);
 			}).listen(Config.url.listen_port);
 
-		console.log("Initialized Express Server");
+		console.log("Initialized Express Server on port ", Config.url.listen_port);
 	}
 
 	export var app:Http.Server;
