@@ -8,6 +8,9 @@ interface IAppConfig {
 		hostname: string;
 		db: string;
 	}
+	git: {
+		path: string;
+	}
 	url: {
 		protocol: string;
 		hostname: string;

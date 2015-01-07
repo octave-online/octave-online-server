@@ -11,7 +11,8 @@ import Siofu = require("socketio-file-upload");
 import Http = require("http");
 import ServeStatic = require("serve-static");
 import Compression = require("compression");
-import BodyParser = require("body-parser")
+import BodyParser = require("body-parser");
+import PushoverHandler = require("./pushover_setup");
 
 module ExpressApp {
 	export function init(){
@@ -22,6 +23,7 @@ module ExpressApp {
 			.use(BodyParser.urlencoded({ extended: true }))
 			.use(Passport.initialize())
 			.use(Passport.session())
+			.use("/repos", PushoverHandler.router)
 			.use(Siofu.router)
 			.post("/auth/persona", Passport.authenticate("persona", {
 				successRedirect: "/",

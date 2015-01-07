@@ -16,6 +16,7 @@ var userSchema = new Mongoose.Schema({
 		identifier: String,
 		profile: Mongoose.Schema.Types.Mixed
 	},
+	repo_key: String,
 	program: String
 });
 

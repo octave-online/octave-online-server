@@ -3,12 +3,18 @@
 import mongoose = require("mongoose");
 
 interface IUser extends mongoose.Document {
+	email: string
+	parametrized: string
+	profile: any
 	openid: {
 		identifier: string
 		profile: any
 	}
+	repo_key: string
 	program: string
-	parametrized: string
+
+	// Virtuals
+	displayName: string
 	consoleText: string
 }
 
