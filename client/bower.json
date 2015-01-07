@@ -11,6 +11,9 @@
     "canvg": "latest",
     "ace-builds": "latest",
     "knockout-ace": "https://github.com/vote539/knockout-ace.git",
-    "splittr": "~1.0.0"
+    "splittr": "~1.0.0",
+    "canvas-toBlob.js": "~0.1.3",
+    "blob": "*",
+    "FileSaver": "*"
   }
 }
