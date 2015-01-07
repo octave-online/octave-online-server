@@ -7,10 +7,11 @@ This repository contains the web frontend code for Octave Online.
 
 Before you can run any of the build scripts, you will need to install Node.JS.
 
-Once Node.JS is installed, you will need Grunt and Bower.
+Once Node.JS is installed, you will need Grunt, Bower, and Compass.
 
     npm install -g grunt-cli
     npm install -g bower
+    gem install compass
 
 Now, install the Octave Online Client dependencies like so:
 

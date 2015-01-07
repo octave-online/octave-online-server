@@ -23,7 +23,8 @@ module.exports = function (grunt) {
 				options: {
 					sassDir: "app/sass",
 					cssDir: "dist/css",
-					environment: "production"
+					environment: "production",
+					outputStyle: "compact" // using "compress" breaks the sanscons
 				}
 			},
 			dev: {
@@ -47,7 +48,8 @@ module.exports = function (grunt) {
 					"compatibility.html",
 					"images/**",
 					"js/modernizr-201406b.js",
-					"js/startup.js"
+					"js/startup.js",
+					"js/login.js"
 				],
 				dest: "dist",
 				expand: true
