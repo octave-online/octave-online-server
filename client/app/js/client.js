@@ -5,7 +5,7 @@ define(
 		"js/anal", "base64-toblob", "ismobile", "exports", "js/octfile",
 		"js/vars", "ko-takeArray", "require",
 		"jquery.md5", "jquery.purl", "ace/theme/crimson_editor",
-		"ace/theme/merbivore_soft"],
+		"ace/theme/merbivore_soft", "knockout-ace"],
 function($, ko, canvg, splittr, Base64, download,
          anal, b64ToBlob, isMobile, exports, OctFile,
          Var, koTakeArray, require){
