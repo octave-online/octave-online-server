@@ -46,6 +46,7 @@ module.exports = function (grunt) {
 					"privacy.txt",
 					"compatibility.html",
 					"images/**",
+					"errors/**",
 					"js/modernizr-201406b.js",
 					"js/startup.js"
 				],
