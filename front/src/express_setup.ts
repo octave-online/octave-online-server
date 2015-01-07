@@ -50,7 +50,7 @@ module ExpressApp {
 			})
 			.get("*", function(req, res){
 				res.send(404, "Unknown route");
-			}).listen(Config.url.port);
+			}).listen(Config.url.listen_port);
 
 		console.log("Initialized Express Server");
 	}

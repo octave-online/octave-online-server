@@ -15,6 +15,7 @@ interface IAppConfig {
 		protocol: string;
 		hostname: string;
 		port: number;
+		listen_port: number;
 	}
 	google: {
 		oauth_key: string;
