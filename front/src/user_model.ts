@@ -21,29 +21,6 @@ var userSchema = new Mongoose.Schema({
 });
 
 // Parametrization function used by Octave Online,
-// c. May 2013 - January 2015
-function v1Parametrize(id:Mongoose.Types.ObjectId, name:string) {
-	// Represent a name such as "John Doe" like "_john_doe".
-	// 
-	var param_name = name
-		.replace(/[^\w\s]|_/g, "")
-		.replace(/\s+/g, " ")
-		.replace(/(^\s*|\s*$)/g, '')
-		.replace(/([A-Z]+)/g, '_$2')
-		.replace(/[-\s]+/g, '_')
-		.toLowerCase();
-
-	// Add an arbittary, but deterministic, six characters.
-	// 
-	var param_id = Crypto.createHash("md5")
-		.update(id).digest("hex").substr(0, 6);
-
-	// Concatenate them together.
-	// 
-	return param_id + "_" + param_name;
-}
-
-// Parametrization function used by Octave Online,
 // c. January 2015 - ?
 function v2Parametrize(id:Mongoose.Types.ObjectId, email:string) {
 	// Represent a name such as "a.b@c.org" like "a_b_c_org".
@@ -105,12 +82,14 @@ userSchema.pre("save", function(next){
 	if (!this.parametrized) {
 		this.parametrized = v2Parametrize(this.id, this.email);
 	}
+	if (!this.repo_key) {
+		this.repo_key = Crypto
+		.createHash("md5")
+		.update(Math.random())
+		.digest("base64")
+		.substr(0, 8);
+	}
 	next();
-});
-
-// Return a file-safe name for this user
-userSchema.virtual("v1parametrized").get(function () {
-	return v1Parametrize(this.id, this.displayName);
 });
 
 // JSON representation: include the virtuals (this object will be transmitted
