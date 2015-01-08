@@ -79,7 +79,8 @@ function($, ko, canvg, splittr, Base64, download,
 		},
 
 		fileNameExists: function(filename){
-			if (filename==="plot.svg" || filename==="logs") return false;
+			// return false for filenames like .logs or .plot.svg
+			if (filename[0] === ".") return false;
 			return !!ko.utils.arrayFirst(allOctFiles(), function(item){
 				return item.filename() === filename;
 			});
