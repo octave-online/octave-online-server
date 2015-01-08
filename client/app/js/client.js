@@ -79,8 +79,11 @@ function($, ko, canvg, splittr, Base64, download,
 		},
 
 		fileNameExists: function(filename){
-			// return false for filenames like .logs or .plot.svg
+			// return false for filenames like .plot
 			if (filename[0] === ".") return false;
+			// also return false for the Octave namespace files
+			if (filename.substr(0,7) === "octave-") return false;
+
 			return !!ko.utils.arrayFirst(allOctFiles(), function(item){
 				return item.filename() === filename;
 			});
