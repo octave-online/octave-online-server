@@ -16,13 +16,11 @@ var repos = Pushover(Config.git.path, {
 
 // Log some events to the console
 repos.on("push", function (push) {
-	console.log("repo push: " + push.repo + "/" + push.commit
-		+ " (" + push.branch + ")"
-		);
+	console.log("repo push", push.branch, push.commit, push.repo);
 	push.accept();
 });
 repos.on("fetch", function (fetch) {
-	console.log("repo fetch: " + fetch.commit);
+	console.log("repo fetch", fetch.branch, fetch.commit, fetch.repo);
 	fetch.accept();
 });
 
