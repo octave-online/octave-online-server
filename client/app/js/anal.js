@@ -4,6 +4,7 @@ define(function(){
 	var q = [];
 
 	// Wait to load Google Analytics to not slow down the module
+	require(["js/runtime"], function(){
 	require(["analytics"], function(_garef){
 		garef = _garef;
 
@@ -15,6 +16,7 @@ define(function(){
 		for (var i=0; i<q.length; i++) {
 			garef.apply(this, q[i]);
 		}
+	});
 	});
 
 	// Function to either call ga() or add to the waiting list
