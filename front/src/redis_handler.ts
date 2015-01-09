@@ -16,6 +16,10 @@ outputClient.psubscribe(IRedis.Chan.output("*"));
 destroyUClient.subscribe(IRedis.Chan.destroyU);
 expireClient.subscribe("__keyevent@0__:expired");
 
+outputClient.setMaxListeners(30);
+destroyUClient.setMaxListeners(30);
+expireClient.setMaxListeners(30);
+
 class RedisHandler extends EventEmitter2.EventEmitter2 {
 	public sessCode:string;
 
