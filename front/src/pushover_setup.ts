@@ -28,11 +28,6 @@ repos.on("fetch", function (fetch) {
 
 // Make a router to handle requests for the repos
 function _router(req, res, next){
-	var url = Url.parse(req.url);
-	var m = url.pathname.match(/^\/(\w+\.git)/);
-	if (!m) return res.sendStatus(404);
-	var repo = m[1];
-
 	// Get the user from the database
 	User.findOne({ email: req.basic_auth.username }, (err, user) => {
 		if (err) {
@@ -50,10 +45,6 @@ function _router(req, res, next){
 			return res.sendStatus(403);
 		}
 
-		// Check the user's repo name
-		if (user.parametrized+".git" !== m[1]) {
-			return res.sendStatus(403);
-		}
 
 		// We should be all good now.  Give request to Pushover.
 		// 
@@ -63,6 +54,7 @@ function _router(req, res, next){
 		// See https://github.com/substack/pushover/issues/30
 		// 
 		req.pause();
+		req.url = "/" + user.parametrized + ".git" + req.url;
 		repos.handle(req, res);
 		req.resume();
 	});

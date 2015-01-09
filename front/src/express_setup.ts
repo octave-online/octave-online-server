@@ -24,8 +24,8 @@ module ExpressApp {
 			.use(BodyParser.urlencoded({ extended: true }))
 			.use(Passport.initialize())
 			.use(Passport.session())
-			.use("/repos", BasicAuth.middleware("Octave Online Repos"))
-			.use("/repos", PushoverHandler.router)
+			.use("/sync.git", BasicAuth.middleware("Octave Online Repos"))
+			.use("/sync.git", PushoverHandler.router)
 			.use(Siofu.router)
 			.post("/auth/persona", Passport.authenticate("persona", {
 				successRedirect: "/",
