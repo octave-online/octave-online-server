@@ -154,21 +154,6 @@ function($, ko, canvg, splittr, Base64, download,
 				btn1.append(document.createTextNode(txt));
 				options.append(btn1);
 
-				// Construct the program-reset button
-				if(OctMethods.editor.program
-					&& OctMethods.editor.program !== "default"){
-					var btn2 = $("<a href=\"javascript:null\"></a>");
-					btn2.click(function(){
-						OctMethods.editor.program = "default";
-						OctMethods.socket.reconnect();
-						options.remove();
-					});
-					var txt = "Use Default Server";
-					btn2.append(document.createTextNode(txt));
-					options.append(document.createTextNode(" or "));
-					options.append(btn2);
-				}
-
 				// Append to the console
 				$("#console").append(options);
 				$("#console").append(document.createTextNode("\n"));
@@ -266,7 +251,6 @@ function($, ko, canvg, splittr, Base64, download,
 
 				if(confirm("Enroll in \"" + program + "\"?\n\n" +
 					"Press Cancel if you don't know what this means.")){
-					OctMethods.editor.program = program;
 					OctMethods.socket.enroll(program);
 				}
 			}
@@ -279,9 +263,16 @@ function($, ko, canvg, splittr, Base64, download,
 
 				// Check if this command is a front-end command
 				var enrollRegex = /^enroll\s*\(['"]?(\w+)['"]?\).*$/;
+				var updateStudentsRegex = /^update_students\s*\(['"]?(\w+)['"]?,\s*['"]?(\w+)['"]?\).*$/;
+
 				if(enrollRegex.test(cmd)){
 					var program = cmd.match(enrollRegex)[1];
 					OctMethods.prompt.askForEnroll(program);
+					OctMethods.prompt.clear(true);
+				}else if(updateStudentsRegex.test(cmd)){
+					var program = cmd.match(updateStudentsRegex)[1];
+					var password = cmd.match(updateStudentsRegex)[2];
+					OctMethods.socket.updateStudents(program, password);
 					OctMethods.prompt.clear(true);
 				}else{
 					OctMethods.console.command(cmd);
@@ -454,6 +445,12 @@ function($, ko, canvg, splittr, Base64, download,
 				return OctMethods.socket.emit("enroll", {
 					program: program
 				});
+			},
+			updateStudents: function(program, password){
+				return OctMethods.socket.emit("update_students", {
+					program: program,
+					password: password
+				})
 			},
 			refresh: function(){
 				return OctMethods.socket.emit("refresh", {});
@@ -653,30 +650,6 @@ function($, ko, canvg, splittr, Base64, download,
 					data.vars, "symbol");
 				workspaceVars.sort(Var.sorter);
 			},
-			enrollres: function(data){
-				if(data.err){
-					console.log(data);
-				}else{
-					// Reconnect to the new server
-					OctMethods.console.writeError(
-						"Reconnecting to program '"+data.program+"'...\n");
-					doSessionClose();
-					OctMethods.editor.reset();
-					OctMethods.socket.reconnect();
-				}
-			},
-			program: function(program){
-				if (program && OctMethods.editor.program
-					&& program !== OctMethods.editor.program) {
-					OctMethods.socket.enroll(OctMethods.editor.program);
-				}else{
-					OctMethods.editor.program = program;
-					if (program && program !== "default"){
-						OctMethods.console.write(
-							"You are enrolled in '" + program + "'\n");
-					}
-				}
-			},
 			sesscode: function(data){
 				console.log("sessCode", data.sessCode);
 				OctMethods.socket.sessCode = data.sessCode;
@@ -709,7 +682,6 @@ function($, ko, canvg, splittr, Base64, download,
 			defaultContent: 'disp("Hello World");\n',
 			running: false,
 			initialized: false,
-			program: null,
 			save: function(octfile){
 				if(OctMethods.socket.save(octfile)){
 					var md5hash = $.md5(octfile.content);

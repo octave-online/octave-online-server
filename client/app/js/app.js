@@ -30,8 +30,6 @@ define(["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
 		socket.on("plote", OctMethods.socketListeners.plote);
 		socket.on("ctrl", OctMethods.socketListeners.ctrl);
 		socket.on("workspace", OctMethods.socketListeners.workspace);
-		socket.on("program", OctMethods.socketListeners.program);
-		socket.on("enrollres", OctMethods.socketListeners.enrollres);
 		socket.on("sesscode", OctMethods.socketListeners.sesscode);
 		socket.on("init", OctMethods.socketListeners.init);
 		socket.on("destroy-u", OctMethods.socketListeners.destroyu);
@@ -120,6 +118,7 @@ define(["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
 		// Add listeners to the file list toolbar
 		$("#files_toolbar_create").click(OctMethods.editorListeners.newCB);
 		$("#files_toolbar_refresh").click(OctMethods.editorListeners.refresh);
+		$("#files_toolbar_info").click(OctMethods.editorListeners.info);
 
 		// Set up the file uploader:
 		try {
