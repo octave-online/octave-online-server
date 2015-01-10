@@ -74,6 +74,9 @@ $callout_color: #369AFF;
 		@if $direction == "up" {
 			border-color: transparent $callout_color $callout_color transparent;
 		}
+		@else if $direction == "left" {
+			border-color: transparent transparent $callout_color $callout_color;
+		}
 		@else {
 			border-color: $callout_color transparent transparent $callout_color;
 		}
@@ -323,6 +326,93 @@ header{
 	}
 }
 
+// Sync promo callout
+#sync-promo{
+	@include callout(4px, left);
+	top: $header_height + $editor_toolbar_height + 15px;
+	left: 60px;
+	width: 200px;
+	height: 125px;
+	text-align: center;
+	z-index: 101;
+	padding: 10px 10px;
+	display: none;
+
+	// Arrow
+	&::before {
+		left: 10px;
+		top: -20px;
+	}
+
+	// Text Flow
+	& > span {
+		display: block;
+		line-height: 1em;
+		&.l1{
+			font-size: 1.3em;
+		}
+		&.l2{
+			font-size: 1.8em;
+			margin-top: 5px;
+		}
+		&.l3{
+			font-size: 1.1em;
+			margin-top: 5px;
+		}
+		&.l4{
+			font-size: 1em;
+			margin-top: 10px;
+			cursor: pointer;
+			text-decoration: underline;
+		}
+	}
+}
+
+// Sync info box
+#sync_info_box{
+	@include popover(400px, 300px, 250);
+	display: none;
+	text-align: center;
+	font-size: 1.2em;
+	line-height: 1.2em;
+
+	& > div > div {
+		overflow: auto;
+	}
+
+	h3 {
+		font-size: 1.4em;
+	}
+
+	p {
+		margin: 10px;
+	}
+
+	ul {
+		padding-left: 0;
+	}
+
+	li {
+		list-style-type: none;
+		padding-left: 0;
+		margin-bottom: 5px;
+
+		strong {
+			display: block;
+			font-weight: normal;
+			text-decoration: underline;
+		}
+
+		kbd {
+			display: inline-block;
+			padding: 5px;
+			border-radius: 5px;
+			border-width: 2px;
+			border-style: inset;
+		}
+	}
+}
+
 // Onboarding Div
 #onboarding{
 	position: absolute;
@@ -420,6 +510,9 @@ div#container{
 			}
 			#files_toolbar_refresh{
 				@include sanscon(loop);
+			}
+			#files_toolbar_info{
+				@include sanscon(tools);
 			}
 		}
 

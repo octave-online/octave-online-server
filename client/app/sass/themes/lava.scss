@@ -22,7 +22,7 @@ body{
 	background: $color2;
 }
 
-#type_here, #login-promo {
+#type_here, #login-promo, #sync-promo {
 	background: $color2;
 }
 
@@ -91,4 +91,13 @@ header{
 
 #login_box > div > div {
 	background-color: $color2;
+}
+
+#sync_info_box > div > div {
+	background-color: $color2;
+
+	kbd {
+		background-color: $color2;
+		border-color: $color3;
+	}
 }

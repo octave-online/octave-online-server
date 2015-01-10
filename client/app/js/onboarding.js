@@ -2,7 +2,8 @@
 
 define(["jquery", "jquery.cookie"], function($){
 	var $onboarding = $("#onboarding"),
-		$scriptPromo = $("#login-promo");
+		$scriptPromo = $("#login-promo"),
+		$syncPromo = $("#sync-promo");
 
 	// Check for the cookie now
 	if($.cookie("oo_onboarding_complete") === "true"){
@@ -31,6 +32,17 @@ define(["jquery", "jquery.cookie"], function($){
 		reset: function(){
 			// Delete the cookie
 			$.cookie("oo_onboarding_complete", null);
+		},
+		showSyncPromo: function(){
+			// Set up the Octave Online Sync onboarding
+			if(!$.cookie("oo_sync_promo_dismissed")){
+				$syncPromo.fadeIn(500);
+				$syncPromo.find("[data-purpose='close']").click(function(){
+					// Make this cookie expire on browser being closed
+					$.cookie("oo_sync_promo_dismissed", "true");
+					$syncPromo.fadeOut(500);
+				});
+			}
 		}
 	};
 });

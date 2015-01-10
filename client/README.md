@@ -13,6 +13,8 @@ Once Node.JS is installed, you will need Grunt, Bower, and Compass.
     npm install -g bower
     gem install compass
 
+Note: [Compass](http://compass-style.org/) requires that you have a Ruby runtime running on your machine.  If you don't want to spend the time installing a Ruby runtime, you can manually download *css/main.css* and *css/themes/fire.css* into the *app/css* and *dist/css* directories (which you will need to make).
+
 Now, install the Octave Online Client dependencies like so:
 
     npm install

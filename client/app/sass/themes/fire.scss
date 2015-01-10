@@ -24,7 +24,7 @@ body{
 	background: $colorbkg;
 }
 
-#type_here, #login-promo {
+#type_here, #login-promo, #sync-promo {
 	background: $colorbkg;
 }
 
@@ -89,4 +89,13 @@ header{
 
 #login_box > div > div {
 	background-color: $colorbkg;
+}
+
+#sync_info_box > div > div {
+	background-color: $colorbkg;
+
+	kbd {
+		background-color: $color2;
+		border-color: $color3;
+	}
 }

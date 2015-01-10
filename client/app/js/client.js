@@ -3,12 +3,12 @@
 define(
 	["jquery", "knockout", "canvg", "splittr", "base64", "js/download",
 		"js/anal", "base64-toblob", "ismobile", "exports", "js/octfile",
-		"js/vars", "ko-takeArray", "require",
+		"js/vars", "ko-takeArray", "require", "js/onboarding",
 		"jquery.md5", "jquery.purl", "ace/theme/crimson_editor",
 		"ace/theme/merbivore_soft", "knockout-ace"],
 function($, ko, canvg, splittr, Base64, download,
          anal, b64ToBlob, isMobile, exports, OctFile,
-         Var, koTakeArray, require){
+         Var, koTakeArray, require, onboarding){
 
 	/* * * * START KNOCKOUT SETUP * * * */
 
@@ -591,11 +591,10 @@ function($, ko, canvg, splittr, Base64, download,
 					splittr.resize($("#workspace_panel")[0], 350);
 					splittr.resize($("#open_container")[0], 300);
 					splittr.resize($("#files_container")[0], 100);
+					onboarding.showSyncPromo();
 
 					// Trigger Knockout
-					viewModel.currentUser({
-						name: data.name
-					});
+					viewModel.currentUser(data);
 
 					// Analytics
 					anal.signedin();
@@ -814,6 +813,9 @@ function($, ko, canvg, splittr, Base64, download,
 					OctMethods.editor.reset();
 					OctMethods.socket.refresh();
 				}
+			},
+			info: function(e){
+				$("#sync_info_box").show();
 			},
 			run: function(editor){
 				OctMethods.editor.run(viewModel.openFile());
