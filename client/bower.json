@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "dependencies": {
     "requirejs": "latest",
-    "jquery": "latest",
+    "jquery": "#^1",
     "knockoutjs": "latest",
     "jquery.cookie": "latest",
     "jquery-md5": "latest",
@@ -11,9 +11,9 @@
     "canvg": "latest",
     "ace-builds": "latest",
     "knockout-ace": "https://github.com/vote539/knockout-ace.git",
-    "splittr": "~1.0.0",
-    "canvas-toBlob.js": "~0.1.3",
-    "blob": "*",
-    "FileSaver": "*"
+    "splittr": "latest",
+    "canvas-toBlob.js": "latest",
+    "blob": "latest",
+    "FileSaver": "latest"
   }
 }
