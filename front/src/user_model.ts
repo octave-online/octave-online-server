@@ -17,7 +17,11 @@ var userSchema = new Mongoose.Schema({
 		profile: Mongoose.Schema.Types.Mixed
 	},
 	repo_key: String,
-	program: String
+	program: String,
+	instructor: {
+		program: String,
+		password: String
+	}
 });
 
 // Parametrization function used by Octave Online,

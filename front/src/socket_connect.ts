@@ -3,8 +3,10 @@
 
 import User = require("./user_model");
 import IUser = require("./user_interface");
+import Config = require("./config");
 import RedisHandler = require("./redis_handler");
 import RedisHelper = require("./redis_helper");
+import ChildProcess = require("child_process");
 
 interface ISocketCustom extends SocketIO.Socket {
 	once(event:string, listener:Function):void;
@@ -86,6 +88,8 @@ class SocketHandler {
 
 		// Make listeners on the socket
 		this.socket.on("disconnect", this.onDisconnect);
+		this.socket.on("enroll", this.onEnroll);
+		this.socket.on("update_students", this.onUpdateStudents);
 		this.socket.on("*", this.onInput);
 
 		// Make listeners on Redis
@@ -106,6 +110,13 @@ class SocketHandler {
 		var args = Array.prototype.slice.apply(arguments);
 		args.unshift("[" + this.socket.id + "]");
 		console.log.apply(this, args);
+	}
+
+	private sendData(message:string):void {
+		this.socket.emit("data", {
+			type: "stdout",
+			data: message+"\n"
+		});
 	}
 
 	//// LISTENER FUNCTIONS ////
@@ -135,6 +146,45 @@ class SocketHandler {
 	private onOutput = (name, data) => {
 		// Blindly pass all data from Redis to the client
 		this.socket.emit(name, data);
+	};
+
+	private onEnroll = (obj)=> {
+		if (!this.user) return;
+		var program = obj.program;
+		if (!program) return;
+		console.log("Enrolling", this.user.consoleText, "in program", program);
+		this.user.program = program;
+		this.user.save((err)=> {
+			if (err) console.log("MONGO ERROR", err);
+			this.sendData("Successfully enrolled");
+		});
+	};
+
+	private onUpdateStudents = (obj)=> {
+		if (!this.user)
+			return this.sendData("Please sign in first");
+		if (!this.user.instructor || !this.user.instructor.program)
+			return this.sendData("You're not registered as an instructor");
+		if (this.user.instructor.program !== obj.program)
+			return this.sendData("Check the spelling of your program name");
+		if (this.user.instructor.password !== obj.password)
+			return this.sendData("You entered the wrong password");
+
+		console.log("Updating students in program", obj.program);
+		this.sendData("Updating students...");
+		ChildProcess.execFile(
+			__dirname+"/../src/program_update.sh",
+			[this.user.parametrized, obj.program, Config.mongodb.db],
+			(err, stdout, stderr)=> {
+				console.log(stdout,stderr);
+				if (err) {
+					console.log("ERROR ON UPDATE STUDENTS", err);
+					this.sendData("Error while updating students: " + err);
+				} else {
+					this.sendData("Successfully updated students");
+				}
+			}
+		);
 	};
 
 	//// SESSION INITIALIZATION FUNCTIONS ////
