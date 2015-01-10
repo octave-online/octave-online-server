@@ -85,7 +85,7 @@ userSchema.pre("save", function(next){
 	if (!this.repo_key) {
 		this.repo_key = Crypto
 		.createHash("md5")
-		.update(Math.random())
+		.update(Math.random().toString())
 		.digest("base64")
 		.substr(0, 8);
 	}
