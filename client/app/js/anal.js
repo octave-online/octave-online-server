@@ -50,6 +50,9 @@ define(function(){
 		},
 		patience: function(){
 			_ga("send", "event", "loading", "patience-message");
+		},
+		dismiss: function(what){
+			_ga("send", "event", "dismiss", "promo", what);
 		}
 	};
 });
