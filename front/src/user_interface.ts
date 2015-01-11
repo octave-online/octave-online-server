@@ -12,10 +12,7 @@ interface IUser extends mongoose.Document {
 	}
 	repo_key: string
 	program: string
-	instructor: {
-		program: string
-		password: string
-	}
+	instructor: string[]
 
 	// Virtuals
 	displayName: string

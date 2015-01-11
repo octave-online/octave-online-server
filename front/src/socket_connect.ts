@@ -163,12 +163,10 @@ class SocketHandler {
 	private onUpdateStudents = (obj)=> {
 		if (!this.user)
 			return this.sendData("Please sign in first");
-		if (!this.user.instructor || !this.user.instructor.program)
+		if (!this.user.instructor || this.user.instructor.length === 0)
 			return this.sendData("You're not registered as an instructor");
-		if (this.user.instructor.program !== obj.program)
+		if (this.user.instructor.indexOf(obj.program) === -1)
 			return this.sendData("Check the spelling of your program name");
-		if (this.user.instructor.password !== obj.password)
-			return this.sendData("You entered the wrong password");
 
 		console.log("Updating students in program", obj.program);
 		this.sendData("Updating students...");
@@ -176,9 +174,8 @@ class SocketHandler {
 			__dirname+"/../src/program_update.sh",
 			[this.user.parametrized, obj.program, Config.mongodb.db],
 			(err, stdout, stderr)=> {
-				console.log(stdout,stderr);
 				if (err) {
-					console.log("ERROR ON UPDATE STUDENTS", err);
+					console.log("ERROR ON UPDATE STUDENTS", err, stdout, stderr);
 					this.sendData("Error while updating students: " + err);
 				} else {
 					this.sendData("Successfully updated students");
