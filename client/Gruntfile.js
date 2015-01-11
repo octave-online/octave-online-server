@@ -4,6 +4,7 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks("grunt-contrib-watch");
 	grunt.loadNpmTasks("grunt-contrib-copy");
 	grunt.loadNpmTasks("grunt-regex-replace");
+	grunt.loadNpmTasks("grunt-contrib-uglify");
 
 	grunt.initConfig({
 		pkg: grunt.file.readJSON("package.json"),
@@ -34,12 +35,16 @@ module.exports = function (grunt) {
 				}
 			}
 		},
-		copy: {
+		uglify: {
 			requirejs: {
-				src: "app/vendor/requirejs/require.js",
-				dest: "dist/js/require.js"
-			},
-			other: {
+				files: {
+					"dist/js/require.js": ["app/vendor/requirejs/require.js"],
+					"dist/js/runtime.js": ["app/js/runtime.js"]
+				}
+			}
+		},
+		copy: {
+			dist: {
 				cwd: "app",
 				src: [
 					"index.html",
@@ -49,7 +54,6 @@ module.exports = function (grunt) {
 					"images/**",
 					"errors/**",
 					"js/modernizr-201406b.js",
-					"js/startup.js",
 					"js/login.js"
 				],
 				dest: "dist",
@@ -63,7 +67,7 @@ module.exports = function (grunt) {
 					{
 						name: "requirejs",
 						search: "<!-- Begin RequireJS -->"
-						+ "[\\s\\S]+?<!-- End RequireJS -->",
+							+ "[\\s\\S]+?<!-- End RequireJS -->",
 						replace: "<script src=\"js/require.js\"></script>\n",
 						flags: "g"
 					}
@@ -81,10 +85,12 @@ module.exports = function (grunt) {
 	grunt.registerTask("default", [
 		"requirejs",
 		"compass:dist",
+		"uglify",
 		"copy",
 		"regex-replace"
 	]);
 
 	grunt.registerTask("sass", ["compass:dev"]);
+	grunt.registerTask("index", ["copy", "regex-replace"]);
 
 };

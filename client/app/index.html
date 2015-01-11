@@ -351,8 +351,13 @@
 </div></div></div>
 
 <!-- Begin RequireJS -->
-<script data-main="main" src="vendor/requirejs/require.js"></script>
+<script type="text/javascript" src="vendor/requirejs/require.js"></script>
+<script type="text/javascript" src="main.js"></script>
 <!-- End RequireJS -->
-<script src="js/startup.js"></script>
+<script type="text/javascript">
+require(["js/app"], function(){
+	require(["js/runtime"]);
+});
+</script>
 </body>
 </html>
