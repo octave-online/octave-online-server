@@ -3,6 +3,7 @@
 define(["jquery", "jquery.cookie"], function($){
 	var $onboarding = $("#onboarding"),
 		$scriptPromo = $("#login-promo"),
+		$instructorPromo = $("#instructor-promo"),
 		$syncPromo = $("#sync-promo");
 
 	// Check for the cookie now
@@ -24,6 +25,16 @@ define(["jquery", "jquery.cookie"], function($){
 			// Make this cookie expire on browser being closed
 			$.cookie("oo_script_promo_dismissed", "true");
 			$scriptPromo.fadeOut(500);
+		});
+	}
+
+	// Set up the instructor promo onboarding
+	if(!$.cookie("oo_instructor_promo_dismissed")){
+		$instructorPromo.fadeIn(500);
+		$instructorPromo.find("[data-purpose='close']").click(function(){
+			// Make this cookie expire on browser being closed
+			$.cookie("oo_instructor_promo_dismissed", "true");
+			$instructorPromo.fadeOut(500);
 		});
 	}
 

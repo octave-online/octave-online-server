@@ -71,7 +71,10 @@ $callout_color: #369AFF;
 		width: 0;
 		height: 0;
 		border: 10px solid;
-		@if $direction == "up" {
+		@if $direction == "none" {
+			border-color: transparent;
+		}
+		@else if $direction == "up" {
 			border-color: transparent $callout_color $callout_color transparent;
 		}
 		@else if $direction == "left" {
@@ -777,6 +780,35 @@ div#container{
 				}
 				span.prompt_error{
 					font-style: italic;
+				}
+			}
+			div#instructor-promo{
+				@include callout(0px, none);
+				top: 10px;
+				left: 10px;
+				width: 210px;
+				height: 110px;
+				padding: 5px;
+				text-align: center;
+				display: none;
+
+				// Text Flow
+				& > span {
+					display: block;
+					line-height: 1em;
+					&.l1{
+						font-size: 1.3em;
+					}
+					&.l2{
+						margin-top: 5px;
+						font-size: 1em;
+					}
+					&.l3{
+						font-size: 1em;
+						margin-top: 10px;
+						cursor: pointer;
+						text-decoration: underline;
+					}
 				}
 			}
 			div#type_here {
