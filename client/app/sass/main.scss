@@ -180,7 +180,7 @@ header{
 			padding: 0 4px;
 			border-radius: 4px;
 			height: $site_control_item_height - 10px;
-			line-height: $site_control_item_height - 5px;
+			line-height: $site_control_item_height - 8px;
 			margin-top: 2px;
 
 			&:hover{
@@ -192,7 +192,7 @@ header{
 			}
 		}
 		#twitter-follow-holder{
-			margin-top: -2px;
+			margin-top: -3px;
 		}
 		#change-skin{
 			cursor: pointer;
@@ -332,7 +332,7 @@ header{
 	top: $header_height + $editor_toolbar_height + 15px;
 	left: 60px;
 	width: 200px;
-	height: 125px;
+	height: 150px;
 	text-align: center;
 	z-index: 101;
 	padding: 10px 10px;
@@ -360,6 +360,10 @@ header{
 			margin-top: 5px;
 		}
 		&.l4{
+			font-size: 1.1em;
+			margin-top: 10px;
+		}
+		&.l5{
 			font-size: 1em;
 			margin-top: 10px;
 			cursor: pointer;
@@ -604,22 +608,27 @@ div#container{
 
 		.editor_nofile{
 			padding: 5px;
-			vertical-align: middle;
 
 			h2{
 				font-size: 1.5em;
 				line-height: 1.5em;
 			}
 
-			kbd{
-				display: inline-block;
-				border: 1px dotted black;
-				padding: 0 2px;
-			}
-
-			tt.sanscon-create{
-				@include sanscon(document);
-				cursor: default;
+			dl{
+				dt{
+					font-family: $code_font_family;
+					display: inline-block;
+					padding: 2px 3px 0px;
+					border-width: 1px;
+					border-style: dotted;
+				}
+				dd::before{
+					font-family: $unicode_font_family;
+					content: "\2192";
+				}
+				dd{
+					margin: 2px 0px 5px 2px;
+				}
 			}
 		}
 
