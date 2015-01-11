@@ -262,8 +262,8 @@ function($, ko, canvg, splittr, Base64, download,
 				var cmd = OctMethods.prompt.instance.getValue();
 
 				// Check if this command is a front-end command
-				var enrollRegex = /^enroll\s*\(['"]?(\w+)['"]?\).*$/;
-				var updateStudentsRegex = /^update_students\s*\(['"]?(\w+)['"]?,\s*['"]?(\w+)['"]?\).*$/;
+				var enrollRegex = /^enroll\s*\(['"](\w+)['"]\).*$/;
+				var updateStudentsRegex = /^update_students\s*\(['"](\w+)['"]\).*$/;
 
 				if(enrollRegex.test(cmd)){
 					var program = cmd.match(enrollRegex)[1];
@@ -271,8 +271,7 @@ function($, ko, canvg, splittr, Base64, download,
 					OctMethods.prompt.clear(true);
 				}else if(updateStudentsRegex.test(cmd)){
 					var program = cmd.match(updateStudentsRegex)[1];
-					var password = cmd.match(updateStudentsRegex)[2];
-					OctMethods.socket.updateStudents(program, password);
+					OctMethods.socket.updateStudents(program);
 					OctMethods.prompt.clear(true);
 				}else{
 					OctMethods.console.command(cmd);
@@ -448,8 +447,7 @@ function($, ko, canvg, splittr, Base64, download,
 			},
 			updateStudents: function(program, password){
 				return OctMethods.socket.emit("update_students", {
-					program: program,
-					password: password
+					program: program
 				})
 			},
 			refresh: function(){
