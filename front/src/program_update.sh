@@ -33,11 +33,13 @@ function push_pull {
 	cd $parametrized;
 	echo "db.users.find({ program:'$program' }, { parametrized: 1, _id: 0 }).forEach( function(u) { print( u.parametrized ); } );" | mongo --quiet $db_name | \
 	while read student; do
-		if [ -d $student ]; then
-			rm -rf $student;
+		if [ $student -neq $parametrized ]; then
+			if [ -d $student ]; then
+				rm -rf $student;
+			fi
+			git clone ~git/repos/$student.git;
+			rm -rf $student/.git;
 		fi
-		git clone ~git/repos/$student.git;
-		rm -rf $student/.git;
 	done;
 	push_pull "Updated students in program $program";
 )
