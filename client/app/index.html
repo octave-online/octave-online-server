@@ -203,8 +203,7 @@
 			</div>
 		</div>
 		<!-- ko template: { if: openFile().editable, afterRender: editorRendered } -->
-		<div id="editor" data-bind="ace: openFile().content, aceOptions: { theme: viewModel.selectedSkin().rawAceTheme, mode: 'octave' }" style="height: calc(100% - 20px);"></div>
-		<!-- the editor won't work unless there is an inline height style -->
+		<div id="editor" data-bind="ace: openFile().content, aceOptions: { theme: viewModel.selectedSkin().rawAceTheme, mode: 'octave' }"></div>
 		<!-- /ko -->
 		<!-- ko template: { ifnot: openFile().editable, afterRender: editorUnRendered } -->
 		<div class="editor_nofile">

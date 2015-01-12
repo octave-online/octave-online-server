@@ -160,7 +160,7 @@ define(["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
 		var redraw = function () {
 			ko.aceEditors.resizeAll();
 		};
-		$("#container").on("splitterDone", redraw);
+		$("#container").on("splittrDone", redraw);
 
 		// Privacy Policy
 		$.get("privacy.txt", function (data) {

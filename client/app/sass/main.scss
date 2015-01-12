@@ -524,7 +524,11 @@ div#container{
 		}
 
 		#files_list_container{
-			height: calc(100% - #{$editor_toolbar_height});
+			position: absolute;
+			top: $editor_toolbar_height;
+			bottom: 0;
+			left: 0;
+			right: 0;
 
 			&.drag-over{
 				@include dropzone-active;
@@ -635,13 +639,12 @@ div#container{
 			}
 		}
 
-		div#ace_editor{
-			position: relative;
-			top: 0px;
-			left: 0px;
-			width: 100%;
-			bottom: 0px;
-			// height: calc(100% - $editor_toolbar_height);
+		div#editor{
+			position: absolute;
+			top: $editor_toolbar_height;
+			bottom: 0;
+			left: 0;
+			right: 0;
 		}
 	}
 
@@ -918,7 +921,11 @@ div#container{
 		}
 
 		#workspace_content{
-			height: calc(100% - #{$editor_toolbar_height});
+			position: absolute;
+			top: $editor_toolbar_height;
+			bottom: 0;
+			left: 0;
+			right: 0;
 
 			ul{
 				list-style-type: none;
