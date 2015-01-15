@@ -245,12 +245,16 @@ function($, ko, canvg, splittr, Base64, download,
 			},
 			askForEnroll: function(program){
 				if(!OctMethods.editor.initialized){
-					alert("You need to sign in to enroll in a program.");
+					alert("You need to sign in to enroll in a course.");
 					return;
 				}
 
 				if(confirm("Enroll in \"" + program + "\"?\n\n" +
-					"Press Cancel if you don't know what this means.")){
+					"When you enroll in a course, the instructors for that course " +
+					"will be able to access the files you save in Octave Online. " +
+					"You can cancel your enrollment at any time by running " +
+					"enroll('default') at the command prompt.\n\n" +
+					"Press Cancel if you don't know what any of this means.")){
 					OctMethods.socket.enroll(program);
 				}
 			}
