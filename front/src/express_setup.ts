@@ -27,10 +27,9 @@ module ExpressApp {
 			.use("/*.git", BasicAuth.middleware("Octave Online Repos"))
 			.use("/*.git", PushoverHandler.router)
 			.use(Siofu.router)
-			.post("/auth/persona", Passport.authenticate("persona", {
-				successRedirect: "/",
-				failureRedirect: "/login/failure"
-			}))
+			.post("/auth/persona", Passport.authenticate("persona"), function(req, res){
+				res.sendStatus(204);
+			})
 			.get("/auth/google", Passport.authenticate("google", {
 				scope: "profile email"
 			}))
