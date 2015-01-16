@@ -39,7 +39,9 @@ module.exports = function (grunt) {
 			requirejs: {
 				files: {
 					"dist/js/require.js": ["app/vendor/requirejs/require.js"],
-					"dist/js/runtime.js": ["app/js/runtime.js"]
+					"dist/js/runtime.js": ["app/js/runtime.js"],
+					"dist/js/login.js": ["app/js/login.js"],
+					"dist/js/modernizr-201406b.js": ["app/js/modernizr-201406b.js"]
 				}
 			}
 		},
@@ -52,9 +54,7 @@ module.exports = function (grunt) {
 					"privacy.txt",
 					"compatibility.html",
 					"images/**",
-					"errors/**",
-					"js/modernizr-201406b.js",
-					"js/login.js"
+					"errors/**"
 				],
 				dest: "dist",
 				expand: true
