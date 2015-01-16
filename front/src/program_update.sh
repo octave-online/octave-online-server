@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Shell script to pull all student repositories from a program into
 # a master repository.
 
@@ -33,7 +35,7 @@ function push_pull {
 	cd $parametrized;
 	echo "db.users.find({ program:'$program' }, { parametrized: 1, _id: 0 }).forEach( function(u) { print( u.parametrized ); } );" | mongo --quiet $db_name | \
 	while read student; do
-		if [ $student -neq $parametrized ]; then
+		if [ "$student" != "$parametrized" ]; then
 			if [ -d $student ]; then
 				rm -rf $student;
 			fi
