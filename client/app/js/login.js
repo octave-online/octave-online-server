@@ -1,17 +1,23 @@
-define(["persona", "js/onboarding"], function(Persona, onboarding){
+define(["persona", "js/onboarding", "jquery"], function(Persona, onboarding, $){
 
 	var personaFn = {
 		login: function(){
 			Persona.get(function(assertion){
 				if (assertion) {
-					var form = $("<form>");
-					form.attr("action", "auth/persona");
-					form.attr("method", "post");
-					var input = $("<input>");
-					input.attr("name", "assertion");
-					input.attr("value", assertion);
-					form.append(input);
-					form.submit();
+					$.ajax("auth/persona", {
+						type: "post",
+						data: {
+							"assertion": assertion
+						},
+						statusCode: {
+							204: function(){
+								window.location.reload();
+							},
+							401: function(){
+								console.log("Login failed");
+							}
+						}
+					});
 				}
 			}, {
 				siteName: "Octave Online",
