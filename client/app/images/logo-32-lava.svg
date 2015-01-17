@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 15.1.0, SVG Export Plug-In  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" [
+	<!ENTITY ns_flows "http://ns.adobe.com/Flows/1.0/">
+]>
+<svg version="1.1"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:a="http://ns.adobe.com/AdobeSVGViewerExtensions/3.0/"
+	 x="0px" y="0px" width="32px" height="32px" viewBox="14.458 33.069 32 32"
+	 overflow="visible" enable-background="new 14.458 33.069 32 32" xml:space="preserve">
+<defs>
+</defs>
+<circle fill="none" stroke="#E6D2CC" stroke-width="4" stroke-miterlimit="10" cx="23.458" cy="56.069" r="7"/>
+<circle fill="none" stroke="#E6D2CC" stroke-width="4" stroke-miterlimit="10" cx="37.458" cy="56.069" r="7"/>
+<polyline fill="none" stroke="#E6D2CC" stroke-width="4" stroke-miterlimit="10" points="20.458,36.069 28.458,44.069 
+	28.458,36.069 40.458,36.069 "/>
+<text transform="matrix(1 0 0 1 0.1758 15.2358)"><tspan x="0" y="0" font-family="'Archistico-Normal'" font-size="18">Octave</tspan><tspan x="0.237" y="15" font-family="'Archistico-Normal'" font-size="18">Online</tspan></text>
+</svg>
