@@ -79,7 +79,10 @@
 
 <header>
 	<h1>
-		<img id="octave-logo" src="images/logo-32-fire.png" alt="oo"/>
+		<svg width="32" height="32">
+			<image xlink:href="images/logo-32-fire.svg" src="images/logo-32-fire.png" width="32" height="32" class="oo-icon" data-theme="fire" />
+			<image xlink:href="images/logo-32-lava.svg" src="images/logo-32-lava.png" width="32" height="32" class="oo-icon" data-theme="lava" style="display: none;" />
+		</svg>
 		Octave Online
 		<span class="beta">&beta;</span>
 	</h1>
@@ -133,32 +136,36 @@
 		<h2>Welcome to Octave Online.</h2>
 
 		<p>
-			Octave Online is the free GNU Octave editor and prompt in your browser. Octave Online is powered by the
-			open-source GNU Octave project, whose syntax is mostly compatible with MATLAB.
+			Octave Online is the free GNU Octave editor and prompt in your browser. Octave Online is powered by the open-source GNU Octave project, whose syntax is mostly compatible with MATLAB.
 		</p>
 		<figure>
-			<figcaption>Type commands in the prompt like you would in your local copy of GNU Octave or MATLAB.
+			<figcaption>
+				Type commands in the prompt like you would in your local copy of GNU Octave or MATLAB.
 			</figcaption>
 			<img src="images/demo/fzero-prompt.png" alt="&gt; fzero(@(x) sinh(x) + 1, [-pi pi])"/>
 		</figure>
 		<figure>
-			<figcaption>Press enter and see the results instantly.</figcaption>
+			<figcaption>
+				Press enter and see the results instantly.
+			</figcaption>
 			<img src="images/demo/fzero-result.png" alt="ans = -0.88137"/>
 		</figure>
 		<figure>
-			<figcaption>You can make plots.</figcaption>
+			<figcaption>
+				You can make plots.
+			</figcaption>
 			<img src="images/demo/plot-cmd.png" alt="sombrero()"/>
 			<img src="images/demo/plot.png" alt="sombrero"/>
 		</figure>
 		<figure>
-			<figcaption>Log in with Google and you can edit files. Press <kbd>Command+R</kbd> to run them. Your files
-				will stick around for the next time you visit.
+			<figcaption>
+				Sign in and you can edit files. Your files will still be here the next time you visit.
 			</figcaption>
 			<img src="images/demo/editor.png" alt="disp('Hello World')"/>
 		</figure>
 		<figure>
-			<figcaption>Octave Online is currently in public beta. Find a bug? Like to see another feature?
-				Click &ldquo;Feedback.&rdquo; Prefer a white-on-black theme when staring at the screen for an extended
+			<figcaption>
+				Octave Online is currently in public beta. Find a bug? Like to see another feature? Click &ldquo;Feedback.&rdquo; Prefer a white-on-black theme when staring at the screen for an extended
 				period? Click &ldquo;Theme.&rdquo;
 			</figcaption>
 		</figure>
@@ -311,8 +318,12 @@
 	<p class="login_description">
 		How do you want to sign in?
 	</p>
-	<img id="sign_in_with_email" class="login_btn" src="images/sign-in-with-persona.png" alt="Sign in with Email" />
-	<img id="sign_in_with_google" class="login_btn" src="images/sign-in-with-google.png" alt="Sign in with Google" />
+	<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
+		<image xlink:href="images/sign-in-with-persona.svg" src="images/sign-in-with-persona.png" width="200" height="40" alt="Sign in with Email" />
+	</svg>
+	<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
+		<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="Sign in with Google" />
+	</svg>
 	<hr />
 	<p class="login_bottom">
 		Signed in before but need to change your email address?  Click "Feedback" and create a ticket.  We will change it for you.

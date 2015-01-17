@@ -311,7 +311,7 @@ header{
 		position: relative;
 		margin: 10px auto;
 		width: 200px;
-		height: auto;
+		height: 40px;
 		cursor: pointer;
 	}
 
@@ -672,7 +672,7 @@ div#container{
 				right: 20px;
 				bottom: 20px;
 				left: 20px;
-				z-index: 100;
+				z-index: 900;
 			}
 
 			#plot_controls_container{

@@ -190,7 +190,8 @@ define(["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
 		var updateTheme = function (newValue) {
 			$("#theme").attr("href", newValue.cssURL);
 			$("body").attr("data-sanscons-color", newValue.iconColor);
-			$("#octave-logo").attr("src", "/images/logo-32-" + newValue.name + ".png");
+			$("[data-theme]").hide();
+			$("[data-theme='"+newValue.name+"']").show();
 			OctMethods.prompt.instance.setTheme(newValue.aceTheme);
 			if (OctMethods.editor.instance) {
 				OctMethods.editor.instance.setTheme(newValue.aceTheme);
