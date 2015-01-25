@@ -174,7 +174,7 @@ function($, ko, canvg, splittr, Base64, download,
 				$("#type_here").hide();
 			},
 			clear: function(){
-				$("#console").empty().append(new Array(80).join("\n"));
+				$("#console").empty();
 			},
 			command: function(cmd){
 				if(!OctMethods.prompt.enabled) return;

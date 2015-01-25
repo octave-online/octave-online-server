@@ -4,6 +4,7 @@
 @import "util";
 @import "sanscon";
 @import "popover";
+@import "print";
 @import "../vendor/splittr/splittr";
 @import "compass/css3/transition";
 
@@ -217,7 +218,7 @@ header{
 			width: 180px;
 			height: 160px;
 			text-align: center;
-			z-index: 50;
+			z-index: 100;
 			padding: 10px 10px;
 			display: none;
 
@@ -264,7 +265,7 @@ header{
 	white-space: pre-wrap;
 	overflow: auto;
 	padding: 1em;
-	z-index: 100;
+	z-index: 150;
 	border-radius: 1em;
 }
 
@@ -945,3 +946,8 @@ div#container{
 }
 
 input[type='text'],input[type='number'],textarea {font-size:16px;}
+
+// Push down the content of the console to the bottom of the screen
+#console::before {
+	content: "\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A";
+}
