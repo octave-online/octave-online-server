@@ -605,6 +605,9 @@ div#container{
 				#editor_save{
 					@include sanscon(save);
 				}
+				#editor_print{
+					@include sanscon(print);
+				}
 				#editor_delete{
 					@include sanscon(trash);
 				}

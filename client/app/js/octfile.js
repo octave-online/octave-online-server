@@ -92,6 +92,9 @@ define(["knockout", "require"], function(ko, require){
 				alert("Can't save file. Did you disconnect from Octave Online?");
 			}
 		};
+		self.print = function(){
+			OctMethods.editor.print(self);
+		};
 		self.rename = function(){
 			OctMethods.editor.rename(self);
 		};

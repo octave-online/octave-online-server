@@ -760,6 +760,49 @@ function($, ko, canvg, splittr, Base64, download,
 					return OctMethods.socket.binary(octfile);
 				}
 			},
+			print: function(octfile){
+				// Make a new window
+				var w = window.open();
+
+				// Add a title line
+				var h1 = $("<h1></h1>");
+				h1.append(octfile.filename());
+				h1.css("font", "bold 14pt/14pt 'Trebuchet MS',Verdana,sans-serif");
+				h1.css("margin", "6pt");
+				$(w.document.body).append(h1);
+
+				// Create the Ace highlighter
+				var highlight = require("ace/ext/static_highlight").render(
+					octfile.content(),
+					new (require("ace/mode/octave").Mode)(),
+					require("ace/theme/crimson_editor")
+				);
+
+				// Create the Ace stylesheet
+				var ss = $("<style type='text/css'></style>");
+				ss.append(highlight.css);
+
+				// Append the Ace highlighter and stylesheet
+				var editorDiv = $("<div></div>");
+				editorDiv.append(highlight.html);
+				$(w.document.body).append(editorDiv);
+				$(w.document.head).append(ss);
+
+				// Add a credit line at the bottom
+				var creditDiv = $("<div></div>");
+				creditDiv.append("Printed for " + viewModel.currentUser().name);
+				creditDiv.append("<br/>");
+				creditDiv.append("Powered by Octave Online");
+				creditDiv.append("<br/>");
+				creditDiv.append("http://octave-online.net");
+				creditDiv.css("font", "10pt/10pt 'Trebuchet MS',Verdana,sans-serif");
+				creditDiv.css("text-align", "right");
+				creditDiv.css("margin-top", "16pt");
+				$(w.document.body).append(creditDiv);
+
+				// Trigger Print
+				w.window.print();
+			},
 			open: function(octfile){
 				viewModel.openFile(octfile);
 			},
