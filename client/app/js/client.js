@@ -761,15 +761,16 @@ function($, ko, canvg, splittr, Base64, download,
 				}
 			},
 			print: function(octfile){
-				// Make a new window
+				// Make a new window and a temporary document object
 				var w = window.open();
+				var doc = $("<div>");
 
 				// Add a title line
-				var h1 = $("<h1></h1>");
+				var h1 = $("<h1>");
 				h1.append(octfile.filename());
 				h1.css("font", "bold 14pt/14pt 'Trebuchet MS',Verdana,sans-serif");
 				h1.css("margin", "6pt");
-				$(w.document.body).append(h1);
+				doc.append(h1);
 
 				// Create the Ace highlighter
 				var highlight = require("ace/ext/static_highlight").render(
@@ -785,8 +786,8 @@ function($, ko, canvg, splittr, Base64, download,
 				// Append the Ace highlighter and stylesheet
 				var editorDiv = $("<div></div>");
 				editorDiv.append(highlight.html);
-				$(w.document.body).append(editorDiv);
-				$(w.document.head).append(ss);
+				doc.append(ss);
+				doc.append(editorDiv);
 
 				// Add a credit line at the bottom
 				var creditDiv = $("<div></div>");
@@ -798,7 +799,10 @@ function($, ko, canvg, splittr, Base64, download,
 				creditDiv.css("font", "10pt/10pt 'Trebuchet MS',Verdana,sans-serif");
 				creditDiv.css("text-align", "right");
 				creditDiv.css("margin-top", "16pt");
-				$(w.document.body).append(creditDiv);
+				doc.append(creditDiv);
+
+				// Add the document data to the window
+				w.document.body.innerHTML += doc.html();
 
 				// Trigger Print
 				w.window.print();
