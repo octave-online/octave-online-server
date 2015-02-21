@@ -38,7 +38,7 @@ This file contains the configuration options for your local install of Octave On
 			"db": "oo"
 		},
 		"git": {
-			"path": "/absolute/path/to/source/directory"
+			"path": "/absolute/path/to/repos"
 		},
 		"url": {
 			"protocol": "http",
