@@ -31,7 +31,7 @@ This file contains the configuration options for your local install of Octave On
 
 	{
 		"static": {
-			"path": "../octave-online-client/app"
+			"path": "../oo-client/app"
 		},
 		"mongodb": {
 			"hostname": "localhost",
