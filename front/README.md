@@ -70,7 +70,7 @@ This file contains the configuration options for your local install of Octave On
 
 The following options need to be customized.
 
- - Put the path to your Octave Online Client local clone in the "path" option under "static".
+ - Put the path to your Octave Online Client local clone in the "path" option under "static".  You can point it to either "app" or to "dist" depending on whether you want to use the uncompiled or compiled version of Octave Online Client.
  - Make a directory on your server where to store your user's script files.  The directory should be fully readable and writeable by the user running the Octave Online server.  Put the path in the "path" option under "git".
  - Put some random character string in "secret" under "cookie".  This is what prevents man-in-the-middle attacks and session hijacking.
  - If you want to support Google OAuth logins, customize the "google" section.  You can ignore this section if you don't want to support Google logins.
