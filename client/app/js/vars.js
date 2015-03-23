@@ -30,9 +30,11 @@ define(["knockout", "require"], function(ko, require){
 			var isFn = (self.class_name() === "function_handle");
 			var isNumeric = (self.class_name() === "double");
 			var isSym = (self.class_name() === "sym");
+			var isTF = (self.class_name() === "tf");
 			
 			if ( isChar                ) return "(abc)";
 			if ( isSym                 ) return "$";
+			if ( isTF                  ) return "\u2112";
 			if ( isCell   &&  isComplex) return "{"+self.dimension()+"}*";
 			if ( isCell   && !isComplex) return "{"+self.dimension()+"}";
 			if ( isFn     &&  isComplex) return "@*";
@@ -53,9 +55,11 @@ define(["knockout", "require"], function(ko, require){
 			var isFn = (self.class_name() === "function_handle");
 			var isNumeric = (self.class_name() === "double");
 			var isSym = (self.class_name() === "sym");
+			var isTF = (self.class_name() === "tf");
 			
 			if ( isChar                ) return "characters";
 			if ( isSym                 ) return "symbolic";
+			if ( isTF                  ) return "transfer function";
 			if ( isCell   &&  isComplex) return "complex cell array";
 			if ( isCell   && !isComplex) return "cell array";
 			if ( isFn     &&  isComplex) return "complex function handle";
