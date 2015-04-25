@@ -1,12 +1,19 @@
 Privacy Policy
 ==============
 
-Octave Online values the privacy of our users.  In order to provide you with the utmost quality of service, we collect the following information:
+Octave Online values the privacy of our users.  We collect and save the following information:
 
-- Historical transcripts of Octave commands and output.
-- When logging in via Google, we collect your OpenID, name, and email address.
+- Historical transcripts of Octave commands and output, which may be associated with your account or IP address.
+- When using Persona Sign In: your email address.
+- When using Google+ Sign In: your email address, real name, and basic Google account information, including gender and locale.
 
-The above information will be kept safe on our servers.  We do not give away personally identifiable information to third parties (unless required by law).  We may aggregate information to learn the most popular features of the application, among other metrics.
+The above information is stored securely on the Octave Online server, which is hosted by Rackspace, Inc. in Chicago, Illinois, USA.
+
+Your activity in Octave Online is recorded by Google Analytics.  Google Analytics may use Google AdSense cookies in your browser to record demographics about the users of Octave Online, including, but not limited to, age and gender.  Note that this information is NOT personally identifiable.  You may opt out from Google Analytics by following the instructions on the following URL.
+
+https://tools.google.com/dlpage/gaoptout/
+
+Unless required by law, we do not give or sell personally identifiable information to third parties.
 
 Octave Online reserves the right to send you email announcements about Octave Online.  Such announcements will be released only for major updates and reports.
 
