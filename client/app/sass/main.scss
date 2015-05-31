@@ -7,6 +7,7 @@
 @import "print";
 @import "../vendor/splittr/splittr";
 @import "compass/css3/transition";
+@import "../fonts/dejavusansmono_book/stylesheet.css";
 
 $header_height: 40px;
 $header_border: 4px;
@@ -14,14 +15,14 @@ $header_padding: 2px;
 $prompt_font_size: 16px;
 $prompt_sign_width: 20px;
 $prompt_height: $prompt_font_size*4/3;
-$console_font_size: 16px;
+$console_font_size: 14px;
 $plot_controls_height: 20px;
 $editor_toolbar_height: 20px;
 $min_width: 680px;
 $min_height: 250px;
 
 // Font Variables
-$code_font_family: "Consolas", monospace;
+$code_font_family: "DejaVu Sans Mono", monospace;
 $unicode_font_family: "Arial Unicode", "Lucida Sans Unicode", "DejaVu Sans", "GNU Unifont", sans-serif;
 $body_font: 400 14px/1.2em "Rambla", sans-serif;
 $heading_font_family: "Bangers", "Impact", sans-serif;

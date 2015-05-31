@@ -63,7 +63,7 @@
 		// Fonts
 		WebFont.load({
 			google: {
-				families: ["Rambla", "Inconsolata:400,700", "Bangers"]
+				families: ["Rambla", "Bangers"]
 			}
 		});
 
