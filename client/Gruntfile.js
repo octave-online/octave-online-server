@@ -54,7 +54,8 @@ module.exports = function (grunt) {
 					"privacy.txt",
 					"compatibility.html",
 					"images/**",
-					"errors/**"
+					"errors/**",
+					"fonts/**"
 				],
 				dest: "dist",
 				expand: true
