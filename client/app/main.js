@@ -17,6 +17,7 @@ require.config({
     "filesaver": "vendor/FileSaver/FileSaver",
     "canvas-toblob": "vendor/canvas-toBlob.js/canvas-toBlob",
     "blob": "vendor/blob/Blob",
+    "ot": "vendor/ot/dist/ot",
 
     // NPM Libraries
     "SocketIOFileUpload": "../node_modules/socketio-file-upload/client",
@@ -51,6 +52,11 @@ require.config({
     // CanVG
     "canvg": {
       exports: "canvg"
+    },
+
+    // ot.js
+    "ot": {
+      exports: "ot"
     },
 
     // Other Libraries

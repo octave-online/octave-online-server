@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Octave Online Colaboration Demo</title>
+
+<!-- Pre-Load Spinner Image -->
+<script>
+new Image().src = "images/spinner.svg";
+</script>
+
+<style type="text/css">
+#editor1{
+	display: inline-block;
+	width: 300px;
+	height: 100px;
+}
+#editor2{
+	display: inline-block;
+	width: 300px;
+	height: 100px;
+}
+</style>
+
+</head>
+<body>
+
+<div id="editor1"></div>
+<div id="editor2"></div>
+
+<script type="text/javascript" src="vendor/requirejs/require.js"></script>
+<script type="text/javascript" src="main.js"></script>
+<script type="text/javascript">
+
+function setupAdapter(ot, adapter){
+
+	return adapter;
+}
+
+var initialText = "lorem ipsum";
+
+require(["ace/ace", "js/ot-client", "ot"], function(ace, Client, ot){
+	var editor1 = ace.edit("editor1");
+	var editor2 = ace.edit("editor2");
+
+	editor1.setValue(initialText);
+	editor2.setValue(initialText);
+
+	var otClient1 = new Client();
+	var otClient2 = new Client();
+
+	otClient1.attachEditor(editor1);
+	otClient2.attachEditor(editor2);
+
+	var server = new ot.Server(initialText);
+	server.broadcast = function(){
+		console.log("broadcast", arguments);
+	}
+
+	otClient1.addEventListener("change", function(revision, operation){
+		console.log("client1 change", arguments);
+		server.receiveOperation(revision, operation);
+	});
+	otClient2.addEventListener("change", function(){
+		console.log("client2 change", arguments);
+		server.receiveOperation(revision, operation);
+	});
+});
+
+</script>
+
+</body>
+</html>

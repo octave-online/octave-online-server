@@ -14,6 +14,7 @@
     "splittr": "latest",
     "canvas-toBlob.js": "latest",
     "blob": "latest",
-    "FileSaver": "latest"
+    "FileSaver": "latest",
+    "ot": "latest"
   }
 }
