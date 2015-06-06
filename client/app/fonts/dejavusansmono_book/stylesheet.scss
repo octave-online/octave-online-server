@@ -1,0 +1,14 @@
+@font-face {
+    font-family: 'DejaVu Sans Mono';
+    // The URLs need to be relative to main.css
+    $rel_path: "../fonts/dejavusansmono_book";
+    src: url('#{$rel_path}/DejaVuSansMono-webfont.eot');
+    src: url('#{$rel_path}/DejaVuSansMono-webfont.eot?#iefix') format('embedded-opentype'),
+         url('#{$rel_path}/DejaVuSansMono-webfont.woff') format('woff'),
+         url('#{$rel_path}/DejaVuSansMono-webfont.ttf') format('truetype'),
+         url('#{$rel_path}/DejaVuSansMono-webfont.svg#dejavu_sans_monobook') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
