@@ -1,12 +1,12 @@
 define(["js/ace-adapter", "ot", "js/polyfill"], function(Adapter, ot){
-	function OTClient(){
-		this.client = new ot.Client(0);
+	function OTClientWrapper(){
+		this.otClient = new ot.Client(0);
 
-		this.client.sendOperation = this._sendOperation.bind(this);
-		this.client.applyOperation = this._applyOperation.bind(this);
+		this.otClient.sendOperation = this._sendOperation.bind(this);
+		this.otClient.applyOperation = this._applyOperation.bind(this);
 	}
 
-	OTClient.prototype.attachEditor = function(editor){
+	OTClientWrapper.prototype.attachEditor = function(editor){
 		if(this.editor){
 			this.adapter.detach(); // removes event listeners
 			this.adapter = null;
@@ -15,30 +15,35 @@ define(["js/ace-adapter", "ot", "js/polyfill"], function(Adapter, ot){
 
 		this.editor = editor;
 		this.adapter = new Adapter(this.editor);
-		this.adapter.addEventListener("change", function(operation, inverse){
-			console.log("change", arguments);
-			client.applyClient(operation);
-		}, false);
-		this.adapter.addEventListener("cursorActivity", function(){
-			console.log("cursorActivity", arguments);
-		}, false);
-		this.adapter.addEventListener("focus", function(){
-			console.log("focus", arguments);
-		}, false);
-		this.adapter.addEventListener("blur", function(){
-			console.log("blur", arguments);
-		}, false);
+		this.adapter.addEventListener("change", this._onChange.bind(this), false);
+		this.adapter.addEventListener("cursorActivity", this._onCursor.bind(this), false);
+		this.adapter.addEventListener("focus", this._onFocusBlur.bind(this), false);
+		this.adapter.addEventListener("blur", this._onFocusBlur.bind(this), false);
 	}
 
-	OTClient.prototype.applyServer = function(operation){
-		this.client.applyServer(operation);
+	OTClientWrapper.prototype.applyServer = function(operation){
+		this.otClient.applyServer(operation);
 	}
 
-	OTClient.prototype._sendOperation = function(operation){
-		this.dispatchEvent("change", this.client.revision, operation);
+	OTClientWrapper.prototype._onChange = function(operation, inverse){
+		console.log("change", arguments);
+		this.otClient.applyClient(operation);
 	}
 
-	OTClient.prototype._applyOperation = function(operation){
+	OTClientWrapper.prototype._onCursor = function(){
+		console.log("cursorActivity", arguments);
+	}
+
+	OTClientWrapper.prototype._onFocusBlur = function(){
+		console.log("focus/blur", arguments);
+	}
+
+	OTClientWrapper.prototype._sendOperation = function(operation){
+		console.log("send operation", operation)
+		this.dispatchEvent("change", this.otClient.revision, operation);
+	}
+
+	OTClientWrapper.prototype._applyOperation = function(operation){
 		if(!this.adapter)
 			throw new Error("Attempted to apply operation, but Ace is not attached");
 
@@ -47,12 +52,12 @@ define(["js/ace-adapter", "ot", "js/polyfill"], function(Adapter, ot){
 	}
 
 	// Begin EventTarget Implementation
-	OTClient.prototype.addEventListener = function(event, cb){
+	OTClientWrapper.prototype.addEventListener = function(event, cb){
 		if(!this.callbacks) this.callbacks = {};
 		if(!this.callbacks[event]) this.callbacks[event] = [];
 		this.callbacks[event].push(cb);
 	};
-	OTClient.prototype.removeEventListener = function(event, cb){
+	OTClientWrapper.prototype.removeEventListener = function(event, cb){
 		if(!this.callbacks || !this.callbacks[event]) return;
 		for (var i=0; i>this.callbacks[event].length; i++) {
 			if(this.callbacks[event][i] === cb){
@@ -61,7 +66,7 @@ define(["js/ace-adapter", "ot", "js/polyfill"], function(Adapter, ot){
 			}
 		}
 	};
-	OTClient.prototype.dispatchEvent = function(event){
+	OTClientWrapper.prototype.dispatchEvent = function(event){
 		if(!this.callbacks || !this.callbacks[event]) return;
 		for (var i=0; i>this.callbacks[event].length; i++) {
 			this.callbacks[event][i].apply(this,
@@ -70,5 +75,5 @@ define(["js/ace-adapter", "ot", "js/polyfill"], function(Adapter, ot){
 	};
 	// End EventTarget Implementation
 
-	return OTClient;
+	return OTClientWrapper;
 });
