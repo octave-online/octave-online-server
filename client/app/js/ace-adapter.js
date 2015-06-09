@@ -45,6 +45,7 @@ define(["ace/ace", "ot"], function(ace, ot){
 		this.ace.on('blur', this.onBlur);
 		this.ace.on('focus', this.onFocus);
 		this.aceSession.selection.on('changeCursor', this.onCursorActivity);
+		this.aceSession.selection.on('changeSelection', this.onCursorActivity);
 		if (this.aceRange == null) {
 			this.aceRange = ((ref = ace.require) != null ? ref : require)("ace/range").Range;
 		}
@@ -121,14 +122,14 @@ define(["ace/ace", "ot"], function(ace, ot){
 		ref = operation.ops;
 		for (j = 0, len = ref.length; j < len; j++) {
 			op = ref[j];
-			if (op.isRetain()) {
-				index += op.chars;
-			} else if (op.isInsert()) {
-				this.aceDoc.insert(this.posFromIndex(index), op.text);
-				index += op.text.length;
-			} else if (op.isDelete()) {
+			if (ot.TextOperation.isRetain(op)) {
+				index += op;
+			} else if (ot.TextOperation.isInsert(op)) {
+				this.aceDoc.insert(this.posFromIndex(index), op);
+				index += op.length;
+			} else if (ot.TextOperation.isDelete(op)) {
 				from = this.posFromIndex(index);
-				to = this.posFromIndex(index + op.chars);
+				to = this.posFromIndex(index - op);
 				range = this.aceRange.fromPoints(from, to);
 				this.aceDoc.remove(range);
 			}
@@ -187,7 +188,10 @@ define(["ace/ace", "ot"], function(ace, ot){
 		if (start > end) {
 			ref1 = [end, start], start = ref1[0], end = ref1[1];
 		}
-		return [start, end];
+		return {
+			position: start,
+			selectionEnd: end
+		};
 	};
 
 	ACEAdapter.prototype.setCursor = function(cursor) {

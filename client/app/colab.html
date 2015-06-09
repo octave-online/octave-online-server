@@ -31,39 +31,51 @@ new Image().src = "images/spinner.svg";
 <script type="text/javascript" src="main.js"></script>
 <script type="text/javascript">
 
-function setupAdapter(ot, adapter){
-
-	return adapter;
-}
-
 var initialText = "lorem ipsum";
 
-require(["ace/ace", "js/ot-client", "ot"], function(ace, Client, ot){
+require(["ace/ace", "js/ot-client", "socket.io"], function(ace, Client, io){
 	var editor1 = ace.edit("editor1");
 	var editor2 = ace.edit("editor2");
 
 	editor1.setValue(initialText);
 	editor2.setValue(initialText);
 
-	var otClient1 = new Client();
-	var otClient2 = new Client();
+	otClient1 = new Client();
+	otClient2 = new Client();
 
 	otClient1.attachEditor(editor1);
 	otClient2.attachEditor(editor2);
 
-	var server = new ot.Server(initialText);
-	server.broadcast = function(){
-		console.log("broadcast", arguments);
-	}
+	otClient1.addEventListener("send", function(revision, operation){
+		console.log("client1 send", arguments);
+		socket.emit("ot:change", {
+			rev: revision,
+			op: operation
+		});
+	});
+	otClient1.addEventListener("cursor", function(cursor){
+		console.log("client1 cursor", arguments);
+		socket.emit("ot:cursor", cursor);
+	});
+	otClient2.addEventListener("send", function(){
+		console.log("client2 send", arguments);
+		socket.emit("ot:change", {
+			rev: revision,
+			op: operation
+		});
+	});
 
-	otClient1.addEventListener("change", function(revision, operation){
-		console.log("client1 change", arguments);
-		server.receiveOperation(revision, operation);
+	var socket = window.socket = io();
+	socket.emit("init");
+	socket.on("ot:broadcast", function(obj){
+		var op = ot.TextOperation.fromJSON(obj.op);
+		otClient1.serverAck();
+		//otClient1.applyServer(op);
+		otClient2.applyServer(op);
 	});
-	otClient2.addEventListener("change", function(){
-		console.log("client2 change", arguments);
-		server.receiveOperation(revision, operation);
-	});
+	socket.on("ot:cursor", function(cursor){
+		otClient2.adapter.setOtherCursor(cursor, "#F00", "foo");
+	})
 });
 
 </script>
