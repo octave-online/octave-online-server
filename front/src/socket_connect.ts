@@ -1,5 +1,6 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/socket.io/socket.io.d.ts'/>
+///<reference path='typedefs/ot.d.ts'/>
 
 import User = require("./user_model");
 import IUser = require("./user_interface");
@@ -7,6 +8,7 @@ import Config = require("./config");
 import RedisHandler = require("./redis_handler");
 import RedisHelper = require("./redis_helper");
 import ChildProcess = require("child_process");
+import Ot = require("ot");
 
 interface ISocketCustom extends SocketIO.Socket {
 	once(event:string, listener:Function):void;
@@ -27,6 +29,7 @@ enum ReadyState{
 
 class SocketHandler {
 	public socket:ISocketCustom;
+	public otServer: Ot.Server;
 	public redis:RedisHandler;
 	public user:IUser = null;
 	public sessCode:string;
@@ -44,6 +47,9 @@ class SocketHandler {
 		this.listen();
 		this.log("New Connection", this.socket.handshake.address);
 
+		// OT server
+		this.otServer = new Ot.Server("lorem ipsum");
+
 		// Concurrently ask socket for its sessCode and load user from MongoDB
 		var _socketInitDone = false;
 		var _mongoInitDone = false;
@@ -54,7 +60,7 @@ class SocketHandler {
 		this.socket.once("init", (data)=> {
 			_sessCodeGuess = data && data.sessCode;
 			_socketInitDone = true;
-			this.log("Claimed sessCode", data.sessCode);
+			this.log("Claimed sessCode", _sessCodeGuess);
 
 			// Attempt to continue to callback
 			if (_socketInitDone && _mongoInitDone) {
@@ -90,6 +96,8 @@ class SocketHandler {
 		this.socket.on("disconnect", this.onDisconnect);
 		this.socket.on("enroll", this.onEnroll);
 		this.socket.on("update_students", this.onUpdateStudents);
+		this.socket.on("ot:change", this.onOtChange);
+		this.socket.on("ot:cursor", this.onOtCursor);
 		this.socket.on("*", this.onInput);
 
 		// Make listeners on Redis
@@ -136,6 +144,25 @@ class SocketHandler {
 		this.log("Destroying:", message);
 	};
 
+	private onOtChange = (obj) => {
+		console.log("ot in:", obj);
+		if (!obj
+			|| typeof obj.op === "undefined"
+			|| typeof obj.rev === "undefined")
+			return;
+		var op = Ot.TextOperation.fromJSON(obj.op);
+		var transformed = this.otServer.receiveOperation(obj.rev, op);
+		this.socket.emit("ot:broadcast", {
+			op: transformed
+		});
+		console.log("ot out:", transformed);
+	};
+
+	private onOtCursor = (cursor) => {
+		if (!cursor) return;
+		this.socket.emit("ot:cursor", cursor);
+	};
+
 	private onInput = (obj)=> {
 		if (!this.redis) return;
 
@@ -149,7 +176,7 @@ class SocketHandler {
 	};
 
 	private onEnroll = (obj)=> {
-		if (!this.user) return;
+		if (!this.user || !obj) return;
 		var program = obj.program;
 		if (!program) return;
 		console.log("Enrolling", this.user.consoleText, "in program", program);
@@ -161,6 +188,7 @@ class SocketHandler {
 	};
 
 	private onUpdateStudents = (obj)=> {
+		if (!obj) return;
 		if (!this.user)
 			return this.sendData("Please sign in first");
 		if (!this.user.instructor || this.user.instructor.length === 0)
