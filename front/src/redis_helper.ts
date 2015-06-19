@@ -8,8 +8,16 @@ import Crypto = require("crypto");
 import EventEmitter2 = require("eventemitter2");
 import IUser = require("./user_interface");
 import IRedis = require("./typedefs/iredis");
-import Heartbeat = require("redis-heartbeat");
 import Config = require("./config");
+
+// Conditionally include redis-heartbeat (not supported on Winows)
+var Heartbeat;
+try {
+	Heartbeat = require("redis-heartbeat");
+} catch(e) {
+	Heartbeat = null;
+}
+
 
 var infoClient = IRedis.createClient();
 var heartbeatClient = IRedis.createClient();
@@ -60,7 +68,7 @@ class RedisHelper extends EventEmitter2.EventEmitter2 {
 	}
 
 	public startHeartbeat() {
-		new Heartbeat({
+		if (Heartbeat) return new Heartbeat({
 			name: "oo-front",
 			identifier: "oo-front-" + String(new Date().valueOf()),
 			client: heartbeatClient

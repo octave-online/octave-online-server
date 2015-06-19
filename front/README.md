@@ -19,6 +19,12 @@ Now compile the server:
 
 	grunt
 
+### Redis Heartbeats
+
+If you would like the server to send periodic heartbeats to the Redis server, just install `redis-heartbeat` in npm.  This does not work in Windows, which is why it is optional.
+
+	npm install redis-heartbeat
+
 ## Redis and MongoDB
 
 In order to use Octave Online, you will need to have a working [Redis](http://redis.io/) and [MongoDB](http://www.mongodb.org/) installation.  You can install these from yum, apt-get, etc.  For example, a simple `apt-get install redis-server` and `apt-get install mongodb` should be sufficient.
