@@ -1,27 +1,43 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/redis/redis.d.ts'/>
 ///<reference path='boris-typedefs/eventemitter2/eventemitter2.d.ts'/>
+///<reference path='typedefs/uuid.d.ts'/>
+///<reference path='typedefs/ot.d.ts'/>
 
 import Redis = require("redis");
 import Crypto = require("crypto");
 import EventEmitter2 = require("eventemitter2");
 import IRedis = require("./typedefs/iredis");
 import Config = require("./config");
+import Uuid = require("uuid");
+import Fs = require("fs");
+import Ot = require("ot");
+
+// Load the Lua script
+var otLuaScript = Fs.readFileSync("src/ot.lua", { encoding: "utf8" });
+otLuaScript += Fs.readFileSync("src/ot_redis.lua", { encoding: "utf8" });
+otLuaScript = otLuaScript.replace(/function/g, "local function");
+var otLuaSha1 = Crypto.createHash("sha1").update(otLuaScript).digest("hex");
 
 var outputClient = IRedis.createClient();
 var pushClient = IRedis.createClient();
 var destroyUClient = IRedis.createClient();
 var expireClient = IRedis.createClient();
+var otOperationClient = IRedis.createClient();
+var otListenClient = IRedis.createClient();
 outputClient.psubscribe(IRedis.Chan.output("*"));
 destroyUClient.subscribe(IRedis.Chan.destroyU);
 expireClient.subscribe("__keyevent@0__:expired");
+otListenClient.psubscribe(IRedis.Chan.otSub("*"));
 
 outputClient.setMaxListeners(30);
 destroyUClient.setMaxListeners(30);
 expireClient.setMaxListeners(30);
+otListenClient.setMaxListeners(30);
 
 class RedisHandler extends EventEmitter2.EventEmitter2 {
 	public sessCode:string;
+	private chgIds:string[] = [];
 
 	constructor(sessCode:string) {
 		super();
@@ -63,6 +79,44 @@ class RedisHandler extends EventEmitter2.EventEmitter2 {
 		this.unsubscribe();
 	}
 
+	public getOtDoc(docId:string) {
+		var multi = otOperationClient.multi();
+		multi.llen(IRedis.Chan.otOps(docId));
+		multi.get(IRedis.Chan.otDoc(docId));
+		multi.exec((err, res)=> {
+			if (err) console.log("REDIS ERROR", err);
+			else {
+				this.emit("ot:doc", docId, res[0], res[1]);
+			}
+		});
+	}
+
+	public receiveOperation(docId:string, rev:number, op:Ot.ITextOperation) {
+		var ops_key = IRedis.Chan.otOps(docId);
+		var doc_key = IRedis.Chan.otDoc(docId);
+		var sub_key = IRedis.Chan.otSub(docId);
+		var chgId = Uuid.v4();
+
+		var message:IRedis.OtMessage = {
+			docId: docId,
+			chgId: chgId,
+			ops: op.toJSON()
+		}
+
+		otOperationClient.evalsha(otLuaSha1, 3, ops_key, doc_key, sub_key,
+			rev, JSON.stringify(message), function(err) {
+			if (!err) return;
+			if (/NOSCRIPT/.test(err.message)) {
+				otOperationClient.eval(otLuaScript, 3, ops_key, doc_key, sub_key,
+					rev, JSON.stringify(message), function(err2) {
+					if (err2) console.log("REDIS ERROR", err);
+				});
+			}
+		});
+
+		this.chgIds.push(chgId);
+	}
+
 	private touchInterval;
 
 	private touch = () => {
@@ -78,11 +132,13 @@ class RedisHandler extends EventEmitter2.EventEmitter2 {
 		outputClient.on("pmessage", this.pMessageListener);
 		destroyUClient.on("message", this.destroyUListener);
 		expireClient.on("message", this.expireListener);
+		otListenClient.on("pmessage", this.otMessageListener);
 		this.touch();
 		this.touchInterval = setInterval(this.touch, Config.redis.expire.interval * 1000);
 	}
 
 	private unsubscribe() {
+		outputClient.removeListener("pmessage", this.pMessageListener);
 		outputClient.removeListener("pmessage", this.pMessageListener);
 		destroyUClient.removeListener("message", this.destroyUListener);
 		expireClient.removeListener("message", this.expireListener);
@@ -109,6 +165,19 @@ class RedisHandler extends EventEmitter2.EventEmitter2 {
 			// both upstream and downstream.
 			this.destroyD("Octave Session Expired");
 			this.emit("destroy-u", "Octave Session Expired");
+		}
+	};
+
+	private otMessageListener = (pattern, channel, message) => {
+		var obj = IRedis.checkOtMessage(channel, message);
+		if (obj) {
+			var i = this.chgIds.indexOf(obj.chgId);
+			if (i > -1) {
+				this.chgIds.splice(i, 1);
+				this.emit("ot:ack", obj.docId);
+			} else {
+				this.emit("ot:broadcast", obj.docId, obj.ops);
+			}
 		}
 	};
 }

@@ -34,6 +34,7 @@ class SocketHandler {
 	public user:IUser = null;
 	public sessCode:string;
 	public readyState:ReadyState = ReadyState.New;
+	private docIds:string[] = [];
 
 	public static onConnection(socket:SocketIO.Socket) {
 		var handler = new SocketHandler(socket);
@@ -46,9 +47,6 @@ class SocketHandler {
 		this.socket = <ISocketCustom> socket;
 		this.listen();
 		this.log("New Connection", this.socket.handshake.address);
-
-		// OT server
-		this.otServer = new Ot.Server("lorem ipsum");
 
 		// Concurrently ask socket for its sessCode and load user from MongoDB
 		var _socketInitDone = false;
@@ -96,6 +94,7 @@ class SocketHandler {
 		this.socket.on("disconnect", this.onDisconnect);
 		this.socket.on("enroll", this.onEnroll);
 		this.socket.on("update_students", this.onUpdateStudents);
+		this.socket.on("ot:subscribe", this.onOtSubscribe);
 		this.socket.on("ot:change", this.onOtChange);
 		this.socket.on("ot:cursor", this.onOtCursor);
 		this.socket.on("*", this.onInput);
@@ -104,6 +103,9 @@ class SocketHandler {
 		if (this.redis) {
 			this.redis.on("data", this.onOutput);
 			this.redis.on("destroy-u", this.onDestroyU);
+			this.redis.on("ot:doc", this.onOtDoc);
+			this.redis.on("ot:ack", this.onOtAck);
+			this.redis.on("ot:broadcast", this.onOtBroadcast);
 		}
 	}
 
@@ -144,23 +146,58 @@ class SocketHandler {
 		this.log("Destroying:", message);
 	};
 
+	private onOtSubscribe = (obj) => {
+		if (!obj
+			|| typeof obj.docId === "undefined")
+			return;
+		if (!this.redis) return;
+
+		console.log("here")
+		this.docIds.push(obj.docId);
+		this.redis.getOtDoc(obj.docId);
+	}
+
 	private onOtChange = (obj) => {
 		console.log("ot in:", obj);
 		if (!obj
 			|| typeof obj.op === "undefined"
-			|| typeof obj.rev === "undefined")
+			|| typeof obj.rev === "undefined"
+			|| typeof obj.docId === "undefined")
 			return;
+		if (this.docIds.indexOf(obj.docId) === -1) return;
+
 		var op = Ot.TextOperation.fromJSON(obj.op);
-		var transformed = this.otServer.receiveOperation(obj.rev, op);
-		this.socket.emit("ot:broadcast", {
-			op: transformed
-		});
-		console.log("ot out:", transformed);
+		this.redis.receiveOperation(obj.docId, obj.rev, op);
 	};
 
 	private onOtCursor = (cursor) => {
 		if (!cursor) return;
-		this.socket.emit("ot:cursor", cursor);
+		// this.socket.emit("ot:cursor", cursor);
+	};
+
+	private onOtDoc = (docId, rev, content) => {
+		this.socket.emit("ot:doc", {
+			docId: docId,
+			rev: rev,
+			content: content
+		});
+	};
+
+	private onOtAck = (docId) => {
+		if (this.docIds.indexOf(docId) > -1) {
+			this.socket.emit("ot:ack", {
+				docId: docId
+			});
+		}
+	};
+
+	private onOtBroadcast = (docId, ops) => {
+		if (this.docIds.indexOf(docId) > -1) {
+			this.socket.emit("ot:broadcast", {
+				docId: docId,
+				ops: ops
+			});
+		}
 	};
 
 	private onInput = (obj)=> {

@@ -1,5 +1,6 @@
 declare module 'ot' {
 	interface ITextOperation {
+		toJSON(): any;
 	}
 
 	export class Server {

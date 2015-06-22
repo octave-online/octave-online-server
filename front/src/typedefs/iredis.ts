@@ -26,6 +26,11 @@ module IRedis {
 		priority?:number // only on requests
 		response?:boolean // only on responses
 	}
+	export interface OtMessage {
+		chgId:string
+		docId:string
+		ops:any
+	}
 
 	// Function to create a new Redis connection
 	export function createClient():Client{
@@ -50,6 +55,15 @@ module IRedis {
 		},
 		output: function (sessCode:string):string {
 			return "oo:output:" + sessCode;
+		},
+		otOps: function (docId:string):string {
+			return "ot:" + docId + ":ops";
+		},
+		otDoc: function (docId:string):string {
+			return "ot:" + docId + ":doc";
+		},
+		otSub: function (docId:string):string {
+			return "ot:" + docId + ":sub";
 		}
 	};
 
@@ -71,6 +85,23 @@ module IRedis {
 		}
 		if (!obj.name) return null;
 		
+		return obj;
+	}
+
+	// Match an otMessage
+	export function checkOtMessage(channel, message):OtMessage {
+		var match = /^ot:([^:]+):sub$/.exec(channel);
+		if (!match) return null;
+		
+		var obj:OtMessage;
+		try {
+			obj = JSON.parse(message);
+		} catch(e) {
+			console.log("JSON PARSE ERROR", e);
+			return null;
+		}
+		if (!obj.chgId || !obj.docId || !obj.ops) return null;
+
 		return obj;
 	}
 	
