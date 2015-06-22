@@ -1,6 +1,6 @@
 define(["js/ace-adapter", "ot", "js/polyfill"], function(Adapter, ot){
-	function OTClientWrapper(){
-		this.otClient = new ot.Client(0);
+	function OTClientWrapper(rev){
+		this.otClient = new ot.Client(rev);
 
 		this.otClient.sendOperation = this._sendOperation.bind(this);
 		this.otClient.applyOperation = this._applyOperation.bind(this);
