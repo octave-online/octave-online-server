@@ -8,6 +8,7 @@ import IUser = require("./user_interface");
 import Config = require("./config");
 import RedisHandler = require("./redis_handler");
 import RedisHelper = require("./redis_helper");
+import Workspace = require("./workspace");
 import ChildProcess = require("child_process");
 import Ot = require("ot");
 import Async = require("async");
@@ -27,17 +28,18 @@ enum ReadyState{
 	Idle,
 	Requested,
 	Active,
-	Destroyed
+	Destroyed,
+	Workspace
 }
 
 class SocketHandler {
 	public socket:ISocketCustom;
-	public otServer: Ot.Server;
+	public otServer:Ot.Server;
 	public redis:RedisHandler;
+	public workspace:Workspace;
 	public user:IUser = null;
 	public sessCode:string;
 	public readyState:ReadyState = ReadyState.Idle;
-	private docIds:string[] = [];
 
 	public static onConnection(socket:SocketIO.Socket) {
 		var handler = new SocketHandler(socket);
@@ -74,19 +76,36 @@ class SocketHandler {
 				else next(null, null);
 			},
 
-			// 2. User requested to connect to an Octave session
-			sesscode: (next) => {
+			// 2. User requested to connect
+			init: (next) => {
 				self.socket.once("init", (data) => {
-					var sessCodeGuess = data && data.sessCode;
-					self.log("Claimed sessCode", sessCodeGuess);
-					next(null, sessCodeGuess);
+					next(null, data);
 				});
 			},
 
-			// 3. Connect to an Octave session (depends on 1 and 2)
-			init_session: ["user", "sesscode", (next, {user, sesscode}) => {
+			// Callback (depends on 1 and 2)
+			init_session: ["user", "init", (next, {user, init}) => {
 				self.user = user;
-				self.beginOctaveRequest(sesscode);
+
+				// Process the user's requested action
+				var action = init && init.action;
+				switch (action) {
+					case "workspace":
+						var wsId = init && init.wsId;
+						if (!wsId) return;
+						self.log("Attaching to workspace", wsId);
+						self.attachToWorkspace(wsId);
+						break;
+
+					default:
+						var sessCodeGuess = init && init.sessCode;
+						self.log("Claimed sessCode", sessCodeGuess);
+						self.beginOctaveRequest(sessCodeGuess);
+						break;
+				}
+
+				// Continue down the chain (does not do anything currently)
+				next(null, null);
 			}]
 
 		}, (err) => {
@@ -105,18 +124,19 @@ class SocketHandler {
 		this.socket.on("disconnect", this.onDisconnect);
 		this.socket.on("enroll", this.onEnroll);
 		this.socket.on("update_students", this.onUpdateStudents);
-		this.socket.on("ot:subscribe", this.onOtSubscribe);
-		this.socket.on("ot:change", this.onOtChange);
-		this.socket.on("ot:cursor", this.onOtCursor);
-		this.socket.on("oo:reconnect", this.onOoReconnect);
+		this.socket.on("oo.reconnect", this.onOoReconnect);
 		this.socket.on("*", this.onInput);
 
 		// Make listeners on Redis
 		this.redis.on("data", this.onOutput);
 		this.redis.on("destroy-u", this.onDestroyU);
-		this.redis.on("ot:doc", this.onOtDoc);
-		this.redis.on("ot:ack", this.onOtAck);
-		this.redis.on("ot:broadcast", this.onOtBroadcast);
+
+		// Make listeners on Workspace
+		if (this.workspace) {
+			this.workspace.on("data", this.onWsData);
+			this.workspace.on("sesscode", this.onWsSessCode);
+			this.workspace.subscribe();
+		}
 
 		// Let Redis have listeners too
 		this.redis.subscribe();
@@ -126,6 +146,10 @@ class SocketHandler {
 		this.socket.removeAllListeners();
 		this.redis.removeAllListeners();
 		this.redis.unsubscribe();
+		if (this.workspace) {
+			this.workspace.removeAllListeners();
+			this.workspace.unsubscribe();
+		}
 	}
 
 	private log(..._args:any[]):void {
@@ -158,69 +182,38 @@ class SocketHandler {
 	};
 
 	private onOoReconnect = ():void => {
-		this.beginOctaveRequest(null);
-	};
-
-	private onOtSubscribe = (obj) => {
-		if (!obj
-			|| typeof obj.docId === "undefined")
-			return;
-		if (!this.redis) return;
-
-		console.log("here")
-		this.docIds.push(obj.docId);
-		this.redis.getOtDoc(obj.docId);
-	}
-
-	private onOtChange = (obj) => {
-		console.log("ot in:", obj);
-		if (!obj
-			|| typeof obj.op === "undefined"
-			|| typeof obj.rev === "undefined"
-			|| typeof obj.docId === "undefined")
-			return;
-		if (this.docIds.indexOf(obj.docId) === -1) return;
-
-		var op = Ot.TextOperation.fromJSON(obj.op);
-		this.redis.receiveOperation(obj.docId, obj.rev, op);
-	};
-
-	private onOtCursor = (cursor) => {
-		if (!cursor) return;
-		// this.socket.emit("ot:cursor", cursor);
-	};
-
-	private onOtDoc = (docId, rev, content) => {
-		this.socket.emit("ot:doc", {
-			docId: docId,
-			rev: rev,
-			content: content
-		});
-	};
-
-	private onOtAck = (docId) => {
-		if (this.docIds.indexOf(docId) > -1) {
-			this.socket.emit("ot:ack", {
-				docId: docId
-			});
+		if (this.workspace) {
+			this.workspace.beginOctaveRequest();
+		} else {
+			this.beginOctaveRequest(null);
 		}
 	};
 
-	private onOtBroadcast = (docId, ops) => {
-		if (this.docIds.indexOf(docId) > -1) {
-			this.socket.emit("ot:broadcast", {
-				docId: docId,
-				ops: ops
-			});
-		}
+	private onWsSessCode = (sessCode:string):void => {
+		this.redis.setSessCode(sessCode);
 	};
 
 	private onInput = (obj)=> {
 		if (!this.redis) return;
 
-		// Blindly pass all data from the client to Redis
-		this.redis.input(obj.data[0], obj.data[1]);
+		// Check if the event name is prefixed with ot. or ws.
+		var name = obj.data[0] || "";
+		var val = obj.data[1] || null;
+		if (this.workspace
+			&& name.substr(0,3) === "ot."
+			|| name.substr(0,3) === "ws.") {
+			this.workspace.onSocket(name, val);
+			return;
+		}
+
+		// Blindly pass all remaining data from the client to Redis
+		this.redis.input(name, val);
 	};
+
+	private onWsData = (name, data)=> {
+		// Blindly pass all data from the Workspace to the client
+		this.socket.emit(name, data);
+	}
 
 	private onOutput = (name, data) => {
 		// Blindly pass all data from Redis to the client
@@ -264,6 +257,17 @@ class SocketHandler {
 		);
 	};
 
+	//// SHARED WORKSPACE INITIALIZATION FUNCTIONS ////
+
+	private attachToWorkspace(wsId:string) {
+		if (this.readyState !== ReadyState.Idle) return;
+		this.readyState = ReadyState.Workspace;
+
+		this.workspace = new Workspace(wsId);
+		this.workspace.beginOctaveRequest();
+		this.listen();
+	};
+
 	//// SESSION INITIALIZATION FUNCTIONS ////
 
 	private beginOctaveRequest(sessCodeGuess:string) {
@@ -275,36 +279,50 @@ class SocketHandler {
 
 	private onSessCode = (err, sessCode:string, needsOctave:boolean)=> {
 		if (err) return this.log("REDIS ERROR", err);
-		if (this.readyState !== ReadyState.Requested) return;
 		this.sessCode = sessCode;
 
 		// We have our sessCode.  Log it.
 		this.log("SessCode Ready", sessCode);
 
 		if (needsOctave) {
+			// Make sure the client didn't leave.
+			if (this.readyState !== ReadyState.Requested) return;
+
 			// Tell the client and make the Octave session.
 			this.socket.emit("sesscode", {
 				sessCode: sessCode
 			});
 			RedisHelper.askForOctave(sessCode, this.user, this.onOctaveRequested);
+
 		} else {
-			// Make Redis, update ready state, and send prompt message to client
+			// The client's requested sessCode session exists.
+			// Add sessCode to Redis
 			this.redis.setSessCode(this.sessCode);
-			this.readyState = ReadyState.Active;
-			this.socket.emit("prompt", {});
+
+			if (this.readyState === ReadyState.Destroyed) {
+				// The client abandoned us.  Destroy their session.
+				this.redis.destroyD("Client Gone 1");
+				this.unlisten();
+
+			} else {
+				// Update ready state and send prompt message to the client
+				this.readyState = ReadyState.Active;
+				this.socket.emit("prompt", {});
+			}
 		}
 	};
 
 	private onOctaveRequested = (err)=> {
 		if (err) return this.log("REDIS ERROR", err);
 
-		// Make Redis
+		// A new Octave session with the desired sessCode has been opened.
+		// Add sessCode to Redis
 		this.redis.setSessCode(this.sessCode);
 
 		// Check and update ready state
 		switch (this.readyState) {
 			case ReadyState.Destroyed:
-				this.redis.destroyD("Client Gone");
+				this.redis.destroyD("Client Gone 2");
 				this.unlisten();
 				break;
 			case ReadyState.Requested:

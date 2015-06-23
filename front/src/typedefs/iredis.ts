@@ -31,6 +31,10 @@ module IRedis {
 		docId:string
 		ops:any
 	}
+	export interface WsMessage {
+		type:string
+		data:any
+	}
 
 	// Function to create a new Redis connection
 	export function createClient():Client{
@@ -64,6 +68,15 @@ module IRedis {
 		},
 		otSub: function (docId:string):string {
 			return "ot:" + docId + ":sub";
+		},
+		wsInfo: function (wsId:string):string {
+			return "oo:workspace:" + wsId + ":info";
+		},
+		wsSess: function(wsId: string): string {
+			return "oo:workspace:" + wsId + ":sess";
+		},
+		wsSub: function(wsId: string): string {
+			return "oo:workspace:" + wsId + ":sub";
 		}
 	};
 
@@ -101,6 +114,24 @@ module IRedis {
 			return null;
 		}
 		if (!obj.chgId || !obj.docId || !obj.ops) return null;
+
+		return obj;
+	}
+
+	// Match a WsMessage
+	export function checkWsMessage(channel, message, wsId):WsMessage {
+		var match = /^oo:workspace:([^:]+):sub$/.exec(channel);
+		if (!match) return null;
+		if (match[1] !== wsId) return null;
+
+		var obj:WsMessage;
+		try {
+			obj = JSON.parse(message);
+		} catch (e) {
+			console.log("JSON PARSE ERROR", e);
+			return null;
+		}
+		if (!obj.type) return null;
 
 		return obj;
 	}
