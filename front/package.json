@@ -9,6 +9,7 @@
   "author": "Shane Carr",
   "license": "X11",
   "dependencies": {
+    "async": "^1.2.1",
     "body-parser": "^1.10.1",
     "compression": "^1.2.2",
     "connect-redis": "^2.1.0",

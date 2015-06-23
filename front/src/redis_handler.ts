@@ -36,15 +36,16 @@ expireClient.setMaxListeners(30);
 otListenClient.setMaxListeners(30);
 
 class RedisHandler extends EventEmitter2.EventEmitter2 {
-	public sessCode:string;
+	public sessCode:string = null;
 	private chgIds:string[] = [];
 
-	constructor(sessCode:string) {
+	constructor() {
 		super();
-		this.sessCode = sessCode;
+	}
 
-		// Add event listeners for Redis
-		this.subscribe();
+	public setSessCode(sessCode:string) {
+		this.sessCode = sessCode;
+		this.touch();
 	}
 
 	public input(name:string, data:any) {
@@ -57,8 +58,9 @@ class RedisHandler extends EventEmitter2.EventEmitter2 {
 	}
 
 	public destroyD(message:string) {
-		console.log("Sending Destroy-D", message, this.sessCode);
+		if (!this.depend(["sessCode"])) return;
 
+		console.log("Sending Destroy-D", message, this.sessCode);
 		var destroyMessage:IRedis.DestroyMessage = {
 			sessCode: this.sessCode,
 			message: message
@@ -74,9 +76,6 @@ class RedisHandler extends EventEmitter2.EventEmitter2 {
 		multi.exec((err)=> {
 			if (err) console.log("REDIS ERROR", err);
 		});
-
-		// Relieve local memory
-		this.unsubscribe();
 	}
 
 	public getOtDoc(docId:string) {
@@ -117,18 +116,11 @@ class RedisHandler extends EventEmitter2.EventEmitter2 {
 		this.chgIds.push(chgId);
 	}
 
-	private touchInterval;
+	public subscribe() {
+		// Prevent duplicate listeners
+		this.unsubscribe();
 
-	private touch = () => {
-		var multi = pushClient.multi();
-		multi.expire(IRedis.Chan.input(this.sessCode), Config.redis.expire.timeout);
-		multi.expire(IRedis.Chan.session(this.sessCode), Config.redis.expire.timeout);
-		multi.exec((err)=> {
-			if (err) console.log("REDIS ERROR", err);
-		});
-	};
-
-	private subscribe() {
+		// Create listeners to Redis
 		outputClient.on("pmessage", this.pMessageListener);
 		destroyUClient.on("message", this.destroyUListener);
 		expireClient.on("message", this.expireListener);
@@ -137,7 +129,7 @@ class RedisHandler extends EventEmitter2.EventEmitter2 {
 		this.touchInterval = setInterval(this.touch, Config.redis.expire.interval * 1000);
 	}
 
-	private unsubscribe() {
+	public unsubscribe() {
 		outputClient.removeListener("pmessage", this.pMessageListener);
 		outputClient.removeListener("pmessage", this.pMessageListener);
 		destroyUClient.removeListener("message", this.destroyUListener);
@@ -145,21 +137,48 @@ class RedisHandler extends EventEmitter2.EventEmitter2 {
 		clearInterval(this.touchInterval);
 	}
 
+	private touchInterval;
+
+	private touch = () => {
+		if (!this.depend(["sessCode"])) return;
+
+		var multi = pushClient.multi();
+		multi.expire(IRedis.Chan.input(this.sessCode), Config.redis.expire.timeout);
+		multi.expire(IRedis.Chan.session(this.sessCode), Config.redis.expire.timeout);
+		multi.exec((err)=> {
+			if (err) console.log("REDIS ERROR", err);
+		});
+	};
+
+	private depend(props) {
+		for (var i = 0; i < props.length; i++){
+			if (!this[props[i]]) {
+				console.log("UNMET DEPENDENCY", props[i]);
+				return false;
+			}
+		}
+		return true;
+	};
+
 	private pMessageListener = (pattern, channel, message) => {
+		if (!this.depend(["sessCode"])) return;
+
 		var obj = IRedis.checkPMessage(channel, message, this.sessCode);
 		if (obj) this.emit("data", obj.name, obj.data);
 	};
 
 	private destroyUListener = (channel, message) => {
-		var _message = IRedis.checkDestroyMessage(message, this.sessCode);
+		if (!this.depend(["sessCode"])) return;
 
-		if (_message) {
-			this.emit("destroy-u", _message);
-			this.unsubscribe();
-		}
+		var _message = IRedis.checkDestroyMessage(message, this.sessCode);
+		if (!_message) return;
+
+		this.emit("destroy-u", _message);
 	};
 
 	private expireListener = (channel, message) => {
+		if (!this.depend(["sessCode"])) return;
+
 		if(IRedis.checkExpired(message, this.sessCode)){
 			// If the session becomes expired, trigger a destroy event
 			// both upstream and downstream.

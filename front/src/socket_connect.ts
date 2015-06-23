@@ -1,5 +1,6 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/socket.io/socket.io.d.ts'/>
+///<reference path='boris-typedefs/async/async.d.ts'/>
 ///<reference path='typedefs/ot.d.ts'/>
 
 import User = require("./user_model");
@@ -9,6 +10,7 @@ import RedisHandler = require("./redis_handler");
 import RedisHelper = require("./redis_helper");
 import ChildProcess = require("child_process");
 import Ot = require("ot");
+import Async = require("async");
 
 interface ISocketCustom extends SocketIO.Socket {
 	once(event:string, listener:Function):void;
@@ -22,7 +24,8 @@ interface ISocketCustom extends SocketIO.Socket {
 }
 
 enum ReadyState{
-	New,
+	Idle,
+	Requested,
 	Active,
 	Destroyed
 }
@@ -33,7 +36,7 @@ class SocketHandler {
 	public redis:RedisHandler;
 	public user:IUser = null;
 	public sessCode:string;
-	public readyState:ReadyState = ReadyState.New;
+	public readyState:ReadyState = ReadyState.Idle;
 	private docIds:string[] = [];
 
 	public static onConnection(socket:SocketIO.Socket) {
@@ -42,48 +45,56 @@ class SocketHandler {
 	}
 
 	constructor(socket:SocketIO.Socket) {
+		var self = this;
 
 		// Set up the socket
 		this.socket = <ISocketCustom> socket;
-		this.listen();
 		this.log("New Connection", this.socket.handshake.address);
-
-		// Concurrently ask socket for its sessCode and load user from MongoDB
-		var _socketInitDone = false;
-		var _mongoInitDone = false;
-		var _sessCodeGuess:string = null;
-
-		// Send the init message over the socket and wait for a response
 		this.socket.emit("init");
-		this.socket.once("init", (data)=> {
-			_sessCodeGuess = data && data.sessCode;
-			_socketInitDone = true;
-			this.log("Claimed sessCode", _sessCodeGuess);
 
-			// Attempt to continue to callback
-			if (_socketInitDone && _mongoInitDone) {
-				this.initSessCode(_sessCodeGuess);
+		// Set up Redis connection
+		this.redis = new RedisHandler();
+
+		// Add event listeners
+		this.listen();
+
+		// Startup tasks
+		Async.auto({
+
+			// 1. Load user from database
+			user: (next) => {
+				var sess = self.socket.request.session;
+				var userId = sess && sess.passport && sess.passport.user;
+
+				if (userId) User.findById(userId, (err, user) => {
+					if (err) return self.log("MONGO ERROR", err);
+					self.log("Loaded from Mongo");
+					next(null, user);
+				});
+				else next(null, null);
+			},
+
+			// 2. User requested to connect to an Octave session
+			sesscode: (next) => {
+				self.socket.once("init", (data) => {
+					var sessCodeGuess = data && data.sessCode;
+					self.log("Claimed sessCode", sessCodeGuess);
+					next(null, sessCodeGuess);
+				});
+			},
+
+			// 3. Connect to an Octave session (depends on 1 and 2)
+			init_session: ["user", "sesscode", (next, {user, sesscode}) => {
+				self.user = user;
+				self.beginOctaveRequest(sesscode);
+			}]
+
+		}, (err) => {
+			// Error Handler
+			if (err) {
+				console.log("ASYNC ERROR", err);
 			}
 		});
-
-		// Load the user from MongoDB
-		var sess = this.socket.request.session;
-		var userId = sess && sess.passport && sess.passport.user;
-		if (userId) {
-			User.findById(userId, (err, user)=> {
-				if (err) return this.log("MONGO ERROR", err);
-				this.user = user;
-				_mongoInitDone = true;
-				this.log("Loaded from Mongo");
-
-				// Attempt to continue to callback
-				if (_socketInitDone && _mongoInitDone) {
-					this.initSessCode(_sessCodeGuess);
-				}
-			});
-		} else {
-			_mongoInitDone = true;
-		}
 	}
 
 	private listen() {
@@ -97,23 +108,24 @@ class SocketHandler {
 		this.socket.on("ot:subscribe", this.onOtSubscribe);
 		this.socket.on("ot:change", this.onOtChange);
 		this.socket.on("ot:cursor", this.onOtCursor);
+		this.socket.on("oo:reconnect", this.onOoReconnect);
 		this.socket.on("*", this.onInput);
 
 		// Make listeners on Redis
-		if (this.redis) {
-			this.redis.on("data", this.onOutput);
-			this.redis.on("destroy-u", this.onDestroyU);
-			this.redis.on("ot:doc", this.onOtDoc);
-			this.redis.on("ot:ack", this.onOtAck);
-			this.redis.on("ot:broadcast", this.onOtBroadcast);
-		}
+		this.redis.on("data", this.onOutput);
+		this.redis.on("destroy-u", this.onDestroyU);
+		this.redis.on("ot:doc", this.onOtDoc);
+		this.redis.on("ot:ack", this.onOtAck);
+		this.redis.on("ot:broadcast", this.onOtBroadcast);
+
+		// Let Redis have listeners too
+		this.redis.subscribe();
 	}
 
 	private unlisten():void {
 		this.socket.removeAllListeners();
-		if (this.redis) {
-			this.redis.removeAllListeners();
-		}
+		this.redis.removeAllListeners();
+		this.redis.unsubscribe();
 	}
 
 	private log(..._args:any[]):void {
@@ -138,12 +150,15 @@ class SocketHandler {
 		this.log("Destroying: Client Disconnect");
 	};
 
-	private onDestroyU = (message:string):void=> {
-		this.readyState = ReadyState.Destroyed;
-		this.unlisten();
+	private onDestroyU = (message:string):void => {
+		this.readyState = ReadyState.Idle;
 		this.socket.emit("destroy-u", message);
-		this.socket.disconnect();
-		this.log("Destroying:", message);
+		this.redis.setSessCode(null);
+		this.log("Upstream Destroyed:", message);
+	};
+
+	private onOoReconnect = ():void => {
+		this.beginOctaveRequest(null);
 	};
 
 	private onOtSubscribe = (obj) => {
@@ -251,15 +266,16 @@ class SocketHandler {
 
 	//// SESSION INITIALIZATION FUNCTIONS ////
 
-	private initSessCode(sessCodeGuess:string) {
-		if (this.readyState !== ReadyState.New) return;
+	private beginOctaveRequest(sessCodeGuess:string) {
+		if (this.readyState !== ReadyState.Idle) return;
+		this.readyState = ReadyState.Requested;
 
 		RedisHelper.getNewSessCode(sessCodeGuess, this.onSessCode);
 	}
 
 	private onSessCode = (err, sessCode:string, needsOctave:boolean)=> {
 		if (err) return this.log("REDIS ERROR", err);
-		if (this.readyState !== ReadyState.New) return;
+		if (this.readyState !== ReadyState.Requested) return;
 		this.sessCode = sessCode;
 
 		// We have our sessCode.  Log it.
@@ -273,9 +289,8 @@ class SocketHandler {
 			RedisHelper.askForOctave(sessCode, this.user, this.onOctaveRequested);
 		} else {
 			// Make Redis, update ready state, and send prompt message to client
-			this.redis = new RedisHandler(this.sessCode);
+			this.redis.setSessCode(this.sessCode);
 			this.readyState = ReadyState.Active;
-			this.listen();
 			this.socket.emit("prompt", {});
 		}
 	};
@@ -284,8 +299,7 @@ class SocketHandler {
 		if (err) return this.log("REDIS ERROR", err);
 
 		// Make Redis
-		this.redis = new RedisHandler(this.sessCode);
-		this.listen();
+		this.redis.setSessCode(this.sessCode);
 
 		// Check and update ready state
 		switch (this.readyState) {
@@ -293,10 +307,11 @@ class SocketHandler {
 				this.redis.destroyD("Client Gone");
 				this.unlisten();
 				break;
-			case ReadyState.New:
+			case ReadyState.Requested:
 				this.readyState = ReadyState.Active;
 				break;
 			default:
+				console.log("UNEXPECTED READY STATE", this.readyState);
 				break;
 		}
 	};
