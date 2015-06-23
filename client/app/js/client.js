@@ -92,16 +92,6 @@ function($, ko, canvg, splittr, Base64, download,
 
 	/* * * * END KNOCKOUT, START EDITOR/CONSOLE/PROMPT * * * */
 
-	// Helper functions
-	function doSessionClose(){
-		OctMethods.prompt.disable();
-		OctMethods.prompt.endCountdown();
-		OctMethods.socket.disconnect();
-		// hide the coverall loading div if necessary
-		OctMethods.load.hideLoader();
-		OctMethods.load.stopPatience();
-	}
-
 	// Define a massive singleton object to contain all methods and listeners
 	var OctMethods = {
 
@@ -412,7 +402,6 @@ function($, ko, canvg, splittr, Base64, download,
 		// Socket Methods
 		socket: {
 			instance: null,
-			expectedConnectionStatus: true,
 			sessCode: null,
 			signal: function(){
 				return OctMethods.socket.emit("signal", {});
@@ -466,23 +455,11 @@ function($, ko, canvg, splittr, Base64, download,
 				OctMethods.socket.instance.emit(message, data);
 				return true;
 			},
-			disconnect: function(){
-				if (!OctMethods.socket.instance
-					|| !OctMethods.socket.instance.connected)
-					return;
-
-				OctMethods.socket.expectedConnectionStatus = false;
-				OctMethods.socket.instance.io.disconnect();
-			},
 			reconnect: function(){
-				if (OctMethods.socket.instance
-					&& OctMethods.socket.instance.connected)
-					return;
 				OctMethods.load.showLoader();
 				OctMethods.load.startPatience();
 
-				OctMethods.socket.expectedConnectionStatus = true;
-				OctMethods.socket.instance.connect();
+				return OctMethods.socket.emit("oo:reconnect", {});
 			}
 		},
 
@@ -663,16 +640,20 @@ function($, ko, canvg, splittr, Base64, download,
 			},
 			destroyu: function(message){
 				OctMethods.console.writeError("Octave Exited. Message: "+message+"\n");
-				doSessionClose();
 				OctMethods.console.writeRestartBtn();
+
+				// Clean up UI
+				OctMethods.prompt.disable();
+				OctMethods.prompt.endCountdown();
+				OctMethods.load.hideLoader();
 			},
 			disconnect: function(){
-				if (OctMethods.socket.expectedConnectionStatus === true) {
-					// The server disconnected from us
-					OctMethods.console.writeError(
-						"Connection lost.  Attempting to reconnect...\n");
-					doSessionClose();
-				}
+				OctMethods.console.writeError("Connection lost.  Attempting to reconnect...\n");
+				
+				// Clean up UI
+				OctMethods.prompt.disable();
+				OctMethods.prompt.endCountdown();
+				OctMethods.load.showLoader();
 			}
 		},
 
@@ -859,7 +840,6 @@ function($, ko, canvg, splittr, Base64, download,
 			callback: function(){
 				if(OctMethods.load.loaderVisible){
 					OctMethods.load.hideLoader();
-					OctMethods.load.stopPatience();
 				}
 				if(OctMethods.load.firstConnection){
 					OctMethods.load.firstConnection = false;
@@ -884,6 +864,7 @@ function($, ko, canvg, splittr, Base64, download,
 			},
 			hideLoader: function(){
 				OctMethods.load.loaderVisible = false;
+				OctMethods.load.stopPatience();
 				$("#site_loading").fadeOut(500);
 			},
 			startPatience: function(){
