@@ -29,16 +29,19 @@ var docId = "test";
 
 require(["ace/ace", "js/ot-client", "socket.io"], function(ace, Client, io){
 	var socket = io();
-	socket.emit("init");
+	socket.emit("init", {
+		action: "workspace",
+		wsId: "test"
+	});
 	socket.on("init", function(){
 		setTimeout(function(){
-			socket.emit("ot:subscribe", {
+			socket.emit("ot.subscribe", {
 				docId: docId
 			});
 		}, 1000);
 	});
-	socket.on("ot:doc", function(obj){
-		console.log("ot:doc", obj);
+	socket.on("ot.doc", function(obj){
+		console.log("ot.doc", obj);
 
 		var editor = ace.edit("editor");
 		editor.setValue(obj.content);
@@ -46,7 +49,7 @@ require(["ace/ace", "js/ot-client", "socket.io"], function(ace, Client, io){
 		otClient.attachEditor(editor);
 		otClient.addEventListener("send", function(revision, operation){
 			console.log("client send", arguments);
-			socket.emit("ot:change", {
+			socket.emit("ot.change", {
 				docId: docId,
 				rev: revision,
 				op: operation
@@ -54,18 +57,18 @@ require(["ace/ace", "js/ot-client", "socket.io"], function(ace, Client, io){
 		});
 		otClient.addEventListener("cursor", function(cursor){
 			console.log("client cursor", arguments);
-			socket.emit("ot:cursor", cursor);
+			socket.emit("ot.cursor", cursor);
 		});
 
 		var socket = window.socket = io();
-		socket.on("ot:broadcast", function(obj){
+		socket.on("ot.broadcast", function(obj){
 			var op = ot.TextOperation.fromJSON(obj.ops);
 			otClient.applyServer(op);
 		});
-		socket.on("ot:ack", function(obj){
+		socket.on("ot.ack", function(obj){
 			otClient.serverAck();
 		});
-		socket.on("ot:cursor", function(cursor){
+		socket.on("ot.cursor", function(cursor){
 			otClient.adapter.setOtherCursor(cursor, "#F00", "foo");
 		});
 

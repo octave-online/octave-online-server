@@ -459,7 +459,7 @@ function($, ko, canvg, splittr, Base64, download,
 				OctMethods.load.showLoader();
 				OctMethods.load.startPatience();
 
-				return OctMethods.socket.emit("oo:reconnect", {});
+				return OctMethods.socket.emit("oo.reconnect", {});
 			}
 		},
 
