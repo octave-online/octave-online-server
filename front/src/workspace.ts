@@ -33,6 +33,7 @@ wsSessClient.setMaxListeners(30);
 
 class Workspace extends EventEmitter2.EventEmitter2 {
 	private chgIds:string[] = [];
+	private cmdIds:string[] = [];
 	private docIds:string[] = [];
 	public wsId:string;
 
@@ -40,6 +41,7 @@ class Workspace extends EventEmitter2.EventEmitter2 {
 		super();
 		this.wsId = wsId;
 		this.subscribe();
+		this.updateDocIds();
 	}
 
 	public input(name: string, data: any) {
@@ -98,14 +100,14 @@ class Workspace extends EventEmitter2.EventEmitter2 {
 	}
 
 	public beginOctaveRequest() {
-		var oldSessCode;
+		var _sessCode;
 		Async.waterfall([
 			(next) => {
 				// Check if there is a sessCode in Redis already.
 				otOperationClient.get(IRedis.Chan.wsSess(this.wsId), next);
 			},
 			(sessCode: string, next) => {
-				oldSessCode = sessCode;
+				_sessCode = sessCode;
 
 				// Make sure that sessCode is still live.
 				RedisHelper.getNewSessCode(sessCode, next);
@@ -115,27 +117,34 @@ class Workspace extends EventEmitter2.EventEmitter2 {
 					// It wasn't alive.  Attempt to save the new sessCode.
 					var casScript = 'local k=redis.call("GET",KEYS[1]); print(k); if k==false or k==ARGV[2] then redis.call("SET",KEYS[1],ARGV[1]); return {true,ARGV[1]}; end; return {false,k};';
 					otOperationClient.eval(casScript, 1, IRedis.Chan.wsSess(this.wsId),
-						sessCode, oldSessCode, next);
+						sessCode, _sessCode, next);
 
 				} else {
 					// It is alive.  Connect the client.
-					this.emit("sesscode", sessCode);
+					this.emit("sesscode", sessCode, true);
 				}
 			},
 			([saved, sessCode], next) => {
+				console.log("hihi", saved, sessCode);
+				_sessCode = sessCode;
+
 				if (saved) {
 					// Our sessCode was accepted.
-					// Get an Octave session running and broadcast the new sessCode.
-					RedisHelper.askForOctave(sessCode, null, next);
+					// Broadcast the new sessCode.
 					otOperationClient.publish(IRedis.Chan.wsSub(this.wsId),
 						JSON.stringify({
 							type: "sesscode",
-							sesscode: sessCode
-						}));
+							data: sessCode
+						}), next);
 				}
 
-				// Doesn't hurt to inform our client of the sessCode.
-				this.emit("sesscode", sessCode);
+				// Doesn't hurt to inform our client of the sessCode early.
+				this.emit("sesscode", sessCode, false);
+			},
+			(_, next) => {
+				console.log("requesting octave session");
+				// Start the new Octave session.
+				RedisHelper.askForOctave(_sessCode, null, next);
 			}
 		], (err) => {
 			if (err) console.log("REDIS ERROR", err);
@@ -154,6 +163,13 @@ class Workspace extends EventEmitter2.EventEmitter2 {
 	public unsubscribe() {
 		otListenClient.removeListener("pmessage", this.otMessageListener);
 		wsSessClient.removeListener("pmessage", this.wsMessageListener);
+	}
+
+	private updateDocIds() {
+		this.docIds = [];
+		// this is a makeshift implementation.  FIXME later.
+		this.docIds.push(this.wsId + "-prompt");
+		this.getOtDoc(this.wsId + "-prompt");
 	}
 
 	private destroyUListener = (channel, message) => {
@@ -180,40 +196,37 @@ class Workspace extends EventEmitter2.EventEmitter2 {
 	};
 
 	private wsMessageListener = (pattern, channel, message) => {
+		console.log("on ws message", pattern, channel, message);
 		var obj = IRedis.checkWsMessage(channel, message, this.wsId);
-		if (!obj) return;
+		if (!obj || !obj.data) return;
 
 		if (obj.type === "sesscode") {
-			this.emit("sesscode", obj.data);
+			this.emit("sesscode", obj.data, false);
+
+		} else if (obj.type === "command") {
+			var i = this.cmdIds.indexOf(obj.data.id);
+			if (i > -1) this.cmdIds.splice(i, 1);
+			else this.emit("data", "ws.command", obj.data.cmd);
 		}
 	};
 
 	///
 
 	public onSocket = (name:string, val:any) => {
+		if (!val) val = {};
+		console.log("on socket", name, val);
 		switch(name){
-			case "ot.subscribe":
-				this.onOtSubscribe(val);
-				break;
 			case "ot.change":
 				this.onOtChange(val);
 				break;
 			case "ot.cursor":
 				this.onOtCursor(val);
 				break;
+			case "ws.command":
+				this.onCommand(val.data);
 			default:
 				break;
 		}
-	}
-
-	private onOtSubscribe = (obj) => {
-		if (!obj
-			|| typeof obj.docId === "undefined")
-			return;
-
-		console.log("here")
-		this.docIds.push(obj.docId);
-		this.getOtDoc(obj.docId);
 	}
 
 	private onOtChange = (obj) => {
@@ -233,6 +246,19 @@ class Workspace extends EventEmitter2.EventEmitter2 {
 		if (!cursor) return;
 		// this.socket.emit("ot.cursor", cursor);
 	};
-}
+
+	private onCommand = (cmd) => {
+		var cmdId = Uuid.v4();
+		this.cmdIds.push(cmdId);
+
+		otOperationClient.publish(IRedis.Chan.wsSub(this.wsId), JSON.stringify({
+			type: "command",
+			data: {
+				id: cmdId,
+				cmd: cmd
+			}
+		}));
+	};
+};
 
 export = Workspace;
