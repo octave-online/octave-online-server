@@ -1,9 +1,11 @@
-define(["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
-		"splittr", "SocketIOFileUpload", "js/anal", "js/onboarding",
-		"knockout-ace", "ko-flash", "ace/mode/octave", "ace/ext/language_tools"],
+define(
+	["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
+		"splittr", "SocketIOFileUpload", "js/anal", "js/ot-client",
+		"js/onboarding", "jquery.purl", "knockout-ace", "ko-flash", "ace/mode/octave",
+		"ace/ext/language_tools"],
 
 	function (ko, io, OctMethods, ace, $, isMobile,
-	          splittr, SocketIOFileUpload, anal) {
+	          splittr, SocketIOFileUpload, anal, OtClient) {
 
 		// Initial GUI setup
 		splittr.init();
@@ -95,20 +97,19 @@ define(["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
 			exec: ace.require("ace/autocomplete").Autocomplete.startCommand.exec,
 			readOnly: false
 		});
-		OctMethods.prompt.instance = prompt;
-
-		// Fill the Console with empty lines to push the new entries to the bottom
-		// of the screen (there is probably a better way to do this)
-		OctMethods.console.clear();
-
-		// Add Prompt/Console/Plot Listeners:
-		$("#signal").click(OctMethods.promptListeners.signal);
 		prompt.commands.addCommand({
 			name: 'submitPrompt',
 			bindKey: {win: 'Enter', mac: 'Enter'},
 			exec: OctMethods.promptListeners.command,
 			readOnly: false
 		});
+		OctMethods.prompt.instance = prompt;
+
+		// Initialize the console screen
+		OctMethods.console.clear();
+
+		// Add Prompt/Console/Plot Listeners:
+		$("#signal").click(OctMethods.promptListeners.signal);
 		$("#plot_close_btn").click(OctMethods.plotListeners.close);
 		$("#plot_download_btn").click(OctMethods.plotListeners.download);
 		$("#plot_opener").click(OctMethods.plotListeners.open);
@@ -139,6 +140,49 @@ define(["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
 		} catch (e) {
 			// SIOFU not supported in current browser
 			console.log(e);
+		}
+
+		// Shared workspace setup:
+		var wsId = $.url().param("w");
+		if (wsId) {
+			OctMethods.vars.wsId = wsId;
+			socket.on("ot.doc", function(obj){
+				console.log("ot.doc", obj);
+				var docId = obj.docId;
+
+				prompt.setValue(obj.content);
+
+				otClient = new OtClient(obj.rev);
+				otClient.attachEditor(prompt);
+				otClient.addEventListener("send", function(revision, operation){
+					console.log("client send", arguments);
+					socket.emit("ot.change", {
+						docId: docId,
+						rev: revision,
+						op: operation
+					});
+				});
+				otClient.addEventListener("cursor", function(cursor){
+					console.log("client cursor", arguments);
+					socket.emit("ot.cursor", cursor);
+				});
+
+				var socket = window.socket = io();
+				socket.on("ot.broadcast", function(obj){
+					var op = ot.TextOperation.fromJSON(obj.ops);
+					otClient.applyServer(op);
+				});
+				socket.on("ot.ack", function(obj){
+					otClient.serverAck();
+				});
+				socket.on("ot.cursor", function(cursor){
+					otClient.adapter.setOtherCursor(cursor, "#F00", "foo");
+				});
+				socket.on("ws.command", function(cmd){
+					OctMethods.console.command(cmd, true);
+				});
+
+			});
 		}
 
 		// Global key bindings:

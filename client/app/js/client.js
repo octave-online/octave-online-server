@@ -114,7 +114,7 @@ function($, ko, canvg, splittr, Base64, download,
 			},
 			writeCommand: function(lineNumber, cmd){
 				var rowString;
-				if(lineNumber > 0){
+				if(lineNumber >= 0){
 					rowString = "octave:" + lineNumber + "> ";
 				}else if(lineNumber === -1){
 					rowString = "> ";
@@ -166,7 +166,7 @@ function($, ko, canvg, splittr, Base64, download,
 			clear: function(){
 				$("#console").empty();
 			},
-			command: function(cmd){
+			command: function(cmd, skipsend){
 				if(!OctMethods.prompt.enabled) return;
 
 				var currentLine = OctMethods.prompt.currentLine;
@@ -180,10 +180,12 @@ function($, ko, canvg, splittr, Base64, download,
 				history.push("");
 				OctMethods.prompt.index = history.length - 1;
 
-				// Send to server
+				// Start countdown
 				OctMethods.prompt.startCountdown();
-				OctMethods.socket.command(cmd);
 				OctMethods.prompt.disable();
+
+				// Send to server
+				if (!skipsend) OctMethods.socket.command(cmd);
 			}
 		},
 
@@ -254,6 +256,7 @@ function($, ko, canvg, splittr, Base64, download,
 		promptListeners: {
 			command: function(prompt){
 				var cmd = OctMethods.prompt.instance.getValue();
+				OctMethods.socket.notifyCommand(cmd);
 
 				// Check if this command is a front-end command
 				var enrollRegex = /^enroll\s*\(['"](\w+)['"]\).*$/;
@@ -441,7 +444,12 @@ function($, ko, canvg, splittr, Base64, download,
 			updateStudents: function(program, password){
 				return OctMethods.socket.emit("update_students", {
 					program: program
-				})
+				});
+			},
+			notifyCommand: function(cmd){
+				return OctMethods.socket.emit("ws.command", {
+					data: cmd
+				});
 			},
 			refresh: function(){
 				return OctMethods.socket.emit("refresh", {});
@@ -481,16 +489,18 @@ function($, ko, canvg, splittr, Base64, download,
 				}
 			},
 			prompt: function(data){
+				var lineNumber = data.line_number || 0;
+
 				// Turn on the input prompt and set the current line number
 				if (OctMethods.prompt.currentLine === null
 					|| OctMethods.prompt.currentLine < 0){
-					OctMethods.prompt.currentLine = data.line_number;
+					OctMethods.prompt.currentLine = lineNumber;
 				}
 				OctMethods.prompt.enable();
 
 				// Perform other cleanup logic
 				if(OctMethods.editor.running){
-					if(data.line_number > 0){
+					if(lineNumber > 0){
 						OctMethods.editor.running = false;
 					}else{
 						OctMethods.prompt.focus();
@@ -634,9 +644,18 @@ function($, ko, canvg, splittr, Base64, download,
 				OctMethods.socket.sessCode = data.sessCode;
 			},
 			init: function(){
-				OctMethods.socket.emit("init", {
-					sessCode: OctMethods.socket.sessCode
-				});
+				// Regular session or shared session?
+				if (OctMethods.vars.wsId) {
+					OctMethods.socket.emit("init", {
+						action: "workspace",
+						wsId: OctMethods.vars.wsId
+					});
+				}else{
+					OctMethods.socket.emit("init", {
+						action: "session",
+						sessCode: OctMethods.socket.sessCode
+					});
+				}
 			},
 			destroyu: function(message){
 				OctMethods.console.writeError("Octave Exited. Message: "+message+"\n");
@@ -853,6 +872,7 @@ function($, ko, canvg, splittr, Base64, download,
 					}catch(e){
 						console.log(e);
 					}
+
 					if(initCmd){
 						OctMethods.console.command(initCmd);
 					}
@@ -887,6 +907,9 @@ function($, ko, canvg, splittr, Base64, download,
 		ko: {
 			viewModel: viewModel,
 			allOctFiles: allOctFiles
+		},
+		vars: {
+			wsId: null
 		}
 	};
 
@@ -902,5 +925,6 @@ function($, ko, canvg, splittr, Base64, download,
 	exports.editorListeners = OctMethods.editorListeners;
 	exports.load = OctMethods.load;
 	exports.ko = OctMethods.ko;
+	exports.vars = OctMethods.vars;
 
 }); // AMD Define
