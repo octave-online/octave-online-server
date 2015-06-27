@@ -97,6 +97,7 @@ class SocketHandler {
 						self.attachToWorkspace(wsId);
 						break;
 
+					case "session":
 					default:
 						var sessCodeGuess = init && init.sessCode;
 						self.log("Claimed sessCode", sessCodeGuess);
@@ -170,7 +171,8 @@ class SocketHandler {
 	private onDisconnect = ():void => {
 		this.readyState = ReadyState.Destroyed;
 		this.unlisten();
-		if (this.redis) this.redis.destroyD("Client Disconnect");
+		if (this.redis && !this.workspace)
+			this.redis.destroyD("Client Disconnect");
 		this.log("Destroying: Client Disconnect");
 	};
 
@@ -189,8 +191,10 @@ class SocketHandler {
 		}
 	};
 
-	private onWsSessCode = (sessCode:string):void => {
+	private onWsSessCode = (sessCode: string, live: boolean): void => {
 		this.redis.setSessCode(sessCode);
+
+		if (live) this.socket.emit("prompt", {});
 	};
 
 	private onInput = (obj)=> {
