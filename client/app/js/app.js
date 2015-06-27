@@ -180,6 +180,7 @@ define(
 				});
 				socket.on("ws.command", function(cmd){
 					OctMethods.console.command(cmd, true);
+					OctMethods.prompt.clear();
 				});
 
 			});
