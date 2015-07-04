@@ -1,0 +1,92 @@
+@require("mixins.styl")
+
+#flexbox {
+	display: flex
+	flex-flow: column nowrap
+	
+	position: absolute
+	top: 0
+	right: 0
+	bottom: 0
+	left: 0
+	
+	& > header {
+		flex: 0 0 header_height
+	}
+	
+	& > section {
+		flex: 1 1 100%
+		display: flex
+		flex-flow: row nowrap
+		padding-top: gutter_size
+		padding-bottom: gutter_size
+	
+		& > #files_container {
+			flex: 1 1 10px
+			overflow: auto
+			margin-right: gutter_size
+		}
+		
+		& > #open_container {
+			flex: 1 1 200px
+			overflow: auto
+			margin-right: gutter_size
+		}
+		
+		& > #workspace_panel {
+			flex: 0 1 75px
+			overflow: auto
+			margin-right: gutter_size
+
+			@media (max-width: 500px) {
+				display: none
+			}
+		}
+		
+		& > #output_panel {
+			flex: 1 1 400px
+			overflow: none
+			display: flex
+			flex-flow: column nowrap
+			
+			#plot_container {
+				flex: 0 1 300px
+				overflow: none
+				margin-bottom: gutter_size
+				display: flex
+				
+				#plot_figure_container{
+					flex: 2 1 80%
+					overflow: none
+					margin-right: gutter_size
+				}
+				
+				#plot_controls_container{
+					flex: 1 1 20%
+					overflow: auto
+				}
+			}
+			
+			#console_container {
+				flex: 1 1 auto
+				overflow: none
+				position: relative
+			}
+			
+			#plot_opener {
+				position: absolute
+			}
+		}
+		
+		& > #main_menu {
+			flex: 0 0 220px
+			// overflow: auto
+			margin-left: gutter_size
+		}
+		
+		& > * {
+			position: relative
+		}
+	}
+}
+

@@ -1,0 +1,90 @@
+@require("mixins.styl")
+
+header {
+	font: normal header_height/header_height heading_font_family
+
+	#hamburger {
+		float: right
+		cursor: pointer
+		display: inline-block
+		width: 30px
+		height: header_height - 12px
+		margin: 6px 6px 6px 0
+	}
+
+	h1 {
+		font: inherit
+		display: inline-block
+		margin: 1px 0 0
+		margin-left: 3px
+
+		svg {
+			display: inline-block
+		}
+	}
+}
+
+#main_menu {
+	padding: 5px
+	
+	.login_btn{
+		cursor: pointer
+		display: block
+		margin: 5px auto
+		width: 200px
+		height: 40px
+	}
+	
+	.login_bottom{
+		font-size: 0.8em
+		font-style: italic
+	}
+	
+	#userbox {
+		height: 50px
+		padding-left: 60px
+		padding-top: 10px
+		font-size: 1.2em
+		background-repeat: no-repeat
+		background-position: left center
+		
+		a {
+			color: inherit
+		}
+	}
+	
+	.site-control-item{
+		position: relative
+		display: block
+		width: 190px
+		font-size: 1.2em
+		margin: 5px auto
+		padding: 1ex
+		text-align: center
+		border-radius: 5px
+
+		& > * {
+			text-decoration: underline
+			color: inherit
+		}
+		
+		& > a {
+			display: block
+			cursor: pointer
+			width: 100%
+			height: 100%
+		}
+	}
+	
+	#footnotes{
+		display: block
+		position: absolute
+		bottom: 0
+		font-size: 0.8em
+		font-style: italic
+
+		& > * {
+			color: inherit
+		}
+	}
+}

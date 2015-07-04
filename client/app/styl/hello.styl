@@ -1,0 +1,36 @@
+@require("kouto-swiss")
+@require("mixins.styl")
+
+normalize()
+
+body {
+	// debug-backgrounds()
+	font: 400 14px/1.2em body_font_family
+	
+	& > * {
+		position: absolute
+		display: none
+	}
+}
+h1, h2, h3, h4, h5, h6 {
+	font-family: heading_font_family
+}
+kbd {
+	white-space: nowrap
+}
+.modified {
+	font-style: italic
+	text-decoration: underline
+}
+.divide {
+	display: inline-block
+	width: 0.6em
+}
+a img {
+	border: none
+}
+
+@require("flexbox.styl")
+@require("header.styl")
+@require("output_panel.styl")
+@require("callouts.styl")

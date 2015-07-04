@@ -1,0 +1,143 @@
+@require("mixins.styl")
+
+#output_panel {
+	#console_container {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+
+		pre#console {
+			position: absolute;
+			top: 0
+			left: 0
+			right: 0
+			bottom: prompt_height
+
+			text-align: left
+			overflow: auto
+			font-size: console_font_size
+			line-height: 1.3em
+			font-family: code_font_family
+			padding: 1ex
+			margin: 0
+
+			span.prompt_row{
+				font-weight: bold;
+			}
+			span.prompt_error{
+				font-style: italic;
+			}
+		}
+
+		div#runtime_controls_container{
+			position: absolute
+			left: 0
+			bottom: 0
+			width: 100%
+			height: prompt_height
+
+			#signal{
+				// @include sanscon-static(close, red);
+				position: absolute
+				top: 2px
+				left: 3px
+			}
+			#seconds_remaining_container{
+				position: absolute
+				top: 5px
+				left: 25px
+				
+				#seconds_remaining{
+					font-family: code_font_family
+				}
+			}
+		}
+		div#prompt_container{
+			position: absolute
+			left: 0
+			bottom: 0px
+			width: 100%
+			height: prompt_height
+
+			div#prompt_sign{
+				position: absolute;
+				left: 0
+				bottom: -4px
+				width: prompt_sign_width
+				height: prompt_height
+				text-align: right
+				font-size: prompt_height
+				font-family: unicode_font_family
+			}
+			div#prompt {
+				position: absolute
+				bottom: 4px
+				right: 0
+				left: prompt_sign_width
+				height: prompt_font_size + 2px
+
+				font-size: prompt_font_size
+				line-height: prompt_font_size
+			}
+		}
+	}
+
+	#plot_opener {
+		cursor: pointer
+		position: absolute
+		width: 40px
+		height: 40px
+		top: 5px
+		right: 5px
+		background-color: white
+		background-image: url("../images/icons/chart-fire.svg")
+		background-repeat: no-repeat
+		background-position: left center
+	}
+		
+	#plot_container {
+		position: relative
+
+		#plot_figure_container{
+			position: relative
+
+			#plot_svg_container, svg {
+				absolute-full-size()
+			}
+
+			#plot_loading {
+				position: absolute
+				top: 50%
+				left: 50%
+				width: 0
+				height: 0
+
+				& > img {
+					position: absolute
+					top: -50px
+					left: -50px
+					width: 100px
+					height: 100px
+				}
+			}
+
+			&.fullscreen {
+				position: fixed
+				top: 0
+				right: 0
+				bottom: 0
+				left: 0
+				margin: 0 !important
+				z-index: 900
+			}
+
+			// for rendering downloadable bitmaps
+			#plot_canvas_container {
+				position: absolute
+				width: 0
+				height: 0
+				overflow: hidden
+			}
+		}
+	}
+}

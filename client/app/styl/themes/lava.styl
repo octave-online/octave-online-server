@@ -1,0 +1,99 @@
+@require("../mixins.styl")
+
+color1 = #451405
+color2 = #1c1c1c
+color3 = #85685F
+colorbkg = color2
+colorfgd = #E6D2CC
+
+body {
+	color: colorfgd
+	background-color: colorbkg
+}
+
+#flexbox > section {
+	background-color: color3
+	
+	#files_container, #files_list_container, #open_container, #workspace_panel, #plot_figure_container, #plot_controls_container, #console_container, #main_menu {
+		background-color: colorbkg
+	}
+}
+
+#hamburger{
+	hamburger-button(colorfgd)
+}
+
+#userbox{
+	background-image: url("../../images/icons/user-lava.svg")
+}
+
+.site-control-item {
+	background-color: color1
+	&:hover{
+		background-color: color3
+	}
+	&:active{
+		background-color: color2
+	}
+}
+
+#type_here, #login-promo, #sync-promo, #instructor-promo {
+	background: colorbkg
+}
+
+.theme-header{
+	background-color: color1
+}
+
+header{
+	background-color: color1
+}
+
+// Flashing Style
+.ko-flash{
+	// background-color: lighten(color2, 20%)
+}
+
+#privacy{
+	border: 0.5em solid color3
+}
+
+.prompt_row{
+	color: #A65D50
+}
+.prompt_error{
+	color: #C2C484
+}
+
+#files_list_container{
+	background-color: color2
+
+	li {
+		background-color: color2
+
+		&.file_active{
+			background: color3
+		}
+	}
+}
+
+#workspace_panel{
+	background-color: color2
+
+	.workspace_type {
+		color: color3
+	}
+}
+
+#site_loading_patience{
+	background-color: rgba(0, 0, 0, 0.8)
+}
+
+#sync_info_box > div > div {
+	background-color: colorbkg
+
+	kbd {
+		background-color: color2
+		border-color: color3
+	}
+}

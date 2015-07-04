@@ -74,17 +74,7 @@ setTimeout(function(){
 }, 250);
 
 // Load Social Bloatware (lowest priority)
-window.addthis_config = {
-	services_compact: "twitter,google_plusone_share,email,delicious,scoopit,facebook",
-	ui_508_compliant: true
-};
-window.addthis_share = {
-	url: "http://octave-online.net/",
-	templates: {
-		twitter: "Check out @OctaveOnline -- a free online MATLAB-like prompt! {{url}}"
-	}
-};
 setTimeout(function(){
-	require(["twitter", "addthis", "uservoice"]);
+	require(["uservoice"]);
 }, 500);
 

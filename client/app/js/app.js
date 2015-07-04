@@ -1,11 +1,11 @@
 define(
 	["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
-		"splittr", "SocketIOFileUpload", "js/anal", "js/ot-client",
-		"js/onboarding", "jquery.purl", "knockout-ace", "ko-flash", "ace/mode/octave",
+		"splittr", "SocketIOFileUpload", "js/anal", "js/ot-client", "js/onboarding",
+		"js/utils", "jquery.purl", "knockout-ace", "ko-flash", "ace/mode/octave",
 		"ace/ext/language_tools"],
 
 	function (ko, io, OctMethods, ace, $, isMobile,
-	          splittr, SocketIOFileUpload, anal, OtClient) {
+	          splittr, SocketIOFileUpload, anal, OtClient, onboarding) {
 
 		// Initial GUI setup
 		splittr.init();
@@ -110,10 +110,6 @@ define(
 
 		// Add Prompt/Console/Plot Listeners:
 		$("#signal").click(OctMethods.promptListeners.signal);
-		$("#plot_close_btn").click(OctMethods.plotListeners.close);
-		$("#plot_download_btn").click(OctMethods.plotListeners.download);
-		$("#plot_opener").click(OctMethods.plotListeners.open);
-		$("#plot_figure_container").click(OctMethods.plotListeners.zoom);
 		$("#console").on("click", ".prompt_command", OctMethods.promptListeners.permalink);
 
 		// Add listeners to the file list toolbar
@@ -229,6 +225,23 @@ define(
 				OctMethods.prompt.focus();
 			});
 		}
+
+		// Sign-In
+		$("#hamburger, #sign_in_shortcut").click(function () {
+			$("#main_menu").toggleSafe();
+			onboarding.hideScriptPromo();
+			anal.sitecontrol("hamburger");
+		});
+		$("#sign_in_with_email").click(function () {
+			require(["js/login"], function(L){
+				L.login(false);
+			});
+		});
+		$("#sign_in_with_google").click(function () {
+			require(["js/login"], function(L){
+				L.login(true);
+			});
+		});
 
 		// Other GUI Initialization
 		OctMethods.prompt.disable();

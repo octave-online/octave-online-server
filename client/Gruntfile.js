@@ -1,6 +1,7 @@
 module.exports = function (grunt) {
 	grunt.loadNpmTasks("grunt-contrib-requirejs");
 	grunt.loadNpmTasks("grunt-contrib-compass");
+	grunt.loadNpmTasks("grunt-contrib-stylus");
 	grunt.loadNpmTasks("grunt-contrib-watch");
 	grunt.loadNpmTasks("grunt-contrib-copy");
 	grunt.loadNpmTasks("grunt-regex-replace");
@@ -33,6 +34,30 @@ module.exports = function (grunt) {
 					sassDir: "app/sass",
 					cssDir: "app/css"
 				}
+			}
+		},
+		stylus: {
+			dev: {
+				options: {
+					compress: false,
+					use: [
+						require("kouto-swiss"),
+						// function(){
+						// 	return require("autoprefixer-stylus")({
+						// 		"browsers": ">0.01%"
+						// 	})
+						// }
+					]
+				},
+				files: [
+					{
+						expand: true,
+						cwd: "app/styl",
+						src: ["**/*.styl"],
+						dest: "app/styl_css/",
+						ext: ".css"
+					}
+				]
 			}
 		},
 		uglify: {
@@ -79,6 +104,10 @@ module.exports = function (grunt) {
 			compass: {
 				files: "app/sass/**/*.scss",
 				tasks: ["compass:dev"]
+			},
+			stylus: {
+				files: "app/styl/**/*.styl",
+				tasks: ["stylus:dev"]
 			}
 		}
 	});

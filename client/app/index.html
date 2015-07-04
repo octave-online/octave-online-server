@@ -12,7 +12,7 @@
 	<link rel="icon" href="favicon.ico" type="image/x-icon">
 
 	<!-- iOS Config -->
-	<meta name="viewport" content="width=780"/>
+	<meta name="viewport" content="width=400"/>
 	<link rel="apple-touch-icon" sizes="60x60" href="images/touch-icons/60.png"/>
 	<link rel="apple-touch-icon" sizes="76x76" href="images/touch-icons/76.png"/>
 	<link rel="apple-touch-icon" sizes="120x120" href="images/touch-icons/120.png"/>
@@ -58,8 +58,9 @@
 	<meta name="mobile-web-app-capable" content="yes"/>
 
 	<!-- Stylesheets -->
-	<link href="css/themes/fire.css" rel="stylesheet" type="text/css" id="theme"/>
-	<link href="css/main.css" rel="stylesheet" type="text/css"/>
+	<link href="styl_css/themes/fire.css" rel="stylesheet" type="text/css" id="theme"/>
+	<!-- <link href="css/main.css" rel="stylesheet" type="text/css"/> -->
+	<link href="styl_css/hello.css" rel="stylesheet" type="text/css"/>
 
 	<!-- Browser Compatibility Check -->
 	<script type="text/javascript" src="js/modernizr-201406b.js"></script>
@@ -77,59 +78,193 @@
 </head>
 <body>
 
-<header>
-	<h1>
-		<svg width="32" height="32">
-			<image xlink:href="images/logo-32-fire.svg" src="images/logo-32-fire.png" width="32" height="32" class="oo-icon" data-theme="fire" />
-			<image xlink:href="images/logo-32-lava.svg" src="images/logo-32-lava.png" width="32" height="32" class="oo-icon" data-theme="lava" style="display: none;" />
-		</svg>
-		Octave Online
-		<span class="beta">&beta;</span>
-	</h1>
+<div id="flexbox">
+	<header>
+		<h1>
+			<svg width="32" height="32">
+				<image xlink:href="images/logo-32-fire.svg" src="images/logo-32-fire.png" width="32" height="32" class="oo-icon" data-theme="fire" />
+				<image xlink:href="images/logo-32-lava.svg" src="images/logo-32-lava.png" width="32" height="32" class="oo-icon" data-theme="lava" style="display: none" />
+			</svg>
+			Octave Online
+		</h1>
+		<span id="hamburger"></span>
+	</header>
+	<section>
+		<div id="files_container" style="display: none">
+			<div id="files_toolbar" class="theme-header">
+				<span id="files_toolbar_create" title="Create empty file"></span>
+				<span id="files_toolbar_upload" title="Upload file"></span>
+				<span id="files_toolbar_refresh" title="Refresh files"></span>
+				<span id="files_toolbar_info" title="Octave Online Sync"></span>
+			</div>
+			<div id="files_list_container">
+				<ul data-bind="foreach: files">
+					<li data-bind="text: filename, click: open, css: { 'file_active': $data==$root.openFile(), 'modified': isModified }"></li>
+				</ul>
+				<span id="files_drop_notification">
+					Drop Files Here to Upload
+				</span>
+			</div>
+		</div>
+		<div id="open_container" style="display: none">
+			<!-- ko if: openFile -->
+			<div id="editor_toolbar" class="theme-header">
+				<span id="editor_filename" data-bind="text: openFile().filename, css: { 'modified': openFile().isModified }"></span>
 
-	<div id="site-controls">
-		<div id="login-promo">
-			<span class="l1">Want to use</span>
-			<span class="l2">scripts?</span>
-			<span class="l3">Sign in so you can save, edit, upload, and run Octave script files.</span>
-			<span class="l4" data-purpose="close">dismiss</span>
+				<div id="editor_btn_container">
+					<!-- ko if: openFile().runnable -->
+					<span id="editor_runit" title="Run Script" data-bind="click: openFile().runit"></span>
+					<!-- /ko -->
+					<span id="editor_rename" title="Rename File" data-bind="click: openFile().rename"></span>
+					<!-- ko if: openFile().editable -->
+					<span id="editor_save" title="Save File" data-bind="click: openFile().save"></span>
+					<span id="editor_print" title="Print File" data-bind="click: openFile().print"></span>
+					<!-- /ko -->
+					<span id="editor_download" title="Download File" data-bind="click: openFile().download"></span>
+					<span id="editor_delete" title="DELETE File" data-bind="click: openFile().deleteit"></span>
+					<span id="editor_close" title="Close File" data-bind="click: close"></span>
+				</div>
+			</div>
+			<!-- ko template: { if: openFile().editable, afterRender: editorRendered } -->
+			<div id="editor" data-bind="ace: openFile().content, aceOptions: { theme: viewModel.selectedSkin().rawAceTheme, mode: 'octave' }"></div>
+			<!-- /ko -->
+			<!-- ko template: { ifnot: openFile().editable, afterRender: editorUnRendered } -->
+			<div class="editor_nofile">
+				<h2>
+					Octave Online Interactive Editor
+				</h2>
+
+				<p>
+					The currently selected file can't be edited online. You can still use the toolbar above to rename,
+					download, and delete the file.
+				</p>
+			</div>
+			<!-- /ko -->
+			<!-- /ko -->
+			<!-- ko template: { ifnot: openFile, afterRender: editorUnRendered } -->
+			<div class="editor_nofile">
+				<h2>
+					Tips and Tricks
+				</h2>
+				<p>
+					The files you make on Octave Online will be saved for the next time you visit.
+				</p>
+				<p>
+					In the editor, you can use <a href="https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts#default-keyboard-shortcuts" target="_blank">most of these keyboard shortcuts</a>.  You can also use these special keyboard shortcuts:
+				</p>
+				<dl>
+					<dt>Ctrl + Space</dt>
+					<dd>Show the auto-completion menu</dd>
+					<dt>Cmd/Ctrl + S</dt>
+					<dd>Save the file</dd>
+					<dt>Cmd/Ctrl/Win + R</dt>
+					<dd>Run the file</dd>
+					<dt>Cmd/Ctrl/Win + E</dt>
+					<dd>Set focus to the prompt</dd>
+				</dl>
+			</div>
+			<!-- /ko -->
 		</div>
-		<!-- ko ifnot: currentUser -->
-		<div id="login-item" class="site-control-item site-control-btn">
-			<a id="login-link" data-bind="click: doLogin">Sign In</a>
+		<div id="workspace_panel">
+			<div id="workspace_header" class="theme-header">
+				Vars
+			</div>
+			<div id="workspace_content">
+				<ul data-bind="foreach: vars">
+					<li data-bind="click: showDetails, attr: { title: typeExplanation }, flash: value">
+						<span class="workspace_type" data-bind="text: typeString"></span>
+						<span class="workspace_symb" data-bind="text: symbol"></span>
+					</li>
+				</ul>
+			</div>
 		</div>
-		<!-- /ko -->
-		<!-- ko if: currentUser -->
-		<div id="logout-item" class="site-control-item">
-			<span data-bind="text: currentUser().name"></span>
-			<a id="logout_icon" title="Sign Out" data-bind="click: doLogout"></a>
+		<div id="output_panel">
+			<div id="plot_container" style="display: none" data-bind="vizSafe: showPlot, with: currentPlot">
+				<div id="plot_figure_container" title="Click to zoom" data-bind="click: zoom">
+					<div id="plot_svg_container" data-bind="fade: complete, html: completeData"></div>
+					<div id="plot_loading" data-bind="fade: !complete()">
+						<img src="images/spinner.svg" alt="Loading&hellip;"/>
+					</div>
+					<div id="plot_canvas_container">
+						<canvas id="plot_canvas" width="600" height="400"></canvas>
+					</div>
+				</div>
+				<div id="plot_controls_container">
+					<span id="plot_close_btn" title="Collapse Plot Window" data-bind="click: $root.togglePlot">collapse</span>
+					<span id="plot_download_btn" title="Download Plot as Image" data-bind="click: download">download</span>
+					<span id="plot_info">Plot: Line <span data-bind="text: lineNumber"></span></span>
+				</div>
+			</div>
+			<div id="console_container">
+				<pre id="console"></pre>
+				<div id="instructor-promo" style="display: none">
+					<span class="l1">Did you know you can use Octave Online in your class?</span>
+					<span class="l2">Open a ticket by clicking "Feedback" to inquire about how we can set you up as an instructor.</span>
+					<span class="l3" data-purpose="close">dismiss</span>
+				</div>
+				<div id="type_here" style="display: none">
+					<span class="l1">Octave Command Prompt</span>
+					<span class="l2">Type expressions here and press enter.</span>
+					<span class="l3">Tip: <a href="javascript:void" id="sign_in_shortcut">Sign in</a> to run script files.</span>
+				</div>
+				<div id="prompt_container">
+					<div id="prompt_sign">&#x25B7;</div>
+					<div id="prompt"></div>
+				</div>
+				<div id="runtime_controls_container" style="display: none">
+					<span id="signal" title="Stop Currently Running Command (send SIGINT)"></span>
+					<span id="seconds_remaining_container">
+						Seconds Remaining:
+						<span id="seconds_remaining">0</span>
+					</span>
+				</div>
+				<span id="plot_opener" title="Expand Plot Window" data-bind="click: togglePlot"></span>
+			</div>
 		</div>
-		<!-- /ko -->
-		<div class="site-control-item site-control-btn" id="feedback-btn">
-			<a href="javascript:void(0)"
-			data-uv-lightbox="classic_widget"
-			data-uv-mode="full"
-			data-uv-primary-color="#cc6d00"
-			data-uv-link-color="#007dbf"
-			data-uv-default-mode="feedback"
-			data-uv-forum-id="211888">
-			Feedback
-		</a></div>
-		<div class="site-control-item site-control-btn">
-			<a id="showprivacy">Legal</a>
+		<div id="main_menu" style="display: none">
+			<!-- ko ifnot: currentUser -->
+			<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
+				<image xlink:href="images/sign-in-with-persona.svg" src="images/sign-in-with-persona.png" width="200" height="40" alt="Sign in with Email" />
+			</svg>
+			<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
+				<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="Sign in with Google" />
+			</svg>
+			<p class="login_bottom">
+				Signed in before but need to change your email address?  Click "Feedback" and create a ticket.  We will change it for you.
+			</p>
+			<!-- /ko -->
+			<!-- ko if: currentUser -->
+			<div id="userbox">
+				<span data-bind="text: currentUser().name"></span>
+				<a id="logout_icon" href="javascript:void" title="Sign Out" data-bind="click: doLogout">Sign&nbsp;Out</a>
+			</div>
+			<!-- /ko -->
+			<div class="site-control-item" id="feedback-btn">
+				<a href="javascript:void(0)"
+				data-uv-lightbox="classic_widget"
+				data-uv-mode="full"
+				data-uv-primary-color="#cc6d00"
+				data-uv-link-color="#007dbf"
+				data-uv-default-mode="feedback"
+				data-uv-forum-id="211888">
+				Feedback and Support
+			</a></div>
+			<div class="site-control-item">
+				<a id="showprivacy">Privacy Policy and EULA</a>
+			</div>
+			<div class="site-control-item" id="change-skin">
+				<a href="javascript:void">Change Theme</a>
+			</div>
+			<div id="twitter-follow-holder" class="site-control-item">
+				<a href="https://twitter.com/OctaveOnline" class="twitter-follow-button" data-show-count="false"
+				data-lang="en" data-size="large" data-show-screen-name="false" target="_blank">Follow on Twitter</a>
+			</div>
+			<div id="footnotes">
+				Icons made by <a href="http://www.flaticon.com/authors/bogdan-rosu" title="Bogdan Rosu" target="_blank">Bogdan Rosu</a> and <a href="http://www.flaticon.com/authors/simpleicon" target="_blank" title="SimpleIcon">SimpleIcon</a> from <a href="http://www.flaticon.com" title="Flaticon" target="_blank">www.flaticon.com</a> are licensed by <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank" title="Creative Commons BY 3.0">CC BY 3.0</a>.
+			</div>
 		</div>
-		<div class="site-control-item site-control-btn" id="change-skin">
-			Theme
-		</div>
-		<div id="twitter-follow-holder" class="site-control-item">
-			<a href="https://twitter.com/OctaveOnline" class="twitter-follow-button" data-show-count="false"
-			data-lang="en" data-size="large" data-show-screen-name="false" target="_blank">Follow</a>
-		</div>
-		<div id="addthis-holder" class="site-control-item">
-			<a class="addthis_button_compact addthis_32x32_style"></a>
-		</div>
-	</div>
-</header>
+	</section>
+</div>
 
 <div id="onboarding" data-purpose="popover">
 	<div>
@@ -174,141 +309,6 @@
 	</div>
 </div>
 
-<div id="container" data-splittr="vertical dynamic 0 0 50">
-	<div id="files_container" data-splittr-collapsible>
-		<div id="files_toolbar" class="theme-header">
-			<span id="files_toolbar_create" title="Create empty file"></span>
-			<span id="files_toolbar_upload" title="Upload file"></span>
-			<span id="files_toolbar_refresh" title="Refresh files"></span>
-			<span id="files_toolbar_info" title="Octave Online Sync"></span>
-		</div>
-		<div id="files_list_container">
-			<ul data-bind="foreach: files">
-				<li data-bind="text: filename, click: open, css: { 'file_active': $data==$root.openFile(), 'modified': isModified }"></li>
-			</ul>
-			<span id="files_drop_notification">
-				Drop Files Here to Upload
-			</span>
-		</div>
-	</div>
-	<div id="open_container">
-		<!-- ko if: openFile -->
-		<div id="editor_toolbar" class="theme-header">
-			<span id="editor_filename" data-bind="text: openFile().filename, css: { 'modified': openFile().isModified }"></span>
-
-			<div id="editor_btn_container">
-				<!-- ko if: openFile().runnable -->
-				<span id="editor_runit" title="Run Script" data-bind="click: openFile().runit"></span>
-				<!-- /ko -->
-				<span id="editor_rename" title="Rename File" data-bind="click: openFile().rename"></span>
-				<!-- ko if: openFile().editable -->
-				<span id="editor_save" title="Save File" data-bind="click: openFile().save"></span>
-				<span id="editor_print" title="Print File" data-bind="click: openFile().print"></span>
-				<!-- /ko -->
-				<span id="editor_download" title="Download File" data-bind="click: openFile().download"></span>
-				<span id="editor_delete" title="DELETE File" data-bind="click: openFile().deleteit"></span>
-				<span id="editor_close" title="Close File" data-bind="click: close"></span>
-			</div>
-		</div>
-		<!-- ko template: { if: openFile().editable, afterRender: editorRendered } -->
-		<div id="editor" data-bind="ace: openFile().content, aceOptions: { theme: viewModel.selectedSkin().rawAceTheme, mode: 'octave' }"></div>
-		<!-- /ko -->
-		<!-- ko template: { ifnot: openFile().editable, afterRender: editorUnRendered } -->
-		<div class="editor_nofile">
-			<h2>
-				Octave Online Interactive Editor
-			</h2>
-
-			<p>
-				The currently selected file can't be edited online. You can still use the toolbar above to rename,
-				download, and delete the file.
-			</p>
-		</div>
-		<!-- /ko -->
-		<!-- /ko -->
-		<!-- ko template: { ifnot: openFile, afterRender: editorUnRendered } -->
-		<div class="editor_nofile">
-			<h2>
-				Tips and Tricks
-			</h2>
-			<p>
-				The files you make on Octave Online will be saved for the next time you visit.
-			</p>
-			<p>
-				In the editor, you can use <a href="https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts#default-keyboard-shortcuts" target="_blank">most of these keyboard shortcuts</a>.  You can also use these special keyboard shortcuts:
-			</p>
-			<dl>
-				<dt>Ctrl + Space</dt>
-				<dd>Show the auto-completion menu</dd>
-				<dt>Cmd/Ctrl + S</dt>
-				<dd>Save the file</dd>
-				<dt>Cmd/Ctrl/Win + R</dt>
-				<dd>Run the file</dd>
-				<dt>Cmd/Ctrl/Win + E</dt>
-				<dd>Set focus to the prompt</dd>
-			</dl>
-		</div>
-		<!-- /ko -->
-	</div>
-	<div id="workspace_panel">
-		<div id="workspace_header" class="theme-header">
-			Vars
-		</div>
-		<div id="workspace_content">
-			<ul data-bind="foreach: vars">
-				<li data-bind="click: showDetails, attr: { title: typeExplanation }, flash: value">
-					<span class="workspace_type" data-bind="text: typeString"></span>
-					<span class="workspace_symb" data-bind="text: symbol"></span>
-				</li>
-			</ul>
-		</div>
-	</div>
-	<div id="output_panel">
-		<div id="console_container">
-			<pre id="console"></pre>
-			<div id="instructor-promo">
-				<span class="l1">Did you know you can use Octave Online in your class?</span>
-				<span class="l2">Open a ticket by clicking "Feedback" to inquire about how we can set you up as an instructor.</span>
-				<span class="l3" data-purpose="close">dismiss</span>
-			</div>
-			<div id="type_here">
-				<span class="l1">Want an interactive session?</span>
-				<span class="l2">This is a live Octave command prompt.  Type expressions here and press enter, like <kbd>sin(pi/3)</kbd> or <kbd>help fplot</kbd></span>
-				<span class="l3">Tip: Sign in to run script files.</span>
-			</div>
-			<div id="prompt_container">
-				<div id="prompt_sign">&#x25B7;</div>
-				<div id="prompt"></div>
-			</div>
-			<div id="runtime_controls_container">
-				<span id="signal" title="Stop Currently Running Command (send SIGINT)"></span>
-				<span id="seconds_remaining_container">
-					Seconds Remaining:
-					<span id="seconds_remaining">0</span>
-				</span>
-			</div>
-		</div>
-		<span id="plot_opener" title="Expand Plot Window"></span>
-
-		<div id="plot_container">
-			<div id="plot_figure_container" title="Click to zoom">
-				<div id="plot_svg_container"></div>
-				<div id="plot_loading">
-					<img src="images/spinner.svg" alt="Loading&hellip;"/>
-				</div>
-				<div id="plot_canvas_container">
-					<canvas id="plot_canvas" width="600" height="400"></canvas>
-				</div>
-			</div>
-			<div id="plot_controls_container">
-				<span id="plot_close_btn" title="Collapse Plot Window"></span>
-				<span id="plot_download_btn" title="Download Plot as Image"></span>
-				<span id="plot_info">Plot</span>
-			</div>
-		</div>
-	</div>
-</div>
-
 <div id="privacy"></div>
 <div id="site_loading">
 	<img src="images/spinner.svg" alt="Loading&hellip;"/>
@@ -338,6 +338,13 @@
 	<span class="l3">Synchronize your Octave Online script files with your computer and also see revision history.</span>
 	<span class="l4">Click the wrench for more info.</span>
 	<span class="l5" data-purpose="close">dismiss</span>
+</div>
+
+<div id="login-promo" style="display: block">
+	<span class="l1">Want to use</span>
+	<span class="l2">scripts?</span>
+	<span class="l3">Sign in so you can save, edit, upload, and run Octave script files.</span>
+	<span class="l4" data-purpose="close">dismiss</span>
 </div>
 
 <div id="sync_info_box" data-purpose="popover"><div><div>

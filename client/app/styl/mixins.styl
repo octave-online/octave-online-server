@@ -1,0 +1,82 @@
+// Variables
+header_height = 40px
+gutter_size = 5px
+console_font_size = 14px
+prompt_font_size = 18px
+prompt_height = 28px
+prompt_sign_width = 20px
+
+// Fonts
+body_font_family = "Trebuchet MS", "Arial", sans-serif
+code_font_family = "DejaVu Sans Mono", monospace
+unicode_font_family = "Arial Unicode", "Lucida Sans Unicode", "DejaVu Sans", "GNU Unifont", sans-serif
+heading_font_family = "Bangers", "Impact", sans-serif
+
+// Utilities
+absolute-full-size() {
+	position: absolute
+	top: 0
+	bottom: 0
+	width: 100%
+	height: 100%
+}
+debug-backgrounds() {
+	background-color: #FFF !important
+	& > * {
+		background-color: #EEE !important
+		& > * {
+			background-color: #DDD !important
+			& > * {
+				background-color: #CCC !important
+				& > * {
+					background-color: #BBB !important
+					& > * {
+						background-color: #AAA !important
+						& > * {
+							background-color: #999 !important
+							& > * {
+								background-color: #888 !important
+								& > * {
+									background-color: #777 !important
+									& > * {
+										background-color: #666 !important
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+hamburger-button(color){
+	background-image: linear-gradient(to bottom,
+		color 0%,
+		color 20%,
+		transparent 20%,
+		transparent 40%,
+		color 40%,
+		color 60%,
+		transparent 60%,
+		transparent 80%,
+		color 80%,
+		color 100%);
+}
+
+// Transition Delay Setup
+.transition-duration-instant{
+	transition-duration: 0s
+}
+.transition-duration-fast{
+	transition-duration: 0.5s
+}
+.transition-duration-medium{
+	transition-duration: 1s
+}
+.transition-duration-slow{
+	transition-duration: 2s
+}
+.transition-property-bgcolor{
+	transition-property: background-color
+}

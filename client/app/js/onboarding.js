@@ -1,6 +1,6 @@
 // Handle the "onboarding" demonstration div
 
-define(["jquery", "js/anal", "jquery.cookie"], function($, anal){
+define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 	var $onboarding = $("#onboarding"),
 		$scriptPromo = $("#login-promo"),
 		$instructorPromo = $("#instructor-promo"),
@@ -8,7 +8,7 @@ define(["jquery", "js/anal", "jquery.cookie"], function($, anal){
 
 	// Check for the cookie now
 	if($.cookie("oo_onboarding_complete") === "true"){
-		$onboarding.fadeOut(200);
+		$onboarding.showSafe();
 	}
 
 	// Set event listeners for the onboarding div
@@ -21,7 +21,7 @@ define(["jquery", "js/anal", "jquery.cookie"], function($, anal){
 
 	// Set up the script promo onboarding
 	if(!$.cookie("oo_script_promo_dismissed")){
-		$scriptPromo.fadeIn(500);
+		$scriptPromo.showSafe();
 		$scriptPromo.find("[data-purpose='close']").click(function(){
 			// Make this cookie expire on browser being closed
 			$.cookie("oo_script_promo_dismissed", "true");
@@ -32,7 +32,7 @@ define(["jquery", "js/anal", "jquery.cookie"], function($, anal){
 
 	// Set up the instructor promo onboarding
 	if(!$.cookie("oo_instructor_promo_dismissed")){
-		$instructorPromo.fadeIn(500);
+		$instructorPromo.showSafe();
 		$instructorPromo.find("[data-purpose='close']").click(function(){
 			$.cookie("oo_instructor_promo_dismissed", "true", {
 				expires: 1000
@@ -60,6 +60,9 @@ define(["jquery", "js/anal", "jquery.cookie"], function($, anal){
 					$syncPromo.fadeOut(500);
 				});
 			}
+		},
+		hideScriptPromo: function(){
+			$scriptPromo.hideSafe();
 		}
 	};
 });

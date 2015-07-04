@@ -1,0 +1,100 @@
+@require("../mixins.styl")
+
+color1 = #FF5C4A
+color2 = #FF7869
+color3 = #362725
+colorbkg = #FFFFFF
+colorfgd = #000000
+
+body {
+	color: colorfgd
+	background-color: colorbkg
+}
+
+#flexbox > section {
+	background-color: color3
+	
+	#files_container, #files_list_container, #open_container, #workspace_panel, #plot_figure_container, #plot_controls_container, #console_container, #main_menu {
+		background-color: colorbkg
+	}
+}
+
+#hamburger{
+	hamburger-button(black)
+}
+
+#userbox{
+	background-image: url("../../images/icons/user.svg")
+}
+
+.site-control-item {
+	background-color: color1
+	&:hover{
+		background-color: color2
+	}
+	&:active{
+		background-color: color3
+	}
+}
+
+#type_here, #login-promo, #sync-promo, #instructor-promo {
+	background: colorbkg
+}
+
+.theme-header{
+	background-color: color1
+}
+
+header{
+	background-color: color1
+}
+
+// Flashing Style
+.ko-flash{
+	// background-color: lighten(color2, 20%);
+}
+
+#privacy{
+	border: 0.5em solid color3
+}
+
+.prompt_row{
+	color: #A6301B;
+}
+.prompt_error{
+	color: #918500;
+}
+
+#files_list_container{
+	background: color2
+
+	li {
+		background: color2
+
+		&.file_active{
+			background: color3
+			color: colorfgd
+		}
+	}
+}
+
+#workspace_panel{
+	background: color2
+
+	.workspace_type {
+		color: color3
+	}
+}
+
+#site_loading_patience{
+	background-color: rgba(255, 255, 255, 0.8);
+}
+
+#sync_info_box > div > div {
+	background-color: colorbkg
+
+	kbd {
+		background-color: color2
+		border-color: color3
+	}
+}

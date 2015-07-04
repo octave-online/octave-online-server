@@ -22,16 +22,70 @@ function($, ko, canvg, splittr, Base64, download,
 		self.iconColor = iconColor;
 		self.rawAceTheme = aceTheme;
 		self.aceTheme = "ace/theme/"+aceTheme;
-		self.cssURL = "css/themes/"+self.name+".css";
+		self.cssURL = "styl_css/themes/"+self.name+".css";
 	}
 	var availableSkins = ko.observableArray([
 		new Skin("fire", "crimson_editor", "black"),
 		new Skin("lava", "merbivore_soft", "white")
 	]);
 
+	// Plot MVVM class
+	function PlotObject(id, lineNumber){
+		var self = this;
+
+		// Main Bindings
+		self.id = id;
+		self.lineNumber = lineNumber;
+		self.data = ""; // not an observable for performance reasons
+		self.complete = ko.observable(false);
+
+		// Functions
+		self.addData = function(data){
+			self.data += data;
+		}
+		self.setCurrent = function(){
+			var arr = plotHistory();
+			for (var i = arr.length - 1; i >= 0; i--) {
+				if (arr[i].id === id) {
+					currentPlotIdx(i);
+				}
+			}
+		}
+		self.download = function(){
+			var plotCanvas = document.getElementById("plot_canvas");
+			var filename = "octave-online-line-" + self.lineNumber + ".png";
+
+			var renderCallback = function(){
+				plotCanvas.toBlob(function(blob){
+					download(blob, filename);
+				}, "image/png");
+			};
+
+			canvg(plotCanvas, self.data, {
+				renderCallback: renderCallback,
+				ignoreMouse: true
+			});
+		}
+		self.zoom = function(){
+			$("#plot_figure_container").toggleClass("fullscreen");
+		}
+		self.md5 = ko.computed(function(){
+			return $.md5(self.data);
+		});
+		self.completeData = ko.computed(function(){
+			if (self.complete()) {
+				return self.data;
+			} else {
+				return "";
+			}
+		});
+	}
+
 	// Initialize MVVM variables
 	var allOctFiles = ko.observableArray([]);
 	var workspaceVars = ko.observableArray([]);
+	var plotHistory = ko.observableArray([]);
+	var currentPlotIdx = ko.observable(-1);
 	var viewModel = window.viewModel = {
 		files: allOctFiles,
 		openFile: ko.observable(),
@@ -41,22 +95,32 @@ function($, ko, canvg, splittr, Base64, download,
 		availableSkins: availableSkins,
 		selectedSkin: ko.observable(availableSkins()[0]),
 		vars: workspaceVars,
+		plots: plotHistory,
+		currentPlotIdx: currentPlotIdx,
+
+		// More for plots
+		currentPlot: ko.computed(function(){
+			if (currentPlotIdx()<0) return null;
+			return plotHistory()[currentPlotIdx()];
+		}),
+		showPlot: ko.computed(function(){
+			return currentPlotIdx() >= 0;
+		}),
+		togglePlot: function(){
+			var idx = currentPlotIdx();
+			var len = plotHistory().length;
+			if (len === 0) {
+				alert("This button shows and hides the plot window.  Enter an expression that generates a plot.");
+			} else if (idx < 0) {
+				currentPlotIdx(len-1);
+			} else {
+				currentPlotIdx(-1);
+			}
+			OctMethods.prompt.focus();
+		},
 
 		// Sign In / Sign Out
 		currentUser: ko.observable(),
-		doLogin: function(){
-			$("#login_box").show();
-			if(!require.defined("js/login")){
-				require(["js/login"], function(L){
-					$("#sign_in_with_email").click(function () {
-						 L.login(false);
-					});
-					$("#sign_in_with_google").click(function () {
-						 L.login(true);
-					});
-				});
-			}
-		},
 		doLogout: function(){
 			require(["js/login"], function(L){ L.logout(); });
 		},
@@ -91,6 +155,28 @@ function($, ko, canvg, splittr, Base64, download,
 	};
 
 	/* * * * END KNOCKOUT, START EDITOR/CONSOLE/PROMPT * * * */
+
+	// Helper functions
+	function doSessionClose(){
+		OctMethods.prompt.disable();
+		OctMethods.prompt.endCountdown();
+		OctMethods.socket.disconnect();
+		// hide the coverall loading div if necessary
+		OctMethods.load.hideLoader();
+		OctMethods.load.stopPatience();
+	}
+
+	function getOrMakePlotById(id, lineNumber){
+		var arr = plotHistory();
+		for (var i = arr.length - 1; i >= 0; i--) {
+			if (arr[i].id === id) return arr[i];
+		};
+
+		// Make a new plot object
+		var obj = new PlotObject(id, lineNumber);
+		plotHistory.push(obj);
+		return obj;
+	}
 
 	// Define a massive singleton object to contain all methods and listeners
 	var OctMethods = {
@@ -316,72 +402,21 @@ function($, ko, canvg, splittr, Base64, download,
 
 		// Plot Methods
 		plot: {
-			data: {},
-			info: {},
 			displayedId: null,
 			loading: function(){
 				$("#plot_svg_container").hide();
 				$("#plot_loading").show();
 				OctMethods.plot.open();
 			},
-			display: function(id){
-				OctMethods.plot.displayedId = id;
-				OctMethods.plot.open();
-				$("#plot_loading").fadeOut({
-					duration: 1000
-				});
-
-				// write the SVG to the container
-				$("#plot_svg_container").html(
-					OctMethods.plot.data[id]
-				);
-				$("#plot_svg_container").fadeIn({
-					duration: 1000
-				});
-
-				// auto zoom for mobile devices
-				if (isMobile) {
-					OctMethods.plot.zoom(true);
-				}
-			},
-			update: function(id){
-				var infoTxt = "plot: line " + OctMethods.plot.info[id].line;
-				$("#plot_info").text(infoTxt);
-			},
 			open: function(){
-				$("#plot_container").show();
-				$("#plot_opener").hide();
-				$("#login-promo").hide();
+				$("#plot_container").showSafe();
+				onboarding.hideScriptPromo();
 			},
 			close: function(){
-				$("#plot_container").hide();
-				$("#plot_opener").show();
+				$("#plot_container").hideSafe();
 			},
-			zoom: function(state){
-				if (typeof state !== "undefined")
-					$("#plot_container").toggleClass("fullscreen", state);
-				else
-					$("#plot_container").toggleClass("fullscreen");
-			},
-			render: function(id){
-				var plotCanvas = document.getElementById("plot_canvas");
-				var line = OctMethods.plot.info[id].line;
-				var filename = "octave-online-line-" + line + ".png";
-
-				var renderCallback = function(){
-					plotCanvas.toBlob(function(blob){
-						download(blob, filename);
-					}, "image/png");
-				};
-
-				canvg(
-					plotCanvas,
-					OctMethods.plot.data[OctMethods.plot.displayedId],
-					{
-						renderCallback: renderCallback,
-						ignoreMouse: true
-					}
-				);
+			toggle: function(){
+				$("#plot_container").toggleSafe();
 			}
 		},
 
@@ -393,12 +428,11 @@ function($, ko, canvg, splittr, Base64, download,
 			},
 			open: function(){
 				OctMethods.plot.open();
+				OctMethods.prompt.focus();
 			},
-			download: function(){
-				OctMethods.plot.render(OctMethods.plot.displayedId);
-			},
-			zoom: function(){
-				OctMethods.plot.zoom();
+			toggle: function(){
+				OctMethods.plot.toggle();
+				OctMethods.prompt.focus();
 			}
 		},
 
@@ -574,9 +608,8 @@ function($, ko, canvg, splittr, Base64, download,
 					OctMethods.prompt.legalTime = data.legalTime;
 
 					// Set up the UI
-					splittr.resize($("#workspace_panel")[0], 350);
-					splittr.resize($("#open_container")[0], 300);
-					splittr.resize($("#files_container")[0], 100);
+					$("#open_container").showSafe();
+					$("#files_container").showSafe();
 					onboarding.showSyncPromo();
 
 					// Trigger Knockout
@@ -597,29 +630,21 @@ function($, ko, canvg, splittr, Base64, download,
 			},
 			plotd: function(data){
 				// plot data transmission
-				if(!OctMethods.plot.data[data.id]){
-					OctMethods.plot.data[data.id] = data.content;
-					OctMethods.plot.info[data.id] = {
-						line: OctMethods.prompt.prevLine
-					};
-					OctMethods.plot.loading();
-					OctMethods.plot.update(data.id);
-				}else{
-					OctMethods.plot.data[data.id] += data.content;
-				}
+				var plot = getOrMakePlotById(data.id, OctMethods.prompt.prevLine);
+				plot.addData(data.content);
+				plot.setCurrent();
 				console.log("Received data for plot ID "+data.id);
 			},
 			plote: function(data){
 				// plot data complete
-				var actual_md5 = $.md5(OctMethods.plot.data[data.id]);
-				if(data.md5 === actual_md5){
-					OctMethods.plot.display(data.id);
-				}else{
+				var plot = getOrMakePlotById(data.id);
+				plot.complete(true);
+
+				if(data.md5 !== plot.md5()){
 					// should never happen
 					console.log("MD5 discrepancy!");
 					console.log(data);
-					console.log(actual_md5);
-					console.log(OctMethods.plot.data[data.id]);
+					console.log(plot.md5());
 				}
 			},
 			ctrl: function(data){
