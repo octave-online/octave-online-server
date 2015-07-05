@@ -3,7 +3,7 @@
 define(
 	["jquery", "knockout", "canvg", "splittr", "base64", "js/download",
 		"js/anal", "base64-toblob", "ismobile", "exports", "js/octfile",
-		"js/vars", "ko-takeArray", "require", "js/onboarding",
+		"js/vars", "ko-takeArray", "require", "js/onboarding", "blob",
 		"jquery.md5", "jquery.purl", "ace/theme/crimson_editor",
 		"ace/theme/merbivore_soft", "knockout-ace"],
 function($, ko, canvg, splittr, Base64, download,
@@ -51,7 +51,7 @@ function($, ko, canvg, splittr, Base64, download,
 				}
 			}
 		}
-		self.download = function(){
+		self.downloadPng = function(){
 			var plotCanvas = document.getElementById("plot_canvas");
 			var filename = "octave-online-line-" + self.lineNumber + ".png";
 
@@ -65,6 +65,12 @@ function($, ko, canvg, splittr, Base64, download,
 				renderCallback: renderCallback,
 				ignoreMouse: true
 			});
+		}
+		self.downloadSvg = function(){
+			var blob = new Blob([self.data], { type: "image/svg+xml" });
+			var filename = "octave-online-line-" + self.lineNumber + ".svg";
+
+			download(blob, filename);
 		}
 		self.zoom = function(){
 			$("#plot_figure_container").toggleClass("fullscreen");
@@ -117,6 +123,23 @@ function($, ko, canvg, splittr, Base64, download,
 				currentPlotIdx(-1);
 			}
 			OctMethods.prompt.focus();
+		},
+		firstPlotShown: ko.computed(function(){
+			return currentPlotIdx() === 0;
+		}),
+		lastPlotShown: ko.computed(function(){
+			return currentPlotIdx()+1 === plotHistory().length;
+		}),
+		showPrevPlot: function(){
+			var idx = currentPlotIdx();
+			if (idx <= 0) return null;
+			currentPlotIdx(idx - 1);
+		},
+		showNextPlot: function(){
+			var idx = currentPlotIdx();
+			var len = plotHistory().length;
+			if (idx+1 >= len) return null;
+			currentPlotIdx(idx + 1);
 		},
 
 		// Sign In / Sign Out

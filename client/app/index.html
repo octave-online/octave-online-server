@@ -188,9 +188,15 @@
 					</div>
 				</div>
 				<div id="plot_controls_container">
-					<span id="plot_close_btn" title="Collapse Plot Window" data-bind="click: $root.togglePlot">collapse</span>
-					<span id="plot_download_btn" title="Download Plot as Image" data-bind="click: download">download</span>
-					<span id="plot_info">Plot: Line <span data-bind="text: lineNumber"></span></span>
+					<p>
+						<span id="plot_prev_btn" title="Previous Plot" class="plot-nav-btn" data-bind="click: $root.showPrevPlot, css: { disabled: $root.firstPlotShown }">&laquo;</span>
+						<span id="plot_next_btn" title="Next Plot" class="plot-nav-btn" data-bind="click: $root.showNextPlot, css: { disabled: $root.lastPlotShown }">&raquo;</span>
+					</p>
+					<p id="plot_info">
+						Plot: Line&nbsp;<span data-bind="text: lineNumber"></span>
+					</p>
+					<span id="plot_png_download_btn" title="Download Plot as Image" data-bind="click: downloadPng"></span>
+					<span id="plot_svg_download_btn" title="Download Plot as Image" data-bind="click: downloadSvg"></span>
 				</div>
 			</div>
 			<div id="console_container">

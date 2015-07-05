@@ -139,6 +139,26 @@
 				overflow: hidden
 			}
 		}
+		
+		#plot_controls_container {
+			text-align: center
+			
+			.plot-nav-btn {
+				font-size: 3em
+				cursor: pointer
+
+				&.disabled {
+					visibility: hidden
+				}
+			}
+			
+			#plot_png_download_btn {
+				flaticon-button(download-png, 40px)
+			}
+			#plot_svg_download_btn {
+				flaticon-button(download-svg, 40px)
+			}
+		}
 	}
 }
 

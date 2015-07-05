@@ -16,14 +16,14 @@ heading_font_family = "Bangers", "Impact", sans-serif
 flaticon(name) {
 	background-image: inline-image("flaticons/"+theme_name+"/"+name+".svg")
 }
-flaticon-button(name) {
+flaticon-button(name, dim=16px) {
 	flaticon(name)
 	
 	background-repeat: no-repeat
 	background-position: center center
-	background-size: 16px 16px
-	width: 18px
-	height: 20px
+	background-size: dim dim
+	width: dim+2px
+	height: dim+4px
 	display: inline-block
 	cursor: pointer
 }
