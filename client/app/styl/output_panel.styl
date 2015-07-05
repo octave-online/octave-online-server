@@ -74,7 +74,7 @@
 				bottom: 4px
 				right: 0
 				left: prompt_sign_width
-				height: prompt_font_size + 2px
+				height: prompt_font_size + 2px !important // override inline style
 
 				font-size: prompt_font_size
 				line-height: prompt_font_size
@@ -140,4 +140,9 @@
 			}
 		}
 	}
+}
+
+// Push down the content of the console to the bottom of the screen
+#console::before {
+	content: "\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A";
 }

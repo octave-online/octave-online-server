@@ -205,10 +205,9 @@ define(
 
 		// Privacy Policy
 		$.get("privacy.txt", function (data) {
-			$("#privacy").text(data);
+			$("#privacy").find("article").text(data);
 		});
-		$("#privacy").click(function () {
-			$(this).toggle();
+		$("#privacy").find("[data-purpose='close']").click(function () {
 			anal.sitecontrol("privacy-close");
 		});
 		$("#showprivacy").click(function () {

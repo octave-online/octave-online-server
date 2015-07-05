@@ -69,15 +69,15 @@ function($, ko, canvg, splittr, Base64, download,
 		self.zoom = function(){
 			$("#plot_figure_container").toggleClass("fullscreen");
 		}
-		self.md5 = ko.computed(function(){
-			return $.md5(self.data);
-		});
 		self.completeData = ko.computed(function(){
 			if (self.complete()) {
 				return self.data;
 			} else {
 				return "";
 			}
+		});
+		self.md5 = ko.computed(function(){
+			return $.md5(self.completeData());
 		});
 	}
 
@@ -153,6 +153,10 @@ function($, ko, canvg, splittr, Base64, download,
 			});
 		}
 	};
+	// Keep the console output visible when the plot window opens
+	viewModel.showPlot.subscribe(function(){
+		setTimeout(OctMethods.console.scroll, 0);
+	});
 
 	/* * * * END KNOCKOUT, START EDITOR/CONSOLE/PROMPT * * * */
 
@@ -889,7 +893,8 @@ function($, ko, canvg, splittr, Base64, download,
 					OctMethods.load.firstConnection = false;
 
 					// UI setup
-					$("#type_here").show();
+					$("#type_here").showSafe();
+					$("#workspace_panel").showSafe();
 
 					// Evaluate the query string command (uses purl)
 					try{

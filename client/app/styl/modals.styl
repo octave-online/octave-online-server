@@ -1,0 +1,100 @@
+// Popover Box
+popover(_width, _height, _zindex){
+	position: fixed
+	top: 0
+	left: 0
+	right: 0
+	bottom: 0
+	z-index: _zindex
+	background: rgba(128, 128, 128, .8)
+
+	& > div {
+		position: absolute
+		top: 50%
+		left: 50%
+		width: 100%
+		height: 100%
+
+		& > div {
+			position: absolute
+			top: (_height/-2)
+			left: (_width/-2)
+			width: _width
+			height: _height
+			overflow: auto
+			box-sizing: border-box
+			padding: 20px
+
+			.closebtn {
+				// @include sanscon(close)
+				display: block
+				position: absolute
+				top: 5px
+				right: 5px
+			}
+		}
+	}
+}
+
+// Privacy Policy
+#privacy{
+	popover(90%, 90%, 301)
+	
+	article {
+		white-space: pre-wrap
+	}
+}
+
+// Onboarding Div
+#onboarding {
+	popover(80%, 80%, 300)
+	
+	font-size: 1.3em
+	line-height: 1.3em
+
+	h2{
+		margin: 0
+		padding: 0
+		font-size: 2em
+		line-height: 1em
+	}
+
+	figure{
+		width: 90%;
+		margin: 10px auto;
+		padding: 5px;
+		border-radius: 10px;
+		border: 1px solid black;
+
+		& > img{
+			display: block;
+			margin: 5px auto;
+			max-width: 100%
+		}
+	}
+
+	#onboarding-start{
+		background-color: #fac695;
+		background-image: linear-gradient(#fac695, #ef8d31, to bottom);
+		background-image: radial-gradient(ellipse at center,
+			#fac695 0%,
+			#f5ab66 47%,
+			#ef8d31 100%);
+		display: block;
+		margin: 10px auto;
+		padding: 0.5em;
+		font-size: 1.5em;
+		cursor: pointer;
+		border-radius: 1em;
+		border: none;
+		background-color: blue;
+
+		&:active{
+			background-color: #ffa84c;
+			background-image: linear-gradient(#ffa84c, #ff7b0d, to bottom);
+			background-image: radial-gradient(ellipse at center,
+				#ffa84c 0%,
+				#ff7b0d 100%);
+		}
+	}
+}

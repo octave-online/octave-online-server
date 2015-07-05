@@ -165,7 +165,7 @@
 			</div>
 			<!-- /ko -->
 		</div>
-		<div id="workspace_panel">
+		<div id="workspace_panel" style="display: none">
 			<div id="workspace_header" class="theme-header">
 				Vars
 			</div>
@@ -207,9 +207,9 @@
 					<span class="l2">Type expressions here and press enter.</span>
 					<span class="l3">Tip: <a href="javascript:void" id="sign_in_shortcut">Sign in</a> to run script files.</span>
 				</div>
-				<div id="prompt_container">
+				<div id="prompt_container" style="visibility: hidden">
 					<div id="prompt_sign">&#x25B7;</div>
-					<div id="prompt"></div>
+					<div id="prompt" style="height: 1em"></div>
 				</div>
 				<div id="runtime_controls_container" style="display: none">
 					<span id="signal" title="Stop Currently Running Command (send SIGINT)"></span>
@@ -266,88 +266,71 @@
 	</section>
 </div>
 
-<div id="onboarding" data-purpose="popover">
-	<div>
-		<h2>Welcome to Octave Online.</h2>
+<div id="onboarding" data-purpose="popover"><div><div>
+	<h2>Welcome to Octave Online.</h2>
 
-		<p>
-			Octave Online is the free GNU Octave editor and prompt in your browser. Octave Online is powered by the open-source GNU Octave project, whose syntax is mostly compatible with MATLAB.
-		</p>
-		<figure>
-			<figcaption>
-				Type commands in the prompt like you would in your local copy of GNU Octave or MATLAB.
-			</figcaption>
-			<img src="images/demo/fzero-prompt.png" alt="&gt; fzero(@(x) sinh(x) + 1, [-pi pi])"/>
-		</figure>
-		<figure>
-			<figcaption>
-				Press enter and see the results instantly.
-			</figcaption>
-			<img src="images/demo/fzero-result.png" alt="ans = -0.88137"/>
-		</figure>
-		<figure>
-			<figcaption>
-				You can make plots.
-			</figcaption>
-			<img src="images/demo/plot-cmd.png" alt="sombrero()"/>
-			<img src="images/demo/plot.png" alt="sombrero"/>
-		</figure>
-		<figure>
-			<figcaption>
-				Sign in and you can edit files. Your files will still be here the next time you visit.
-			</figcaption>
-			<img src="images/demo/editor.png" alt="disp('Hello World')"/>
-		</figure>
-		<figure>
-			<figcaption>
-				Octave Online is currently in public beta. Find a bug? Like to see another feature? Click &ldquo;Feedback.&rdquo; Prefer a white-on-black theme when staring at the screen for an extended
-				period? Click &ldquo;Theme.&rdquo;
-			</figcaption>
-		</figure>
-		<button id="onboarding-start" data-purpose="close">Start Using Octave Online</button>
-		<span id="onboarding-close" data-purpose="close"></span>
-	</div>
-</div>
+	<p>
+		Octave Online is the free GNU Octave editor and prompt in your browser. Octave Online is powered by the open-source GNU Octave project, whose syntax is mostly compatible with MATLAB.
+	</p>
+	<figure>
+		<figcaption>
+			Type commands in the prompt like you would in your local copy of GNU Octave or MATLAB.
+		</figcaption>
+		<img src="images/demo/fzero-prompt.png" alt="&gt; fzero(@(x) sinh(x) + 1, [-pi pi])"/>
+	</figure>
+	<figure>
+		<figcaption>
+			Press enter and see the results instantly.
+		</figcaption>
+		<img src="images/demo/fzero-result.png" alt="ans = -0.88137"/>
+	</figure>
+	<figure>
+		<figcaption>
+			You can make plots.
+		</figcaption>
+		<img src="images/demo/plot-cmd.png" alt="sombrero()"/>
+		<img src="images/demo/plot.png" alt="sombrero"/>
+	</figure>
+	<figure>
+		<figcaption>
+			Sign in and you can edit files. Your files will still be here the next time you visit.
+		</figcaption>
+		<img src="images/demo/editor.png" alt="disp('Hello World')"/>
+	</figure>
+	<figure>
+		<figcaption>
+			Octave Online is currently in public beta. Find a bug? Like to see another feature? Click &ldquo;Feedback.&rdquo; Prefer a white-on-black theme when staring at the screen for an extended
+			period? Click &ldquo;Theme.&rdquo;
+		</figcaption>
+	</figure>
+	<button id="onboarding-start" data-purpose="close">Start Using Octave Online</button>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
 
-<div id="privacy"></div>
+<div id="privacy" data-purpose="popover" style="display: none"><div><div>
+	<article></article>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
+
 <div id="site_loading">
 	<img src="images/spinner.svg" alt="Loading&hellip;"/>
 	<span id="site_loading_patience" style="display:none;">Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.</span>
 </div>
 
-<div id="login_box" data-purpose="popover"><div><div>
-	<p class="login_description">
-		How do you want to sign in?
-	</p>
-	<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
-		<image xlink:href="images/sign-in-with-persona.svg" src="images/sign-in-with-persona.png" width="200" height="40" alt="Sign in with Email" />
-	</svg>
-	<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
-		<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="Sign in with Google" />
-	</svg>
-	<hr />
-	<p class="login_bottom">
-		Signed in before but need to change your email address?  Click "Feedback" and create a ticket.  We will change it for you.
-	</p>
-	<span class="closebtn" data-purpose="close"></span>
-</div></div></div>
-
-<div id="sync-promo">
+<div id="sync-promo" style="display: none">
 	<span class="l1">New feature in testing!</span>
 	<span class="l2">Octave Online Sync</span>
 	<span class="l3">Synchronize your Octave Online script files with your computer and also see revision history.</span>
 	<span class="l4">Click the wrench for more info.</span>
 	<span class="l5" data-purpose="close">dismiss</span>
 </div>
-
-<div id="login-promo" style="display: block">
+<div id="login-promo" style="display: none">
 	<span class="l1">Want to use</span>
 	<span class="l2">scripts?</span>
 	<span class="l3">Sign in so you can save, edit, upload, and run Octave script files.</span>
 	<span class="l4" data-purpose="close">dismiss</span>
 </div>
-
-<div id="sync_info_box" data-purpose="popover"><div><div>
+<div id="sync_info_box" data-purpose="popover" style="display: none"><div><div>
 	<h3>Octave Online Sync</h3>
 	<p>
 		We are testing a new feature that enables you to synchronize your Octave Online script files with your local machine.  This lets you use Octave or MATLAB when you're on your own computer and Octave Online when you're on the road.

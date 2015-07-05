@@ -8,7 +8,7 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 
 	// Check for the cookie now
 	if($.cookie("oo_onboarding_complete") === "true"){
-		$onboarding.showSafe();
+		$onboarding.fadeOut(500);
 	}
 
 	// Set event listeners for the onboarding div

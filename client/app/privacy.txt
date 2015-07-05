@@ -53,8 +53,4 @@ Governing Law, Jurisdiction and Costs
 This Agreement is governed by the laws of Missouri, without regard to Missouri's conflict or choice of law provisions. 
   
 Severability 
-If any provision of this Agreement shall be held to be invalid or unenforceable, the remainder of this Agreement shall remain in full force and effect. To the extent any express or implied restrictions are not permitted by applicable laws, these express or implied restrictions shall remain in force and effect to the maximum extent permitted by such applicable laws. 
-  
-
-
-(click to close)
+If any provision of this Agreement shall be held to be invalid or unenforceable, the remainder of this Agreement shall remain in full force and effect. To the extent any express or implied restrictions are not permitted by applicable laws, these express or implied restrictions shall remain in force and effect to the maximum extent permitted by such applicable laws.
