@@ -1,51 +1,13 @@
-@require("../mixins.styl")
-
 color1 = #451405
-color2 = #1c1c1c
+color2 = #70220A
 color3 = #85685F
-colorbkg = color2
+colorbkg = #1c1c1c
 colorfgd = #E6D2CC
+theme_name = lava
 
-body {
-	color: colorfgd
-	background-color: colorbkg
-}
-
-#flexbox > section {
-	background-color: color3
-	
-	#files_container, #files_list_container, #open_container, #workspace_panel, #plot_figure_container, #plot_controls_container, #console_container, #main_menu {
-		background-color: colorbkg
-	}
-}
-
-#hamburger{
-	hamburger-button(colorfgd)
-}
-
-#userbox{
-	background-image: url("../../images/icons/user-lava.svg")
-}
-
-.site-control-item {
-	background-color: color1
-	&:hover{
-		background-color: color3
-	}
-	&:active{
-		background-color: color2
-	}
-}
-
-#type_here, #login-promo, #sync-promo, #instructor-promo {
-	background: colorbkg
-}
+@require("../all.styl")
 
 .theme-header{
-	background-color: color1
-}
-
-header{
 	background-color: color1
 }
 
@@ -83,13 +45,4 @@ header{
 
 #site_loading_patience{
 	background-color: rgba(0, 0, 0, 0.8)
-}
-
-[data-purpose="popover"] > div > div {
-	background-color: colorbkg
-
-	kbd {
-		background-color: color2
-		border-color: color3
-	}
 }

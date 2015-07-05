@@ -12,6 +12,22 @@ code_font_family = "DejaVu Sans Mono", monospace
 unicode_font_family = "Arial Unicode", "Lucida Sans Unicode", "DejaVu Sans", "GNU Unifont", sans-serif
 heading_font_family = "Bangers", "Impact", sans-serif
 
+// Flaticons
+flaticon(name) {
+	background-image: inline-image("flaticons/"+theme_name+"/"+name+".svg")
+}
+flaticon-button(name) {
+	flaticon(name)
+	
+	background-repeat: no-repeat
+	background-position: center center
+	background-size: 16px 16px
+	width: 18px
+	height: 20px
+	display: inline-block
+	cursor: pointer
+}
+
 // Utilities
 absolute-full-size() {
 	position: absolute

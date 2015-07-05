@@ -47,7 +47,11 @@ module.exports = function (grunt) {
 						// 		"browsers": ">0.01%"
 						// 	})
 						// }
-					]
+					],
+					urlfunc: {
+						name: "inline-image",
+						paths: ["app/images"]
+					}
 				},
 				files: [
 					{

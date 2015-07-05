@@ -24,13 +24,19 @@ popover(_width, _height, _zindex){
 			overflow: auto
 			box-sizing: border-box
 			padding: 20px
+			background-color: colorbkg
 
 			.closebtn {
-				// @include sanscon(close)
+				flaticon-button(cross)
 				display: block
 				position: absolute
 				top: 5px
 				right: 5px
+			}
+
+			kbd {
+				background-color: color2
+				border-color: color3
 			}
 		}
 	}

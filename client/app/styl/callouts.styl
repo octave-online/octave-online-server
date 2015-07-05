@@ -3,6 +3,7 @@
 callout_color = #369AFF
 callout(shadowoffset, direction="up"){
 	position: absolute
+	background-color: colorbkg
 	border: 3px solid callout_color
 	border-radius: 5px
 	box-shadow: 0px shadowoffset 16px 0px rgba(0, 0, 0, 0.75)
@@ -102,39 +103,39 @@ callout(shadowoffset, direction="up"){
 #login-promo{
 	callout(4px, up)
 	display: block
-	top: header_height + 15px;
-	right: 10px;
-	width: 200px;
-	height: auto;
-	text-align: center;
-	z-index: 100;
-	padding: 10px 10px;
+	top: header_height + 15px
+	right: 10px
+	width: 200px
+	height: auto
+	text-align: center
+	z-index: 100
+	padding: 10px 10px
 
 	// Arrow
 	&::before {
-		right: 10px;
-		top: -20px;
+		right: 10px
+		top: -20px
 	}
 
 	// Text Flow
 	& > span {
-		display: block;
-		line-height: 1em;
+		display: block
+		line-height: 1em
 		&.l1{
-			font-size: 2em;
+			font-size: 2em
 		}
 		&.l2{
-			font-size: 3em;
+			font-size: 3em
 		}
 		&.l3{
-			font-size: 1.3em;
-			margin-top: 10px;
+			font-size: 1.3em
+			margin-top: 10px
 		}
 		&.l4{
-			font-size: 1em;
-			margin-top: 10px;
-			cursor: pointer;
-			text-decoration: underline;
+			font-size: 1em
+			margin-top: 10px
+			cursor: pointer
+			text-decoration: underline
 		}
 	}
 	
@@ -152,7 +153,6 @@ callout(shadowoffset, direction="up"){
 	text-align: center
 	z-index: 101
 	padding: 10px 10px
-	display: none
 
 	// Arrow
 	&::before {
