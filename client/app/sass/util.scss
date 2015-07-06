@@ -1,8 +1,0 @@
-// Utility functions not provided in the default Compass library
-@import "compass";
-
-// from http://joshuapaling.com/post/compass-background-gradients-not-working-ie10
-@mixin background-image-with-ms($image) {
-	background-image: -ms-#{$image};
-	@include background-image($image);
-}

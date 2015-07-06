@@ -1,6 +1,5 @@
 module.exports = function (grunt) {
 	grunt.loadNpmTasks("grunt-contrib-requirejs");
-	grunt.loadNpmTasks("grunt-contrib-compass");
 	grunt.loadNpmTasks("grunt-contrib-stylus");
 	grunt.loadNpmTasks("grunt-contrib-watch");
 	grunt.loadNpmTasks("grunt-contrib-copy");
@@ -17,22 +16,6 @@ module.exports = function (grunt) {
 					out: "dist/js/app.js",
 					name: "js/app",
 					optimize: "uglify2"
-				}
-			}
-		},
-		compass: {
-			dist: {
-				options: {
-					sassDir: "app/sass",
-					cssDir: "dist/css",
-					environment: "production",
-					outputStyle: "compact" // using "compress" breaks the sanscons
-				}
-			},
-			dev: {
-				options: {
-					sassDir: "app/sass",
-					cssDir: "app/css"
 				}
 			}
 		},
@@ -118,13 +101,12 @@ module.exports = function (grunt) {
 
 	grunt.registerTask("default", [
 		"requirejs",
-		"compass:dist",
+		"stylus:dist",
 		"uglify",
 		"copy",
 		"regex-replace"
 	]);
 
-	grunt.registerTask("sass", ["compass:dev"]);
 	grunt.registerTask("index", ["copy", "regex-replace"]);
 
 };
