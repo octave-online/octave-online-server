@@ -2,12 +2,12 @@
 
 define(
 	["jquery", "knockout", "canvg", "base64", "js/download",
-		"js/anal", "base64-toblob", "ismobile", "exports", "js/octfile",
+		"js/anal", "base64-toblob", "exports", "js/octfile",
 		"js/vars", "ko-takeArray", "require", "js/onboarding", "blob",
 		"jquery.md5", "jquery.purl", "ace/theme/crimson_editor",
 		"ace/theme/merbivore_soft", "knockout-ace"],
 function($, ko, canvg, Base64, download,
-         anal, b64ToBlob, isMobile, exports, OctFile,
+         anal, b64ToBlob, exports, OctFile,
          Var, koTakeArray, require, onboarding){
 
 	/* * * * START KNOCKOUT SETUP * * * */
@@ -530,7 +530,7 @@ function($, ko, canvg, Base64, download,
 					}else{
 						OctMethods.prompt.focus();
 					}
-				}else if(!isMobile){
+				}else{
 					OctMethods.prompt.focus();
 				}
 
