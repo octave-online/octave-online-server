@@ -214,9 +214,6 @@ define(
 			window.matchMedia("(orientation:portrait)").addListener(function () {
 				OctMethods.console.scroll();
 			});
-			$("#console").click(function () {
-				OctMethods.prompt.focus();
-			});
 		}
 
 		// Sign-In
