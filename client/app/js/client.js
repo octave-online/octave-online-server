@@ -530,10 +530,11 @@ function($, ko, canvg, Base64, download,
 					}else{
 						OctMethods.prompt.focus();
 					}
-				}else if(isMobile && lineNumber>1)
+				}else if(isMobile && lineNumber>1){
 					OctMethods.prompt.focus();
 					setTimeout(function(){
-						$("body").scrollTop($("body")[0].scrollHeight);
+						// Does not quite work
+						window.scrollTo(0,document.body.scrollHeight);
 					}, 500);
 				}else if(!isMobile){
 					OctMethods.prompt.focus();
