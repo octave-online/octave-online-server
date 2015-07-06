@@ -34,6 +34,7 @@ wsSessClient.setMaxListeners(30);
 class Workspace extends EventEmitter2.EventEmitter2 {
 	private chgIds:string[] = [];
 	private cmdIds:string[] = [];
+	private crsIds:string[] = [];
 	private docIds:string[] = [];
 	public wsId:string;
 
@@ -207,12 +208,18 @@ class Workspace extends EventEmitter2.EventEmitter2 {
 			var i = this.cmdIds.indexOf(obj.data.id);
 			if (i > -1) this.cmdIds.splice(i, 1);
 			else this.emit("data", "ws.command", obj.data.cmd);
+
+		} else if (obj.type === "cursor") {
+			var i = this.crsIds.indexOf(obj.data.id);
+			if (i > -1) this.crsIds.splice(i, 1);
+			else this.emit("data", "ot.cursor", obj.data.cursor);
+
 		}
 	};
 
 	///
 
-	public onSocket = (name:string, val:any) => {
+	public onSocket =  (name:string , val:any) => {
 		if (!val) val = {};
 		console.log("on socket", name, val);
 		switch(name){
@@ -244,7 +251,16 @@ class Workspace extends EventEmitter2.EventEmitter2 {
 
 	private onOtCursor = (cursor) => {
 		if (!cursor) return;
-		// this.socket.emit("ot.cursor", cursor);
+
+		var crsId = Uuid.v4();
+		this.crsIds.push(crsId);
+		otOperationClient.publish(IRedis.Chan.wsSub(this.wsId), JSON.stringify({
+			type: "cursor",
+			data: {
+				id: crsId,
+				cursor: cursor
+			}
+		}));
 	};
 
 	private onCommand = (cmd) => {

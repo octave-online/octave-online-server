@@ -204,8 +204,8 @@ class SocketHandler {
 		var name = obj.data[0] || "";
 		var val = obj.data[1] || null;
 		if (this.workspace
-			&& name.substr(0,3) === "ot."
-			|| name.substr(0,3) === "ws.") {
+			&& (name.substr(0,3) === "ot."
+				|| name.substr(0,3) === "ws.")) {
 			this.workspace.onSocket(name, val);
 			return;
 		}

@@ -5,7 +5,7 @@
 
 import Config = require("./config");
 import Express = require("express");
-import Middleware = require("./session_middleware");
+import SessionMiddleware = require("./session_middleware");
 import Passport = require("passport");
 import Siofu = require("socketio-file-upload");
 import Http = require("http");
@@ -20,7 +20,7 @@ module ExpressApp {
 		app = Express()
 			.use(Compression())
 			.use(ServeStatic(Config.static.path))
-			.use(Middleware.middleware)
+			.use(SessionMiddleware.middleware)
 			.use(BodyParser.urlencoded({ extended: true }))
 			.use(Passport.initialize())
 			.use(Passport.session())
