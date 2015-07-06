@@ -1,47 +1,17 @@
-color1 = #FF5C4A
-color2 = #FF7869
-color3 = #362725
+color1 = #FF4B33
+color2 = #FF715E
+color3 = #5C0B00
 colorbkg = #FFFFFF
 colorfgd = #000000
+colorerr = #918500
+color2lt = #FFC9C2 // for workspace variables
 theme_name = fire
 
 @require("../all.styl")
 
-.theme-header{
-	background-color: color1
-}
-
 // Flashing Style
 .ko-flash{
 	// background-color: lighten(color2, 20%);
-}
-
-.prompt_row{
-	color: #A6301B;
-}
-.prompt_error{
-	color: #918500;
-}
-
-#files_list_container{
-	background: color2
-
-	li {
-		background: color2
-
-		&.file_active{
-			background: color3
-			color: colorfgd
-		}
-	}
-}
-
-#workspace_panel{
-	background: color2
-
-	.workspace_type {
-		color: color3
-	}
 }
 
 #site_loading_patience{

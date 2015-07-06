@@ -8,7 +8,7 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 
 	// Check for the cookie now
 	if($.cookie("oo_onboarding_complete") === "true"){
-		$onboarding.fadeOut(500);
+		$onboarding.fadeOutSafe(500);
 	}
 
 	// Set event listeners for the onboarding div
@@ -26,7 +26,7 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 			// Make this cookie expire on browser being closed
 			$.cookie("oo_script_promo_dismissed", "true");
 			anal.dismiss("Sign in for Scripts");
-			$scriptPromo.fadeOut(500);
+			$scriptPromo.fadeOutSafe(500);
 		});
 	}
 
@@ -38,7 +38,7 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 				expires: 1000
 			});
 			anal.dismiss("Instructors");
-			$instructorPromo.fadeOut(500);
+			$instructorPromo.fadeOutSafe(500);
 		});
 	}
 
@@ -51,13 +51,13 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 		showSyncPromo: function(){
 			// Set up the Octave Online Sync onboarding
 			if(!$.cookie("oo_sync_promo_dismissed")){
-				$syncPromo.fadeIn(500);
+				$syncPromo.fadeInSafe(500);
 				$syncPromo.find("[data-purpose='close']").click(function(){
 					$.cookie("oo_sync_promo_dismissed", "true", {
 						expires: 1000
 					});
 					anal.dismiss("Octave Online Sync");
-					$syncPromo.fadeOut(500);
+					$syncPromo.fadeOutSafe(500);
 				});
 			}
 		},

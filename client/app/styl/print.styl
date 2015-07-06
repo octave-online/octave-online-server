@@ -1,0 +1,50 @@
+// Print stylesheet for Octave Online
+
+@media print{
+
+	// Remove all absolute positioning
+	// and hide everything by default
+	* {
+		position: static !important;
+		display: none;
+	}
+
+	// Show the essential container elements
+	html, body, header, #flexbox, #flexbox section {
+		display: block;
+	}
+	
+	// Octave Online title bar
+	h1 {
+		display: block;
+		* {
+			display: inline;
+			position: relative !important;
+		}
+	}
+
+	// Console
+	#flexbox section {
+		background-color: white !important;
+	}
+	#output_panel, #console_container, #console {
+		display: inline !important;
+	}
+	#console::before {
+		content: "\000A" !important;
+	}
+	#console * {
+		display: inline !important;
+	}
+
+	// Plot
+	#plot_container, #plot_figure_container, #plot_svg_container {
+		display: inline !important;
+	}
+	#plot_container {
+		box-shadow: none !important;
+	}
+	#plot_svg_container * {
+		display: inline !important;
+	}
+}

@@ -34,7 +34,7 @@ define(["knockout", "require"], function(ko, require){
 		self.getFunctionParameters = ko.computed(function(){
 			if(!self.isFunction()) return false;
 			var match = OctFile.regexps.matchParameters.exec(self.content());
-			if(!match) return [];
+			if(!match || match[1]==="") return [];
 			return match[1].split(/\s*,\s*/);
 		});
 		var argumentsStore = [];
@@ -103,6 +103,10 @@ define(["knockout", "require"], function(ko, require){
 		};
 		self.isModified = ko.computed(function(){
 			return self.content() !== self.savedContent();
+		});
+		self.buttonsShown = ko.observable(!this.editable);
+		self.buttonsShown.subscribe(function(){
+			ko.aceEditors.resizeAll();
 		});
 
 		// toString method

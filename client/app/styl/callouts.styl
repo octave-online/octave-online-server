@@ -55,7 +55,7 @@ callout(shadowoffset, direction="up"){
 		}
 	}
 	
-	@media (max-width: 450px) {
+	@media (max-width: 800px) {
 		display: none
 	}
 }
@@ -68,6 +68,7 @@ callout(shadowoffset, direction="up"){
 	width: 330px
 	max-width: 80%
 	padding: 10px
+	z-index: 10
 
 	// Arrow
 	&::before {
@@ -139,14 +140,14 @@ callout(shadowoffset, direction="up"){
 		}
 	}
 	
-	@media (max-width: 450px) {
+	@media (max-width: 480px) {
 		display: none
 	}
 }
 
 #sync-promo{
 	callout(4px, left)
-	top: header_height + 35px
+	top: header_height + toolbar_height*2 + 20px
 	left: 60px
 	width: 240px
 	height: auto

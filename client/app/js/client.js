@@ -1,12 +1,12 @@
 // Client-Side JavaScript for Octave Online
 
 define(
-	["jquery", "knockout", "canvg", "splittr", "base64", "js/download",
+	["jquery", "knockout", "canvg", "base64", "js/download",
 		"js/anal", "base64-toblob", "ismobile", "exports", "js/octfile",
 		"js/vars", "ko-takeArray", "require", "js/onboarding", "blob",
 		"jquery.md5", "jquery.purl", "ace/theme/crimson_editor",
 		"ace/theme/merbivore_soft", "knockout-ace"],
-function($, ko, canvg, splittr, Base64, download,
+function($, ko, canvg, Base64, download,
          anal, b64ToBlob, isMobile, exports, OctFile,
          Var, koTakeArray, require, onboarding){
 
@@ -274,7 +274,7 @@ function($, ko, canvg, splittr, Base64, download,
 			},
 			scroll: function(){
 				$("#console").scrollTop($("#console")[0].scrollHeight);
-				$("#type_here").hide();
+				$("#type_here").hideSafe();
 			},
 			clear: function(){
 				$("#console").empty();
@@ -313,7 +313,7 @@ function($, ko, canvg, splittr, Base64, download,
 			countdownInterval: null,
 			enabled: true,
 			enable: function(){
-				$("#runtime_controls_container").hide();
+				$("#runtime_controls_container").hideSafe();
 				$("#prompt_container")[0].style.visibility = "visible";
 				OctMethods.prompt.enabled = true;
 				OctMethods.prompt.endCountdown();
@@ -336,7 +336,7 @@ function($, ko, canvg, splittr, Base64, download,
 				OctMethods.prompt.instance.focus();
 			},
 			startCountdown: function(){
-				$("#runtime_controls_container").show();
+				$("#runtime_controls_container").showSafe();
 				$("#seconds_remaining").text(OctMethods.prompt.legalTime/1000);
 				clearInterval(OctMethods.prompt.countdownInterval);
 				OctMethods.prompt.countdownInterval = setInterval(
@@ -345,7 +345,7 @@ function($, ko, canvg, splittr, Base64, download,
 			},
 			endCountdown: function(){
 				clearInterval(OctMethods.prompt.countdownInterval);
-				$("#runtime_controls_container").hide();
+				$("#runtime_controls_container").hideSafe();
 				$("#seconds_remaining").text("0");
 			},
 			askForEnroll: function(program){
@@ -424,42 +424,6 @@ function($, ko, canvg, splittr, Base64, download,
 				// TODO: Add this directly into purl
 				var cmd = $(this).text();
 				window.location.hash = "cmd=" + encodeURIComponent(cmd);
-			}
-		},
-
-		// Plot Methods
-		plot: {
-			displayedId: null,
-			loading: function(){
-				$("#plot_svg_container").hide();
-				$("#plot_loading").show();
-				OctMethods.plot.open();
-			},
-			open: function(){
-				$("#plot_container").showSafe();
-				onboarding.hideScriptPromo();
-			},
-			close: function(){
-				$("#plot_container").hideSafe();
-			},
-			toggle: function(){
-				$("#plot_container").toggleSafe();
-			}
-		},
-
-		// Plot Callback Functions
-		plotListeners: {
-			close: function(){
-				OctMethods.plot.close();
-				OctMethods.prompt.focus();
-			},
-			open: function(){
-				OctMethods.plot.open();
-				OctMethods.prompt.focus();
-			},
-			toggle: function(){
-				OctMethods.plot.toggle();
-				OctMethods.prompt.focus();
 			}
 		},
 
@@ -638,6 +602,7 @@ function($, ko, canvg, splittr, Base64, download,
 					$("#open_container").showSafe();
 					$("#files_container").showSafe();
 					onboarding.showSyncPromo();
+					onboarding.hideScriptPromo();
 
 					// Trigger Knockout
 					viewModel.currentUser(data);
@@ -888,7 +853,7 @@ function($, ko, canvg, splittr, Base64, download,
 				}
 			},
 			info: function(e){
-				$("#sync_info_box").show();
+				$("#sync_info_box").showSafe();
 			},
 			run: function(editor){
 				OctMethods.editor.run(viewModel.openFile());
@@ -933,23 +898,23 @@ function($, ko, canvg, splittr, Base64, download,
 			},
 			showLoader: function(){
 				OctMethods.load.loaderVisible = true;
-				$("#site_loading").show();
+				$("#site_loading").showSafe();
 			},
 			hideLoader: function(){
 				OctMethods.load.loaderVisible = false;
 				OctMethods.load.stopPatience();
-				$("#site_loading").fadeOut(500);
+				$("#site_loading").fadeOutSafe(500);
 			},
 			startPatience: function(){
 				OctMethods.load.stopPatience();
 				OctMethods.load.bePatientTimeout = setTimeout(function(){
-					$("#site_loading_patience").show();
+					$("#site_loading_patience").showSafe();
 					OctMethods.load.bePatientTimeout = null;
 					anal.patience();
 				}, 10000);
 			},
 			stopPatience: function(){
-				$("#site_loading_patience").hide();
+				$("#site_loading_patience").hideSafe();
 				if (!OctMethods.load.bePatientTimeout) return;
 				clearTimeout(OctMethods.load.bePatientTimeout);
 				OctMethods.load.bePatientTimeout = null;
@@ -971,7 +936,6 @@ function($, ko, canvg, splittr, Base64, download,
 	exports.prompt = OctMethods.prompt;
 	exports.promptListeners = OctMethods.promptListeners;
 	exports.plot = OctMethods.plot;
-	exports.plotListeners = OctMethods.plotListeners;
 	exports.socket = OctMethods.socket;
 	exports.socketListeners = OctMethods.socketListeners;
 	exports.editor = OctMethods.editor;

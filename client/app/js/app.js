@@ -197,12 +197,6 @@ define(
 
 		/* * * * END EDITOR/CONSOLE/PROMPT, START GUI * * * */
 
-		// Set up Splittr
-		var redraw = function () {
-			ko.aceEditors.resizeAll();
-		};
-		$("#container").on("splittrDone", redraw);
-
 		// Privacy Policy
 		$.get("privacy.txt", function (data) {
 			$("#privacy").find("article").text(data);
@@ -211,7 +205,7 @@ define(
 			anal.sitecontrol("privacy-close");
 		});
 		$("#showprivacy").click(function () {
-			$("#privacy").show();
+			$("#privacy").showSafe();
 			anal.sitecontrol("privacy");
 		});
 
@@ -247,8 +241,8 @@ define(
 		var updateTheme = function (newValue) {
 			$("#theme").attr("href", newValue.cssURL);
 			$("body").attr("data-sanscons-color", newValue.iconColor);
-			$("[data-theme]").hide();
-			$("[data-theme='"+newValue.name+"']").show();
+			$("[data-theme]").hideSafe();
+			$("[data-theme='"+newValue.name+"']").showSafe();
 			OctMethods.prompt.instance.setTheme(newValue.aceTheme);
 			if (OctMethods.editor.instance) {
 				OctMethods.editor.instance.setTheme(newValue.aceTheme);
@@ -273,7 +267,7 @@ define(
 		});
 		$("[data-purpose='close']").click(function () {
 			// Clicking on a close button in a popover box
-			$(this).closest("[data-purpose='popover']").fadeOut(250);
+			$(this).closest("[data-purpose='popover']").fadeOutSafe(250);
 			OctMethods.prompt.focus();
 		});
 		OctMethods.load.startPatience();

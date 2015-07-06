@@ -23,37 +23,26 @@
 		background-color: color3
 	
 		& > #files_container {
-			flex: 1 1 10px
+			flex: 2 4 100px
 			overflow: auto
+			-ms-overflow-style: -ms-autohiding-scrollbar
 			margin-right: gutter_size
 			background-color: colorbkg
 		}
 		
 		& > #open_container {
-			flex: 1 1 200px
-			overflow: auto
+			flex: 6 4 400px
 			margin-right: gutter_size
 			background-color: colorbkg
-		}
-		
-		& > #workspace_panel {
-			flex: 0 1 75px
-			overflow: auto
-			margin-right: gutter_size
-			background-color: colorbkg
-
-			@media (max-width: 500px) {
-				display: none
-			}
 		}
 		
 		& > #output_panel {
-			flex: 1 1 400px
+			flex: 12 4 400px
 			overflow: none
 			display: flex
 			flex-flow: column nowrap
 			
-			#plot_container {
+			& > #plot_container {
 				flex: 1 1 300px
 				overflow: none
 				margin-bottom: gutter_size
@@ -69,19 +58,33 @@
 				#plot_controls_container{
 					flex: 1 1 20%
 					overflow: auto
+					-ms-overflow-style: -ms-autohiding-scrollbar
 					background-color: colorbkg
 				}
 			}
 			
-			#console_container {
+			& > #workspace_console_container {
 				flex: 4 1 300px
 				overflow: none
-				position: relative
-				background-color: colorbkg
-			}
-			
-			#plot_opener {
-				position: absolute
+				display: flex
+				flex-flow: row nowrap
+
+				& > #workspace_panel {
+					flex: 1 1 75px
+					margin-right: gutter_size
+					background-color: color2
+
+					@media (max-width: 700px) {
+						display: none
+					}
+				}
+
+				& > #console_container {
+					flex: 8 1 325px
+					overflow: none
+					position: relative
+					background-color: colorbkg
+				}
 			}
 		}
 		

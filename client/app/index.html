@@ -8,11 +8,11 @@
 	<meta name="description"
 	content="Free and easy computational engine in your browser. Interactive editor and prompt. iPad and mobile touch compatible. Powered by GNU Octave."/>
 	<meta http-equiv="Content-Type" content="text/html; charset=latin1"/>
-	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-	<link rel="icon" href="favicon.ico" type="image/x-icon">
+	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+	<link rel="icon" href="favicon.ico" type="image/x-icon"/>
+	<meta name="viewport" width="device-width"/>
 
 	<!-- iOS Config -->
-	<meta name="viewport" content="width=400"/>
 	<link rel="apple-touch-icon" sizes="60x60" href="images/touch-icons/60.png"/>
 	<link rel="apple-touch-icon" sizes="76x76" href="images/touch-icons/76.png"/>
 	<link rel="apple-touch-icon" sizes="120x120" href="images/touch-icons/120.png"/>
@@ -59,6 +59,9 @@
 
 	<!-- Stylesheets -->
 	<link href="styl_css/themes/fire.css" rel="stylesheet" type="text/css" id="theme"/>
+	<style type="text/css">
+	[aria-hidden="true"] { display: none !important; }
+	</style>
 
 	<!-- Browser Compatibility Check -->
 	<script type="text/javascript" src="js/modernizr-201406b.js"></script>
@@ -81,16 +84,19 @@
 		<h1>
 			<svg width="32" height="32">
 				<image xlink:href="images/logo-32-fire.svg" src="images/logo-32-fire.png" width="32" height="32" class="oo-icon" data-theme="fire" />
-				<image xlink:href="images/logo-32-lava.svg" src="images/logo-32-lava.png" width="32" height="32" class="oo-icon" data-theme="lava" style="display: none" />
+				<image xlink:href="images/logo-32-lava.svg" src="images/logo-32-lava.png" width="32" height="32" class="oo-icon" data-theme="lava" aria-hidden="true" />
 			</svg>
 			Octave Online
 		</h1>
 		<span id="hamburger"></span>
 	</header>
 	<section>
-		<div id="files_container" style="display: none">
+		<div id="files_container" aria-hidden="true">
 			<div id="files_toolbar" class="theme-header">
+				Files
 				<span id="files_toolbar_create" title="Create empty file"></span>
+			</div>
+			<div id="files_toolbar_lower">
 				<span id="files_toolbar_upload" title="Upload file"></span>
 				<span id="files_toolbar_refresh" title="Refresh files"></span>
 				<span id="files_toolbar_info" title="Octave Online Sync"></span>
@@ -104,83 +110,69 @@
 				</span>
 			</div>
 		</div>
-		<div id="open_container" style="display: none">
-			<!-- ko if: openFile -->
-			<div id="editor_toolbar" class="theme-header">
-				<span id="editor_filename" data-bind="text: openFile().filename, css: { 'modified': openFile().isModified }"></span>
-
-				<div id="editor_btn_container">
-					<!-- ko if: openFile().runnable -->
-					<span id="editor_runit" title="Run Script" data-bind="click: openFile().runit"></span>
+		<div id="open_container" aria-hidden="true">
+			<!-- ko if: openFile --><!-- ko with: openFile -->
+				<div id="editor_toolbar" class="theme-header">
+					<span id="editor_hamburger" data-bind="click: buttonsShown.toggle()" title="Show Toolbar"></span>
+					<span id="editor_filename" data-bind="text: filename, css: { 'modified': isModified }"></span>
+					<!-- ko if: runnable -->
+						<span id="editor_runit" title="Run Script" data-bind="click: runit">RUN &#x25b6;</span>
 					<!-- /ko -->
-					<span id="editor_rename" title="Rename File" data-bind="click: openFile().rename"></span>
-					<!-- ko if: openFile().editable -->
-					<span id="editor_save" title="Save File" data-bind="click: openFile().save"></span>
-					<span id="editor_print" title="Print File" data-bind="click: openFile().print"></span>
-					<!-- /ko -->
-					<span id="editor_download" title="Download File" data-bind="click: openFile().download"></span>
-					<span id="editor_delete" title="DELETE File" data-bind="click: openFile().deleteit"></span>
-					<span id="editor_close" title="Close File" data-bind="click: close"></span>
 				</div>
-			</div>
-			<!-- ko template: { if: openFile().editable, afterRender: editorRendered } -->
-			<div id="editor" data-bind="ace: openFile().content, aceOptions: { theme: viewModel.selectedSkin().rawAceTheme, mode: 'octave' }"></div>
-			<!-- /ko -->
-			<!-- ko template: { ifnot: openFile().editable, afterRender: editorUnRendered } -->
-			<div class="editor_nofile">
-				<h2>
-					Octave Online Interactive Editor
-				</h2>
+				<div id="editor_btn_container" data-bind="vizSafe: buttonsShown" aria-hidden="true">
+					<span id="editor_rename" title="Rename File" data-bind="click: rename"></span>
+					<span id="editor_download" title="Download File" data-bind="click: download"></span>
+					<span id="editor_delete" title="DELETE File" data-bind="click: deleteit"></span>
+					<!-- ko if: editable -->
+						<span id="editor_print" title="Print File" data-bind="click: print"></span>
+						<span id="editor_save" title="Save File" data-bind="click: save"></span>
+					<!-- /ko -->
+				</div>
+				<!-- ko template: { if: editable, afterRender: $root.editorRendered } -->
+					<div id="editor" data-bind="ace: content, aceOptions: { theme: $root.selectedSkin().rawAceTheme, mode: 'octave' }, css: { taller: !buttonsShown(), shorter: buttonsShown() }"></div>
+				<!-- /ko -->
+				<!-- ko template: { ifnot: editable, afterRender: $root.editorUnRendered } -->
+					<div class="editor_nofile">
+						<h2>
+							Octave Online Interactive Editor
+						</h2>
 
-				<p>
-					The currently selected file can't be edited online. You can still use the toolbar above to rename,
-					download, and delete the file.
-				</p>
-			</div>
+						<p>
+							The currently selected file can't be edited online. You can still use the toolbar above to rename,
+							download, and delete the file.
+						</p>
+					</div>
+				<!-- /ko -->
+			<!-- /ko --><!-- /ko -->
+			<!-- ko template: { ifnot: openFile, afterRender: $root.editorUnRendered } -->
+				<div class="editor_nofile">
+					<h2>
+						Tips and Tricks
+					</h2>
+					<p>
+						The files you make on Octave Online will be saved for the next time you visit.
+					</p>
+					<p>
+						In the editor, you can use <a href="https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts#default-keyboard-shortcuts" target="_blank">most of these keyboard shortcuts</a>.  You can also use these special keyboard shortcuts:
+					</p>
+					<dl>
+						<dt>Ctrl + Space</dt>
+						<dd>Show the auto-completion menu</dd>
+						<dt>Cmd/Ctrl + S</dt>
+						<dd>Save the file</dd>
+						<dt>Cmd/Ctrl/Win + R</dt>
+						<dd>Run the file</dd>
+						<dt>Cmd/Ctrl/Win + E</dt>
+						<dd>Set focus to the prompt</dd>
+					</dl>
+				</div>
 			<!-- /ko -->
-			<!-- /ko -->
-			<!-- ko template: { ifnot: openFile, afterRender: editorUnRendered } -->
-			<div class="editor_nofile">
-				<h2>
-					Tips and Tricks
-				</h2>
-				<p>
-					The files you make on Octave Online will be saved for the next time you visit.
-				</p>
-				<p>
-					In the editor, you can use <a href="https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts#default-keyboard-shortcuts" target="_blank">most of these keyboard shortcuts</a>.  You can also use these special keyboard shortcuts:
-				</p>
-				<dl>
-					<dt>Ctrl + Space</dt>
-					<dd>Show the auto-completion menu</dd>
-					<dt>Cmd/Ctrl + S</dt>
-					<dd>Save the file</dd>
-					<dt>Cmd/Ctrl/Win + R</dt>
-					<dd>Run the file</dd>
-					<dt>Cmd/Ctrl/Win + E</dt>
-					<dd>Set focus to the prompt</dd>
-				</dl>
-			</div>
-			<!-- /ko -->
-		</div>
-		<div id="workspace_panel" style="display: none">
-			<div id="workspace_header" class="theme-header">
-				Vars
-			</div>
-			<div id="workspace_content">
-				<ul data-bind="foreach: vars">
-					<li data-bind="click: showDetails, attr: { title: typeExplanation }, flash: value">
-						<span class="workspace_type" data-bind="text: typeString"></span>
-						<span class="workspace_symb" data-bind="text: symbol"></span>
-					</li>
-				</ul>
-			</div>
 		</div>
 		<div id="output_panel">
-			<div id="plot_container" style="display: none" data-bind="vizSafe: showPlot, with: currentPlot">
+			<div id="plot_container" aria-hidden="true" data-bind="vizSafe: showPlot, with: currentPlot">
 				<div id="plot_figure_container" title="Click to zoom" data-bind="click: zoom">
-					<div id="plot_svg_container" data-bind="fade: complete, html: completeData"></div>
-					<div id="plot_loading" data-bind="fade: !complete()">
+					<div id="plot_svg_container" data-bind="fadeIn: complete, html: completeData"></div>
+					<div id="plot_loading" data-bind="fadeOut: !complete()">
 						<img src="images/spinner.svg" alt="Loading&hellip;"/>
 					</div>
 					<div id="plot_canvas_container">
@@ -199,33 +191,48 @@
 					<span id="plot_svg_download_btn" title="Download Plot as Image" data-bind="click: downloadSvg"></span>
 				</div>
 			</div>
-			<div id="console_container">
-				<pre id="console"></pre>
-				<div id="instructor-promo" style="display: none">
-					<span class="l1">Did you know you can use Octave Online in your class?</span>
-					<span class="l2">Open a ticket by clicking "Feedback" to inquire about how we can set you up as an instructor.</span>
-					<span class="l3" data-purpose="close">dismiss</span>
+			<div id="workspace_console_container">
+				<div id="workspace_panel" aria-hidden="true">
+					<div class="theme-header">
+						Vars
+					</div>
+					<div id="workspace_content">
+						<ul data-bind="foreach: vars">
+							<li data-bind="click: showDetails, attr: { title: typeExplanation }, flash: value">
+								<span class="workspace_type" data-bind="text: typeString"></span>
+								<span class="workspace_symb" data-bind="text: symbol"></span>
+							</li>
+						</ul>
+					</div>
 				</div>
-				<div id="type_here" style="display: none">
-					<span class="l1">Octave Command Prompt</span>
-					<span class="l2">Type expressions here and press enter.</span>
-					<span class="l3">Tip: <a href="javascript:void" id="sign_in_shortcut">Sign in</a> to run script files.</span>
+				<div id="console_container">
+					<pre id="console"></pre>
+					<div id="instructor-promo" aria-hidden="true">
+						<span class="l1">Did you know you can use Octave Online in your class?</span>
+						<span class="l2">Open a ticket by clicking "Feedback" to inquire about how we can set you up as an instructor.</span>
+						<span class="l3" data-purpose="close">dismiss</span>
+					</div>
+					<div id="type_here" aria-hidden="true">
+						<span class="l1">Octave Command Prompt</span>
+						<span class="l2">Type expressions here and press enter.</span>
+						<span class="l3">Tip: <a href="javascript:null" id="sign_in_shortcut">Sign in</a> to run script files.</span>
+					</div>
+					<div id="prompt_container" style="visibility: hidden">
+						<div id="prompt_sign">&#x25B7;</div>
+						<div id="prompt"></div>
+					</div>
+					<div id="runtime_controls_container" aria-hidden="true">
+						<span id="signal" title="Stop Currently Running Command (send SIGINT)"></span>
+						<span id="seconds_remaining_container">
+							Seconds Remaining:
+							<span id="seconds_remaining">0</span>
+						</span>
+					</div>
+					<span id="plot_opener" title="Expand Plot Window" data-bind="click: togglePlot"></span>
 				</div>
-				<div id="prompt_container" style="visibility: hidden">
-					<div id="prompt_sign">&#x25B7;</div>
-					<div id="prompt" style="height: 1em"></div>
-				</div>
-				<div id="runtime_controls_container" style="display: none">
-					<span id="signal" title="Stop Currently Running Command (send SIGINT)"></span>
-					<span id="seconds_remaining_container">
-						Seconds Remaining:
-						<span id="seconds_remaining">0</span>
-					</span>
-				</div>
-				<span id="plot_opener" title="Expand Plot Window" data-bind="click: togglePlot"></span>
 			</div>
 		</div>
-		<div id="main_menu" style="display: none">
+		<div id="main_menu" aria-hidden="true">
 			<!-- ko ifnot: currentUser -->
 			<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
 				<image xlink:href="images/sign-in-with-persona.svg" src="images/sign-in-with-persona.png" width="200" height="40" alt="Sign in with Email" />
@@ -240,11 +247,11 @@
 			<!-- ko if: currentUser -->
 			<div id="userbox">
 				<span data-bind="text: currentUser().name"></span>
-				<a id="logout_icon" href="javascript:void" title="Sign Out" data-bind="click: doLogout">Sign&nbsp;Out</a>
+				<a id="logout_icon" href="javascript:null" title="Sign Out" data-bind="click: doLogout">Sign&nbsp;Out</a>
 			</div>
 			<!-- /ko -->
 			<div class="site-control-item" id="feedback-btn">
-				<a href="javascript:void(0)"
+				<a href="javascript:null"
 				data-uv-lightbox="classic_widget"
 				data-uv-mode="full"
 				data-uv-primary-color="#cc6d00"
@@ -257,7 +264,7 @@
 				<a id="showprivacy">Privacy Policy and EULA</a>
 			</div>
 			<div class="site-control-item" id="change-skin">
-				<a href="javascript:void">Change Theme</a>
+				<a href="javascript:null">Change Theme</a>
 			</div>
 			<div id="twitter-follow-holder" class="site-control-item">
 				<a href="https://twitter.com/OctaveOnline" class="twitter-follow-button" data-show-count="false"
@@ -311,30 +318,30 @@
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
-<div id="privacy" data-purpose="popover" style="display: none"><div><div>
+<div id="privacy" data-purpose="popover" aria-hidden="true"><div><div>
 	<article></article>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
 <div id="site_loading">
 	<img src="images/spinner.svg" alt="Loading&hellip;"/>
-	<span id="site_loading_patience" style="display:none;">Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.</span>
+	<span id="site_loading_patience" aria-hidden="true">Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.</span>
 </div>
 
-<div id="sync-promo" style="display: none">
+<div id="sync-promo" aria-hidden="true">
 	<span class="l1">New feature in testing!</span>
 	<span class="l2">Octave Online Sync</span>
 	<span class="l3">Synchronize your Octave Online script files with your computer and also see revision history.</span>
-	<span class="l4">Click the wrench for more info.</span>
+	<span class="l4">Click the folder icon for more info.</span>
 	<span class="l5" data-purpose="close">dismiss</span>
 </div>
-<div id="login-promo" style="display: none">
+<div id="login-promo" aria-hidden="true">
 	<span class="l1">Want to use</span>
 	<span class="l2">scripts?</span>
 	<span class="l3">Sign in so you can save, edit, upload, and run Octave script files.</span>
 	<span class="l4" data-purpose="close">dismiss</span>
 </div>
-<div id="sync_info_box" data-purpose="popover" style="display: none"><div><div>
+<div id="sync_info_box" data-purpose="popover" aria-hidden="true"><div><div>
 	<h3>Octave Online Sync</h3>
 	<p>
 		We are testing a new feature that enables you to synchronize your Octave Online script files with your local machine.  This lets you use Octave or MATLAB when you're on your own computer and Octave Online when you're on the road.

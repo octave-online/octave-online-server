@@ -1,0 +1,179 @@
+@require("mixins.styl")
+
+lower-toolbar() {
+	background-color: color2
+	height: toolbar_height
+	line-height: toolbar_height
+	vertical-align: middle
+	white-space: nowrap
+	overflow: hidden
+	text-align: center
+}
+
+top-right-control() {
+	cursor: pointer
+	display: block
+	position: absolute
+	top: 0
+	right: 0
+	padding: 0 5px
+	background-color: color2
+}
+
+#files_container {
+	#files_toolbar {
+		#files_toolbar_create {
+			flaticon-button(new, toolbar_height - 6px)
+			top-right-control()
+			height: toolbar_height
+		}
+	}
+	
+	#files_toolbar_lower {
+		lower-toolbar()
+
+		#files_toolbar_upload {
+			flaticon-button(upload, toolbar_height - 6px)
+		}
+
+		#files_toolbar_refresh {
+			flaticon-button(reload, toolbar_height - 6px)
+		}
+
+		#files_toolbar_info {
+			flaticon-button(sync, toolbar_height - 6px)
+		}
+	}
+	
+	#files_list_container {
+		position: absolute
+		left: 0
+		right: 0
+		bottom: 0
+		top: 2*toolbar_height
+		border-top: 2px solid color3
+		background-color: color2
+
+		ul {
+			list-style-type: none
+			margin: 0
+			padding-left: 0
+			
+			li {
+				cursor: pointer
+				padding-left: 2px
+				line-height: 1.5em
+				white-space: nowrap
+				overflow: hidden
+
+				&.file_active {
+					background-color: color3
+					color: colorbkg
+				}
+			}
+		}
+
+		#files_drop_notification {
+			display: block;
+			padding: 10px 10px 0;
+			text-align: center;
+		}
+
+		&.drag-over {
+			&, & *{
+				background-color: colorerr !important
+				color: black !important
+			}
+		}
+	}
+}
+
+#open_container {
+	#editor_toolbar {
+		#editor_hamburger {
+			hamburger-button(colorfgd)
+			cursor: pointer
+			display: inline-block
+			position: relative
+			top: 2px
+			width: 16px
+			height: 1em
+			margin-right: 2px
+		}
+
+		#editor_filename {}
+
+		#editor_runit {
+			top-right-control()
+		}
+	}
+	
+	#editor_btn_container {
+		lower-toolbar()
+
+		#editor_rename {
+			flaticon-button(edit, toolbar_height - 6px)
+		}
+		#editor_save {
+			flaticon-button(save, toolbar_height - 6px)
+		}
+		#editor_print {
+			flaticon-button(print, toolbar_height - 6px)
+		}
+		#editor_download {
+			flaticon-button(download, toolbar_height - 6px)
+		}
+		#editor_delete {
+			flaticon-button(trash, toolbar_height - 6px)
+		}
+		
+		& > * {
+			margin: 1px 2px
+		}
+	}
+	
+	#editor {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		border-top: 2px solid color3;
+		
+		&.taller {
+			top: toolbar_height
+		}
+		&.shorter {
+			top: toolbar_height*2
+		}
+	}
+	
+	.editor_nofile {
+		box-sizing: border-box
+		absolute-full-size()
+		overflow: auto
+		padding: 5px
+
+		h2{
+			margin: 0
+			font-size: 1.5em
+			line-height: 1.5em
+		}
+
+		dl{
+			dt{
+				font-family: $code_font_family
+				display: inline-block
+				padding: 2px 3px 0px
+				border-width: 1px
+				border-style: dotted
+			}
+			dd::before{
+				font-family: $unicode_font_family
+				content: "\2192"
+			}
+			dd{
+				margin: 2px 0px 5px 2px
+			}
+		}
+	}
+}
