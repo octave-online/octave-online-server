@@ -24,12 +24,7 @@ module.exports = function (grunt) {
 				options: {
 					compress: false,
 					use: [
-						require("kouto-swiss"),
-						// function(){
-						// 	return require("autoprefixer-stylus")({
-						// 		"browsers": ">0.01%"
-						// 	})
-						// }
+						require("kouto-swiss")
 					],
 					urlfunc: {
 						name: "inline-image",
@@ -40,8 +35,29 @@ module.exports = function (grunt) {
 					{
 						expand: true,
 						cwd: "app/styl",
-						src: ["**/*.styl"],
-						dest: "app/styl_css/",
+						src: ["themes/*.styl"],
+						dest: "app/css/",
+						ext: ".css"
+					}
+				]
+			},
+			dist: {
+				options: {
+					compress: true,
+					use: [
+						require("kouto-swiss")
+					],
+					urlfunc: {
+						name: "inline-image",
+						paths: ["app/images"]
+					}
+				},
+				files: [
+					{
+						expand: true,
+						cwd: "app/styl",
+						src: ["themes/*.styl"],
+						dest: "dist/css/",
 						ext: ".css"
 					}
 				]
@@ -88,10 +104,6 @@ module.exports = function (grunt) {
 			}
 		},
 		watch: {
-			compass: {
-				files: "app/sass/**/*.scss",
-				tasks: ["compass:dev"]
-			},
 			stylus: {
 				files: "app/styl/**/*.styl",
 				tasks: ["stylus:dev"]

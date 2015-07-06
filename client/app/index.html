@@ -58,16 +58,18 @@
 	<meta name="mobile-web-app-capable" content="yes"/>
 
 	<!-- Stylesheets -->
-	<link href="styl_css/themes/fire.css" rel="stylesheet" type="text/css" id="theme"/>
+	<link href="css/themes/fire.css" rel="stylesheet" type="text/css" id="theme"/>
 	<style type="text/css">
 	[aria-hidden="true"] { display: none !important; }
 	</style>
 
 	<!-- Browser Compatibility Check -->
-	<script type="text/javascript" src="js/modernizr-201406b.js"></script>
 	<script type="text/javascript">
-	if (!Modernizr.canvas || !Modernizr.svg || !Modernizr.fontface) {
-		window.location.href = "compatibility.html";
+	var flexSupported = (function(){for(var b=document.createElement("div"),d=["","-webkit-","-moz-","-o-","-ms-"],c=0;5>c;c++)if(b.style.cssText+=d[c]+"flex-basis:1px",b.style.length)return!0;return!1})();
+
+	if (!flexSupported) {
+		// Send to the non-flexbox version of the site for additional tests
+		window.location.href = "v1/";
 	}
 	</script>
 
@@ -215,7 +217,7 @@
 					<div id="type_here" aria-hidden="true">
 						<span class="l1">Octave Command Prompt</span>
 						<span class="l2">Type expressions here and press enter.</span>
-						<span class="l3">Tip: <a href="javascript:null" id="sign_in_shortcut">Sign in</a> to run script files.</span>
+						<span class="l3">Tip: <a href="javascript:void(0)" id="sign_in_shortcut">Sign in</a> to run script files.</span>
 					</div>
 					<div id="prompt_container" style="visibility: hidden">
 						<div id="prompt_sign">&#x25B7;</div>
@@ -247,11 +249,11 @@
 			<!-- ko if: currentUser -->
 			<div id="userbox">
 				<span data-bind="text: currentUser().name"></span>
-				<a id="logout_icon" href="javascript:null" title="Sign Out" data-bind="click: doLogout">Sign&nbsp;Out</a>
+				<a id="logout_icon" href="javascript:void(0)" title="Sign Out" data-bind="click: doLogout">Sign&nbsp;Out</a>
 			</div>
 			<!-- /ko -->
 			<div class="site-control-item" id="feedback-btn">
-				<a href="javascript:null"
+				<a href="javascript:void(0)"
 				data-uv-lightbox="classic_widget"
 				data-uv-mode="full"
 				data-uv-primary-color="#cc6d00"
@@ -264,7 +266,7 @@
 				<a id="showprivacy">Privacy Policy and EULA</a>
 			</div>
 			<div class="site-control-item" id="change-skin">
-				<a href="javascript:null">Change Theme</a>
+				<a href="javascript:void(0)">Change Theme</a>
 			</div>
 			<div id="twitter-follow-holder" class="site-control-item">
 				<a href="https://twitter.com/OctaveOnline" class="twitter-follow-button" data-show-count="false"

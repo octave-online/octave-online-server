@@ -1,6 +1,5 @@
 app/vendor/
 app/css/
-app/styl_css/
 dist/
 node_modules/
 .idea/
