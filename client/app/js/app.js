@@ -13,7 +13,7 @@ define(
 		// Make conveinence variable references
 		var viewModel = OctMethods.ko.viewModel;
 		var allOctFiles = OctMethods.ko.allOctFiles;
-		var workspaceVars = viewModel.vars;
+		var vars = viewModel.vars;
 
 		// Run Knockout
 		ko.applyBindings(viewModel);
@@ -31,7 +31,7 @@ define(
 		socket.on("plotd", OctMethods.socketListeners.plotd);
 		socket.on("plote", OctMethods.socketListeners.plote);
 		socket.on("ctrl", OctMethods.socketListeners.ctrl);
-		socket.on("workspace", OctMethods.socketListeners.workspace);
+		socket.on("vars", OctMethods.socketListeners.vars);
 		socket.on("sesscode", OctMethods.socketListeners.sesscode);
 		socket.on("init", OctMethods.socketListeners.init);
 		socket.on("destroy-u", OctMethods.socketListeners.destroyu);
@@ -51,11 +51,10 @@ define(
 			}
 		});
 
-		// Autocompletion with workspace variables:
+		// Autocompletion with variables:
 		ace.require("ace/ext/language_tools").addCompleter({
 			getCompletions: function (editor, session, pos, prefix, callback) {
-				console.log("Workspace variable completions");
-				callback(null, ko.utils.arrayMap(workspaceVars(), function(v){
+				callback(null, ko.utils.arrayMap(vars(), function(v){
 					return {
 						value: v.symbol(),
 						meta: "var"

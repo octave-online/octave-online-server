@@ -193,16 +193,16 @@
 					<span id="plot_svg_download_btn" title="Download Plot as Image" data-bind="click: downloadSvg"></span>
 				</div>
 			</div>
-			<div id="workspace_console_container">
-				<div id="workspace_panel" aria-hidden="true">
+			<div id="vars_console_container">
+				<div id="vars_panel" aria-hidden="true">
 					<div class="theme-header">
 						Vars
 					</div>
-					<div id="workspace_content">
+					<div id="vars_content">
 						<ul data-bind="foreach: vars">
 							<li data-bind="click: showDetails, attr: { title: typeExplanation }, flash: value">
-								<span class="workspace_type" data-bind="text: typeString"></span>
-								<span class="workspace_symb" data-bind="text: symbol"></span>
+								<span class="vars_type" data-bind="text: typeString"></span>
+								<span class="vars_symb" data-bind="text: symbol"></span>
 							</li>
 						</ul>
 					</div>

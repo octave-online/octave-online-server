@@ -89,7 +89,7 @@ function($, ko, canvg, Base64, download,
 
 	// Initialize MVVM variables
 	var allOctFiles = ko.observableArray([]);
-	var workspaceVars = ko.observableArray([]);
+	var vars = ko.observableArray([]);
 	var plotHistory = ko.observableArray([]);
 	var currentPlotIdx = ko.observable(-1);
 	var viewModel = window.viewModel = {
@@ -100,7 +100,7 @@ function($, ko, canvg, Base64, download,
 		},
 		availableSkins: availableSkins,
 		selectedSkin: ko.observable(availableSkins()[0]),
-		vars: workspaceVars,
+		vars: vars,
 		plots: plotHistory,
 		currentPlotIdx: currentPlotIdx,
 
@@ -530,7 +530,7 @@ function($, ko, canvg, Base64, download,
 					}else{
 						OctMethods.prompt.focus();
 					}
-				}else if(isMobile && lineNumber>1)
+				}else if(isMobile && lineNumber>1){
 					OctMethods.prompt.focus();
 					setTimeout(function(){
 						$("body").scrollTop($("body")[0].scrollHeight);
@@ -655,11 +655,11 @@ function($, ko, canvg, Base64, download,
 					OctMethods.prompt.askForEnroll(data.command.substr(7));
 				}
 			},
-			workspace: function(data){
-				// update workspace variables
-				koTakeArray(Var, workspaceVars, "symbol",
+			vars: function(data){
+				// update variables
+				koTakeArray(Var, vars, "symbol",
 					data.vars, "symbol");
-				workspaceVars.sort(Var.sorter);
+				vars.sort(Var.sorter);
 			},
 			sesscode: function(data){
 				console.log("sessCode", data.sessCode);
@@ -887,7 +887,7 @@ function($, ko, canvg, Base64, download,
 
 					// UI setup
 					$("#type_here").showSafe();
-					$("#workspace_panel").showSafe();
+					$("#vars_panel").showSafe();
 
 					// Evaluate the query string command (uses purl)
 					try{

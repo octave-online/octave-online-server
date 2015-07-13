@@ -1,6 +1,6 @@
 define(["knockout", "require"], function(ko, require){
 
-	// MVVM class for workspace variables
+	// MVVM class for variables
 	function Var(){
 		// the "self" variable enables us to refer to the OctFile context even when
 		// we are programming within callback function contexts
