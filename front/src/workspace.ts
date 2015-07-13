@@ -60,7 +60,7 @@ class Workspace extends EventEmitter2.EventEmitter2 {
 
 	public getOtDoc(docId: string) {
 		var multi = otOperationClient.multi();
-		multi.llen(IRedis.Chan.otOps(docId));
+		multi.get(IRedis.Chan.otCnt(docId));
 		multi.get(IRedis.Chan.otDoc(docId));
 		multi.exec((err, res) => {
 			if (err) console.log("REDIS ERROR", err);
@@ -78,6 +78,7 @@ class Workspace extends EventEmitter2.EventEmitter2 {
 		var ops_key = IRedis.Chan.otOps(docId);
 		var doc_key = IRedis.Chan.otDoc(docId);
 		var sub_key = IRedis.Chan.otSub(docId);
+		var cnt_key = IRedis.Chan.otCnt(docId);
 		var chgId = Uuid.v4();
 
 		var message: IRedis.OtMessage = {
@@ -86,12 +87,16 @@ class Workspace extends EventEmitter2.EventEmitter2 {
 			ops: op.toJSON()
 		}
 
-		otOperationClient.evalsha(otLuaSha1, 3, ops_key, doc_key, sub_key,
-			rev, JSON.stringify(message), function(err) {
+		otOperationClient.evalsha(otLuaSha1,
+			4, ops_key, doc_key, sub_key, cnt_key,
+			rev, JSON.stringify(message), Config.ot.expire,
+			function(err) {
 				if (!err) return;
 				if (/NOSCRIPT/.test(err.message)) {
-					otOperationClient.eval(otLuaScript, 3, ops_key, doc_key, sub_key,
-						rev, JSON.stringify(message), function(err2) {
+					otOperationClient.eval(otLuaScript,
+						4, ops_key, doc_key, sub_key, cnt_key,
+						rev, JSON.stringify(message), Config.ot.expire,
+						function(err2) {
 							if (err2) console.log("REDIS ERROR", err);
 						});
 				}

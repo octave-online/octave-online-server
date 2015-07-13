@@ -66,8 +66,11 @@ module IRedis {
 		otDoc: function (docId:string):string {
 			return "ot:" + docId + ":doc";
 		},
-		otSub: function (docId:string):string {
+		otSub: function (docId: string): string {
 			return "ot:" + docId + ":sub";
+		},
+		otCnt: function (docId: string): string {
+			return "ot:" + docId + ":cnt";
 		},
 		wsInfo: function (wsId:string):string {
 			return "oo:workspace:" + wsId + ":info";

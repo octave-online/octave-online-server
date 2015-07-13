@@ -35,6 +35,9 @@ interface IAppConfig {
 			timeout: number;
 		}
 	}
+	ot: {
+		expire: number;
+	}
 }
 
 var appConfig:IAppConfig = require("../config/app.json");
