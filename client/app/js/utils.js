@@ -48,9 +48,9 @@ define(["jquery", "knockout"], function($, ko){
 		},
 		update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
 			if(ko.unwrap(valueAccessor())){
-				$(element).fadeInSafe(500);
+				$(element).fadeInSafe(250);
 			}else{
-				$(element).fadeOutSafe(500);
+				$(element).fadeOutSafe(250);
 			}
 		}
 	};
@@ -60,7 +60,7 @@ define(["jquery", "knockout"], function($, ko){
 		},
 		update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
 			if(ko.unwrap(valueAccessor())){
-				$(element).fadeInSafe(500);
+				$(element).fadeInSafe(250);
 			}else{
 				$(element).hideSafe();
 			}
@@ -74,7 +74,7 @@ define(["jquery", "knockout"], function($, ko){
 			if(ko.unwrap(valueAccessor())){
 				$(element).showSafe();
 			}else{
-				$(element).fadeOutSafe(500);
+				$(element).fadeOutSafe(250);
 			}
 		}
 	};

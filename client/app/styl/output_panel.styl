@@ -33,6 +33,40 @@
 		a{
 			color: color3
 		}
+
+		div.inline-plot{
+			display: block
+			position: relative
+			margin: 5px 0
+
+			@media (max-width: responsive_width_two) {
+				// Hacky way to get an absolute aspect ratio
+				width: calc(100% - 2ex)
+				height: 0
+				padding-top: 73%
+			}
+
+			@media (min-width: responsive_width_two) {
+				width: 560px
+				height: 420px
+			}
+			
+			svg, .inline-plot-loading {
+				display: block
+				position: absolute
+				top: 0
+				left: 0
+				width: 100%
+				height: 100%
+			}
+			
+			.inline-plot-loading {
+				background-image: url("../../images/spinner.svg")
+				background-position: center center
+				background-repeat: no-repeat
+				background-size: 30% 30%
+			}
+		}
 	}
 
 	div#runtime_controls_container{
@@ -77,10 +111,10 @@
 		}
 		div#prompt {
 			position: absolute
-			bottom: 4px
+			bottom: 2px
 			right: 0
 			left: prompt_sign_width
-			height: prompt_font_size + 2px
+			height: prompt_font_size + 4px
 
 			font-size: prompt_font_size
 			line-height: prompt_font_size
@@ -172,12 +206,12 @@
 	content: "\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A";
 }
 
-#workspace_panel {
+#vars_panel {
 	.theme-header {
 		text-align: center
 	}
 
-	#workspace_content {
+	#vars_content {
 		font-size: 1.2em
 		line-height: 1.2em
 		overflow: auto
@@ -195,7 +229,7 @@
 				overflow: hidden
 				border: none
 
-				.workspace_type {
+				.vars_type {
 					color: color3
 				}
 				&.ko-flash {

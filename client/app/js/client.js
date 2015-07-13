@@ -85,6 +85,12 @@ function($, ko, canvg, Base64, download,
 		self.md5 = ko.computed(function(){
 			return $.md5(self.completeData());
 		});
+		self.bindElement = function($el){
+			self.complete.subscribe(function(){
+				$el.append(self.completeData());
+				$el.find(".inline-plot-loading").fadeOut(500);
+			});
+		};
 	}
 
 	// Initialize MVVM variables
@@ -103,6 +109,7 @@ function($, ko, canvg, Base64, download,
 		vars: vars,
 		plots: plotHistory,
 		currentPlotIdx: currentPlotIdx,
+		inlinePlots: ko.observable(true),
 
 		// More for plots
 		currentPlot: ko.computed(function(){
@@ -202,6 +209,14 @@ function($, ko, canvg, Base64, download,
 		// Make a new plot object
 		var obj = new PlotObject(id, lineNumber);
 		plotHistory.push(obj);
+
+		// Display it, either inline or in the plot window
+		if (viewModel.inlinePlots()) {
+			obj.bindElement(OctMethods.console.writePlot());
+		} else {
+			obj.setCurrent();
+		}
+
 		return obj;
 	}
 
@@ -271,6 +286,16 @@ function($, ko, canvg, Base64, download,
 				$("#console").append(el);
 				$("#console").append(document.createTextNode("\n"));
 				OctMethods.console.scroll();
+			},
+			writePlot: function(){
+				var el = $("<div></div>");
+				el.attr("class", "inline-plot");
+				loading = $("<div></div>");
+				loading.attr("class", "inline-plot-loading");
+				el.append(loading);
+				$("#console").append(el);
+				OctMethods.console.scroll();
+				return el;
 			},
 			scroll: function(){
 				$("#console").scrollTop($("#console")[0].scrollHeight);
@@ -629,7 +654,6 @@ function($, ko, canvg, Base64, download,
 				// plot data transmission
 				var plot = getOrMakePlotById(data.id, OctMethods.prompt.prevLine);
 				plot.addData(data.content);
-				plot.setCurrent();
 				console.log("Received data for plot ID "+data.id);
 			},
 			plote: function(data){
