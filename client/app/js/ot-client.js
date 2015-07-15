@@ -53,7 +53,8 @@ define(["js/ace-adapter", "ot", "js/polyfill"], function(Adapter, ot){
 	// CURSORS
 	OTClientWrapper.prototype._onCursor = function(){
 		var cursor = this.adapter.getCursor();
-		if(this.cursor !== cursor){
+		if(this.cursor.position !== cursor.position
+			|| this.cursor.selectionEnd !== cursor.selectionEnd){
 			this.cursor = cursor;
 			this.dispatchEvent("cursor", cursor);
 		}

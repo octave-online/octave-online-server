@@ -694,12 +694,12 @@ function($, ko, canvg, Base64, download,
 				if (OctMethods.vars.wsId) {
 					OctMethods.socket.emit("init", {
 						action: "workspace",
-						wsId: OctMethods.vars.wsId
+						info: OctMethods.vars.wsId
 					});
 				}else{
 					OctMethods.socket.emit("init", {
 						action: "session",
-						sessCode: OctMethods.socket.sessCode
+						info: OctMethods.socket.sessCode
 					});
 				}
 			},

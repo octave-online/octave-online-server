@@ -221,7 +221,13 @@
 					</div>
 					<div id="prompt_container" style="visibility: hidden">
 						<div id="prompt_sign">&#x25B7;</div>
-						<div id="prompt"></div>
+
+						<!--
+						NOTE: Removing this inline height style and moving it to CSS
+						will result in a race condition between Ace and the CSS file
+						being loaded.
+						-->
+						<div id="prompt" style="height: 20px"></div>
 					</div>
 					<div id="runtime_controls_container" aria-hidden="true">
 						<span id="signal" title="Stop Currently Running Command (send SIGINT)"></span>

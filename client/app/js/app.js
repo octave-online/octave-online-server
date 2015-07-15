@@ -31,7 +31,7 @@ define(
 		socket.on("plotd", OctMethods.socketListeners.plotd);
 		socket.on("plote", OctMethods.socketListeners.plote);
 		socket.on("ctrl", OctMethods.socketListeners.ctrl);
-		socket.on("vars", OctMethods.socketListeners.vars);
+		socket.on("workspace", OctMethods.socketListeners.vars);
 		socket.on("sesscode", OctMethods.socketListeners.sesscode);
 		socket.on("init", OctMethods.socketListeners.init);
 		socket.on("destroy-u", OctMethods.socketListeners.destroyu);
@@ -159,7 +159,10 @@ define(
 				});
 				otClient.addEventListener("cursor", function(cursor){
 					console.log("client cursor", arguments);
-					socket.emit("ot.cursor", cursor);
+					socket.emit("ot.cursor", {
+						docId: docId,
+						cursor: cursor
+					});
 				});
 
 				var socket = window.socket = io();
@@ -170,8 +173,8 @@ define(
 				socket.on("ot.ack", function(obj){
 					otClient.serverAck();
 				});
-				socket.on("ot.cursor", function(cursor){
-					otClient.adapter.setOtherCursor(cursor, "#F00", "foo");
+				socket.on("ot.cursor", function(obj){
+					otClient.adapter.setOtherCursor(obj.cursor, "#F00", "foo");
 				});
 				socket.on("ws.command", function(cmd){
 					OctMethods.console.command(cmd, true);
