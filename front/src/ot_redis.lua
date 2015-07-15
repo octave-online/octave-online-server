@@ -2,7 +2,8 @@
 -- Read arguments
 local rev = tonumber(ARGV[1])
 local message = cjson.decode(ARGV[2])
-local expiretime = tonumber(ARGV[3])
+local op_expiretime = tonumber(ARGV[3])
+local doc_expiretime = tonumber(ARGV[4])
 local ops_key = KEYS[1]
 local doc_key = KEYS[2]
 local sub_key = KEYS[3]
@@ -15,7 +16,9 @@ local cnt_key = KEYS[4]
 -- operations required for transforming the new operation have been expired
 -- out of the cache, and we need to raise an error.
 local nrev = redis.call("GET", cnt_key)
+if not nrev then nrev = 0 end
 local nstore = redis.call("LLEN", ops_key)
+if not nstore then nstore = 0 end
 local idx = nstore-nrev+rev
 if idx < 0 then error("Operation history is too shallow") end
 local concurrent = redis.call("LRANGE", ops_key, idx, -1)
@@ -37,8 +40,10 @@ if type(doc)=="boolean" then doc="" end
 doc = apply(doc, message.ops)
 redis.call("SET", doc_key, doc)
 
--- Touch the operation key's expire value
-redis.call("EXPIRE", ops_key, expiretime)
+-- Touch the operation keys' expire value
+redis.call("EXPIRE", ops_key, op_expiretime)
+redis.call("EXPIRE", doc_key, doc_expiretime)
+redis.call("EXPIRE", cnt_key, doc_expiretime)
 
 -- Publish to the subscribe channel
 redis.call("PUBLISH", sub_key, cjson.encode(message))

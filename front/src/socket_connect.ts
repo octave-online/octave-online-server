@@ -2,44 +2,32 @@
 ///<reference path='boris-typedefs/socket.io/socket.io.d.ts'/>
 ///<reference path='boris-typedefs/async/async.d.ts'/>
 ///<reference path='typedefs/ot.d.ts'/>
+///<reference path='typedefs/idestroyable.d.ts'/>
+///<reference path='typedefs/iworkspace.ts'/>
+///<reference path='typedefs/iuser.ts'/>
 
 import User = require("./user_model");
-import IUser = require("./user_interface");
 import Config = require("./config");
-import RedisHandler = require("./redis_handler");
-import RedisHelper = require("./redis_helper");
-import Workspace = require("./workspace");
+import BackServerHandler = require("./back_server_handler");
+import NormalWorkspace = require("./workspace_normal");
+import SharedWorkspace = require("./workspace_shared");
 import ChildProcess = require("child_process");
 import Ot = require("ot");
 import Async = require("async");
 
 interface ISocketCustom extends SocketIO.Socket {
-	once(event:string, listener:Function):void;
-	removeListener(event:string, listener:Function):void;
-	removeAllListeners():void;
-	disconnect():void;
 	handler: SocketHandler;
-	handshake: {
-		address: string;
-	}
+	removeAllListeners():ISocketCustom;
 }
 
-enum ReadyState{
-	Idle,
-	Requested,
-	Active,
-	Destroyed,
-	Workspace
-}
-
-class SocketHandler {
+class SocketHandler implements IDestroyable {
 	public socket:ISocketCustom;
 	public otServer:Ot.Server;
-	public redis:RedisHandler;
-	public workspace:Workspace;
+	public back:BackServerHandler;
+	public workspace:IWorkspace;
 	public user:IUser = null;
 	public sessCode:string;
-	public readyState:ReadyState = ReadyState.Idle;
+	public destroyed:boolean = false;
 
 	public static onConnection(socket:SocketIO.Socket) {
 		var handler = new SocketHandler(socket);
@@ -54,8 +42,8 @@ class SocketHandler {
 		this.log("New Connection", this.socket.handshake.address);
 		this.socket.emit("init");
 
-		// Set up Redis connection
-		this.redis = new RedisHandler();
+		// Set up Redis connection to back server
+		this.back = new BackServerHandler();
 
 		// Add event listeners
 		this.listen();
@@ -85,25 +73,30 @@ class SocketHandler {
 
 			// Callback (depends on 1 and 2)
 			init_session: ["user", "init", (next, {user, init}) => {
+				if (self.destroyed) return;
+
 				self.user = user;
 
 				// Process the user's requested action
 				var action = init && init.action;
+				var info = init && (init.sessCode || init.info); // backwards compat.
+
 				switch (action) {
 					case "workspace":
-						var wsId = init && init.wsId;
-						if (!wsId) return;
-						self.log("Attaching to workspace", wsId);
-						self.attachToWorkspace(wsId);
+						if (!info) return;
+						this.log("Attaching to colaborative workspace:", info);
+						this.workspace = new SharedWorkspace(info, user);
 						break;
 
 					case "session":
 					default:
-						var sessCodeGuess = init && init.sessCode;
-						self.log("Claimed sessCode", sessCodeGuess);
-						self.beginOctaveRequest(sessCodeGuess);
+						this.log("Attaching to default workspace with sessCode", info);
+						this.workspace = new NormalWorkspace(info, user);
 						break;
 				}
+
+				this.workspace.beginOctaveRequest();
+				this.listen();
 
 				// Continue down the chain (does not do anything currently)
 				next(null, null);
@@ -112,7 +105,7 @@ class SocketHandler {
 		}, (err) => {
 			// Error Handler
 			if (err) {
-				console.log("ASYNC ERROR", err);
+				this.log("ASYNC ERROR", err);
 			}
 		});
 	}
@@ -122,31 +115,28 @@ class SocketHandler {
 		this.unlisten();
 
 		// Make listeners on the socket
-		this.socket.on("disconnect", this.onDisconnect);
-		this.socket.on("enroll", this.onEnroll);
-		this.socket.on("update_students", this.onUpdateStudents);
-		this.socket.on("oo.reconnect", this.onOoReconnect);
-		this.socket.on("*", this.onInput);
+		this.socket.on("*", this.onDataD);
+		this.socket.on("disconnect", this.onDestroyD);
 
 		// Make listeners on Redis
-		this.redis.on("data", this.onOutput);
-		this.redis.on("destroy-u", this.onDestroyU);
+		this.back.on("data", this.onDataU);
+		this.back.on("destroy-u", this.onDestroyU);
 
 		// Make listeners on Workspace
 		if (this.workspace) {
-			this.workspace.on("data", this.onWsData);
-			this.workspace.on("sesscode", this.onWsSessCode);
+			this.workspace.on("data", this.onDataW);
+			this.workspace.on("sesscode", this.setSessCode);
 			this.workspace.subscribe();
 		}
 
 		// Let Redis have listeners too
-		this.redis.subscribe();
+		this.back.subscribe();
 	}
 
 	private unlisten():void {
 		this.socket.removeAllListeners();
-		this.redis.removeAllListeners();
-		this.redis.unsubscribe();
+		this.back.removeAllListeners();
+		this.back.unsubscribe();
 		if (this.workspace) {
 			this.workspace.removeAllListeners();
 			this.workspace.unsubscribe();
@@ -159,183 +149,129 @@ class SocketHandler {
 		console.log.apply(this, args);
 	}
 
-	private sendData(message:string):void {
+	// Convenience function to post a message in the client's console window
+	private sendMessage(message:string):void {
 		this.socket.emit("data", {
 			type: "stdout",
 			data: message+"\n"
 		});
 	}
 
-	//// LISTENER FUNCTIONS ////
+	//// MAIN LISTENER FUNCTIONS ////
 
-	private onDisconnect = ():void => {
-		this.readyState = ReadyState.Destroyed;
+	// When the client disconnects (destroyed from downstream)
+	private onDestroyD = ():void => {
+		this.log("Client Disconnect");
+		if (this.workspace) this.workspace.destroyD("Client Disconnect");
 		this.unlisten();
-		if (this.redis && !this.workspace)
-			this.redis.destroyD("Client Disconnect");
-		this.log("Destroying: Client Disconnect");
 	};
 
+	// When the back server exits (destroyed from upstream)
 	private onDestroyU = (message:string):void => {
-		this.readyState = ReadyState.Idle;
-		this.socket.emit("destroy-u", message);
-		this.redis.setSessCode(null);
 		this.log("Upstream Destroyed:", message);
+		this.socket.emit("destroy-u", message);
+		this.back.setSessCode(null);
+		if (this.workspace) this.workspace.destroyU(message);
 	};
+
+	// When the client sends a message (data from downstream)
+	private onDataD = (obj) => {
+		var name = obj.data[0] || "";
+		var data = obj.data[1] || null;
+
+		// Check for name matches
+		switch(name){
+			case "enroll":
+				this.onEnroll(data);
+				break;
+			case "update_students":
+				this.onUpdateStudents(data);
+				break;
+			case "oo.reconnect":
+				this.onOoReconnect();
+				break;
+			default:
+				break;
+		}
+
+		// Check for prefix matches
+		switch(name.substr(0,3)){
+			case "ot.":
+			case "ws.":
+				if (this.workspace) this.workspace.dataD(name, data);
+				break;
+		}
+
+		// Send everything else upstream to the back server
+		this.back.dataD(name, data);
+	};
+
+	// When the back server sends a message (data from upstream)
+	// Let everything continue downstream to the client
+	private onDataU = (name, data) => {
+		this.socket.emit(name, data);
+	};
+
+	// When the workspace sends a message (data from workspace)
+	// Let everything continue downstream to the client
+	private onDataW = (name, data) => {
+		this.socket.emit(name, data);
+	};
+
+	//// OTHER UTILITY FUNCTIONS ////
 
 	private onOoReconnect = ():void => {
-		if (this.workspace) {
-			this.workspace.beginOctaveRequest();
-		} else {
-			this.beginOctaveRequest(null);
-		}
+		if (this.workspace) this.workspace.beginOctaveRequest();
 	};
 
-	private onWsSessCode = (sessCode: string, live: boolean): void => {
-		this.redis.setSessCode(sessCode);
-
+	private setSessCode = (sessCode: string, live: boolean): void => {
+		// We have our sessCode.
+		this.log("SessCode", sessCode);
+		this.back.setSessCode(sessCode);
+		this.socket.emit("sesscode", {
+			sessCode: sessCode
+		});
 		if (live) this.socket.emit("prompt", {});
+		if (this.workspace) this.workspace.sessCode = sessCode;
 	};
 
-	private onInput = (obj)=> {
-		if (!this.redis) return;
-
-		// Check if the event name is prefixed with ot. or ws.
-		var name = obj.data[0] || "";
-		var val = obj.data[1] || null;
-		if (this.workspace
-			&& (name.substr(0,3) === "ot."
-				|| name.substr(0,3) === "ws.")) {
-			this.workspace.onSocket(name, val);
-			return;
-		}
-
-		// Blindly pass all remaining data from the client to Redis
-		this.redis.input(name, val);
-	};
-
-	private onWsData = (name, data)=> {
-		// Blindly pass all data from the Workspace to the client
-		this.socket.emit(name, data);
-	}
-
-	private onOutput = (name, data) => {
-		// Blindly pass all data from Redis to the client
-		this.socket.emit(name, data);
-	};
+	//// ENROLLING AND STUDENTS LISTENER FUNCTIONS ////
 
 	private onEnroll = (obj)=> {
 		if (!this.user || !obj) return;
 		var program = obj.program;
 		if (!program) return;
-		console.log("Enrolling", this.user.consoleText, "in program", program);
+		this.log("Enrolling", this.user.consoleText, "in program", program);
 		this.user.program = program;
 		this.user.save((err)=> {
-			if (err) console.log("MONGO ERROR", err);
-			this.sendData("Successfully enrolled");
+			if (err) this.log("MONGO ERROR", err);
+			this.sendMessage("Successfully enrolled");
 		});
 	};
 
 	private onUpdateStudents = (obj)=> {
 		if (!obj) return;
 		if (!this.user)
-			return this.sendData("Please sign in first");
+			return this.sendMessage("Please sign in first");
 		if (!this.user.instructor || this.user.instructor.length === 0)
-			return this.sendData("You're not registered as an instructor");
+			return this.sendMessage("You're not registered as an instructor");
 		if (this.user.instructor.indexOf(obj.program) === -1)
-			return this.sendData("Check the spelling of your program name");
+			return this.sendMessage("Check the spelling of your program name");
 
-		console.log("Updating students in program", obj.program);
-		this.sendData("Updating students...");
+		this.log("Updating students in program", obj.program);
+		this.sendMessage("Updating students...");
 		ChildProcess.execFile(
 			__dirname+"/../src/program_update.sh",
 			[this.user.parametrized, obj.program, Config.mongodb.db],
 			(err, stdout, stderr)=> {
 				if (err) {
-					console.log("ERROR ON UPDATE STUDENTS", err, stdout, stderr);
-					this.sendData("Error while updating students: " + err);
+					this.log("ERROR ON UPDATE STUDENTS", err, stdout, stderr);
+					this.sendMessage("Error while updating students: " + err);
 				} else {
-					this.sendData("Successfully updated students");
+					this.sendMessage("Successfully updated students");
 				}
 			}
 		);
-	};
-
-	//// SHARED WORKSPACE INITIALIZATION FUNCTIONS ////
-
-	private attachToWorkspace(wsId:string) {
-		if (this.readyState !== ReadyState.Idle) return;
-		this.readyState = ReadyState.Workspace;
-
-		this.workspace = new Workspace(wsId);
-		this.workspace.beginOctaveRequest();
-		this.listen();
-	};
-
-	//// SESSION INITIALIZATION FUNCTIONS ////
-
-	private beginOctaveRequest(sessCodeGuess:string) {
-		if (this.readyState !== ReadyState.Idle) return;
-		this.readyState = ReadyState.Requested;
-
-		RedisHelper.getNewSessCode(sessCodeGuess, this.onSessCode);
-	}
-
-	private onSessCode = (err, sessCode:string, needsOctave:boolean)=> {
-		if (err) return this.log("REDIS ERROR", err);
-		this.sessCode = sessCode;
-
-		// We have our sessCode.  Log it.
-		this.log("SessCode Ready", sessCode);
-
-		if (needsOctave) {
-			// Make sure the client didn't leave.
-			if (this.readyState !== ReadyState.Requested) return;
-
-			// Tell the client and make the Octave session.
-			this.socket.emit("sesscode", {
-				sessCode: sessCode
-			});
-			RedisHelper.askForOctave(sessCode, this.user, this.onOctaveRequested);
-
-		} else {
-			// The client's requested sessCode session exists.
-			// Add sessCode to Redis
-			this.redis.setSessCode(this.sessCode);
-
-			if (this.readyState === ReadyState.Destroyed) {
-				// The client abandoned us.  Destroy their session.
-				this.redis.destroyD("Client Gone 1");
-				this.unlisten();
-
-			} else {
-				// Update ready state and send prompt message to the client
-				this.readyState = ReadyState.Active;
-				this.socket.emit("prompt", {});
-			}
-		}
-	};
-
-	private onOctaveRequested = (err)=> {
-		if (err) return this.log("REDIS ERROR", err);
-
-		// A new Octave session with the desired sessCode has been opened.
-		// Add sessCode to Redis
-		this.redis.setSessCode(this.sessCode);
-
-		// Check and update ready state
-		switch (this.readyState) {
-			case ReadyState.Destroyed:
-				this.redis.destroyD("Client Gone 2");
-				this.unlisten();
-				break;
-			case ReadyState.Requested:
-				this.readyState = ReadyState.Active;
-				break;
-			default:
-				console.log("UNEXPECTED READY STATE", this.readyState);
-				break;
-		}
 	};
 }
 

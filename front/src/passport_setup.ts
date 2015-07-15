@@ -1,14 +1,13 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/passport/passport.d.ts'/>
 ///<reference path='typedefs/passport-google.d.ts'/>
-///<reference path='user_interface.ts'/>
+///<reference path='typedefs/iuser.ts'/>
 
 import Passport = require("passport");
 import Config = require("./config");
 import GoogleOAuth = require("passport-google-oauth");
 import Persona = require("passport-persona");
 import User = require("./user_model");
-import IUser = require("./user_interface");
 
 var baseUrl = Config.url.protocol + "://" + Config.url.hostname
 	+ ":" + Config.url.port + "/";

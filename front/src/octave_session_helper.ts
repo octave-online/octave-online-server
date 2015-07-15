@@ -1,28 +1,17 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/redis/redis.d.ts'/>
 ///<reference path='boris-typedefs/eventemitter2/eventemitter2.d.ts'/>
-///<reference path='typedefs/redis_heartbeat.d.ts'/>
+///<reference path='typedefs/iuser.ts'/>
 
 import Redis = require("redis");
 import Crypto = require("crypto");
 import EventEmitter2 = require("eventemitter2");
-import IUser = require("./user_interface");
 import IRedis = require("./typedefs/iredis");
 import Config = require("./config");
 
-// Conditionally include redis-heartbeat (not supported on Winows)
-var Heartbeat;
-try {
-	Heartbeat = require("redis-heartbeat");
-} catch(e) {
-	Heartbeat = null;
-}
-
-
 var infoClient = IRedis.createClient();
-var heartbeatClient = IRedis.createClient();
 
-class RedisHelper extends EventEmitter2.EventEmitter2 {
+class OctaveSessionHelper extends EventEmitter2.EventEmitter2 {
 	constructor() {
 		super();
 	}
@@ -67,11 +56,22 @@ class RedisHelper extends EventEmitter2.EventEmitter2 {
 		multi.exec(next);
 	}
 
-	public startHeartbeat() {
-		if (Heartbeat) return new Heartbeat({
-			name: "oo-front",
-			identifier: "oo-front-" + String(new Date().valueOf()),
-			client: heartbeatClient
+	public sendDestroyD(sessCode:string, message:string) {
+		console.log("Sending Destroy-D", message, sessCode);
+		var destroyMessage:IRedis.DestroyMessage = {
+			sessCode: sessCode,
+			message: message
+		};
+
+		// Tell Redis to destroy our sessCode
+		var multi = infoClient.multi();
+		multi.del(IRedis.Chan.session(sessCode));
+		multi.del(IRedis.Chan.input(sessCode));
+		multi.del(IRedis.Chan.output(sessCode));
+		multi.zrem(IRedis.Chan.needsOctave, sessCode);
+		multi.publish(IRedis.Chan.destroyD, JSON.stringify(destroyMessage));
+		multi.exec((err)=> {
+			if (err) console.log("REDIS ERROR", err);
 		});
 	}
 
@@ -91,5 +91,5 @@ class RedisHelper extends EventEmitter2.EventEmitter2 {
 	}
 }
 
-var instance = new RedisHelper();
+var instance = new OctaveSessionHelper();
 export = instance;

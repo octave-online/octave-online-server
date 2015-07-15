@@ -1,4 +1,5 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
+///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/redis/redis.d.ts'/>
 ///<reference path='boris-typedefs/eventemitter2/eventemitter2.d.ts'/>
 
@@ -7,6 +8,7 @@ import Crypto = require("crypto");
 import EventEmitter2 = require("eventemitter2");
 import IRedis = require("./typedefs/iredis");
 import Config = require("./config");
+import OctaveHelper = require("./octave_session_helper");
 import Fs = require("fs");
 
 var outputClient = IRedis.createClient();
@@ -21,8 +23,9 @@ outputClient.setMaxListeners(30);
 destroyUClient.setMaxListeners(30);
 expireClient.setMaxListeners(30);
 
-class RedisHandler extends EventEmitter2.EventEmitter2 {
+class BackServerHandler extends EventEmitter2.EventEmitter2 {
 	public sessCode:string = null;
+	private touchInterval;
 
 	constructor() {
 		super();
@@ -33,34 +36,13 @@ class RedisHandler extends EventEmitter2.EventEmitter2 {
 		this.touch();
 	}
 
-	public input(name:string, data:any) {
+	public dataD(name:string, data:any) {
 		var inputMessage:IRedis.Message = {
 			name: name,
 			data: data
 		};
 
 		pushClient.publish(IRedis.Chan.input(this.sessCode), JSON.stringify(inputMessage));
-	}
-
-	public destroyD(message:string) {
-		if (!this.depend(["sessCode"])) return;
-
-		console.log("Sending Destroy-D", message, this.sessCode);
-		var destroyMessage:IRedis.DestroyMessage = {
-			sessCode: this.sessCode,
-			message: message
-		};
-
-		// Tell Redis to destroy our sessCode
-		var multi = pushClient.multi();
-		multi.del(IRedis.Chan.session(this.sessCode));
-		multi.del(IRedis.Chan.input(this.sessCode));
-		multi.del(IRedis.Chan.output(this.sessCode));
-		multi.zrem(IRedis.Chan.needsOctave, this.sessCode);
-		multi.publish(IRedis.Chan.destroyD, JSON.stringify(destroyMessage));
-		multi.exec((err)=> {
-			if (err) console.log("REDIS ERROR", err);
-		});
 	}
 
 	public subscribe() {
@@ -81,8 +63,6 @@ class RedisHandler extends EventEmitter2.EventEmitter2 {
 		expireClient.removeListener("message", this.expireListener);
 		clearInterval(this.touchInterval);
 	}
-
-	private touchInterval;
 
 	private touch = () => {
 		if (!this.depend(["sessCode"])) return;
@@ -127,10 +107,10 @@ class RedisHandler extends EventEmitter2.EventEmitter2 {
 		if(IRedis.checkExpired(message, this.sessCode)){
 			// If the session becomes expired, trigger a destroy event
 			// both upstream and downstream.
-			this.destroyD("Octave Session Expired");
+			OctaveHelper.sendDestroyD(this.sessCode, "Octave Session Expired");
 			this.emit("destroy-u", "Octave Session Expired");
 		}
 	};
 }
 
-export = RedisHandler;
+export = BackServerHandler;

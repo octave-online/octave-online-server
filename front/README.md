@@ -19,12 +19,6 @@ Now compile the server:
 
 	grunt
 
-### Redis Heartbeats
-
-If you would like the server to send periodic heartbeats to the Redis server, just install `redis-heartbeat` in npm.  This does not work in Windows, which is why it is optional.
-
-	npm install redis-heartbeat
-
 ## Redis and MongoDB
 
 In order to use Octave Online, you will need to have a working [Redis](http://redis.io/) and [MongoDB](http://www.mongodb.org/) installation.  You can install these from yum, apt-get, etc.  For example, a simple `apt-get install redis-server` and `apt-get install mongodb` should be sufficient.
@@ -73,7 +67,8 @@ This file contains the configuration options for your local install of Octave On
 			}
 		},
 		"ot": {
-			"expire": 10
+			"operation_expire": 10,
+			"document_expire": 86400
 		}
 	}
 
@@ -84,4 +79,4 @@ The following options need to be customized.
  - Put some random character string in "secret" under "cookie".  This is what prevents man-in-the-middle attacks and session hijacking.
  - If you want to support Google OAuth logins, customize the "google" section.  You can ignore this section if you don't want to support Google logins.
  - If you have a password on your Redis server, put the password in the "auth_pass" option.  You can ignore this if you don't have a password set up on your Redis server.
- - The *ot.expire* value defines how long, in seconds, operations are kept in the cache after a user makes a change in a collaborative field.  For slow internet connections, or if you are getting errors that say "Operation history is too shallow", a higher value here may be desirable.
+ - The *ot.expire* values defines how long, in seconds, operations are kept in the cache after a user makes a change in a collaborative field.  For slow internet connections, or if you are getting errors that say "Operation history is too shallow", higher values here may be desirable.

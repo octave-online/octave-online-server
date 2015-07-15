@@ -1,10 +1,5 @@
 /// <reference path="../boris-typedefs/express/express.d.ts"/>
-
-declare module 'serve-static' {
-	import express = require('express');
-	function constructor(path:string):express.RequestHandler;
-	export = constructor;
-}
+/// <reference path="../boris-typedefs/serve-static/serve-static.d.ts"/>
 
 declare module 'compression' {
 	import express = require('express');

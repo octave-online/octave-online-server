@@ -36,7 +36,11 @@ interface IAppConfig {
 		}
 	}
 	ot: {
-		expire: number;
+		operation_expire: number;
+		document_expire: {
+			interval: number;
+			timeout: number;
+		}
 	}
 }
 

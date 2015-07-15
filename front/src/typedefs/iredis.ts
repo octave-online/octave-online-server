@@ -27,9 +27,11 @@ module IRedis {
 		response?:boolean // only on responses
 	}
 	export interface OtMessage {
-		chgId:string
-		docId:string
-		ops:any
+		type:string
+		chgId?:string
+		docId?:string
+		ops?:any
+		data?:any
 	}
 	export interface WsMessage {
 		type:string
@@ -72,14 +74,14 @@ module IRedis {
 		otCnt: function (docId: string): string {
 			return "ot:" + docId + ":cnt";
 		},
-		wsInfo: function (wsId:string):string {
-			return "oo:workspace:" + wsId + ":info";
-		},
 		wsSess: function(wsId: string): string {
 			return "oo:workspace:" + wsId + ":sess";
 		},
 		wsSub: function(wsId: string): string {
 			return "oo:workspace:" + wsId + ":sub";
+		},
+		wsCnt: function(wsId: string): string {
+			return "oo:workspace:" + wsId + ":cnt";
 		}
 	};
 
@@ -105,9 +107,10 @@ module IRedis {
 	}
 
 	// Match an otMessage
-	export function checkOtMessage(channel, message):OtMessage {
+	export function checkOtMessage(channel, message, docId):OtMessage {
 		var match = /^ot:([^:]+):sub$/.exec(channel);
 		if (!match) return null;
+		if (match[1] !== docId) return null;
 		
 		var obj:OtMessage;
 		try {
@@ -116,7 +119,7 @@ module IRedis {
 			console.log("JSON PARSE ERROR", e);
 			return null;
 		}
-		if (!obj.chgId || !obj.docId || !obj.ops) return null;
+		if (!obj.type) return null;
 
 		return obj;
 	}

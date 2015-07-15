@@ -1,11 +1,11 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/mongoose/mongoose.d.ts'/>
+///<reference path='typedefs/iuser.ts'/>
 
 // Mongoose User: stores OpenID information for a user.
 
 import Mongoose = require("mongoose");
 import Crypto = require("crypto");
-import IUser = require("./user_interface");
 
 // Initialize the schema
 var userSchema = new Mongoose.Schema({
@@ -97,6 +97,9 @@ userSchema.pre("save", function(next){
 // to the actual Octave server)
 userSchema.set('toJSON', { virtuals: true });
 
-// Export the Mongoose model for the rest of the program
-var User = <Mongoose.Model<IUser>> Mongoose.model('User', userSchema);
+// Export the Mongoose model for the rest of the program.
+// The casting mania in the line below bypasses TypeScript.  If you want to
+// spend another five hours pulling your hair out to make IUser work the way
+// TypeScript wants it to work, go right ahead.
+var User = <Mongoose.Model<IUser>> (<any> Mongoose.model('User', userSchema));
 export = User;
