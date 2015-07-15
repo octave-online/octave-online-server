@@ -90,6 +90,11 @@
 			</svg>
 			Octave Online
 		</h1>
+		<!-- ko if: showUserInHeader -->
+		<small>
+			<span data-bind="text: currentUser().name"></span>
+		</small>
+		<!-- /ko -->
 		<span id="hamburger"></span>
 	</header>
 	<section>

@@ -24,10 +24,11 @@ function($, ko, canvg, Base64, download,
 		self.aceTheme = "ace/theme/"+aceTheme;
 		self.cssURL = "css/themes/"+self.name+".css";
 	}
-	var availableSkins = ko.observableArray([
+	var availableSkins = [
 		new Skin("fire", "crimson_editor", "black"),
-		new Skin("lava", "merbivore_soft", "white")
-	]);
+		new Skin("lava", "merbivore_soft", "white"),
+		new Skin("ice", "crimson_editor", "black")
+	];
 
 	// Plot MVVM class
 	function PlotObject(id, lineNumber){
@@ -104,8 +105,7 @@ function($, ko, canvg, Base64, download,
 		close: function(){
 			OctMethods.editor.close();
 		},
-		availableSkins: availableSkins,
-		selectedSkin: ko.observable(availableSkins()[0]),
+		selectedSkin: ko.observable(availableSkins[0]),
 		vars: vars,
 		plots: plotHistory,
 		currentPlotIdx: currentPlotIdx,
@@ -183,6 +183,10 @@ function($, ko, canvg, Base64, download,
 			});
 		}
 	};
+	viewModel.showUserInHeader = ko.computed(function(){
+		return (viewModel.currentUser()
+			&& viewModel.selectedSkin() === availableSkins[2]);
+	});
 	// Keep the console output visible when the plot window opens
 	viewModel.showPlot.subscribe(function(){
 		setTimeout(OctMethods.console.scroll, 0);
@@ -697,6 +701,15 @@ function($, ko, canvg, Base64, download,
 						action: "workspace",
 						info: OctMethods.vars.wsId
 					});
+				}else if(OctMethods.vars.studentId){
+					OctMethods.socket.emit("init", {
+						action: "student",
+						info: OctMethods.vars.studentId
+					});
+
+					// Use the "ice" theme to visually differentiate this session
+					viewModel.selectedSkin(availableSkins[2]);
+					$("#change-skin").hide();
 				}else{
 					OctMethods.socket.emit("init", {
 						action: "session",
@@ -954,7 +967,8 @@ function($, ko, canvg, Base64, download,
 		// Other accessor properties
 		ko: {
 			viewModel: viewModel,
-			allOctFiles: allOctFiles
+			allOctFiles: allOctFiles,
+			availableSkins: availableSkins
 		},
 		vars: {
 			wsId: null

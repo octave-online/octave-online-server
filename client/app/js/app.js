@@ -184,6 +184,12 @@ define(
 			});
 		}
 
+		// Student workspace setup:
+		var studentId = $.url().param("s");
+		if (studentId) {
+			OctMethods.vars.studentId = studentId;
+		}
+
 		// Global key bindings:
 		$(window).keydown(function (e) {
 			if (e.keyCode == 82) { // "R" key
@@ -250,10 +256,10 @@ define(
 		updateTheme(viewModel.selectedSkin());
 		viewModel.selectedSkin.subscribe(updateTheme);
 		$("#change-skin").click(function () {
-			if (viewModel.selectedSkin() === viewModel.availableSkins()[0]) {
-				viewModel.selectedSkin(viewModel.availableSkins()[1]);
+			if (viewModel.selectedSkin() === OctMethods.ko.availableSkins[0]) {
+				viewModel.selectedSkin(OctMethods.ko.availableSkins[1]);
 			} else {
-				viewModel.selectedSkin(viewModel.availableSkins()[0]);
+				viewModel.selectedSkin(OctMethods.ko.availableSkins[0]);
 			}
 			OctMethods.prompt.focus();
 			anal.sitecontrol("theme");

@@ -1,8 +1,9 @@
 @require("mixins.styl")
 
 header {
-	font: normal header_height/header_height heading_font_family
 	background-color: color1
+	font-size: header_height
+	line-height: header_height
 
 	#hamburger {
 		hamburger-button(colorfgd)
@@ -15,7 +16,9 @@ header {
 	}
 
 	h1 {
-		font: inherit
+		font-size: inherit
+		line-height: inherit
+		font-family: heading_font_family
 		display: inline-block
 		margin: 1px 0 0
 		margin-left: 3px
@@ -23,6 +26,15 @@ header {
 		svg {
 			display: inline-block
 		}
+	}
+	
+	small {
+		font-size: (header_height/2)
+		line-height: inherit
+		font-family: narrow_font_family
+		vertical-align: middle
+		display: inline-block
+		margin: 0 10px
 	}
 }
 
