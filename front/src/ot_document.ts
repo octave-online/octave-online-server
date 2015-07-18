@@ -9,11 +9,14 @@ import Crypto = require("crypto");
 import Fs = require("fs");
 import Config = require("./config");
 
-// Load the Lua script
-var otLuaScript = Fs.readFileSync("src/ot.lua", { encoding: "utf8" });
-otLuaScript += Fs.readFileSync("src/ot_redis.lua", { encoding: "utf8" });
-otLuaScript = otLuaScript.replace(/function/g, "local function");
-var otLuaSha1 = Crypto.createHash("sha1").update(otLuaScript).digest("hex");
+// Load the Lua scripts
+var otApplyScript = Fs.readFileSync("src/ot.lua", { encoding: "utf8" });
+otApplyScript += Fs.readFileSync("src/ot_apply.lua", { encoding: "utf8" });
+otApplyScript = otApplyScript.replace(/function/g, "local function");
+var otApplySha1 = Crypto.createHash("sha1").update(otApplyScript).digest("hex");
+
+var otSetScript = Fs.readFileSync("src/ot_set.lua", { encoding: "utf8" });
+var otSetSha1 = Crypto.createHash("sha1").update(otSetScript).digest("hex");
 
 // Make Redis connections for OT
 var otOperationClient = IRedis.createClient();
@@ -149,7 +152,7 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 		}));
 	};
 
-	private receiveOperation(rev: number, op: Ot.ITextOperation) {
+	private receiveOperation(rev:number, op:Ot.ITextOperation) {
 		var ops_key = IRedis.Chan.otOps(this.id);
 		var doc_key = IRedis.Chan.otDoc(this.id);
 		var sub_key = IRedis.Chan.otSub(this.id);
@@ -164,25 +167,58 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 		}
 
 		this.chgIds.push(chgId);
-
-		otOperationClient.evalsha(otLuaSha1,
+		this.runRedisScript(otApplyScript, otApplySha1, [
 			4, ops_key, doc_key, sub_key, cnt_key,
 			rev, JSON.stringify(message), Config.ot.operation_expire,
-			Config.ot.document_expire.timeout,
-			function(err) {
-				if (!err) return;
-				if (/NOSCRIPT/.test(err.message)) {
-					otOperationClient.eval(otLuaScript,
-						4, ops_key, doc_key, sub_key, cnt_key,
-						rev, JSON.stringify(message), Config.ot.operation_expire,
-						Config.ot.document_expire.timeout,
-						function(err2) {
-							if (err2) console.log("REDIS ERROR", err);
-						});
-				} else {
-					console.log("REDIS ERROR", err);
-				}
-			});
+			Config.ot.document_expire.timeout
+		]);
+	}
+
+	public setContent(content:string) {
+		var ops_key = IRedis.Chan.otOps(this.id);
+		var doc_key = IRedis.Chan.otDoc(this.id);
+		var sub_key = IRedis.Chan.otSub(this.id);
+		var cnt_key = IRedis.Chan.otCnt(this.id);
+		var chgId = Uuid.v4();
+
+		var message: IRedis.OtMessage = {
+			type: "operation",
+			docId: this.id,
+			chgId: chgId
+		}
+
+		// note: don't push chgId to this.chgIds so that the operation reply gets
+		// sent to our own client
+		this.runRedisScript(otSetScript, otSetSha1, [
+			4, ops_key, doc_key, sub_key, cnt_key,
+			content, JSON.stringify(message), Config.ot.operation_expire,
+			Config.ot.document_expire.timeout
+		]);
+	}
+
+	private runRedisScript(script:string, sha1:string, args:any[], cb?:(res:any)=>void) {
+
+		var cb2 = function(err2, res2){
+			if (err2) return console.log("REDIS ERROR", err2);
+			if (cb) return cb(res2);
+		}
+
+		var args2 = (<any[]>[script]).concat(args).concat([cb2]);
+
+		var cb1 = function(err1, res1){
+			if (!err1) {
+				if (cb) return cb(res1);
+				else return;
+			}
+			if (!/NOSCRIPT/.test(err1.message)) {
+				return console.log("REDIS ERROR", err1);
+			}
+			otOperationClient.eval.apply(otOperationClient, args2);
+		}
+
+		var args1 = (<any[]>[sha1]).concat(args).concat([cb1]);
+
+		otOperationClient.evalsha.apply(otOperationClient, args1);
 	}
 }
 

@@ -6,6 +6,7 @@ interface IWorkspace {
 	destroyD(message:string): void;
 	destroyU(message:string): void;
 	dataD(name:string, val:any): void;
+	dataU(name:string, val:any): void;
 	beginOctaveRequest(): void;
 
 	on(event:string, callback: (...args:any[])=>void):void;

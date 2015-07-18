@@ -56,11 +56,7 @@ class SocketHandler implements IDestroyable {
 				var sess = self.socket.request.session;
 				var userId = sess && sess.passport && sess.passport.user;
 
-				if (userId) User.findById(userId, (err, user) => {
-					if (err) return self.log("MONGO ERROR", err);
-					self.log("Loaded from Mongo");
-					next(null, user);
-				});
+				if (userId) User.findById(userId, next);
 				else next(null, null);
 			},
 
@@ -85,7 +81,13 @@ class SocketHandler implements IDestroyable {
 					case "workspace":
 						if (!info) return;
 						this.log("Attaching to colaborative workspace:", info);
-						this.workspace = new SharedWorkspace(info, user);
+						this.workspace = new SharedWorkspace("default", info);
+						break;
+
+					case "student":
+						if (!info) return;
+						this.log("Attaching to a student's workspace:", info)
+						this.workspace = new SharedWorkspace("student", info);
 						break;
 
 					case "session":
@@ -209,6 +211,7 @@ class SocketHandler implements IDestroyable {
 	// When the back server sends a message (data from upstream)
 	// Let everything continue downstream to the client
 	private onDataU = (name, data) => {
+		if (this.workspace) this.workspace.dataU(name, data);
 		this.socket.emit(name, data);
 	};
 

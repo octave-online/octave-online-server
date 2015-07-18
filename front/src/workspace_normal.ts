@@ -71,6 +71,9 @@ implements IWorkspace, IDestroyable {
 	public dataD(name:string, val:any){
 	}
 
+	public dataU(name:string, val:any){
+	}
+
 	public subscribe() {
 	}
 
