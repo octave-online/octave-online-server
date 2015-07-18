@@ -1,11 +1,13 @@
 define(
 	["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
-		"splittr", "SocketIOFileUpload", "js/anal", "js/ot-client", "js/onboarding",
+		"splittr", "SocketIOFileUpload", "js/anal", "js/onboarding",
+		"js/ot-handler", "js/ws-shared",
 		"js/utils", "jquery.purl", "knockout-ace", "ko-flash", "ace/mode/octave",
 		"ace/ext/language_tools"],
 
 	function (ko, io, OctMethods, ace, $, isMobile,
-	          splittr, SocketIOFileUpload, anal, OtClient, onboarding) {
+	          splittr, SocketIOFileUpload, anal, onboarding,
+	          OtHandler, WsShared) {
 
 		// Initial GUI setup
 		splittr.init();
@@ -36,6 +38,13 @@ define(
 		socket.on("init", OctMethods.socketListeners.init);
 		socket.on("destroy-u", OctMethods.socketListeners.destroyu);
 		socket.on("disconnect", OctMethods.socketListeners.disconnect);
+		socket.on("ot.doc", OtHandler.listeners.doc);
+		socket.on("ot.broadcast", OtHandler.listeners.broadcast);
+		socket.on("ot.ack", OtHandler.listeners.ack);
+		socket.on("ot.cursor", OtHandler.listeners.cursor);
+		socket.on("ws.command", WsShared.listeners.command);
+		socket.on("ws.promptid", WsShared.listeners.promptid);
+		socket.on("ws.doc", WsShared.listeners.doc);
 		OctMethods.socket.instance = socket;
 
 		// Autocompletion with filenames:
@@ -137,58 +146,13 @@ define(
 			console.log(e);
 		}
 
-		// Shared workspace setup:
+		// Shared workspace setup
 		var wsId = $.url().param("w");
-		if (wsId) {
-			OctMethods.vars.wsId = wsId;
-			socket.on("ot.doc", function(obj){
-				console.log("ot.doc", obj);
-				var docId = obj.docId;
+		if (wsId) OctMethods.vars.wsId = wsId;
 
-				prompt.setValue(obj.content);
-
-				otClient = new OtClient(obj.rev);
-				otClient.attachEditor(prompt);
-				otClient.addEventListener("send", function(revision, operation){
-					console.log("client send", arguments);
-					socket.emit("ot.change", {
-						docId: docId,
-						rev: revision,
-						op: operation
-					});
-				});
-				otClient.addEventListener("cursor", function(cursor){
-					console.log("client cursor", arguments);
-					socket.emit("ot.cursor", {
-						docId: docId,
-						cursor: cursor
-					});
-				});
-
-				var socket = window.socket = io();
-				socket.on("ot.broadcast", function(obj){
-					var op = ot.TextOperation.fromJSON(obj.ops);
-					otClient.applyServer(op);
-				});
-				socket.on("ot.ack", function(obj){
-					otClient.serverAck();
-				});
-				socket.on("ot.cursor", function(obj){
-					otClient.adapter.setOtherCursor(obj.cursor, "#F00", "foo");
-				});
-				socket.on("ws.command", function(cmd){
-					OctMethods.console.command(cmd, true);
-					OctMethods.prompt.clear();
-				});
-
-			});
-		}
-
-		// Student workspace setup:
+		// Student workspace setup
 		var studentId = $.url().param("s");
-		if (studentId) {
-			OctMethods.vars.studentId = studentId;
-		}
+		if (studentId) OctMethods.vars.studentId = studentId;
 
 		// Global key bindings:
 		$(window).keydown(function (e) {

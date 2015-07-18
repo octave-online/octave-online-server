@@ -1,9 +1,21 @@
-define(["js/ace-adapter", "ot", "js/polyfill"], function(Adapter, ot){
-	function OTClientWrapper(rev){
-		this.otClient = new ot.Client(rev);
+define(["js/ace-adapter", "ot", "js/polyfill"],
+	function(Adapter, ot){
+	function OTClientWrapper(docId){
+		this.id = docId;
+	}
 
+	OTClientWrapper.prototype.initWith = function(rev, content){
+		this.otClient = new ot.Client(rev);
 		this.otClient.sendOperation = this._sendOperation.bind(this);
 		this.otClient.applyOperation = this._applyOperation.bind(this);
+
+		this.content = content;
+
+		if (this.adapter) {
+			var op = new ot.TextOperation();
+			op.insert(content);
+			this.adapter.applyOperation(op);
+		}
 	}
 
 	OTClientWrapper.prototype.attachEditor = function(editor){
@@ -20,6 +32,12 @@ define(["js/ace-adapter", "ot", "js/polyfill"], function(Adapter, ot){
 		this.adapter.addEventListener("focus", this._onFocusBlur.bind(this), false);
 		this.adapter.addEventListener("blur", this._onFocusBlur.bind(this), false);
 		this.cursor = this.adapter.getCursor();
+
+		if (this.content) {
+			var op = new ot.TextOperation();
+			op.insert(content);
+			this.adapter.applyOperation(op);
+		}
 	}
 
 	// SERVER -> OT
@@ -33,6 +51,7 @@ define(["js/ace-adapter", "ot", "js/polyfill"], function(Adapter, ot){
 	// ACE -> OT
 	OTClientWrapper.prototype._onChange = function(operation, inverse){
 		this.otClient.applyClient(operation);
+		this.content = operation.apply(this.content);
 	}
 
 	// OT -> SERVER
@@ -48,6 +67,7 @@ define(["js/ace-adapter", "ot", "js/polyfill"], function(Adapter, ot){
 
 		console.log("apply", operation);
 		this.adapter.applyOperation(operation);
+		this.content = operation.apply(this.content);
 	}
 
 	// CURSORS
