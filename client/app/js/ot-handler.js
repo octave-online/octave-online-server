@@ -55,7 +55,7 @@ define(["js/client", "js/ot-client", "ot", "js/polyfill"],
 			console.log("ot.cursor", obj, otClient);
 			if (!otClient) return;
 
-			otClient.adapter.setOtherCursor(obj.cursor, "#F00", "Remote User");
+			otClient.setOtherCursor(obj.cursor, "#F00", "Remote User");
 		}
 	};
 

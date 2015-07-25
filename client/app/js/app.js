@@ -43,6 +43,8 @@ define(
 		socket.on("ot.ack", OtHandler.listeners.ack);
 		socket.on("ot.cursor", OtHandler.listeners.cursor);
 		socket.on("ws.command", WsShared.listeners.command);
+		socket.on("ws.save", WsShared.listeners.save);
+		socket.on("ws.fileadd", WsShared.listeners.fileadd);
 		socket.on("ws.promptid", WsShared.listeners.promptid);
 		socket.on("ws.doc", WsShared.listeners.doc);
 		OctMethods.socket.instance = socket;

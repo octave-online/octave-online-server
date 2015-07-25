@@ -3,12 +3,12 @@
 define(
 	["jquery", "knockout", "canvg", "base64", "js/download",
 		"js/anal", "base64-toblob", "ismobile", "exports", "js/octfile",
-		"js/vars", "ko-takeArray", "require", "js/onboarding", "blob",
-		"jquery.md5", "jquery.purl", "ace/theme/crimson_editor",
+		"js/vars", "ko-takeArray", "require", "js/onboarding", "js/ws-shared",
+		"blob", "jquery.md5", "jquery.purl", "ace/theme/crimson_editor",
 		"ace/theme/merbivore_soft", "knockout-ace"],
 function($, ko, canvg, Base64, download,
          anal, b64ToBlob, isMobile, exports, OctFile,
-         Var, koTakeArray, require, onboarding){
+         Var, koTakeArray, require, onboarding, WsShared){
 
 	/* * * * START KNOCKOUT SETUP * * * */
 
@@ -167,20 +167,33 @@ function($, ko, canvg, Base64, download,
 			editor.setOptions({ enableBasicAutocompletion: true });
 			OctMethods.editor.instance = editor;
 			editor.focus();
+
+			// Attach OT to the editor instance
+			var filename = viewModel.openFile().filename();
+			var otClient = WsShared.clientForFilename(filename);
+			otClient.attachEditor(editor);
 		},
 		editorUnRendered: function(){
 			OctMethods.editor.instance = null;
+
+			// Detach OT from the editor instance
+			WsShared.forEachDocClient(function(filename, otClient){
+				otClient.attachEditor(null);
+			});
 		},
 
+		getOctFileFromName: function(filename){
+			return ko.utils.arrayFirst(allOctFiles(), function(item){
+				return item.filename() === filename;
+			});
+		},
 		fileNameExists: function(filename){
 			// return false for filenames like .plot
 			if (filename[0] === ".") return false;
 			// also return false for the Octave namespace files
 			if (filename.substr(0,7) === "octave-") return false;
 
-			return !!ko.utils.arrayFirst(allOctFiles(), function(item){
-				return item.filename() === filename;
-			});
+			return !!viewModel.getOctFileFromName(filename);
 		}
 	};
 	viewModel.showUserInHeader = ko.computed(function(){
@@ -327,7 +340,9 @@ function($, ko, canvg, Base64, download,
 				OctMethods.prompt.disable();
 
 				// Send to server
-				if (!skipsend) OctMethods.socket.command(cmd);
+				if (!skipsend) {
+					OctMethods.socket.command(cmd);
+				}
 			}
 		},
 
@@ -398,7 +413,6 @@ function($, ko, canvg, Base64, download,
 		promptListeners: {
 			command: function(prompt){
 				var cmd = OctMethods.prompt.instance.getValue();
-				OctMethods.socket.notifyCommand(cmd);
 
 				// Check if this command is a front-end command
 				var enrollRegex = /^enroll\s*\(['"](\w+)['"]\).*$/;
@@ -500,11 +514,6 @@ function($, ko, canvg, Base64, download,
 					program: program
 				});
 			},
-			notifyCommand: function(cmd){
-				return OctMethods.socket.emit("ws.command", {
-					data: cmd
-				});
-			},
 			refresh: function(){
 				return OctMethods.socket.emit("refresh", {});
 			},
@@ -585,9 +594,7 @@ function($, ko, canvg, Base64, download,
 			},
 			renamed: function(data){
 				var newname = data.newname, oldname = data.oldname;
-				var octfile = ko.utils.arrayFirst(allOctFiles(), function(item){
-					return item.filename() === oldname;
-				});
+				var octfile = viewModel.getOctFileFromName(oldname);
 				if(!octfile) return;
 
 				// Rename the file throughout the schema
@@ -597,16 +604,12 @@ function($, ko, canvg, Base64, download,
 				OctMethods.editor.fileRevisions[oldname] = null;
 			},
 			deleted: function(data){
-				var octfile = ko.utils.arrayFirst(allOctFiles(), function(item){
-					return item.filename() === data.filename;
-				});
+				var octfile = viewModel.getOctFileFromName(data.filename);
 				if(!octfile) return;
 				OctMethods.editor.remove(octfile);
 			},
 			binary: function(data){
-				var octfile = ko.utils.arrayFirst(allOctFiles(), function(item){
-					return item.filename() === data.filename;
-				});
+				var octfile = viewModel.getOctFileFromName(data.filename);
 				if(!octfile) return;
 
 				// Attempt to download the file
@@ -617,14 +620,14 @@ function($, ko, canvg, Base64, download,
 			user: function(data){
 
 				// Load files
-				OctMethods.editor.reset();
-				$.each(data.files, function(filename, filedata){
-					if(filedata.isText){
-						OctMethods.editor.add(filename, Base64.decode(filedata.content));
-					}else{
-						OctMethods.editor.addNameOnly(filename);
-					}
-				});
+				if (allOctFiles().length === 0)
+					$.each(data.files, function(filename, filedata){
+						if(filedata.isText){
+							OctMethods.editor.add(filename, Base64.decode(filedata.content));
+						}else{
+							OctMethods.editor.addNameOnly(filename);
+						}
+					});
 
 				// One-time methods
 				if (!OctMethods.editor.initialized) {
@@ -648,9 +651,9 @@ function($, ko, canvg, Base64, download,
 			},
 			fileadd: function(data){
 				if(data.isText){
-					var octfile = OctMethods.editor.add(data.filename,
+					var octFile = OctMethods.editor.add(data.filename,
 						Base64.decode(data.content));
-					OctMethods.editor.open(octfile);
+					OctMethods.editor.open(octFile);
 				}else{
 					OctMethods.editor.addNameOnly(data.filename);
 				}

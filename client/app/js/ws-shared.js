@@ -8,6 +8,16 @@ define(["js/client", "js/ot-handler", "js/polyfill"],
 			OctMethods.console.command(cmd, true);
 			OctMethods.prompt.clear();
 		},
+		save: function(data){
+			var octFile = OctMethods.ko.viewModel.getOctFileFromName(data.filename);
+			if (!octFile)
+				OctMethods.editor.add(data.filename, data.content);
+			else
+				octFile.savedContent(data.content);
+		},
+		fileadd: function(data){
+			OctMethods.editor.add(data.filename, Base64.decode(data.content));
+		},
 		promptid: function(promptId){
 			console.log("Prompt ID:", promptId);
 			if (!promptId) return;
@@ -28,8 +38,16 @@ define(["js/client", "js/ot-handler", "js/polyfill"],
 		return documentClients[filename];
 	}
 
+	function forEachDocClient(cb){
+		for (var filename in documentClients) {
+			if (!documentClients.hasOwnProperty(filename)) continue;
+			cb(filename, documentClients[filename]);
+		}
+	}
+
 	return {
 		listeners: socketListeners,
-		clientForFilename: clientForFilename
+		clientForFilename: clientForFilename,
+		forEachDocClient: forEachDocClient
 	};
 });

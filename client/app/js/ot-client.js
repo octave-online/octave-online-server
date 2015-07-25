@@ -19,11 +19,13 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 	}
 
 	OTClientWrapper.prototype.attachEditor = function(editor){
-		if(this.editor){
+		if (this.editor) {
 			this.adapter.detach(); // removes event listeners
 			this.adapter = null;
 			this.editor = null;
 		}
+
+		if (!editor) return;
 
 		this.editor = editor;
 		this.adapter = new Adapter(this.editor);
@@ -33,9 +35,10 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 		this.adapter.addEventListener("blur", this._onFocusBlur.bind(this), false);
 		this.cursor = this.adapter.getCursor();
 
-		if (this.content) {
+		if (this.content && editor.getValue() !== this.content) {
 			var op = new ot.TextOperation();
-			op.insert(content);
+			op["delete"](editor.getValue().length);
+			op.insert(this.content);
 			this.adapter.applyOperation(op);
 		}
 	}
@@ -62,11 +65,8 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 
 	// OT -> ACE
 	OTClientWrapper.prototype._applyOperation = function(operation){
-		if(!this.adapter)
-			throw new Error("Attempted to apply operation, but Ace is not attached");
-
 		console.log("apply", operation);
-		this.adapter.applyOperation(operation);
+		if (this.adapter) this.adapter.applyOperation(operation);
 		this.content = operation.apply(this.content);
 	}
 
@@ -81,6 +81,10 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 	}
 	OTClientWrapper.prototype._onFocusBlur = function(){
 		console.log("focus/blur", arguments);
+	}
+	OTClientWrapper.prototype.setOtherCursor = function(){
+		if (!this.adapter) return;
+		this.adapter.setOtherCursor.apply(this.adapter, arguments);
 	}
 
 	// Begin EventTarget Implementation
