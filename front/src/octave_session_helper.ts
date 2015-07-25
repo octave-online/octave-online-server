@@ -16,7 +16,7 @@ class OctaveSessionHelper extends EventEmitter2.EventEmitter2 {
 		super();
 	}
 
-	public getNewSessCode(sessCodeGuess:string, next:(err:Error, sessCode:string, needsOctave:boolean)=>void){
+	public getNewSessCode(sessCodeGuess:string, next:(err:Error, sessCode:string, state:IRedis.SessionState)=>void){
 		var sessCode = sessCodeGuess;
 
 		// Check for proper sessCode format (possible attack vector)
@@ -25,22 +25,20 @@ class OctaveSessionHelper extends EventEmitter2.EventEmitter2 {
 		if (!sessCode) {
 			// Case 1: No sessCode given
 			this.makeSessCode((err,sessCode)=>{
-				next(err, sessCode, true);
+				next(err, sessCode, IRedis.SessionState.Needed);
 			});
 
 		} else {
-			this.isValid(sessCode, (err, valid)=> {
-				if(err) next(err, null, null);
-
-				if (valid) {
-					// Case 2: Valid sessCode given
-					next(null, sessCode, false);
+			this.isValid(sessCode, (state)=> {
+				if (state === IRedis.SessionState.Needed) {
+					// Case 2: Invalid sessCode given
+					this.makeSessCode((err,sessCode)=>{
+						next(err, sessCode, IRedis.SessionState.Needed);
+					});
 
 				} else {
-					// Case 3: Invalid sessCode given
-					this.makeSessCode((err,sessCode)=>{
-						next(err, sessCode, true);
-					});
+					// Case 3: Valid sessCode given
+					next(null, sessCode, state);
 				}
 			});
 		}
@@ -51,6 +49,7 @@ class OctaveSessionHelper extends EventEmitter2.EventEmitter2 {
 		var multi = infoClient.multi();
 		multi.zadd(IRedis.Chan.needsOctave, time, sessCode);
 		multi.hset(IRedis.Chan.session(sessCode), "user", JSON.stringify(user));
+		multi.hset(IRedis.Chan.session(sessCode), "live", "false");
 		multi.set(IRedis.Chan.input(sessCode), time);
 		multi.set(IRedis.Chan.output(sessCode), time);
 		multi.exec(next);
@@ -86,8 +85,13 @@ class OctaveSessionHelper extends EventEmitter2.EventEmitter2 {
 		});
 	}
 
-	private isValid(sessCode:string, next:(err:Error, valid:boolean)=>void) {
-		infoClient.exists(IRedis.Chan.session(sessCode), next);
+	private isValid(sessCode:string, next:(valid:IRedis.SessionState)=>void) {
+		infoClient.hget(IRedis.Chan.session(sessCode), "live", function(err, valid){
+			if (err) return console.log("REDIS ERROR", err);
+			var state = (valid === null) ? IRedis.SessionState.Needed
+				: ((valid === "false") ? IRedis.SessionState.Loading : IRedis.SessionState.Live);
+			next(state);
+		});
 	}
 }
 

@@ -92,7 +92,7 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 	};
 
 	private otMessageListener = (pattern, channel, message) => {
-		console.log("on ot message", pattern, channel, message);
+		console.log("on ot message", this.id, pattern, channel, message);
 		var obj = IRedis.checkOtMessage(channel, message, this.id);
 		if (!obj) return;
 

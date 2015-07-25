@@ -128,6 +128,7 @@ class SocketHandler implements IDestroyable {
 		if (this.workspace) {
 			this.workspace.on("data", this.onDataW);
 			this.workspace.on("sesscode", this.setSessCode);
+			this.workspace.on("back", this.onDataWtoU);
 			this.workspace.subscribe();
 		}
 
@@ -204,6 +205,10 @@ class SocketHandler implements IDestroyable {
 				break;
 		}
 
+		// Intercept some commands and fork them into the workspace
+		if (name === "data" && this.workspace) this.workspace.dataD(name, data);
+		if (name === "save" && this.workspace) this.workspace.dataD(name, data);
+
 		// Send everything else upstream to the back server
 		this.back.dataD(name, data);
 	};
@@ -227,15 +232,18 @@ class SocketHandler implements IDestroyable {
 		if (this.workspace) this.workspace.beginOctaveRequest();
 	};
 
-	private setSessCode = (sessCode: string, live: boolean): void => {
+	private setSessCode = (sessCode: string): void => {
 		// We have our sessCode.
 		this.log("SessCode", sessCode);
 		this.back.setSessCode(sessCode);
 		this.socket.emit("sesscode", {
 			sessCode: sessCode
 		});
-		if (live) this.socket.emit("prompt", {});
 		if (this.workspace) this.workspace.sessCode = sessCode;
+	};
+
+	private onDataWtoU = (name:string, value:any):void => {
+		this.back.dataD(name, value);
 	};
 
 	//// ENROLLING AND STUDENTS LISTENER FUNCTIONS ////

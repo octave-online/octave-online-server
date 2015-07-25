@@ -38,6 +38,10 @@ module IRedis {
 		data:any
 	}
 
+	// Interface for session states (not strictly related to Redis; this file is
+	// just a convenient place to put it)
+	export enum SessionState { Needed, Loading, Live }
+
 	// Function to create a new Redis connection
 	export function createClient():Client{
 		console.log("Connecting to", Config.redis.hostname);
@@ -79,9 +83,6 @@ module IRedis {
 		},
 		wsSub: function(wsId: string): string {
 			return "oo:workspace:" + wsId + ":sub";
-		},
-		wsCnt: function(wsId: string): string {
-			return "oo:workspace:" + wsId + ":cnt";
 		}
 	};
 

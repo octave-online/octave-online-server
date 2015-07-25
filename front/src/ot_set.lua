@@ -24,7 +24,7 @@ else
 	-- Document exists but needs to be updated to the desired value.
 	-- TODO: This is the most naive operation to transform the old document into
 	-- the new one.  Change this to something more clever.
-	message.ops = {-string.len(doc), content}
+	message.ops = {-string.len(old_content), content}
 end
 
 -- Update Redis

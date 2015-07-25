@@ -32,7 +32,7 @@ implements IWorkspace {
 	private userId:string = null;
 	private user:IUser = null;
 	private docs:any = {};
-	private cmdIds:string[] = [];
+	private msgIds:string[] = [];
 
 	constructor(type:string, info:any) {
 		super();
@@ -52,8 +52,14 @@ implements IWorkspace {
 	}
 
 	private setWsId(wsId:string) {
+		if (this.wsId) {
+			if (this.wsId !== wsId)
+				console.log("SHARED WORKSPACE ERROR: Trying to set wsId to",
+					wsId, "when it was already set to", this.wsId);
+			return;
+		}
+
 		this.wsId = wsId;
-		wsPushClient.incr(IRedis.Chan.wsCnt(this.wsId));
 
 		// Create the prompt's OtDocument (every session)
 		// Never emit from constructors since there are no listeners yet;
@@ -74,17 +80,9 @@ implements IWorkspace {
 
 	public destroyD(message:string){
 		this.destroyed = true;
-		var sessCode = this.sessCode;
 
-		wsPushClient.decr(IRedis.Chan.wsCnt(this.wsId),
-			function(cnt){
-
-			// Tell the Octave session to destroy only if we were
-			// the last client connected to this workspace
-			if (!cnt) {
-				OctaveHelper.sendDestroyD(sessCode, message);
-			}
-		});
+		// The Octave session will be destroyed by expiring keys once all
+		// users have disconnected.  There is no need to destroy it here.
 	}
 
 	public destroyU(message:string){
@@ -94,46 +92,79 @@ implements IWorkspace {
 		if (!name) name = "";
 		if (!value) value = {};
 
+		console.log("Resolving dataD", name, value);
+
 		// Pass OT events down to the OT instances
 		if (name.substr(0,3) === "ot.") {
 			this.forEachDoc(function(docId,doc){ doc.dataD(name, value) });
+			return;
 		}
 
-		// Handle other events here
-		switch(name){
-			case "ws.command":
-				this.onCommand(value.data);
-
-			default:
-				break;
+		// A few special handlers
+		if (name === "save") {
+			this.resolveFileSave(value, true);
 		}
+
+		// Pass other events into the onUserAction handler
+		this.onUserAction("ds:" + name, value);
 	}
 
 	public dataU(name:string, value:any) {
 		if (!name) name = "";
 		if (!value) value = {};
 
-		if (name === "user") {
-			var files = value.files || {};
-			for(var filename in files){
-				if (!files.hasOwnProperty(filename)) continue;
-				var file = files[filename];
-				if (!file.isText) continue;
-				var hash = Crypto.createHash("md5").update(filename).digest("hex");
-				var docId = "doc." + this.wsId + "." + hash;
-				var content = new Buffer(file.content, "base64").toString();
+		console.log("Resolving dataU", name, value);
 
-				if (!this.docs[docId]) {
-					this.emit("data", "ws.doc", {
-						docId: docId,
-						filename: filename
-					});
-					this.docs[docId] = new OtDocument(docId);
-					this.subscribe();
-				}
-				this.docs[docId].setContent(content);
-			}
+		// A few special handlers
+		if (name === "user") {
+			this.resolveFileList(value.files);
+		} else if (name === "fileadd") {
+			this.resolveFileAdd(value, true);
 		}
+
+		// Pass other events into the onUserAction handler
+		this.onUserAction("us:" + name, value);
+	}
+
+	private resolveFileList(files:any){
+		var files = files || {};
+		for(var filename in files){
+			if (!files.hasOwnProperty(filename)) continue;
+			var file = files[filename];
+			if (!file.isText) continue;
+			var content = new Buffer(file.content, "base64").toString();
+			this.resolveFile(filename, content, true);
+		}
+	}
+
+	private resolveFileAdd(file:any, updateRedis:boolean){
+		if (!file.isText) return;
+
+		var content = new Buffer(file.content, "base64").toString();
+		this.resolveFile(file.filename, content, updateRedis);
+	}
+
+	private resolveFileSave(file:any, updateRedis:boolean){
+		this.resolveFile(file.filename, file.content, updateRedis);
+	}
+
+	private resolveFile(filename:string, content:string,
+			updateRedis:boolean) {
+		var hash = Crypto.createHash("md5").update(filename).digest("hex");
+		var docId = "doc." + this.wsId + "." + hash;
+
+		console.log("Resolving file", filename, docId, updateRedis);
+
+		if (!this.docs[docId]) {
+			this.emit("data", "ws.doc", {
+				docId: docId,
+				filename: filename
+			});
+			this.docs[docId] = new OtDocument(docId);
+			this.subscribe();
+		}
+
+		if (updateRedis) this.docs[docId].setContent(content);
 	}
 
 	public beginOctaveRequest() {
@@ -165,21 +196,28 @@ implements IWorkspace {
 				// Make sure that sessCode is still live.
 				OctaveHelper.getNewSessCode(sessCode, next);
 			},
-			(sessCode: string, needsOctave: boolean, next) => {
+			(sessCode:string, state:IRedis.SessionState, next) => {
 				if (this.destroyed) return;
+				console.log("SessCode State:", state);
 
 				// Ask Octave for a session if we need one.
-				if (needsOctave) {
+				if (state === IRedis.SessionState.Needed) {
 					// Perform a Compare-And-Swap operation (this is oddly not
 					// in core Redis, so a Lua script is required)
 					var casScript = 'local k=redis.call("GET",KEYS[1]); print(k); if k==false or k==ARGV[2] then redis.call("SET",KEYS[1],ARGV[1]); return {true,ARGV[1]}; end; return {false,k};';
 					wsPushClient.eval(casScript, 1, IRedis.Chan.wsSess(this.wsId),
 						sessCode, this.sessCode, next);
 
-				}
-				else
-					this.emit("sesscode", sessCode, true);
+				// Request a file refresh if we need one
+				} else if (state === IRedis.SessionState.Live) {
+					this.emit("sesscode", sessCode);
+					this.emit("data", "prompt", {});
+					this.emit("back", "refresh", {});
 
+				// No action necessary
+				} else {
+					this.emit("sesscode", sessCode);
+				}
 			},
 			([saved, sessCode], next) => {
 				if (!saved) return;
@@ -234,13 +272,26 @@ implements IWorkspace {
 
 		switch(obj.type){
 			case "sesscode":
-				this.emit("sesscode", obj.data, false);
+				this.emit("sesscode", obj.data);
 				break;
 
-			case "command":
-				var i = this.cmdIds.indexOf(obj.data.id);
-				if (i > -1) this.cmdIds.splice(i, 1);
-				else this.emit("data", "ws.command", obj.data.cmd);
+			case "user-action":
+				var i = this.msgIds.indexOf(obj.data.id);
+				if (i > -1) this.msgIds.splice(i, 1);
+				else {
+					this.emit("data", obj.data.name, obj.data.data);
+
+					// Special handlers for a few user actions
+					switch(obj.data.name){
+						case "ws.fileadd":
+							this.resolveFileAdd(obj.data.data, false);
+							break;
+
+						case "ws.save":
+							this.resolveFileSave(obj.data.data, false);
+							break;
+					}
+				}
 				break;
 
 			default:
@@ -248,15 +299,41 @@ implements IWorkspace {
 		}
 	};
 
-	private onCommand = (cmd) => {
-		var cmdId = Uuid.v4();
-		this.cmdIds.push(cmdId);
+	// This function publishes selected actions into the Redis channel.
+	// Clients on the same channel will resolve those messages in their
+	// "wsMessageListener" function.
+	private onUserAction = (name, value) => {
+		var eventName, data;
+
+		switch(name){
+			case "ds:data":
+				eventName = "ws.command";
+				data = value.data;
+				break;
+
+			case "ds:save":
+				eventName = "ws.save";
+				data = value;
+				break;
+
+			case "us:fileadd":
+				eventName = "ws.fileadd";
+				data = value;
+				break;
+
+			default:
+				return;
+		}
+
+		var msgId = Uuid.v4();
+		this.msgIds.push(msgId);
 
 		wsPushClient.publish(IRedis.Chan.wsSub(this.wsId), JSON.stringify({
-			type: "command",
+			type: "user-action",
 			data: {
-				id: cmdId,
-				cmd: cmd
+				id: msgId,
+				name: eventName,
+				data: data
 			}
 		}));
 	};

@@ -9,6 +9,7 @@ import EventEmitter2 = require("eventemitter2");
 import Config = require("./config");
 import OctaveHelper = require("./octave_session_helper");
 import Async = require("async");
+import IRedis = require("./typedefs/iredis");
 
 class NormalWorkspace
 extends EventEmitter2.EventEmitter2
@@ -36,9 +37,9 @@ implements IWorkspace, IDestroyable {
 				// Check with Redis about the status of the desired sessCode
 				OctaveHelper.getNewSessCode(this.sessCode, next);
 			},
-			(sessCode:string, needsOctave:boolean, next) => {
+			(sessCode:string, state:IRedis.SessionState, next) => {
 				if (this.destroyed) {
-					if (!needsOctave)
+					if (state !== IRedis.SessionState.Needed)
 						OctaveHelper.sendDestroyD(sessCode, "Client Gone 1");
 					return;
 				}
@@ -47,10 +48,10 @@ implements IWorkspace, IDestroyable {
 
 				// Ask for an Octave session if we need one.
 				// Otherwise, inform the client.
-				if (needsOctave)
+				if (state === IRedis.SessionState.Needed)
 					OctaveHelper.askForOctave(sessCode, this.user, next);
 				else
-					this.emit("sesscode", sessCode, !needsOctave);
+					this.emit("sesscode", sessCode);
 			},
 			(next) => {
 				if (this.destroyed) {
@@ -58,7 +59,7 @@ implements IWorkspace, IDestroyable {
 					return;
 				}
 
-				this.emit("sesscode", this.sessCode, false);
+				this.emit("sesscode", this.sessCode);
 			}
 		], (err) => {
 			if (err) console.log("REDIS ERROR", err);
