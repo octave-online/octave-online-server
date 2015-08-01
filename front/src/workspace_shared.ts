@@ -167,12 +167,14 @@ implements IWorkspace {
 		console.log("Resolving file", filename, docId, updateRedis);
 
 		if (!this.docs[docId]) {
-			this.emit("data", "ws.doc", {
-				docId: docId,
-				filename: filename
-			});
 			this.docs[docId] = new OtDocument(docId);
 			this.subscribe();
+			process.nextTick(function(){
+				this.emit("data", "ws.doc", {
+					docId: docId,
+					filename: filename
+				});
+			}.bind(this));
 		}
 
 		if (updateRedis) this.docs[docId].setContent(content);
@@ -254,7 +256,7 @@ implements IWorkspace {
 				} else if (state === IRedis.SessionState.Live) {
 					this.emit("sesscode", sessCode);
 					this.emit("data", "prompt", {});
-					this.emit("back", "refresh", {});
+					this.emit("back", "list", {});
 
 				// No action necessary
 				} else {
