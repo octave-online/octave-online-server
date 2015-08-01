@@ -73,6 +73,9 @@ class SocketHandler implements IDestroyable {
 
 				self.user = user;
 
+				// Fork to load instructor data
+				this.loadInstructor();
+
 				// Process the user's requested action
 				var action = init && init.action;
 				var info = init && (init.sessCode || init.info); // backwards compat.
@@ -237,6 +240,21 @@ class SocketHandler implements IDestroyable {
 	};
 
 	//// OTHER UTILITY FUNCTIONS ////
+
+	private loadInstructor = ():void => {
+		if (!this.user || !this.user.instructor || !this.user.instructor.length)
+			return;
+
+		var programs = this.user.instructor;
+		programs.forEach((program:string) => {
+			User.find({ program: program }, (err,users) => {
+				this.socket.emit("instructor", {
+					program: program,
+					users: users
+				})
+			});
+		});
+	}
 
 	private onOoReconnect = ():void => {
 		if (this.workspace) this.workspace.beginOctaveRequest();
