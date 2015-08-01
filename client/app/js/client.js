@@ -110,6 +110,7 @@ function($, ko, canvg, Base64, download,
 		plots: plotHistory,
 		currentPlotIdx: currentPlotIdx,
 		inlinePlots: ko.observable(true),
+		instructorPrograms: ko.observableArray(),
 
 		// More for plots
 		currentPlot: ko.computed(function(){
@@ -684,6 +685,13 @@ function($, ko, canvg, Base64, download,
 			},
 			reload: function(){
 				window.location.reload();
+			},
+			instructor: function(data){
+				data.users.forEach(function(user){
+					user.shareUrl = window.location.origin + window.location.pathname
+						+ "?s=" + user.share_key;
+				});
+				viewModel.instructorPrograms.push(data);
 			},
 			init: function(){
 				// Regular session or shared session?

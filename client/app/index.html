@@ -276,6 +276,14 @@
 					<!-- /ko -->
 				</div>
 			<!-- /ko -->
+			<!-- ko foreach: instructorPrograms -->
+				<div class="instructor-programs">
+					<strong>Students Enrolled in <span data-bind="text: program"></span>:</strong>
+					<ul data-bind="foreach: users">
+						<li><a data-bind="attr: { href: shareUrl }, text: displayName" target="_blank"></a></li>
+					</ul>
+				</div>
+			<!-- /ko -->
 			<div id="show-plots-inline-item">
 				<label>
 					<input type="checkbox" data-bind="checked: inlinePlots" />
