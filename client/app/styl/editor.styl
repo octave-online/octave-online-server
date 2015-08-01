@@ -133,11 +133,11 @@ top-right-control() {
 	}
 	
 	#editor {
-		position: absolute;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		border-top: 2px solid color3;
+		position: absolute
+		left: 0
+		right: 0
+		bottom: 0
+		border-top: 2px solid color3
 		
 		&.taller {
 			top: toolbar_height
@@ -148,10 +148,23 @@ top-right-control() {
 	}
 	
 	.editor_nofile {
-		box-sizing: border-box
-		absolute-full-size()
+		position: absolute
+		left: 0
+		right: 0
+		bottom: 0
+		border-top: 2px solid color3
 		overflow: auto
 		padding: 5px
+		
+		&.fullheight {
+			top: 0
+		}
+		&.taller {
+			top: toolbar_height
+		}
+		&.shorter {
+			top: toolbar_height*2
+		}
 
 		h2{
 			margin: 0

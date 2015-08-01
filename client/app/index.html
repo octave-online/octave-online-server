@@ -86,6 +86,7 @@
 		<h1>
 			<svg width="32" height="32">
 				<image xlink:href="images/logo-32-fire.svg" src="images/logo-32-fire.png" width="32" height="32" class="oo-icon" data-theme="fire" />
+				<image xlink:href="images/logo-32-fire.svg" src="images/logo-32-fire.png" width="32" height="32" class="oo-icon" data-theme="ice" aria-hidden="true" />
 				<image xlink:href="images/logo-32-lava.svg" src="images/logo-32-lava.png" width="32" height="32" class="oo-icon" data-theme="lava" aria-hidden="true" />
 			</svg>
 			Octave Online
@@ -140,7 +141,7 @@
 					<div id="editor" data-bind="ace: { text: content, skin: $root.selectedSkin, octfile: $data }, css: { taller: !buttonsShown(), shorter: buttonsShown() }"></div>
 				<!-- /ko -->
 				<!-- ko ifnot: editable -->
-					<div class="editor_nofile">
+					<div class="editor_nofile" data-bind="css: { taller: !buttonsShown(), shorter: buttonsShown() }">
 						<h2>
 							Octave Online Interactive Editor
 						</h2>
@@ -153,7 +154,7 @@
 				<!-- /ko -->
 			<!-- /ko -->
 			<!-- ko ifnot: openFile -->
-				<div class="editor_nofile">
+				<div class="editor_nofile fullheight">
 					<h2>
 						Tips and Tricks
 					</h2>

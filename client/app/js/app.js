@@ -27,7 +27,7 @@ define(
 		socket.on("saved", OctMethods.socketListeners.saved);
 		socket.on("renamed", OctMethods.socketListeners.renamed);
 		socket.on("deleted", OctMethods.socketListeners.deleted);
-		socket.on("binary", OctMethods.socketListeners.binary);
+		socket.on("binary", OctMethods.socketListeners.binary); // TODO: Stop this event from operating on everyone in a shared workspace
 		socket.on("user", OctMethods.socketListeners.user);
 		socket.on("fileadd", OctMethods.socketListeners.fileadd);
 		socket.on("plotd", OctMethods.socketListeners.plotd);
