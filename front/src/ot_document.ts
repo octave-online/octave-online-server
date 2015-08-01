@@ -84,6 +84,18 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 		});
 	}
 
+	public destroy() {
+		// Same note as above about (many clients performing this simultaneously)
+		var multi = otOperationClient.multi();
+		multi.del(IRedis.Chan.otOps(this.id));
+		multi.del(IRedis.Chan.otDoc(this.id));
+		multi.del(IRedis.Chan.otSub(this.id));
+		multi.del(IRedis.Chan.otCnt(this.id));
+		multi.exec((err) => {
+			if (err) console.log("Redis error in changeDocId", err);
+		});
+	}
+
 	private load() {
 		var multi = otOperationClient.multi();
 		multi.get(IRedis.Chan.otCnt(this.id));

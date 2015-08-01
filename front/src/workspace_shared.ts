@@ -134,6 +134,10 @@ implements IWorkspace {
 		} else if (name === "renamed") {
 			// happens when a file is successfully renamed
 			this.resolveFileRename(value.oldname, value.newname);
+
+		} else if (name === "deleted") {
+			// happens when a file is deleted
+			this.resolveFileDelete(value.filename);
 		}
 	}
 
@@ -208,6 +212,25 @@ implements IWorkspace {
 			newname: newname,
 			oldDocId: oldDocId,
 			newDocId: newDocId
+		});
+	}
+
+	private resolveFileDelete(filename:string) {
+		var hash = Crypto.createHash("md5").update(filename).digest("hex");
+		var docId = "doc." + this.wsId + "." + hash;
+
+		if (!this.docs[docId]) {
+			console.log("WARNING: Attempted to resolve file delete, but couldn't find file in shared workspace:", filename, docId);
+			return;
+		}
+
+		var doc = this.docs[docId];
+		delete this.docs[docId];
+		doc.destroy();
+
+		this.emit("data", "ws.delete", {
+			filename: filename,
+			docId: docId
 		});
 	}
 
