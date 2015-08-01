@@ -23,6 +23,7 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 			this.adapter.detach(); // removes event listeners
 			this.adapter = null;
 			this.editor = null;
+			this.cursor = {};
 		}
 
 		if (!editor) return;
@@ -41,6 +42,10 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 			op.insert(this.content);
 			this.adapter.applyOperation(op);
 		}
+	}
+
+	OTClientWrapper.prototype.changeDocId = function(newDocId){
+		this.id = newDocId;
 	}
 
 	// SERVER -> OT

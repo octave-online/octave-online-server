@@ -2,8 +2,8 @@ define(
 	["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
 		"splittr", "SocketIOFileUpload", "js/anal", "js/onboarding",
 		"js/ot-handler", "js/ws-shared",
-		"js/utils", "jquery.purl", "knockout-ace", "ko-flash", "ace/mode/octave",
-		"ace/ext/language_tools"],
+		"js/utils", "jquery.purl", "ko-flash", "ace/mode/octave",
+		"ace/ext/language_tools", "js/ko-ace"],
 
 	function (ko, io, OctMethods, ace, $, isMobile,
 	          splittr, SocketIOFileUpload, anal, onboarding,
@@ -44,9 +44,9 @@ define(
 		socket.on("ot.cursor", OtHandler.listeners.cursor);
 		socket.on("ws.command", WsShared.listeners.command);
 		socket.on("ws.save", WsShared.listeners.save);
-		socket.on("ws.fileadd", WsShared.listeners.fileadd);
 		socket.on("ws.promptid", WsShared.listeners.promptid);
 		socket.on("ws.doc", WsShared.listeners.doc);
+		socket.on("ws.rename", WsShared.listeners.renamed);
 		OctMethods.socket.instance = socket;
 
 		// Autocompletion with filenames:
@@ -207,17 +207,13 @@ define(
 			});
 		});
 
-		// Other GUI Initialization
-		OctMethods.prompt.disable();
-		var updateTheme = function (newValue) {
+		// Theme bindings
+		function updateTheme(newValue) {
 			$("#theme").attr("href", newValue.cssURL);
 			$("body").attr("data-sanscons-color", newValue.iconColor);
 			$("[data-theme]").hideSafe();
 			$("[data-theme='"+newValue.name+"']").showSafe();
 			OctMethods.prompt.instance.setTheme(newValue.aceTheme);
-			if (OctMethods.editor.instance) {
-				OctMethods.editor.instance.setTheme(newValue.aceTheme);
-			}
 		};
 		updateTheme(viewModel.selectedSkin());
 		viewModel.selectedSkin.subscribe(updateTheme);
@@ -230,6 +226,9 @@ define(
 			OctMethods.prompt.focus();
 			anal.sitecontrol("theme");
 		});
+
+		// Other GUI Initialization
+		OctMethods.prompt.disable();
 		$("#twitter-follow-holder").click(function () {
 			anal.sitecontrol("twitter");
 		});

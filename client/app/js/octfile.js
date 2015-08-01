@@ -1,4 +1,4 @@
-define(["knockout", "require"], function(ko, require){
+define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 
 	var OctMethods = require("js/client");
 
@@ -11,7 +11,7 @@ define(["knockout", "require"], function(ko, require){
 		// Main Bindings
 		self.filename = ko.observable(filename);
 		self.content = ko.observable(content);
-		this.editable = editable;
+		self.editable = editable;
 
 		// Identifier: needs to be URL hash safe
 		self.identifier = ko.computed(function(){
@@ -104,10 +104,14 @@ define(["knockout", "require"], function(ko, require){
 		self.isModified = ko.computed(function(){
 			return self.content() !== self.savedContent();
 		});
-		self.buttonsShown = ko.observable(!this.editable);
+		self.buttonsShown = ko.observable(!self.editable);
 		self.buttonsShown.subscribe(function(){
 			ko.aceEditors.resizeAll();
 		});
+
+		self.getOtClient = function(){
+			return WsShared.clientForFilename(self.filename());
+		};
 
 		// toString method
 		self.toString = function(){

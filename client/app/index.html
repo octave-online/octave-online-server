@@ -118,7 +118,7 @@
 			</div>
 		</div>
 		<div id="open_container" aria-hidden="true">
-			<!-- ko if: openFile --><!-- ko with: openFile -->
+			<!-- ko with: openFile -->
 				<div id="editor_toolbar" class="theme-header">
 					<span id="editor_hamburger" data-bind="click: buttonsShown.toggle()" title="Show Toolbar"></span>
 					<span id="editor_filename" data-bind="text: filename, css: { 'modified': isModified }"></span>
@@ -135,10 +135,11 @@
 						<span id="editor_save" title="Save File" data-bind="click: save"></span>
 					<!-- /ko -->
 				</div>
-				<!-- ko template: { if: editable, afterRender: $root.editorRendered } -->
-					<div id="editor" data-bind="ace: content, aceOptions: { theme: $root.selectedSkin().rawAceTheme, mode: 'octave' }, css: { taller: !buttonsShown(), shorter: buttonsShown() }"></div>
+
+				<!-- ko if: editable -->
+					<div id="editor" data-bind="ace: { text: content, skin: $root.selectedSkin, octfile: $data }, css: { taller: !buttonsShown(), shorter: buttonsShown() }"></div>
 				<!-- /ko -->
-				<!-- ko template: { ifnot: editable, afterRender: $root.editorUnRendered } -->
+				<!-- ko ifnot: editable -->
 					<div class="editor_nofile">
 						<h2>
 							Octave Online Interactive Editor
@@ -150,8 +151,8 @@
 						</p>
 					</div>
 				<!-- /ko -->
-			<!-- /ko --><!-- /ko -->
-			<!-- ko template: { ifnot: openFile, afterRender: $root.editorUnRendered } -->
+			<!-- /ko -->
+			<!-- ko ifnot: openFile -->
 				<div class="editor_nofile">
 					<h2>
 						Tips and Tricks

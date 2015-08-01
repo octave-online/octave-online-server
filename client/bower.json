@@ -10,7 +10,6 @@
     "purl": "latest",
     "canvg": "latest",
     "ace-builds": "latest",
-    "knockout-ace": "https://github.com/vote539/knockout-ace.git",
     "splittr": "latest",
     "canvas-toBlob.js": "latest",
     "blob": "latest",

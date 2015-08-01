@@ -5,7 +5,7 @@ define(
 		"js/anal", "base64-toblob", "ismobile", "exports", "js/octfile",
 		"js/vars", "ko-takeArray", "require", "js/onboarding", "js/ws-shared",
 		"blob", "jquery.md5", "jquery.purl", "ace/theme/crimson_editor",
-		"ace/theme/merbivore_soft", "knockout-ace"],
+		"ace/theme/merbivore_soft", "js/ko-ace"],
 function($, ko, canvg, Base64, download,
          anal, b64ToBlob, isMobile, exports, OctFile,
          Var, koTakeArray, require, onboarding, WsShared){
@@ -153,33 +153,6 @@ function($, ko, canvg, Base64, download,
 		currentUser: ko.observable(),
 		doLogout: function(){
 			require(["js/login"], function(L){ L.logout(); });
-		},
-
-		editorRendered: function(){
-			var editor = ko.aceEditors.get("editor");
-			editor.setTheme(viewModel.selectedSkin().aceTheme);
-			editor.commands.addCommand({
-				name: 'save',
-				bindKey: { mac: 'Command-S', win: 'Ctrl-S' },
-				exec: OctMethods.editorListeners.save,
-				readOnly: false
-			});
-			editor.setOptions({ enableBasicAutocompletion: true });
-			OctMethods.editor.instance = editor;
-			editor.focus();
-
-			// Attach OT to the editor instance
-			var filename = viewModel.openFile().filename();
-			var otClient = WsShared.clientForFilename(filename);
-			otClient.attachEditor(editor);
-		},
-		editorUnRendered: function(){
-			OctMethods.editor.instance = null;
-
-			// Detach OT from the editor instance
-			WsShared.forEachDocClient(function(filename, otClient){
-				otClient.attachEditor(null);
-			});
 		},
 
 		getOctFileFromName: function(filename){
@@ -584,7 +557,7 @@ function($, ko, canvg, Base64, download,
 			saved: function(data){
 			},
 			renamed: function(data){
-				var newname = data.newname, oldname = data.oldname;
+				var oldname = data.oldname, newname = data.newname;
 				var octfile = viewModel.getOctFileFromName(oldname);
 				if(!octfile) return;
 
@@ -889,9 +862,6 @@ function($, ko, canvg, Base64, download,
 				if(viewModel.openFile()){
 					OctMethods.editor.run(viewModel.openFile());
 				}
-			},
-			save: function(e){
-				viewModel.openFile().save();
 			}
 		},
 

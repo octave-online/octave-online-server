@@ -11,7 +11,6 @@ require.config({
     // Vendor Libraries
     "canvg": "vendor/canvg/dist/canvg.bundle",
     "knockout": "vendor/knockoutjs/dist/knockout.debug",
-    "knockout-ace": "vendor/knockout-ace/knockout-ace",
     "ace-core": "vendor/ace-builds/src/ace",
     "splittr": "vendor/splittr/splittr",
     "filesaver": "vendor/FileSaver/FileSaver",

@@ -15,9 +15,6 @@ define(["js/client", "js/ot-handler", "js/polyfill"],
 			else
 				octFile.savedContent(data.content);
 		},
-		fileadd: function(data){
-			OctMethods.editor.add(data.filename, Base64.decode(data.content));
-		},
 		promptid: function(promptId){
 			console.log("Prompt ID:", promptId);
 			if (!promptId) return;
@@ -31,6 +28,19 @@ define(["js/client", "js/ot-handler", "js/polyfill"],
 
 			var otClient = OtHandler.create(obj.docId);
 			documentClients[obj.filename] = otClient;
+		},
+		renamed: function(obj){
+			var oldname = obj.oldname, newname = obj.newname;
+			var oldDocId = obj.oldDocId, newDocId = obj.newDocId;
+
+			if (!documentClients[oldname]) return;
+			if (documentClients[newname]) return;
+
+			var otClient = documentClients[oldname];
+			delete documentClients[oldname];
+			documentClients[newname] = otClient;
+
+			otClient.changeDocId(newDocId);
 		}
 	};
 
