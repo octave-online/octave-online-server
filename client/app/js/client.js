@@ -582,15 +582,6 @@ function($, ko, canvg, Base64, download,
 				OctMethods.load.callback();
 			},
 			saved: function(data){
-				var revs = OctMethods.editor.fileRevisions[data.filename];
-				var i = revs.length-1;
-				for(; i>=0; i--){
-					var rev = revs[i];
-					if(rev.md5 == data.md5){
-						window.status = data.filename+" saved";
-						return;
-					}
-				}
 			},
 			renamed: function(data){
 				var newname = data.newname, oldname = data.oldname;
@@ -599,9 +590,6 @@ function($, ko, canvg, Base64, download,
 
 				// Rename the file throughout the schema
 				octfile.filename(data.newname);
-				var oldRevisions = OctMethods.editor.fileRevisions[oldname];
-				OctMethods.editor.fileRevisions[newname] = oldRevisions;
-				OctMethods.editor.fileRevisions[oldname] = null;
 			},
 			deleted: function(data){
 				var octfile = viewModel.getOctFileFromName(data.filename);
@@ -742,7 +730,6 @@ function($, ko, canvg, Base64, download,
 		// Editor Methods
 		editor: {
 			instance: null,
-			fileRevisions: [],
 			defaultFilename: "my_script.m",
 			defaultContent: 'disp("Hello World");\n',
 			running: false,
@@ -750,10 +737,6 @@ function($, ko, canvg, Base64, download,
 			save: function(octfile){
 				if(OctMethods.socket.save(octfile)){
 					var md5hash = $.md5(octfile.content);
-					OctMethods.editor.fileRevisions[octfile.filename()].push({
-						md5: md5hash,
-						timestamp: new Date()
-					});
 					return true;
 				} else return false;
 			},
@@ -761,14 +744,12 @@ function($, ko, canvg, Base64, download,
 				var octfile = new OctFile(filename, content, true);
 				allOctFiles.push(octfile);
 				allOctFiles.sort(OctFile.sorter);
-				OctMethods.editor.fileRevisions[filename] = [];
 				return octfile;
 			},
 			addNameOnly: function(filename){
 				var octfile = new OctFile(filename, "", false);
 				allOctFiles.push(octfile);
 				allOctFiles.sort(OctFile.sorter);
-				OctMethods.editor.fileRevisions[filename] = [];
 				return octfile;
 			},
 			create: function(filename){
@@ -784,7 +765,6 @@ function($, ko, canvg, Base64, download,
 					filename,
 					OctMethods.editor.defaultContent);
 				OctMethods.editor.save(octfile);
-				OctMethods.editor.fileRevisions[filename] = [];
 				return octfile;
 			},
 			remove: function(octfile){
