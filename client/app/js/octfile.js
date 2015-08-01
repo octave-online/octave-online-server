@@ -76,9 +76,7 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 		};
 		self.deleteit = function(){
 			if(confirm("You are about to PERMANENTLY DELETE "+self.filename())){
-				if(OctMethods.editor.deleteit(self)){
-					OctMethods.editor.close(self);
-				}else{
+				if(!OctMethods.editor.deleteit(self)){
 					alert("Can't delete file. Did you disconnect from " +
 					"Octave Online?");
 				}
@@ -106,7 +104,15 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 		});
 		self.buttonsShown = ko.observable(!self.editable);
 		self.buttonsShown.subscribe(function(){
-			ko.aceEditors.resizeAll();
+			// Fire the "resize" event here so that the Ace editor redraws itself.
+			// This is probably not the most efficient way to achieve that end goal.
+			// Do it in a setTimeout so that the other buttonsShown callbacks finish
+			// first.
+			setTimeout(function(){
+				var evt = document.createEvent("UIEvents");
+				evt.initUIEvent("resize", true, false, window, 0);
+				window.dispatchEvent(evt);
+			}, 0);
 		});
 
 		self.getOtClient = function(){

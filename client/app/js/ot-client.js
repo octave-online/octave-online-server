@@ -24,7 +24,7 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 	}
 
 	OTClientWrapper.prototype.applyContent = function(){
-		if (!this.content || this.adapter) return;
+		if (!this.content || !this.adapter) return;
 		var currentContent = this.adapter.getValue();
 		if (currentContent === this.content) return;
 
@@ -77,9 +77,16 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 		this.id = newDocId;
 	}
 
+	OTClientWrapper.prototype.destroy = function(){
+		this.attachEditor(null);
+		delete this.adapter;
+		delete this.observable;
+		this.callbacks = {};
+	}
+
 	// SERVER -> OT
 	OTClientWrapper.prototype.applyServer = function(operation){
-		this.otClient.applyServer(operation);
+		if (this.otClient) this.otClient.applyServer(operation);
 	}
 	OTClientWrapper.prototype.serverAck = function(){
 		this.otClient.serverAck();

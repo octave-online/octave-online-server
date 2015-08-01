@@ -567,6 +567,9 @@ function($, ko, canvg, Base64, download,
 			deleted: function(data){
 				var octfile = viewModel.getOctFileFromName(data.filename);
 				if(!octfile) return;
+				if (viewModel.openFile() === octfile) {
+					OctMethods.editor.close();
+				}
 				OctMethods.editor.remove(octfile);
 			},
 			binary: function(data){

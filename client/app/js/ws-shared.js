@@ -42,6 +42,16 @@ define(["js/client", "js/ot-handler", "js/polyfill"],
 			documentClients[newname] = otClient;
 
 			otClient.changeDocId(newDocId);
+		},
+		deleted: function(obj){
+			var filename = obj.filename, docId = obj.docId;
+			if (!documentClients[filename]) return;
+
+			var otClient = documentClients[filename];
+			delete documentClients[filename];
+			otClient.destroy();
+
+			OtHandler.destroy(docId);
 		}
 	};
 

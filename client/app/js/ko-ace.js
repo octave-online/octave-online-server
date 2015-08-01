@@ -1,7 +1,5 @@
 define(["knockout", "ace/ace"], function(ko, ace){
 
-	var editorStore = {};
-
 	ko.bindingHandlers.ace = {
 		init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
 			var obj = ko.utils.unwrapObservable(valueAccessor());

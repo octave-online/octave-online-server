@@ -47,6 +47,7 @@ define(
 		socket.on("ws.promptid", WsShared.listeners.promptid);
 		socket.on("ws.doc", WsShared.listeners.doc);
 		socket.on("ws.rename", WsShared.listeners.renamed);
+		socket.on("ws.delete", WsShared.listeners.deleted);
 		OctMethods.socket.instance = socket;
 
 		// Autocompletion with filenames:

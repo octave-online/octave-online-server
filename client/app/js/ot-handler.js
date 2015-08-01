@@ -70,8 +70,18 @@ define(["js/client", "js/ot-client", "ot", "js/polyfill"],
 		return otClient;
 	};
 
+	function destroy(docId) {
+		for (var i = clients.length - 1; i >= 0; i--) {
+			if (clients[i].id === docId) {
+				clients.splice(i, 1);
+				return;
+			}
+		}
+	};
+
 	return {
 		create: create,
+		destroy: destroy,
 		listeners: socketListeners,
 		_clients: clients
 	};
