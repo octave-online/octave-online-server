@@ -38,6 +38,7 @@ define(
 		socket.on("init", OctMethods.socketListeners.init);
 		socket.on("destroy-u", OctMethods.socketListeners.destroyu);
 		socket.on("disconnect", OctMethods.socketListeners.disconnect);
+		socket.on("reload", OctMethods.socketListeners.reload);
 		socket.on("ot.doc", OtHandler.listeners.doc);
 		socket.on("ot.broadcast", OtHandler.listeners.broadcast);
 		socket.on("ot.ack", OtHandler.listeners.ack);

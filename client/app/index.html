@@ -249,21 +249,32 @@
 		</div>
 		<div id="main_menu" aria-hidden="true">
 			<!-- ko ifnot: currentUser -->
-			<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
-				<image xlink:href="images/sign-in-with-persona.svg" src="images/sign-in-with-persona.png" width="200" height="40" alt="Sign in with Email" />
-			</svg>
-			<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
-				<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="Sign in with Google" />
-			</svg>
-			<p class="login_bottom">
-				Signed in before but need to change your email address?  Click "Feedback" and create a ticket.  We will change it for you.
-			</p>
+				<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
+					<image xlink:href="images/sign-in-with-persona.svg" src="images/sign-in-with-persona.png" width="200" height="40" alt="Sign in with Email" />
+				</svg>
+				<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
+					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="Sign in with Google" />
+				</svg>
+				<p class="login_bottom">
+					Signed in before but need to change your email address?  Click "Feedback" and create a ticket.  We will change it for you.
+				</p>
 			<!-- /ko -->
 			<!-- ko if: currentUser -->
-			<div id="userbox">
-				<span data-bind="text: currentUser().name"></span>
-				<a id="logout_icon" href="javascript:void(0)" title="Sign Out" data-bind="click: doLogout">Sign&nbsp;Out</a>
-			</div>
+				<div id="userbox">
+					<span data-bind="text: currentUser().name"></span>
+					<a id="logout_icon" href="javascript:void(0)" title="Sign Out" data-bind="click: doLogout">Sign&nbsp;Out</a>
+				</div>
+				<div class="share-url-box">
+					<!-- ko if: currentUser().share_key -->
+						<em>Others can use the following link to connect to your workspace.</em>
+						<input data-bind="value: shareLink" onclick="this.select()" readonly="readonly" />
+						<a data-bind="click: toggleSharing">Disable Sharing</a>
+					<!-- /ko -->
+					<!-- ko ifnot: currentUser().share_key -->
+						<em>Sharing is currently disabled.  If you enable it, you get a link that you can use for real-time collaboration with colleagues.</em>
+						<a data-bind="click: toggleSharing">Enable Sharing</a>
+					<!-- /ko -->
+				</div>
 			<!-- /ko -->
 			<div id="show-plots-inline-item">
 				<label>

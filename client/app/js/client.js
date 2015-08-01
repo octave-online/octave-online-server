@@ -155,6 +155,16 @@ function($, ko, canvg, Base64, download,
 			require(["js/login"], function(L){ L.logout(); });
 		},
 
+		toggleSharing: function(){
+			var shareKey = viewModel.currentUser().share_key;
+			var program = viewModel.currentUser().program;
+			if (program && program !== "default") {
+				alert("You cannot disable sharing as a student enrolled in an Octave Online program.  You need to remove yourself from \"" + program + "\" by running \"enroll('default')\" at the command prompt.");
+			} else {
+				OctMethods.socket.toggleSharing(!shareKey);
+			}
+		},
+
 		getOctFileFromName: function(filename){
 			return ko.utils.arrayFirst(allOctFiles(), function(item){
 				return item.filename() === filename;
@@ -172,6 +182,11 @@ function($, ko, canvg, Base64, download,
 	viewModel.showUserInHeader = ko.computed(function(){
 		return (viewModel.currentUser()
 			&& viewModel.selectedSkin() === availableSkins[2]);
+	});
+	viewModel.shareLink = ko.computed(function(){
+		if (!viewModel.currentUser()) return "";
+		return window.location.origin + window.location.pathname
+			+ "?s=" + viewModel.currentUser().share_key;
 	});
 	// Keep the console output visible when the plot window opens
 	viewModel.showPlot.subscribe(function(){
@@ -378,6 +393,7 @@ function($, ko, canvg, Base64, download,
 					"enroll('default') at the command prompt.\n\n" +
 					"Press Cancel if you don't know what any of this means.")){
 					OctMethods.socket.enroll(program);
+					viewModel.currentUser().program = program; // note: this is not observable
 				}
 			}
 		},
@@ -489,6 +505,11 @@ function($, ko, canvg, Base64, download,
 			},
 			refresh: function(){
 				return OctMethods.socket.emit("refresh", {});
+			},
+			toggleSharing: function(enabled){
+				return OctMethods.socket.emit("oo.toggle_sharing", {
+					enabled: enabled
+				});
 			},
 			emit: function(message, data){
 				if (!OctMethods.socket.instance
@@ -661,6 +682,9 @@ function($, ko, canvg, Base64, download,
 				console.log("sessCode", data.sessCode);
 				OctMethods.socket.sessCode = data.sessCode;
 			},
+			reload: function(){
+				window.location.reload();
+			},
 			init: function(){
 				// Regular session or shared session?
 				if (OctMethods.vars.wsId) {
@@ -668,15 +692,21 @@ function($, ko, canvg, Base64, download,
 						action: "workspace",
 						info: OctMethods.vars.wsId
 					});
+
+					// Use the "ice" theme to visually differentiate shared sessions
+					viewModel.selectedSkin(availableSkins[2]);
+					$("#change-skin").hide();
+
 				}else if(OctMethods.vars.studentId){
 					OctMethods.socket.emit("init", {
 						action: "student",
 						info: OctMethods.vars.studentId
 					});
 
-					// Use the "ice" theme to visually differentiate this session
+					// Use the "ice" theme to visually differentiate shared sessions
 					viewModel.selectedSkin(availableSkins[2]);
 					$("#change-skin").hide();
+
 				}else{
 					OctMethods.socket.emit("init", {
 						action: "session",
@@ -927,7 +957,8 @@ function($, ko, canvg, Base64, download,
 			availableSkins: availableSkins
 		},
 		vars: {
-			wsId: null
+			wsId: null,
+			studentId: null
 		}
 	};
 
