@@ -59,11 +59,11 @@ define(["js/client", "js/ot-client", "ot", "js/polyfill"],
 		}
 	};
 
-	function create(docId) {
+	function create(docId, observable) {
 		var otClient = findDocWithId(docId);
 		if (otClient) return otClient;
 
-		otClient = new OtClient(docId);
+		otClient = new OtClient(docId, observable);
 		otClient.addEventListener("send", clientListeners.send.bind(otClient));
 		otClient.addEventListener("cursor", clientListeners.cursor.bind(otClient));
 		clients.push(otClient);

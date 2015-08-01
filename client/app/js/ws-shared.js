@@ -26,7 +26,8 @@ define(["js/client", "js/ot-handler", "js/polyfill"],
 			console.log("Adding doc:", obj);
 			if (!obj) return;
 
-			var otClient = OtHandler.create(obj.docId);
+			var octFile = OctMethods.ko.viewModel.getOctFileFromName(obj.filename);
+			var otClient = OtHandler.create(obj.docId, octFile.content);
 			documentClients[obj.filename] = otClient;
 		},
 		renamed: function(obj){
