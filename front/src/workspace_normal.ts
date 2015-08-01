@@ -50,8 +50,10 @@ implements IWorkspace, IDestroyable {
 				// Otherwise, inform the client.
 				if (state === IRedis.SessionState.Needed)
 					OctaveHelper.askForOctave(sessCode, this.user, next);
-				else
+				else {
 					this.emit("sesscode", sessCode);
+					this.emit("data", "prompt", {});
+				}
 			},
 			(next) => {
 				if (this.destroyed) {

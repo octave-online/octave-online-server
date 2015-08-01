@@ -29,7 +29,7 @@ implements IWorkspace {
 	public wsId:string;
 	public sessCode:string;
 	public destroyed:boolean = false;
-	private userId:string = null;
+	private shareKey:string = null;
 	private user:IUser = null;
 	private docs:any = {};
 	private msgIds:string[] = [];
@@ -39,7 +39,12 @@ implements IWorkspace {
 
 		switch(type){
 			case "student":
-				this.userId = <string> info;
+				this.shareKey = <string> info;
+				break;
+
+			case "host":
+				this.setWsId(<string> info.parametrized);
+				this.user = info;
 				break;
 
 			case "default":
@@ -83,6 +88,12 @@ implements IWorkspace {
 
 		// The Octave session will be destroyed by expiring keys once all
 		// users have disconnected.  There is no need to destroy it here.
+
+		// Special case: when sharing is disabled
+		// TODO: It's poor style to do a string comparison here
+		if (message === "Sharing Disabled" && this.sessCode) {
+			OctaveHelper.sendDestroyD(this.sessCode, message);
+		}
 	}
 
 	public destroyU(message:string){
@@ -239,12 +250,23 @@ implements IWorkspace {
 		// pre-conditions are satisfied.
 		Async.auto({
 			user: (next) => {
-				if (this.userId && !this.user) User.findById(this.userId, next);
-				else next(null, this.user);
+				if (this.shareKey && !this.user) {
+					User.findOne({ share_key: this.shareKey }, next);
+				} else {
+					next(null, this.user);
+				}
 			},
 			ready: ["user", (next, {user}) => {
 				this.user = user;
-				if (this.user) this.setWsId(this.user.parametrized);
+				if (this.user) {
+					console.log("Connecting to student", this.user.parametrized);
+					this.setWsId(this.user.parametrized);
+				} else if (!this.wsId) {
+					console.log("WARNING: Could not find student with share key", this.shareKey);
+					this.emit("message", "Could not find the specified workspace.  Please check your URL and try again.");
+					this.emit("data", "destroy-u", "No Such Workspace");
+					return;
+				}
 				this.doBeginOctaveRequest();
 			}]
 		});

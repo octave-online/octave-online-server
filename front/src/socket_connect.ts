@@ -86,14 +86,20 @@ class SocketHandler implements IDestroyable {
 
 					case "student":
 						if (!info) return;
+						// Note: this is not necesarilly a student.  It can be any user.
 						this.log("Attaching to a student's workspace:", info)
 						this.workspace = new SharedWorkspace("student", info);
 						break;
 
 					case "session":
 					default:
-						this.log("Attaching to default workspace with sessCode", info);
-						this.workspace = new NormalWorkspace(info, user);
+						if (user && user.share_key) {
+							this.log("Attaching as host to student's workspace:", user.share_key);
+							this.workspace = new SharedWorkspace("host", user);
+						} else {
+							this.log("Attaching to default workspace with sessCode", info);
+							this.workspace = new NormalWorkspace(info, user);
+						}
 						break;
 				}
 
@@ -127,6 +133,7 @@ class SocketHandler implements IDestroyable {
 		// Make listeners on Workspace
 		if (this.workspace) {
 			this.workspace.on("data", this.onDataW);
+			this.workspace.on("message", this.sendMessage);
 			this.workspace.on("sesscode", this.setSessCode);
 			this.workspace.on("back", this.onDataWtoU);
 			this.workspace.subscribe();
@@ -153,12 +160,12 @@ class SocketHandler implements IDestroyable {
 	}
 
 	// Convenience function to post a message in the client's console window
-	private sendMessage(message:string):void {
+	private sendMessage = (message:string):void => {
 		this.socket.emit("data", {
 			type: "stdout",
 			data: message+"\n"
 		});
-	}
+	};
 
 	//// MAIN LISTENER FUNCTIONS ////
 
@@ -189,6 +196,9 @@ class SocketHandler implements IDestroyable {
 				break;
 			case "update_students":
 				this.onUpdateStudents(data);
+				break;
+			case "oo.toggle_sharing":
+				this.onToggleSharing(data);
 				break;
 			case "oo.reconnect":
 				this.onOoReconnect();
@@ -283,6 +293,24 @@ class SocketHandler implements IDestroyable {
 				}
 			}
 		);
+	};
+
+	private onToggleSharing = (obj)=> {
+		if (!this.user || !obj) return;
+		var enabled = obj.enabled;
+
+		if (enabled) {
+			this.user.createShareKey((err)=> {
+				if (err) this.log("MONGO ERROR", err);
+				this.socket.emit("reload", {});
+			});
+		} else {
+			if (this.workspace) this.workspace.destroyD("Sharing Disabled");
+			this.user.removeShareKey((err)=> {
+				if (err) this.log("MONGO ERROR", err);
+				this.socket.emit("reload", {});
+			});
+		}
 	};
 }
 

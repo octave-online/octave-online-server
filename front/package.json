@@ -18,7 +18,7 @@
     "express": "^4.10.6",
     "express-session": "^1.9.3",
     "mime": "^1.2.11",
-    "mongoose": "^3.8.21",
+    "mongoose": "~3.8.21",
     "nomnom": "^1.8.1",
     "ot": "0.0.15",
     "passport": "^0.2.1",

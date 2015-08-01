@@ -14,12 +14,17 @@ interface IUser /* extends require("mongoose").Document */ {
 		profile: any
 	}
 	repo_key: string
+	share_key: string
 	program: string
 	instructor: string[]
 
 	// Virtuals
 	displayName: string
 	consoleText: string
+
+	// Methods
+	createShareKey(callback?:(err?:any)=>void): void
+	removeShareKey(callback?:(err?:any)=>void): void
 
 	// Extended methods from Mongoose Document
 	save<T>(callback?: (err: any, res: T) => void): void

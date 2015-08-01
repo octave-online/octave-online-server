@@ -17,6 +17,7 @@ var userSchema = new Mongoose.Schema({
 		profile: Mongoose.Schema.Types.Mixed
 	},
 	repo_key: String,
+	share_key: String,
 	program: String,
 	instructor: [String]
 });
@@ -78,19 +79,47 @@ userSchema.virtual("consoleText").get(function () {
 		+ this.parametrized + "]";
 });
 
-// Generate the parametrized name once, upon document creation
+function randomAlphaString(length){
+	var str = "";
+	while (str.length < length) {
+		str += Crypto
+			.createHash("md5")
+			.update(Math.random().toString())
+			.digest("base64")
+			.replace(/[^a-zA-Z]/g, '');
+	}
+	return str.substr(0, length);
+}
+
+// Auto-fill static fields once, upon creation (or update for old users)
 userSchema.pre("save", function(next){
 	if (!this.parametrized) {
 		this.parametrized = v2Parametrize(this.id, this.email);
 	}
 	if (!this.repo_key) {
-		this.repo_key = Crypto
-		.createHash("md5")
-		.update(Math.random().toString())
-		.digest("base64")
-		.substr(0, 8);
+		this.repo_key = randomAlphaString(8);
 	}
+
 	next();
+});
+
+// Instance methods for shared workspace keys
+(<any>userSchema).methods.createShareKey = function(next){
+	this.share_key = randomAlphaString(48);
+	console.log("Creating share key for user", this.parametrized, this.share_key);
+	this.save(next);
+};
+(<any>userSchema).methods.removeShareKey = function(next){
+	this.share_key = null;
+	console.log("Removing share key from user", this.parametrized);
+	this.save(next);
+};
+
+// Make sure the fields are initialized
+userSchema.post("init", function(doc){
+	if (this.program && this.program !== "default" && !this.share_key) {
+		this.createShareKey();
+	}
 });
 
 // JSON representation: include the virtuals (this object will be transmitted
