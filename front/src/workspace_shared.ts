@@ -92,6 +92,9 @@ implements IWorkspace {
 		if (!name) name = "";
 		if (!value) value = {};
 
+		// NOTE: Remember that each downstream event occurs on just one instance
+		// of IWorkspace, but upstream events occur on ALL listening instances.
+
 		console.log("Resolving dataD", name, value);
 
 		// Pass OT events down to the OT instances
@@ -102,28 +105,36 @@ implements IWorkspace {
 
 		// A few special handlers
 		if (name === "save") {
+			// happens when the user saves a file OR creates a new file
 			this.resolveFileSave(value, true);
 		}
 
 		// Pass other events into the onUserAction handler
-		this.onUserAction("ds:" + name, value);
+		this.onUserAction(name, value);
 	}
 
 	public dataU(name:string, value:any) {
 		if (!name) name = "";
 		if (!value) value = {};
 
+		// NOTE: Remember that each downstream event occurs on just one instance
+		// of IWorkspace, but upstream events occur on ALL listening instances.
+
 		console.log("Resolving dataU", name, value);
 
 		// A few special handlers
 		if (name === "user") {
+			// happens when the full list of files is read
 			this.resolveFileList(value.files);
-		} else if (name === "fileadd") {
-			this.resolveFileAdd(value, true);
-		}
 
-		// Pass other events into the onUserAction handler
-		this.onUserAction("us:" + name, value);
+		} else if (name === "fileadd") {
+			// happens when SIOFU uploads a file
+			this.resolveFileAdd(value, true);
+
+		} else if (name === "renamed") {
+			// happens when a file is successfully renamed
+			this.resolveFileRename(value.oldname, value.newname);
+		}
 	}
 
 	private resolveFileList(files:any){
@@ -165,6 +176,37 @@ implements IWorkspace {
 		}
 
 		if (updateRedis) this.docs[docId].setContent(content);
+	}
+
+	private resolveFileRename(oldname:string, newname:string) {
+		var oldhash = Crypto.createHash("md5").update(oldname).digest("hex");
+		var newhash = Crypto.createHash("md5").update(newname).digest("hex");
+
+		var oldDocId = "doc." + this.wsId + "." + oldhash;
+		var newDocId = "doc." + this.wsId + "." + newhash;
+
+		if (!this.docs[oldDocId]) {
+			console.log("WARNING: Attempted to resolve file rename, but couldn't find old file in shared workspace:", oldname, newname, oldDocId, newDocId);
+			return;
+		}
+
+		if (this.docs[newDocId]) {
+			console.log("WARNING: Attempted to resolve file rename, but the new name already exists in the workspace:", oldname, newname, oldDocId, newDocId);
+			return;
+		}
+
+		var doc = this.docs[oldDocId];
+		delete this.docs[oldDocId];
+		this.docs[newDocId] = doc;
+
+		doc.changeDocId(newDocId);
+
+		this.emit("data", "ws.rename", {
+			oldname: oldname,
+			newname: newname,
+			oldDocId: oldDocId,
+			newDocId: newDocId
+		});
 	}
 
 	public beginOctaveRequest() {
@@ -283,10 +325,6 @@ implements IWorkspace {
 
 					// Special handlers for a few user actions
 					switch(obj.data.name){
-						case "ws.fileadd":
-							this.resolveFileAdd(obj.data.data, false);
-							break;
-
 						case "ws.save":
 							this.resolveFileSave(obj.data.data, false);
 							break;
@@ -306,18 +344,13 @@ implements IWorkspace {
 		var eventName, data;
 
 		switch(name){
-			case "ds:data":
+			case "data":
 				eventName = "ws.command";
 				data = value.data;
 				break;
 
-			case "ds:save":
+			case "save":
 				eventName = "ws.save";
-				data = value;
-				break;
-
-			case "us:fileadd":
-				eventName = "ws.fileadd";
 				data = value;
 				break;
 

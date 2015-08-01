@@ -66,6 +66,24 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 		}
 	}
 
+	public changeDocId(newDocId:string) {
+		if (this.id === newDocId) return;
+
+		var oldDocId = this.id;
+		this.id = newDocId;
+
+		// Note that multiple clients may all demand the rename simultaneously.
+		// This shouldn't be a problem, as long as at least one of them succeeds.
+		var multi = otOperationClient.multi();
+		multi.rename(IRedis.Chan.otOps(oldDocId), IRedis.Chan.otOps(newDocId));
+		multi.rename(IRedis.Chan.otDoc(oldDocId), IRedis.Chan.otDoc(newDocId));
+		multi.rename(IRedis.Chan.otSub(oldDocId), IRedis.Chan.otSub(newDocId));
+		multi.rename(IRedis.Chan.otCnt(oldDocId), IRedis.Chan.otCnt(newDocId));
+		multi.exec((err) => {
+			if (err) console.log("Redis error in changeDocId", err);
+		});
+	}
+
 	private load() {
 		var multi = otOperationClient.multi();
 		multi.get(IRedis.Chan.otCnt(this.id));
