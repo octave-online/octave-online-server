@@ -22,9 +22,14 @@ elseif old_content==content then
 
 else
 	-- Document exists but needs to be updated to the desired value.
-	-- TODO: This is the most naive operation to transform the old document into
-	-- the new one.  Change this to something more clever.
-	message.ops = {-string.len(old_content), content}
+	-- Since this script may be called while there are active edits being
+	-- performed, overwriting the content in Redis may result in lost content.
+	return 0
+
+	-- Another option is to transform the old document into the new one.  The
+	-- naive approach would be something like the following:
+	-- message.ops = {-string.len(old_content), content}
+	-- TODO: Figure out the best way to do this
 end
 
 -- Update Redis
