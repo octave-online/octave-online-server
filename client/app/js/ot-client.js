@@ -3,6 +3,7 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 	function OTClientWrapper(docId, observable){
 		this.id = docId;
 		this.observable = observable || null;
+		this.content = "";
 		this.attachEditor(null);
 	}
 
@@ -24,7 +25,7 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 	}
 
 	OTClientWrapper.prototype.applyContent = function(){
-		if (!this.content || !this.adapter) return;
+		if (!this.adapter) return;
 		var currentContent = this.adapter.getValue();
 		if (currentContent === this.content) return;
 
