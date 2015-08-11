@@ -145,7 +145,7 @@ function($, ko, canvg, splittr, Base64, download,
 				var options = $("<span></span>");
 
 				// Construct the normal restart button
-				var btn1 = $("<a href=\"javascript:null\"></a>");
+				var btn1 = $("<a class=\"clickable\"></a>");
 				btn1.click(function(){
 					OctMethods.socket.reconnect();
 					options.remove();

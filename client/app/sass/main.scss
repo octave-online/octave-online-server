@@ -127,6 +127,10 @@ kbd{
 a img{
 	border: none;
 }
+.clickable {
+	text-decoration: underline;
+	cursor: pointer;
+}
 
 // Header
 header{
