@@ -604,17 +604,6 @@ function($, ko, canvg, Base64, download,
 				return download(blob, octfile.filename());
 			},
 			user: function(data){
-
-				// Load files
-				if (allOctFiles().length === 0)
-					$.each(data.files, function(filename, filedata){
-						if(filedata.isText){
-							OctMethods.editor.add(filename, Base64.decode(filedata.content));
-						}else{
-							OctMethods.editor.addNameOnly(filename);
-						}
-					});
-
 				// One-time methods
 				if (!OctMethods.editor.initialized) {
 					OctMethods.editor.initialized = true;
@@ -629,11 +618,23 @@ function($, ko, canvg, Base64, download,
 					onboarding.hideScriptPromo();
 
 					// Trigger Knockout
+					data.name = data.name || data.displayName;
 					viewModel.currentUser(data);
 
 					// Analytics
 					anal.signedin();
 				}
+			},
+			dir: function(data){
+				// Load files
+				if (allOctFiles().length === 0)
+					$.each(data.files, function(filename, filedata){
+						if(filedata.isText){
+							OctMethods.editor.add(filename, Base64.decode(filedata.content));
+						}else{
+							OctMethods.editor.addNameOnly(filename);
+						}
+					});
 			},
 			fileadd: function(data){
 				if(data.isText){
@@ -886,8 +887,8 @@ function($, ko, canvg, Base64, download,
 				} while(filename && !OctMethods.editor.create(filename));
 			},
 			refresh: function(e){
-				if(confirm("This will reload your files from the server. You will " +
-					"lose any unsaved changes.")){
+				if(confirm("This will reload your files from the server. Any " +
+					"unsaved changes will be lost.")){
 					OctMethods.editor.reset();
 					OctMethods.socket.refresh();
 				}

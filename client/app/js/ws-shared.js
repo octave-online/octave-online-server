@@ -6,7 +6,6 @@ define(["js/client", "js/ot-handler", "js/polyfill"],
 	var socketListeners = {
 		command: function(cmd){
 			OctMethods.console.command(cmd, true);
-			OctMethods.prompt.clear();
 		},
 		save: function(data){
 			var octFile = OctMethods.ko.viewModel.getOctFileFromName(data.filename);

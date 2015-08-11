@@ -28,7 +28,8 @@ define(
 		socket.on("renamed", OctMethods.socketListeners.renamed);
 		socket.on("deleted", OctMethods.socketListeners.deleted);
 		socket.on("binary", OctMethods.socketListeners.binary); // TODO: Stop this event from operating on everyone in a shared workspace
-		socket.on("user", OctMethods.socketListeners.user);
+		socket.on("userinfo", OctMethods.socketListeners.user);
+		socket.on("user", OctMethods.socketListeners.dir); // inconsistent naming convention for backwards compatibility
 		socket.on("fileadd", OctMethods.socketListeners.fileadd);
 		socket.on("plotd", OctMethods.socketListeners.plotd);
 		socket.on("plote", OctMethods.socketListeners.plote);
