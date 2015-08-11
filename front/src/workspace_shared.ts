@@ -33,6 +33,9 @@ implements IWorkspace {
 	private user:IUser = null;
 	private docs:any = {};
 	private msgIds:string[] = [];
+	private otEventCounter = 0;
+	private wsMessageCounter = 0;
+	private statsInterval;
 
 	constructor(type:string, info:any) {
 		super();
@@ -54,6 +57,12 @@ implements IWorkspace {
 		}
 
 		this.subscribe();
+	}
+
+	private log(..._args:any[]):void {
+		var args = Array.prototype.slice.apply(arguments);
+		args.unshift("<" + this.wsId + ">");
+		this.emit("log", args);
 	}
 
 	private setWsId(wsId:string) {
@@ -106,18 +115,17 @@ implements IWorkspace {
 		// NOTE: Remember that each downstream event occurs on just one instance
 		// of IWorkspace, but upstream events occur on ALL listening instances.
 
-		console.log("Resolving dataD", name, value);
-
 		// Pass OT events down to the OT instances
 		if (name.substr(0,3) === "ot.") {
 			this.forEachDoc(function(docId,doc){ doc.dataD(name, value) });
+			this.otEventCounter++;
 			return;
 		}
 
 		// A few special handlers
 		if (name === "save") {
 			// happens when the user saves a file OR creates a new file
-			this.resolveFileSave(value, true);
+			this.resolveFileSave(value, true, false);
 		}
 
 		// Pass other events into the onUserAction handler
@@ -131,16 +139,14 @@ implements IWorkspace {
 		// NOTE: Remember that each downstream event occurs on just one instance
 		// of IWorkspace, but upstream events occur on ALL listening instances.
 
-		console.log("Resolving dataU", name, value);
-
 		// A few special handlers
 		if (name === "user") {
 			// happens when the full list of files is read
-			this.resolveFileList(value.files);
+			this.resolveFileList(value.files, true, value.refresh);
 
 		} else if (name === "fileadd") {
 			// happens when SIOFU uploads a file
-			this.resolveFileAdd(value, true);
+			this.resolveFileAdd(value, true, true);
 
 		} else if (name === "renamed") {
 			// happens when a file is successfully renamed
@@ -152,34 +158,35 @@ implements IWorkspace {
 		}
 	}
 
-	private resolveFileList(files:any){
+	private resolveFileList(files:any, update:boolean, overwrite:boolean){
 		var files = files || {};
 		for(var filename in files){
 			if (!files.hasOwnProperty(filename)) continue;
 			var file = files[filename];
 			if (!file.isText) continue;
 			var content = new Buffer(file.content, "base64").toString();
-			this.resolveFile(filename, content, true);
+			this.resolveFile(filename, content, update, overwrite);
 		}
 	}
 
-	private resolveFileAdd(file:any, updateRedis:boolean){
+	private resolveFileAdd(file:any, update:boolean, overwrite:boolean){
 		if (!file.isText) return;
 
+		this.log("Resolving File Add", file.filename, update, overwrite);
+
 		var content = new Buffer(file.content, "base64").toString();
-		this.resolveFile(file.filename, content, updateRedis);
+		this.resolveFile(file.filename, content, update, overwrite);
 	}
 
-	private resolveFileSave(file:any, updateRedis:boolean){
-		this.resolveFile(file.filename, file.content, updateRedis);
+	private resolveFileSave(file:any, update:boolean, overwrite:boolean){
+		this.log("Resolving File Save", file.filename, update, overwrite);
+		this.resolveFile(file.filename, file.content, update, overwrite);
 	}
 
 	private resolveFile(filename:string, content:string,
-			updateRedis:boolean) {
+			update:boolean, overwrite:boolean) {
 		var hash = Crypto.createHash("md5").update(filename).digest("hex");
 		var docId = "doc." + this.wsId + "." + hash;
-
-		console.log("Resolving file", filename, docId, updateRedis);
 
 		if (!this.docs[docId]) {
 			this.docs[docId] = new OtDocument(docId);
@@ -192,7 +199,7 @@ implements IWorkspace {
 			}.bind(this));
 		}
 
-		if (updateRedis) this.docs[docId].setContent(content);
+		if (update) this.docs[docId].setContent(content, overwrite);
 	}
 
 	private resolveFileRename(oldname:string, newname:string) {
@@ -203,14 +210,16 @@ implements IWorkspace {
 		var newDocId = "doc." + this.wsId + "." + newhash;
 
 		if (!this.docs[oldDocId]) {
-			console.log("WARNING: Attempted to resolve file rename, but couldn't find old file in shared workspace:", oldname, newname, oldDocId, newDocId);
+			this.log("WARNING: Attempted to resolve file rename, but couldn't find old file in shared workspace:", oldname, newname, oldDocId, newDocId);
 			return;
 		}
 
 		if (this.docs[newDocId]) {
-			console.log("WARNING: Attempted to resolve file rename, but the new name already exists in the workspace:", oldname, newname, oldDocId, newDocId);
+			this.log("WARNING: Attempted to resolve file rename, but the new name already exists in the workspace:", oldname, newname, oldDocId, newDocId);
 			return;
 		}
+
+		this.log("Resolving File Remame", oldname, newname);
 
 		var doc = this.docs[oldDocId];
 		delete this.docs[oldDocId];
@@ -231,9 +240,11 @@ implements IWorkspace {
 		var docId = "doc." + this.wsId + "." + hash;
 
 		if (!this.docs[docId]) {
-			console.log("WARNING: Attempted to resolve file delete, but couldn't find file in shared workspace:", filename, docId);
+			this.log("WARNING: Attempted to resolve file delete, but couldn't find file in shared workspace:", filename, docId);
 			return;
 		}
+
+		this.log("Resolving File Delete", filename);
 
 		var doc = this.docs[docId];
 		delete this.docs[docId];
@@ -258,11 +269,12 @@ implements IWorkspace {
 			},
 			ready: ["user", (next, {user}) => {
 				this.user = user;
-				if (this.user) {
-					console.log("Connecting to student", this.user.parametrized);
-					this.setWsId(this.user.parametrized);
+				if (user) {
+					this.setWsId(user.parametrized);
+					this.log("Connecting to student:", user.parametrized);
+					this.emit("data", "userinfo", user);
 				} else if (!this.wsId) {
-					console.log("WARNING: Could not find student with share key", this.shareKey);
+					this.log("WARNING: Could not find student with share key", this.shareKey);
 					this.emit("message", "Could not find the specified workspace.  Please check your URL and try again.");
 					this.emit("data", "destroy-u", "No Such Workspace");
 					return;
@@ -287,7 +299,7 @@ implements IWorkspace {
 			},
 			(sessCode:string, state:IRedis.SessionState, next) => {
 				if (this.destroyed) return;
-				console.log("SessCode State:", state);
+				this.log("SessCode State:", state);
 
 				// Ask Octave for a session if we need one.
 				if (state === IRedis.SessionState.Needed) {
@@ -297,7 +309,7 @@ implements IWorkspace {
 					wsPushClient.eval(casScript, 1, IRedis.Chan.wsSess(this.wsId),
 						sessCode, this.sessCode, next);
 
-				// Request a file refresh if we need one
+				// Request a file listing if we need one
 				} else if (state === IRedis.SessionState.Live) {
 					this.emit("sesscode", sessCode);
 					this.emit("data", "prompt", {});
@@ -321,8 +333,8 @@ implements IWorkspace {
 					}), next);
 			},
 			(_, next) => {
-				console.log("requesting octave session");
 				// Start the new Octave session.
+				this.log("Sending Octave Request for Shared Workspace");
 				OctaveHelper.askForOctave(this.sessCode, this.user, next);
 			}
 		], (err) => {
@@ -334,6 +346,7 @@ implements IWorkspace {
 		this.unsubscribe();
 
 		wsSessClient.on("pmessage", this.wsMessageListener);
+		this.statsInterval = setInterval(this.recordStats, 60000);
 
 		var self = this;
 		this.forEachDoc(function(docId,doc){
@@ -344,6 +357,7 @@ implements IWorkspace {
 
 	public unsubscribe() {
 		wsSessClient.removeListener("pmessage", this.wsMessageListener);
+		clearInterval(this.statsInterval);
 
 		var self = this;
 		this.forEachDoc(function(docId,doc){
@@ -355,9 +369,10 @@ implements IWorkspace {
 	//// SHARED WORKSPACE HANDLERS ////
 
 	private wsMessageListener = (pattern, channel, message) => {
-		console.log("on ws message", pattern, channel, message);
 		var obj = IRedis.checkWsMessage(channel, message, this.wsId);
 		if (!obj || !obj.data) return;
+
+		this.wsMessageCounter++;
 
 		switch(obj.type){
 			case "sesscode":
@@ -373,7 +388,7 @@ implements IWorkspace {
 					// Special handlers for a few user actions
 					switch(obj.data.name){
 						case "ws.save":
-							this.resolveFileSave(obj.data.data, false);
+							this.resolveFileSave(obj.data.data, false, false);
 							break;
 					}
 				}
@@ -421,6 +436,19 @@ implements IWorkspace {
 	private onDataO = (name, value) => {
 		this.emit("data", name, value);
 	};
+
+	private recordStats = () => {
+		var opsReceivedTotal = 0, setContentTotal = 0;
+		this.forEachDoc(function(docId,doc){
+			opsReceivedTotal += doc.opsReceivedCounter;
+			setContentTotal += doc.setContentCounter;
+		});
+		this.log("STATS:",
+			this.otEventCounter, "OT events and",
+			this.wsMessageCounter, "WS messages and",
+			opsReceivedTotal, "operations received and",
+			setContentTotal, "calls to setContent");
+	}
 };
 
 export = SharedWorkspace;

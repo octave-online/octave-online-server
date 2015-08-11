@@ -4,6 +4,7 @@ local content = ARGV[1]
 local message = cjson.decode(ARGV[2])
 local op_expiretime = tonumber(ARGV[3])
 local doc_expiretime = tonumber(ARGV[4])
+local overwrite = ARGV[5]
 local ops_key = KEYS[1]
 local doc_key = KEYS[2]
 local sub_key = KEYS[3]
@@ -20,16 +21,16 @@ elseif old_content==content then
 	-- Document exists and is already set to the desired value.  Exit.
 	return 0
 
+elseif overwrite=="overwrite" then
+	-- Transform the old document into the new one.  The naive approach would
+	-- be something like the following:
+	message.ops = {-string.len(old_content), content}
+	-- TODO: Figure out the best way to do this
+
 else
-	-- Document exists but needs to be updated to the desired value.
-	-- Since this script may be called while there are active edits being
-	-- performed, overwriting the content in Redis may result in lost content.
+	-- No action necessary
 	return 0
 
-	-- Another option is to transform the old document into the new one.  The
-	-- naive approach would be something like the following:
-	-- message.ops = {-string.len(old_content), content}
-	-- TODO: Figure out the best way to do this
 end
 
 -- Update Redis

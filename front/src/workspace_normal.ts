@@ -22,6 +22,14 @@ implements IWorkspace, IDestroyable {
 		super();
 		this.sessCode = <string> sessCode;
 		this.user = user;
+
+		process.nextTick(()=>{
+			this.emit("data", "userinfo", user);
+		});
+	}
+
+	private log(..._args:any[]):void {
+		this.emit("log", arguments);
 	}
 
 	public destroyD(message:string){

@@ -106,8 +106,8 @@ class SocketHandler implements IDestroyable {
 						break;
 				}
 
-				this.workspace.beginOctaveRequest();
 				this.listen();
+				this.workspace.beginOctaveRequest();
 
 				// Continue down the chain (does not do anything currently)
 				next(null, null);
@@ -139,6 +139,7 @@ class SocketHandler implements IDestroyable {
 			this.workspace.on("message", this.sendMessage);
 			this.workspace.on("sesscode", this.setSessCode);
 			this.workspace.on("back", this.onDataWtoU);
+			this.workspace.on("log", this.onLogW);
 			this.workspace.subscribe();
 		}
 
@@ -237,6 +238,11 @@ class SocketHandler implements IDestroyable {
 	// Let everything continue downstream to the client
 	private onDataW = (name, data) => {
 		this.socket.emit(name, data);
+	};
+
+	// When the workspace instance wants to log something
+	private onLogW = (data) => {
+		this.log.apply(this, data);
 	};
 
 	//// OTHER UTILITY FUNCTIONS ////

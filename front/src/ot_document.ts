@@ -29,6 +29,8 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 	private chgIds:string[] = [];
 	private crsIds:string[] = [];
 	private touchInterval;
+	public opsReceivedCounter = 0;
+	public setContentCounter = 0;
 
 	constructor (id:string) {
 		super();
@@ -80,7 +82,7 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 		multi.rename(IRedis.Chan.otSub(oldDocId), IRedis.Chan.otSub(newDocId));
 		multi.rename(IRedis.Chan.otCnt(oldDocId), IRedis.Chan.otCnt(newDocId));
 		multi.exec((err) => {
-			if (err) console.log("Redis error in changeDocId", err);
+			if (err) console.log("REDIS ERROR in changeDocId", err);
 		});
 	}
 
@@ -92,7 +94,7 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 		multi.del(IRedis.Chan.otSub(this.id));
 		multi.del(IRedis.Chan.otCnt(this.id));
 		multi.exec((err) => {
-			if (err) console.log("Redis error in changeDocId", err);
+			if (err) console.log("REDIS ERROR in changeDocId", err);
 		});
 	}
 
@@ -122,7 +124,6 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 	};
 
 	private otMessageListener = (pattern, channel, message) => {
-		console.log("on ot message", this.id, pattern, channel, message);
 		var obj = IRedis.checkOtMessage(channel, message, this.id);
 		if (!obj) return;
 
@@ -158,7 +159,6 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 	};
 
 	private onOtChange = (obj) => {
-		console.log("ot in:", obj);
 		if (!obj
 			|| typeof obj.op === "undefined"
 			|| typeof obj.rev === "undefined")
@@ -202,9 +202,10 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 			rev, JSON.stringify(message), Config.ot.operation_expire,
 			Config.ot.document_expire.timeout
 		]);
+		this.opsReceivedCounter++;
 	}
 
-	public setContent(content:string) {
+	public setContent(content:string, overwrite:boolean) {
 		var ops_key = IRedis.Chan.otOps(this.id);
 		var doc_key = IRedis.Chan.otDoc(this.id);
 		var sub_key = IRedis.Chan.otSub(this.id);
@@ -222,8 +223,9 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 		this.runRedisScript(otSetScript, otSetSha1, [
 			4, ops_key, doc_key, sub_key, cnt_key,
 			content, JSON.stringify(message), Config.ot.operation_expire,
-			Config.ot.document_expire.timeout
+			Config.ot.document_expire.timeout, (overwrite?"overwrite":"retain")
 		]);
+		this.setContentCounter++;
 	}
 
 	private runRedisScript(script:string, sha1:string, args:any[], cb?:(res:any)=>void) {
@@ -243,6 +245,7 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 			if (!/NOSCRIPT/.test(err1.message)) {
 				return console.log("REDIS ERROR", err1);
 			}
+			console.log("Falling back to EVAL");
 			otOperationClient.eval.apply(otOperationClient, args2);
 		}
 
