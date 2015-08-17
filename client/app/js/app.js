@@ -27,9 +27,11 @@ define(
 		socket.on("saved", OctMethods.socketListeners.saved);
 		socket.on("renamed", OctMethods.socketListeners.renamed);
 		socket.on("deleted", OctMethods.socketListeners.deleted);
-		socket.on("binary", OctMethods.socketListeners.binary); // TODO: Stop this event from operating on everyone in a shared workspace
+		// TODO: Stop this event from operating on everyone in a shared workspace
+		socket.on("binary", OctMethods.socketListeners.binary);
+		// The inconsistent naming convention here ("dir" vs. "user" vs. "userinfo") is for backwards compatibility.  At some point I would like to rename these events all the way through the stack.
 		socket.on("userinfo", OctMethods.socketListeners.user);
-		socket.on("user", OctMethods.socketListeners.dir); // inconsistent naming convention for backwards compatibility
+		socket.on("user", OctMethods.socketListeners.dir);
 		socket.on("fileadd", OctMethods.socketListeners.fileadd);
 		socket.on("plotd", OctMethods.socketListeners.plotd);
 		socket.on("plote", OctMethods.socketListeners.plote);

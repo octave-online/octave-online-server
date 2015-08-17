@@ -30,14 +30,12 @@ define(["js/client", "js/ot-client", "ot", "js/polyfill"],
 	var socketListeners = {
 		doc: function(obj){
 			var otClient = findDocWithId(obj.docId);
-			console.log("ot.doc", obj, otClient);
 			if (!otClient) return;
 
 			otClient.initWith(obj.rev, obj.content);
 		},
 		broadcast: function(obj){
 			var otClient = findDocWithId(obj.docId);
-			console.log("ot.broadcast", obj, otClient);
 			if (!otClient) return;
 
 			var op = ot.TextOperation.fromJSON(obj.ops);
@@ -45,14 +43,12 @@ define(["js/client", "js/ot-client", "ot", "js/polyfill"],
 		},
 		ack: function(obj){
 			var otClient = findDocWithId(obj.docId);
-			console.log("ot.ack", obj, otClient);
 			if (!otClient) return;
 
 			otClient.serverAck();
 		},
 		cursor: function(obj){
 			var otClient = findDocWithId(obj.docId);
-			console.log("ot.cursor", obj, otClient);
 			if (!otClient) return;
 
 			otClient.setOtherCursor(obj.cursor, "#F00", "Remote User");

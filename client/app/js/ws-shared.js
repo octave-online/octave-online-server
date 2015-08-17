@@ -15,15 +15,15 @@ define(["js/client", "js/ot-handler", "js/polyfill"],
 				octFile.savedContent(data.content);
 		},
 		promptid: function(promptId){
-			console.log("Prompt ID:", promptId);
 			if (!promptId) return;
+			console.log("OT PROMPT:", promptId);
 
 			var otClient = OtHandler.create(promptId);
 			otClient.attachEditor(OctMethods.prompt.instance);
 		},
 		doc: function(obj){
-			console.log("Adding doc:", obj);
 			if (!obj) return;
+			console.log("OT SCRIPT:", obj.docId, obj.filename);
 
 			var octFile = OctMethods.ko.viewModel.getOctFileFromName(obj.filename);
 			var otClient = OtHandler.create(obj.docId, octFile.content);

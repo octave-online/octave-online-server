@@ -101,13 +101,11 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 
 	// OT -> SERVER
 	OTClientWrapper.prototype._sendOperation = function(revision, operation){
-		console.log("send operation", operation)
 		this.dispatchEvent("send", revision, operation);
 	}
 
 	// OT -> ACE
 	OTClientWrapper.prototype._applyOperation = function(operation){
-		console.log("apply", operation);
 		if (this.adapter) this.adapter.applyOperation(operation);
 		this.content = operation.apply(this.content);
 	}
@@ -122,7 +120,6 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 		}
 	}
 	OTClientWrapper.prototype._onFocusBlur = function(){
-		console.log("focus/blur", arguments);
 	}
 	OTClientWrapper.prototype.setOtherCursor = function(){
 		if (!this.adapter) return;

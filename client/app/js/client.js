@@ -613,8 +613,6 @@ function($, ko, canvg, Base64, download,
 
 					// Set up the UI
 					$("#open_container").showSafe();
-					$("#files_container").showSafe();
-					onboarding.showSyncPromo();
 					onboarding.hideScriptPromo();
 
 					// Trigger Knockout
@@ -627,7 +625,7 @@ function($, ko, canvg, Base64, download,
 			},
 			dir: function(data){
 				// Load files
-				if (allOctFiles().length === 0)
+				if (allOctFiles().length === 0) {
 					$.each(data.files, function(filename, filedata){
 						if(filedata.isText){
 							OctMethods.editor.add(filename, Base64.decode(filedata.content));
@@ -635,6 +633,11 @@ function($, ko, canvg, Base64, download,
 							OctMethods.editor.addNameOnly(filename);
 						}
 					});
+
+					// Set up the UI
+					$("#files_container").showSafe();
+					onboarding.showSyncPromo();
+				}
 			},
 			fileadd: function(data){
 				if(data.isText){
@@ -681,7 +684,7 @@ function($, ko, canvg, Base64, download,
 				vars.sort(Var.sorter);
 			},
 			sesscode: function(data){
-				console.log("sessCode", data.sessCode);
+				console.log("SESSCODE:", data.sessCode);
 				OctMethods.socket.sessCode = data.sessCode;
 			},
 			reload: function(){
