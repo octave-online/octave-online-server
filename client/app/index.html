@@ -98,8 +98,8 @@
 		<!-- /ko -->
 		<span id="hamburger"></span>
 	</header>
-	<section>
-		<div id="files_container" aria-hidden="true">
+	<section data-hover="flex">
+		<div id="files_container" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 0 }">
 			<div id="files_toolbar" class="theme-header">
 				Files
 				<span id="files_toolbar_create" title="Create empty file"></span>
@@ -118,7 +118,7 @@
 				</span>
 			</div>
 		</div>
-		<div id="open_container" aria-hidden="true">
+		<div id="open_container" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 1 }">
 			<!-- ko with: openFile -->
 				<div id="editor_toolbar" class="theme-header">
 					<span id="editor_hamburger" data-bind="click: buttonsShown.toggle()" title="Show Toolbar"></span>
@@ -177,7 +177,7 @@
 				</div>
 			<!-- /ko -->
 		</div>
-		<div id="output_panel">
+		<div id="output_panel" data-bind="attr:{ style: flex.outputCss }">
 			<div id="plot_container" aria-hidden="true" data-bind="vizSafe: showPlot, with: currentPlot">
 				<div id="plot_figure_container" title="Click to zoom" data-bind="click: zoom">
 					<div id="plot_svg_container" data-bind="fadeIn: complete, html: completeData"></div>
@@ -200,8 +200,8 @@
 					<span id="plot_svg_download_btn" title="Download Plot as Image" data-bind="click: downloadSvg"></span>
 				</div>
 			</div>
-			<div id="vars_console_container">
-				<div id="vars_panel" aria-hidden="true">
+			<div id="vars_console_container"  data-hover="flex">
+				<div id="vars_panel" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 2 }">
 					<div class="theme-header">
 						Vars
 					</div>
@@ -214,7 +214,7 @@
 						</ul>
 					</div>
 				</div>
-				<div id="console_container">
+				<div id="console_container" data-bind="resizeFlex:{ group: flex.sizes, index: 3 }">
 					<pre id="console"></pre>
 					<div id="instructor-promo" aria-hidden="true">
 						<span class="l1">Did you know you can use Octave Online in your class?</span>
@@ -305,6 +305,9 @@
 			</div>
 			<div class="site-control-item" id="change-skin">
 				<a href="javascript:void(0)">Change Theme</a>
+			</div>
+			<div class="site-control-item" id="reset-layout">
+				<a href="javascript:void(0)">Change/Reset Layout</a>
 			</div>
 			<div id="twitter-follow-holder" class="site-control-item">
 				<a href="https://twitter.com/OctaveOnline" class="twitter-follow-button" data-show-count="false"

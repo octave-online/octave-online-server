@@ -86,4 +86,19 @@ define(["jquery", "knockout"], function($, ko){
 			self(!self())
 		};
 	};
+
+	// Add an extender to back an observable by localStorage
+	ko.extenders.localStorage = function(obs, key) {
+		key = "oo:" + key;
+
+		// Restore value from localStorage
+		if (window.localStorage[key]) {
+			obs(JSON.parse(window.atob(window.localStorage[key])));
+		}
+
+		// Save changes to localStorage
+		obs.subscribe(function(value){
+			window.localStorage[key] = window.btoa(JSON.stringify(value));
+		});
+	};
 });

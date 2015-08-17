@@ -178,6 +178,11 @@ function($, ko, canvg, Base64, download,
 			if (filename.substr(0,7) === "octave-") return false;
 
 			return !!viewModel.getOctFileFromName(filename);
+		},
+
+		flex: {
+			sizes: ko.observableArray([100, 400, 75, 325]),
+			shown: ko.observable(false)
 		}
 	};
 	viewModel.showUserInHeader = ko.computed(function(){
@@ -189,6 +194,10 @@ function($, ko, canvg, Base64, download,
 		return window.location.origin + window.location.pathname
 			+ "?s=" + viewModel.currentUser().share_key;
 	});
+	viewModel.flex.outputCss = ko.computed(function(){
+		return "flex-basis:" + (viewModel.flex.sizes()[2] + viewModel.flex.sizes()[3]) + "px";
+	});
+	viewModel.flex.sizes.extend({ localStorage: "flex:h" })
 	// Keep the console output visible when the plot window opens
 	viewModel.showPlot.subscribe(function(){
 		setTimeout(OctMethods.console.scroll, 0);

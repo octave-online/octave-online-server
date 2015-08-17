@@ -100,3 +100,23 @@
 	}
 }
 
+.handle {
+	position: absolute
+	width: 15px
+	height: 20%
+	top: (50% - @height/2)
+	left: 0
+	background-color: color3
+	cursor: col-resize
+	z-index: 250
+	
+	&::after {
+		content: "\3008 \3009"
+		color: colorbkg
+		line-height: 20px
+		position: absolute
+		top: s('calc(%s - %s)', 50%, 10px)
+		left: -8px
+	}
+}
+
