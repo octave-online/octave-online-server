@@ -605,7 +605,7 @@ function($, ko, canvg, Base64, download,
 			},
 			user: function(data){
 				// One-time methods
-				if (!OctMethods.editor.initialized) {
+				if (!OctMethods.editor.initialized && data) {
 					OctMethods.editor.initialized = true;
 
 					// Legal runtime
