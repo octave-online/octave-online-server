@@ -6,6 +6,33 @@ define(["jquery", "knockout"], function($, ko){
 		var arr = obsArr();
 		var i, j;
 
+		// Try to be a little bit smart as to how much of a jump we need.
+		// This calculation is an approximation only.  The second section of
+		// this function will fix any errors.
+		var windowWidth = $(window).width();
+		var flexWidth = arr.reduce(function(s,x){ return s+x }, 0);
+		var dist = e.pageX - $(element).offset().left - xRef;
+		var jump = Math.round(windowWidth/flexWidth*dist);
+		if(jump > 0){
+			// Move Right
+			for(i=index; jump>0 && i<arr.length; i++){
+				var m = Math.min(jump, arr[i]);
+				arr[index-1] += m;
+				arr[i] -= m;
+				jump -= m;
+			}
+		}else if(jump < 0){
+			// Move Left
+			for(i=index-1; jump<0 && i>-1; i--){
+				var m = Math.min(Math.abs(jump), arr[i]);
+				arr[i] -= m;
+				arr[index] += m;
+				jump += m;
+			}
+		}
+		obsArr.valueHasMutated();
+
+		// Now do fine-tuning
 		// Limit to 25 iterations to help prevent infinite loops
 		// Move Right
 		for(i=0; e.pageX - $(element).offset().left > xRef && i<25; i++){
@@ -25,6 +52,9 @@ define(["jquery", "knockout"], function($, ko){
 			arr[index] += 1;
 			obsArr.valueHasMutated();
 		}
+
+		// Update the reference point
+		xRef = e.pageX - $(element).offset().left;
 	};
 	function cbdown(e, _obsArr){
 		active = true;
