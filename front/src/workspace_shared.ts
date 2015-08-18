@@ -36,6 +36,7 @@ implements IWorkspace {
 	private otEventCounter = 0;
 	private wsMessageCounter = 0;
 	private statsInterval;
+	private touchInterval;
 
 	constructor(type:string, info:any) {
 		super();
@@ -331,6 +332,7 @@ implements IWorkspace {
 						type: "sesscode",
 						data: sessCode
 					}), next);
+				this.touch();
 			},
 			(_, next) => {
 				// Start the new Octave session.
@@ -346,7 +348,9 @@ implements IWorkspace {
 		this.unsubscribe();
 
 		wsSessClient.on("pmessage", this.wsMessageListener);
-		this.statsInterval = setInterval(this.recordStats, 60000);
+		this.touch();
+		this.touchInterval = setInterval(this.touch, Config.redis.expire.interval * 1000);
+		this.statsInterval = setInterval(this.recordStats, Config.ot.stats_interval * 1000);
 
 		var self = this;
 		this.forEachDoc(function(docId,doc){
@@ -357,12 +361,21 @@ implements IWorkspace {
 
 	public unsubscribe() {
 		wsSessClient.removeListener("pmessage", this.wsMessageListener);
+		clearInterval(this.touchInterval);
 		clearInterval(this.statsInterval);
 
 		var self = this;
 		this.forEachDoc(function(docId,doc){
 			doc.unsubscribe();
 			doc.off("data", self.onDataO);
+		});
+	};
+
+	private touch = () => {
+		if (!this.wsId) return;
+		// TODO: These "expire" calls on intervals should be buffered and sent to the server in batches, both here and in back_server_handler.ts
+		wsPushClient.expire(IRedis.Chan.wsSess(this.wsId), Config.redis.expire.timeout, (err)=> {
+			if (err) console.log("REDIS ERROR", err);
 		});
 	};
 

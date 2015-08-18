@@ -37,6 +37,7 @@ interface IAppConfig {
 	}
 	ot: {
 		operation_expire: number;
+		stats_interval: number;
 		document_expire: {
 			interval: number;
 			timeout: number;
