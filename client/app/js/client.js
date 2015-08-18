@@ -353,6 +353,8 @@ function($, ko, canvg, Base64, download,
 			index: 0,
 			legalTime: 5000,
 			countdownInterval: null,
+			countdownTime: 0,
+			countdownDelay: 20,
 			enabled: true,
 			enable: function(){
 				$("#runtime_controls_container").hideSafe();
@@ -379,16 +381,29 @@ function($, ko, canvg, Base64, download,
 			},
 			startCountdown: function(){
 				$("#runtime_controls_container").showSafe();
-				$("#seconds_remaining").text(OctMethods.prompt.legalTime/1000);
+				OctMethods.prompt.countdownTime = new Date().valueOf();
+
+				OctMethods.prompt.countdownTick();
 				clearInterval(OctMethods.prompt.countdownInterval);
 				OctMethods.prompt.countdownInterval = setInterval(
-					OctMethods.promptListeners.countdownTick, 1000
+					OctMethods.prompt.countdownTick, OctMethods.prompt.countdownDelay
 				);
+			},
+			countdownTick: function(){
+				var elapsed = new Date().valueOf() - OctMethods.prompt.countdownTime;
+				var remaining = (OctMethods.prompt.legalTime - elapsed);
+				if(remaining<=0) {
+					clearInterval(OctMethods.prompt.countdownInterval);
+					$("#seconds_remaining").text("---");
+				}else{
+					$("#seconds_remaining").text((remaining/1000).toFixed(2));
+				}
 			},
 			endCountdown: function(){
 				clearInterval(OctMethods.prompt.countdownInterval);
 				$("#runtime_controls_container").hideSafe();
 				$("#seconds_remaining").text("0");
+				anal.duration(new Date().valueOf() - OctMethods.prompt.countdownTime);
 			},
 			askForEnroll: function(program){
 				if(!OctMethods.editor.initialized){
@@ -444,6 +459,7 @@ function($, ko, canvg, Base64, download,
 				if (OctMethods.prompt.index > 0){
 					OctMethods.prompt.index -= 1;
 					prompt.setValue(history[OctMethods.prompt.index]);
+					prompt.getSelection().clearSelection();
 				}
 			},
 			historyDown: function(prompt){
@@ -451,16 +467,12 @@ function($, ko, canvg, Base64, download,
 				if (OctMethods.prompt.index < history.length-1){
 					OctMethods.prompt.index += 1;
 					prompt.setValue(history[OctMethods.prompt.index]);
+					prompt.getSelection().clearSelection();
 				}
 			},
 			keyFocus: function(e){
 				e.preventDefault();
 				OctMethods.prompt.focus();
-			},
-			countdownTick: function(){
-				var oldSeconds = parseInt($("#seconds_remaining").text());
-				$("#seconds_remaining").text(oldSeconds - 1);
-				if(oldSeconds===1) OctMethods.prompt.endCountdown();
 			},
 			permalink: function(){
 				// TODO: Add this directly into purl
@@ -617,9 +629,6 @@ function($, ko, canvg, Base64, download,
 				if (!OctMethods.editor.initialized && data) {
 					OctMethods.editor.initialized = true;
 
-					// Legal runtime
-					OctMethods.prompt.legalTime = data.legalTime;
-
 					// Set up the UI
 					$("#open_container").showSafe();
 					onboarding.hideScriptPromo();
@@ -646,6 +655,9 @@ function($, ko, canvg, Base64, download,
 					// Set up the UI
 					$("#files_container").showSafe();
 					onboarding.showSyncPromo();
+
+					// Legal runtime
+					OctMethods.prompt.legalTime = data.legalTime;
 				}
 			},
 			fileadd: function(data){

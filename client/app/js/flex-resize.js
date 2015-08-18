@@ -73,6 +73,12 @@ define(["jquery", "knockout"], function($, ko){
 		$(document).off("touchmove", cbmove);
 		$(document).off("mouseup", cbup);
 		$(document).off("touchend", cbup);
+
+		// Fire a window "resize" event to make sure everything adjusts,
+		// like the ACE editor
+		var evt = document.createEvent("UIEvents");
+		evt.initUIEvent("resize", true, false, window, 0);
+		window.dispatchEvent(evt);
 	};
 
 	ko.bindingHandlers.resizeFlex = {

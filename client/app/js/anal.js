@@ -53,6 +53,9 @@ define(function(){
 		},
 		dismiss: function(what){
 			_ga("send", "event", "dismiss", "promo", what);
+		},
+		duration: function(duration){
+			_ga("send", "event", "command", "duration", "millis", duration);
 		}
 	};
 });
