@@ -197,7 +197,8 @@ function($, ko, canvg, Base64, download,
 	viewModel.flex.outputCss = ko.computed(function(){
 		return "flex-basis:" + (viewModel.flex.sizes()[2] + viewModel.flex.sizes()[3]) + "px";
 	});
-	viewModel.flex.sizes.extend({ localStorage: "flex:h" })
+	viewModel.flex.sizes.extend({ localStorage: "flex:h" });
+	viewModel.inlinePlots.extend({ localStorage: "inline-plots" });
 	// Keep the console output visible when the plot window opens
 	viewModel.showPlot.subscribe(function(){
 		setTimeout(OctMethods.console.scroll, 0);

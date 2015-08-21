@@ -23,6 +23,7 @@ define(["knockout", "ace/ace"], function(ko, ace){
 			});
 			editor.setOptions({ enableBasicAutocompletion: true });
 			editor.focus();
+			setTimeout(editor.resize.bind(editor), 0);
 
 			// Bind to Knockout changes
 			var onAceChange = function(delta){
