@@ -114,6 +114,7 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 				window.dispatchEvent(evt);
 			}, 0);
 		});
+		self.wrap = ko.observable(true);
 
 		self.getOtClient = function(){
 			return WsShared.clientForFilename(self.filename());

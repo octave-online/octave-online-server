@@ -133,12 +133,13 @@
 					<span id="editor_delete" title="DELETE File" data-bind="click: deleteit"></span>
 					<!-- ko if: editable -->
 						<span id="editor_print" title="Print File" data-bind="click: print"></span>
+						<label id="wrap_checkbox" title="Toggle Word Wrap"><input type="checkbox" data-bind="checked: wrap" /></label>
 						<span id="editor_save" title="Save File" data-bind="click: save"></span>
 					<!-- /ko -->
 				</div>
 
 				<!-- ko if: editable -->
-					<div id="editor" data-bind="ace: { text: content, skin: $root.selectedSkin, octfile: $data }, css: { taller: !buttonsShown(), shorter: buttonsShown() }"></div>
+					<div id="editor" data-bind="ace: { text: content, skin: $root.selectedSkin, wrap: wrap, octfile: $data }, css: { taller: !buttonsShown(), shorter: buttonsShown() }"></div>
 				<!-- /ko -->
 				<!-- ko ifnot: editable -->
 					<div class="editor_nofile" data-bind="css: { taller: !buttonsShown(), shorter: buttonsShown() }">

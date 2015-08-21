@@ -5,12 +5,14 @@ define(["knockout", "ace/ace"], function(ko, ace){
 			var obj = ko.utils.unwrapObservable(valueAccessor());
 			var text = ko.utils.unwrapObservable(obj.text);
 			var skin = ko.utils.unwrapObservable(obj.skin);
+			var wrap = ko.utils.unwrapObservable(obj.wrap);
 			var octfile = ko.utils.unwrapObservable(obj.octfile);
 
 			// Make the editor
 			var editor = ace.edit(element.id);
 			editor.setTheme(skin.aceTheme);
 			editor.getSession().setMode("ace/mode/octave");
+			editor.getSession().setUseWrapMode(wrap);
 			editor.setValue(text);
 			editor.gotoLine(0);
 			editor.commands.addCommand({
@@ -53,7 +55,7 @@ define(["knockout", "ace/ace"], function(ko, ace){
 			var obj = ko.utils.unwrapObservable(valueAccessor());
 			var text = ko.utils.unwrapObservable(obj.text);
 			var skin = ko.utils.unwrapObservable(obj.skin);
-			var octfile = ko.utils.unwrapObservable(obj.octfile);
+			var wrap = ko.utils.unwrapObservable(obj.wrap);
 			var editor = bindingContext.editor;
 
 			if(editor.getValue() !== text){
@@ -63,6 +65,10 @@ define(["knockout", "ace/ace"], function(ko, ace){
 
 			if(editor.getTheme() !== skin.aceTheme){
 				editor.setTheme(skin.aceTheme);
+			}
+
+			if(editor.getSession().getUseWrapMode() !== wrap){
+				editor.getSession().setUseWrapMode(wrap);
 			}
 		}
 	}
