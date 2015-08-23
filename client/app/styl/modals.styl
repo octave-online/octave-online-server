@@ -81,12 +81,11 @@ popover(_width, _height, _zindex){
 	}
 
 	#onboarding-start{
-		background-color: #fac695;
-		background-image: linear-gradient(#fac695, #ef8d31, to bottom);
+		background-color: color1
+		background-image: linear-gradient(color2, color1, to bottom);
 		background-image: radial-gradient(ellipse at center,
-			#fac695 0%,
-			#f5ab66 47%,
-			#ef8d31 100%);
+			color2 0%,
+			color1 100%);
 		display: block;
 		margin: 10px auto;
 		padding: 0.5em;
@@ -98,10 +97,10 @@ popover(_width, _height, _zindex){
 
 		&:active{
 			background-color: #ffa84c;
-			background-image: linear-gradient(#ffa84c, #ff7b0d, to bottom);
+			background-image: linear-gradient(color2, color3, to bottom);
 			background-image: radial-gradient(ellipse at center,
-				#ffa84c 0%,
-				#ff7b0d 100%);
+				color2 0%,
+				color3 100%);
 		}
 	}
 }
