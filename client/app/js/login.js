@@ -4,7 +4,7 @@ define(["persona", "js/onboarding", "jquery"], function(Persona, onboarding, $){
 		login: function(){
 			Persona.get(function(assertion){
 				if (assertion) {
-					$.ajax("auth/persona", {
+					$.ajax("/auth/persona", {
 						type: "post",
 						data: {
 							"assertion": assertion
@@ -31,7 +31,7 @@ define(["persona", "js/onboarding", "jquery"], function(Persona, onboarding, $){
 	return {
 		login: function(google){
 			if (google) {
-				window.location.href = "auth/google";
+				window.location.href = "/auth/google";
 			} else {
 				personaFn.login();
 			}
@@ -39,7 +39,7 @@ define(["persona", "js/onboarding", "jquery"], function(Persona, onboarding, $){
 		logout: function(google){
 			personaFn.logout();
 			onboarding.reset();
-			window.location.href = "logout";
+			window.location.href = "/logout";
 		}
 	};
 });
