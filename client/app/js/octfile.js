@@ -116,7 +116,7 @@ define(["knockout", "require"], function(ko, require){
 		);
 	}
 	OctFile.regexps = {};
-	OctFile.regexps.isFunction = /^(?:\s*(?:[\%\#].*)?\n)*\s*function\s/;
+	OctFile.regexps.isFunction = /^(?:[\t\f ]*(?:[\%\#].*)?\n)*\s*function\s/;
 	OctFile.regexps.matchParameters = /function[^\(]+\(\s*([^\)]*?)\s*\)/;
 	OctFile.regexps.filename = /^(([\w_\-]+)\.m|\.octaverc)$/;
 
