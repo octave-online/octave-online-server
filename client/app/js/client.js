@@ -22,7 +22,7 @@ function($, ko, canvg, Base64, download,
 		self.iconColor = iconColor;
 		self.rawAceTheme = aceTheme;
 		self.aceTheme = "ace/theme/"+aceTheme;
-		self.cssURL = "css/themes/"+self.name+".css";
+		self.cssURL = "css/themes/"+self.name+".css?reload1";
 	}
 	var availableSkins = [
 		new Skin("fire", "crimson_editor", "black"),
