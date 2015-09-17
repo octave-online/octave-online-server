@@ -404,7 +404,9 @@ function($, ko, canvg, Base64, download,
 				clearInterval(OctMethods.prompt.countdownInterval);
 				$("#runtime_controls_container").hideSafe();
 				$("#seconds_remaining").text("0");
-				anal.duration(new Date().valueOf() - OctMethods.prompt.countdownTime);
+
+				if (OctMethods.prompt.countdownTime > 0)
+					anal.duration(new Date().valueOf() - OctMethods.prompt.countdownTime);
 			},
 			askForEnroll: function(program){
 				if(!OctMethods.editor.initialized){
