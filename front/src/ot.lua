@@ -2,6 +2,18 @@
 -- This code is heavily based on the JavaScript implementation ot.js:
 -- https://github.com/Operational-Transformation/ot.js/
 
+-- Lua has poor support for UTF-8, so we need to have custom functions
+function utf8len(str)
+	-- returns the number of UTF8 characters in "str"
+	-- (UTF-8-friendly string.len)
+	-- TODO
+end
+function utf8sub(str, start, end)
+	-- returns UTF8 chars in str from the start'th to the end'th char
+	-- (UTF-8-friendly string.sub)
+	-- TODO
+end
+
 -- Remove redundant ops from an operations table
 function condense(ops)
 	local i = 2
@@ -68,12 +80,12 @@ function transform(ops1, ops2)
 		-- break tie by prefering player 1
 		if type(op1) == "string" then
 			table.insert(ops1p, op1) -- insert
-			table.insert(ops2p, string.len(op1)) -- retain
+			table.insert(ops2p, utf8len(op1)) -- retain
 			i1 = i1+1; op1 = ops1[i1]
 
 		-- insert by player 2
 		elseif type(op2) == "string" then
-			table.insert(ops1p, string.len(op2)) -- retain
+			table.insert(ops1p, utf8len(op2)) -- retain
 			table.insert(ops2p, op2) -- insert
 			i2 = i2+1; op2 = ops2[i2]
 
@@ -176,7 +188,7 @@ function apply(str, ops)
 
 		-- retain
 		else
-			res = res .. string.sub(str, j, j+op-1)
+			res = res .. utf8sub(str, j, j+op-1)
 			j = j + op
 		end
 	end
