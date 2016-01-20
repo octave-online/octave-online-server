@@ -83,7 +83,8 @@ module.exports = function (grunt) {
 					"compatibility.html",
 					"images/**",
 					"errors/**",
-					"fonts/**"
+					"fonts/**",
+					"js/gnuplot/**"
 				],
 				dest: "dist",
 				expand: true
