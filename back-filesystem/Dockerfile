@@ -15,9 +15,12 @@ ENV GIT_SSH $DIR/git/git_ssh.sh
 RUN mkdir ~/.ssh && \
 	ssh-keyscan -t rsa 192.168.3.1 >> ~/.ssh/known_hosts
 
-# Copy source files and run npm install
-COPY . $DIR/
+# Copy package.json and npm install
+COPY package.json $DIR/
 RUN npm install
+
+# Copy remaining source files
+COPY . $DIR/
 
 # Entrypoint
 ENTRYPOINT [ "node", "app.js" ]

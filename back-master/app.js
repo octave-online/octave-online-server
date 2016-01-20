@@ -66,7 +66,6 @@ redisScriptHandler.on("sesscode", (sessCode, user) => {
 });
 
 sessionManager.on("touch", (sessCode) => {
-	log.trace("Touching:", sessCode);
 	redisMessenger.touchOutput(sessCode);
 });
 
