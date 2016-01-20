@@ -267,13 +267,13 @@
 				</div>
 				<div class="share-url-box">
 					<!-- ko if: currentUser().share_key -->
-						<em>Others can use the following link to connect to your workspace.</em>
+						<em>Others can use the following link to connect to your workspace. This is an experimental feature; if you think you found a bug, open a support ticket.</em>
 						<input data-bind="value: shareLink" onclick="this.select()" readonly="readonly" />
-						<a data-bind="click: toggleSharing">Disable Sharing</a>
+						<a data-bind="click: toggleSharing">Disable Sharing<br/><small>(will reload page)</small></a>
 					<!-- /ko -->
 					<!-- ko ifnot: currentUser().share_key -->
-						<em>Sharing is currently disabled.  If you enable it, you get a link that you can use for real-time collaboration with colleagues.</em>
-						<a data-bind="click: toggleSharing">Enable Sharing</a>
+						<em>Sharing is currently disabled.  If you enable it, you get a link that you can use for real-time collaboration with colleagues.  Please note: sharing is still an experimental feature.  If you enable sharing and find bugs, please open a support ticket.</em>
+						<a data-bind="click: toggleSharing">Enable Sharing<br/><small>(will reload page)</small></a>
 					<!-- /ko -->
 				</div>
 			<!-- /ko -->
@@ -366,6 +366,7 @@
 	<span class="l3" data-purpose="close">dismiss</span>
 </div>
 <div id="share-promo" aria-hidden="true">
+	<span class="l0">Experimental Feature:</span>
 	<span class="l1">Set up <strong>sharing</strong> so you can collaboratively edit your script files in real time,</span>
 	<span class="l2">like Google Docs.</span>
 	<span class="l3" data-purpose="close">dismiss</span>
