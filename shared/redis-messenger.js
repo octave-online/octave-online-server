@@ -8,6 +8,7 @@ const redisUtil = require("./redis-util");
 const Scripto = require("redis-scripto");
 const path = require("path");
 const uuid = require("uuid");
+const config = require("./config.json");
 
 class RedisMessenger extends EventEmitter {
 	constructor() {
@@ -74,8 +75,7 @@ class RedisMessenger extends EventEmitter {
 	}
 
 	getSessCode() {
-		// FIXME: configuration option for token "main"
-		this._runScript("get-sesscode", [redisUtil.chan.needsOctave], ["main"], (err, result) => {
+		this._runScript("get-sesscode", [redisUtil.chan.needsOctave], [config.worker.token], (err, result) => {
 			if (err) this._handleError(err);
 			if (result === -1) return;
 			try {
@@ -148,20 +148,18 @@ class RedisMessenger extends EventEmitter {
 	touchInput(sessCode) {
 		this._ensureNotSubscribed();
 
-		// FIXME: Config.redis.expire.timeout
 		let multi = this._client.multi();
-		multi.expire(redisUtil.chan.session(sessCode), 15);
-		multi.expire(redisUtil.chan.input(sessCode), 15);
+		multi.expire(redisUtil.chan.session(sessCode), config.redis.expire.timeout/1000);
+		multi.expire(redisUtil.chan.input(sessCode), config.redis.expire.timeout/1000);
 		multi.exec(this._handleError.bind(this));
 	}
 
 	touchOutput(sessCode) {
 		this._ensureNotSubscribed();
 
-		// FIXME: Config.redis.expire.timeout
 		let multi = this._client.multi();
-		multi.expire(redisUtil.chan.session(sessCode), 15);
-		multi.expire(redisUtil.chan.output(sessCode), 15);
+		multi.expire(redisUtil.chan.session(sessCode), config.redis.expire.timeout/1000);
+		multi.expire(redisUtil.chan.output(sessCode), config.redis.expire.timeout/1000);
 		multi.exec(this._handleError.bind(this));
 	}
 
@@ -176,9 +174,8 @@ class RedisMessenger extends EventEmitter {
 	requestReboot(id, priority) {
 		this._ensureNotSubscribed();
 
-		// FIXME: configuration option for token "main"
 		let channel = redisUtil.chan.rebootRequest;
-		let message = { id, priority, token: "main", isRequest: true };
+		let message = { id, priority, token: config.worker.token, isRequest: true };
 
 		this._client.publish(channel, JSON.stringify(message), this._handleError.bind(this));
 	}
@@ -186,9 +183,8 @@ class RedisMessenger extends EventEmitter {
 	replyToRebootRequest(id, response) {
 		this._ensureNotSubscribed();
 
-		// FIXME: configuration option for token "main"
 		let channel = redisUtil.chan.rebootRequest;
-		let message = { id, response, token: "main", isRequest: false };
+		let message = { id, response, token: config.worker.token, isRequest: false };
 
 		this._client.publish(channel, JSON.stringify(message), this._handleError.bind(this));
 	}
