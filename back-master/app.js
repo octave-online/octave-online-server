@@ -81,13 +81,14 @@ maintenanceRequestManager.on("reply-to-maintenance-request", redisMessenger.repl
 
 // Connection-accepting loop
 let ACCEPT_CONS = true;
+var getSessCodeTimer;
 function getSessCode() {
 	if (ACCEPT_CONS && sessionManager.numActiveSessions() < config.worker.maxSessions) {
 		redisScriptHandler.getSessCode();
 	}
-	setTimeout(getSessCode, Math.floor(config.worker.clockInterval.min + Math.random()*(config.worker.clockInterval.max-config.worker.clockInterval.min)));
+	getSessCodeTimer = setTimeout(getSessCode, Math.floor(config.worker.clockInterval.min + Math.random()*(config.worker.clockInterval.max-config.worker.clockInterval.min)));
 }
-setTimeout(getSessCode, config.worker.clockInterval.max);
+getSessCodeTimer = setTimeout(getSessCode, config.worker.clockInterval.max);
 
 // Request maintenance time every 12 hours
 var maintenanceTimer;

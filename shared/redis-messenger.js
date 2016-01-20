@@ -175,7 +175,7 @@ class RedisMessenger extends EventEmitter {
 		this._ensureNotSubscribed();
 
 		let channel = redisUtil.chan.rebootRequest;
-		let message = { id, priority, token: config.worker.token, isRequest: true };
+		let message = { id, isRequest: true, token: config.worker.token,  priority };
 
 		this._client.publish(channel, JSON.stringify(message), this._handleError.bind(this));
 	}
@@ -184,7 +184,7 @@ class RedisMessenger extends EventEmitter {
 		this._ensureNotSubscribed();
 
 		let channel = redisUtil.chan.rebootRequest;
-		let message = { id, response, token: config.worker.token, isRequest: false };
+		let message = { id, isRequest: false, token: config.worker.token, response };
 
 		this._client.publish(channel, JSON.stringify(message), this._handleError.bind(this));
 	}
@@ -246,7 +246,7 @@ class RedisMessenger extends EventEmitter {
 				let sessCode = redisUtil.getSessCodeFromChannel(message);
 				this.emit("_message", sessCode);
 			} catch (err) {
-				this._handleError(err);
+				this._handleError(channel, message, err);
 			}
 		});
 	}

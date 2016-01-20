@@ -180,8 +180,8 @@ class OctaveSession extends OnlineOffline {
 
 	// SESSION LOG: Log all commands, input, and output to a log file
 	_appendToSessionLog(type, content) {
-		if (!this._sessionLogStream) return log.warn("Cannot log before created");
-		if (this._sessionLogStream.closed) return log.warn("Cannot log to a closed stream");
+		if (!this._sessionLogStream) return this._log.warn("Cannot log before created");
+		if (this._sessionLogStream.closed) return this._log.warn("Cannot log to a closed stream");
 		if (type === "cmd") content += "\n";
 		this._sessionLogStream.write(`${type}: ${content}----\n`);
 	}
