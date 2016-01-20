@@ -2,10 +2,11 @@
 
 const redis = require("redis");
 const log = require("./logger")("redis-util");
+const config = require("./config.json");
 
-const PORT = 6379
-const HOSTNAME = "127.0.0.1";
-const OPTIONS = { }
+const PORT = config.redis.port;
+const HOSTNAME = config.redis.hostname;
+const OPTIONS = config.redis.options;
 
 module.exports = {
 	createClient: () => {
