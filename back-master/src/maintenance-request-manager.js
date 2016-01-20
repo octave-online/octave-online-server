@@ -29,11 +29,9 @@ class MaintenanceReuestManager extends EventEmitter {
 			// Reply to the maintenance request.  Reply "yes" only if the requester's priority is higher than our own priority.
 			let response = (message.priority > this._priority);
 			this.emit("reply-to-maintenance-request", id, response);
-			log.trace("Replying to maintenance request:", id, message.priority, this._priority);
 		} else if (!isRequest && isOwnRequest) {
 			// Someone replied to our own maintenance request.
 			this._responses[id].push(message.response);
-			log.trace("Received reply to maintenance request:", id, message.response);
 		}
 	}
 
