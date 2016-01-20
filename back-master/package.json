@@ -1,0 +1,17 @@
+{
+  "name": "@oo/back",
+  "version": "0.0.0",
+  "description": "Spawns Octave sessions and passes messages",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shane F. Carr",
+  "license": "AGPL-3.0",
+  "private": true,
+  "dependencies": {
+    "async": "^1.5.2",
+    "tmp": "0.0.28",
+    "uuid": "^2.0.1"
+  }
+}

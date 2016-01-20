@@ -1,0 +1,7 @@
+# Additional MIME Types used by the Octave Online application
+
+# GNU Octave Types
+# If these haven't ben defined before, then they are now!
+text/x-octave	m
+application/x-octave-data	mat
+text/plain	octaverc
