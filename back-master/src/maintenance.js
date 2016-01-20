@@ -4,7 +4,7 @@ const child_process = require("child_process");
 const log = require("@oo/shared").logger("maintenance");
 const config = require("@oo/shared").config;
 
-const MAINTENANCE_COMMAND = 'docker ps -a --filter "status=exited" --filter "ancestor=oo/octave" | grep Exited | cut -c -12 | xargs -n 1 docker rm -f; docker ps -a --filter "status=exited" --filter "ancestor=oo/files" | grep Exited | cut -c -12 | xargs -n 1 docker rm -f';
+const MAINTENANCE_COMMAND = 'docker ps -a --filter "status=exited" --filter "ancestor=oo/'+config.docker.images.octaveSuffix+'" | cut -c -12 | xargs -n 1 docker rm -f; docker ps -a --filter "status=exited" --filter "ancestor=oo/'+config.docker.images.filesystemSuffix+'" | cut -c -12 | xargs -n 1 docker rm -f';
 
 function runMaintenance(next) {
 	log.info("Starting Maintenance Routine");
