@@ -91,6 +91,7 @@ class SessionManager extends EventEmitter {
 	attach(remoteCode, user) {
 		// Make sure there is a pool session available
 		if (Object.keys(this._pool).length === 0) {
+			log.warn("No pooled sessions available for " + remoteCode);
 			this._create(() => { this.attach(remoteCode, user) });
 			return;
 		}

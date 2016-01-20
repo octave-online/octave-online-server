@@ -6,6 +6,8 @@ const logger = require("@oo/shared").logger;
 const OnlineOffline = require("@oo/shared").OnlineOffline;
 const DockerHandler = require("./docker-handler");
 const config = require("@oo/shared").config;
+const fs = require("fs");
+const path = require("path");
 
 // Include timeLimit() and silent()
 const timeLimit = require("@oo/shared").timeLimit;
@@ -38,6 +40,8 @@ class OctaveSession extends OnlineOffline {
 	}
 
 	_doCreate(next) {
+		this._sessionLogStream = fs.createWriteStream(path.join("/srv/oo/logs", `${this.sessCode}.log`));
+
 		async.auto({
 			"cfs1": (_next) => {
 				this._log.trace("Requesting creation of capped file system 1");
@@ -74,6 +78,7 @@ class OctaveSession extends OnlineOffline {
 		if (this._timewarnTimer) clearTimeout(this._timewarnTimer);
 		if (this._timeoutTimer) clearTimeout(this._timeoutTimer);
 		if (this._autoCommitTimer) clearInterval(this._autoCommitTimer);
+		if (this._sessionLogStream) this._sessionLogStream.end(reason);
 		async.auto({
 			"host": (_next) => {
 				this._log.trace("Requesting termination of Octave host process");
@@ -173,6 +178,14 @@ class OctaveSession extends OnlineOffline {
 		}, config.git.autoCommitInterval);
 	}
 
+	// SESSION LOG: Log all commands, input, and output to a log file
+	_appendToSessionLog(type, content) {
+		if (!this._sessionLogStream) return log.warn("Cannot log before created");
+		if (this._sessionLogStream.closed) return log.warn("Cannot log to a closed stream");
+		if (type === "cmd") content += "\n";
+		this._sessionLogStream.write(`${type}: ${content}----\n`);
+	}
+
 	sendMessage(name, content) {
 		switch (name) {
 			// Messages requiring special handling
@@ -184,6 +197,7 @@ class OctaveSession extends OnlineOffline {
 				this._startCountdown();
 				this.resetTimeout();
 				this._hostSession.sendMessage(name, content);
+				this._appendToSessionLog(name, content);
 				break;
 
 			case "user-info":
@@ -254,6 +268,7 @@ class OctaveSession extends OnlineOffline {
 			case "err":
 			case "out":
 				this._appendToPayload(content);
+				this._appendToSessionLog(name, content);
 				break;
 
 			// UNIMPLEMENTED FEATURES REQUIRING RESPONSE:
