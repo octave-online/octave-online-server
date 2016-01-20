@@ -1,3 +1,6 @@
 */node_modules/*
 *.pem
 *.pub
+*.o
+back-octave/octave-host
+_old/*
