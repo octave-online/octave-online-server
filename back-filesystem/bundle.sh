@@ -4,8 +4,6 @@ if [[ -e bundle ]]; then
 	rm -rf bundle;
 fi
 
-npm install;
-
 mkdir bundle;
 cp -rL node_modules bundle;
 cp -rL src bundle;
