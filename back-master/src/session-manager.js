@@ -14,12 +14,13 @@ class SessionManager extends EventEmitter {
 		this._pool = {};
 		this._online = {};
 		this._POOL_ENABLED = true;
+		this._activeOrPendingSessions = 0;
 
 		// Log the session index on a fixed interval
 		this._logInterval = setInterval(() => {
 			log.debug("Current Number of Pooled Sessions:", Object.keys(this._pool).length);
 			log.trace(Object.keys(this._pool).join("; "));
-			log.debug("Current Number of Online Sessions:", Object.keys(this._online).length);
+			log.debug("Current Number of Online Sessions:", Object.keys(this._online).length, "-- including pending:", this._activeOrPendingSessions);
 			log.trace(Object.keys(this._online).join("; "));
 		}, config.sessionManager.logInterval);
 
@@ -56,8 +57,7 @@ class SessionManager extends EventEmitter {
 		session.create((err) => {
 			// Get rid of the session if it failed to create
 			if (err) {
-				log.warn(localCode, err);
-				session.destroy();
+				log.warn("Session failed to create:", localCode, err);
 				if (next) next();
 				return;
 			}
@@ -85,14 +85,23 @@ class SessionManager extends EventEmitter {
 	}
 
 	numActiveSessions() {
-		return Object.keys(this._online).length;
+		return this._activeOrPendingSessions;
 	}
 
 	attach(remoteCode, user) {
+		this._activeOrPendingSessions += 1;
+
 		// Make sure there is a pool session available
 		if (Object.keys(this._pool).length === 0) {
 			log.warn("No pooled sessions available for " + remoteCode);
-			this._create(() => { this.attach(remoteCode, user) });
+			async.until(
+				() => { Object.keys(this._pool).length > 0 },
+				(_next) => { setTimeout(_next, config.sessionManager.poolInterval/10) },
+				(err) => {
+					if (err) return log.error("Couldn't create session!");
+					this.attach(remoteCode, user);
+				}
+			);
 			return;
 		}
 
@@ -171,6 +180,7 @@ class SessionManager extends EventEmitter {
 		// Remove it from the index
 		delete this._online[sessCode];
 		log.debug("Removed session from index", sessCode);
+		this._activeOrPendingSessions -= 1;
 	}
 
 	disablePool() {

@@ -6,7 +6,7 @@ const Queue = require("./queue");
 
 /**
  * This is a class that handles safely creating and destroying something asynchronously.
- * Possible states: INIT, CREATING, ONLINE, PENDING-DESTROY, DESTROYED, and PENDING-DESTROYED.
+ * Possible states: INIT, CREATING, ONLINE, PENDING-DESTROY, DESTROYING, and DESTROYED.
  * Required methods to implement in derived classes: _doCreate, _doDestroy.
  * Derived classes may read the state but should never change it.
  */
@@ -37,14 +37,21 @@ class OnlineOffline extends EventEmitter {
 				break;
 
 			case "ONLINE":
-				return next(new Error("Already created"));
+				return process.nextTick(() => {
+					next(new Error("Already created"));
+				});
 
+			case "DESTROYING":
 			case "DESTROYED":
-				return next(new Error("Already destroyed"));
+				return process.nextTick(() => {
+					next(new Error("Already destroyed"));
+				});
 
 			default:
 				this._log.error("Unknown state:", this._state);
-				return next(new Error("Internal online-offline error"));
+				return process.nextTick(() => {
+					next(new Error("Internal online-offline error"));
+				});
 		}
 	}
 
@@ -67,6 +74,7 @@ class OnlineOffline extends EventEmitter {
 
 			case "CREATING":
 			case "ONLINE":
+			case "DESTROYING":
 			case "DESTROYED":
 				this._log.error("Unexpected state:", this._state);
 				break;
@@ -81,7 +89,9 @@ class OnlineOffline extends EventEmitter {
 
 		while (!this._createCBs.isEmpty()) {
 			let cb = this._createCBs.dequeue();
-			cb.apply(this, args);
+			process.nextTick(() => {
+				cb.apply(this, args);
+			});
 		}
 	}
 
@@ -89,7 +99,7 @@ class OnlineOffline extends EventEmitter {
 		next = next || function(){};
 		switch (this._state) {
 			case "ONLINE":
-				this._state = "DESTROYED";
+				this._state = "DESTROYING";
 				this._destroyCBs.enqueue(next);
 				let args = Array.prototype.slice.call(arguments, 1);
 				args.unshift(this._afterDestroy.bind(this));
@@ -102,28 +112,35 @@ class OnlineOffline extends EventEmitter {
 				this._destroyCBs.enqueue(next);
 				break;
 
-			case "INIT":
-				this._state = "DESTROYED";
-				return next(null);
+			case "DESTROYING":
+				this._destroyCBs.enqueue(next);
+				break;
 
+			case "INIT":
 			case "DESTROYED":
-				return next(null);
+				this._state = "DESTROYED";
+				return process.nextTick(() => {
+					next(null);
+				});
 
 			default:
 				this._log.error("Unknown state:", this._state);
-				return next(new Error("Internal online-offline error"));
+				return process.nextTick(() => {
+					next(new Error("Internal online-offline error"));
+				});
 		}
 	}
 
 	_afterDestroy(err) {
 		switch (this._state) {
-			case "DESTROYED":
+			case "DESTROYING":
 				break;
 
 			case "INIT":
 			case "CREATING":
 			case "ONLINE":
 			case "PENDING-DESTROY":
+			case "DESTROYED":
 				this._log.error("Unexpected state:", this._state);
 				break;
 
@@ -134,7 +151,9 @@ class OnlineOffline extends EventEmitter {
 
 		while (!this._destroyCBs.isEmpty()) {
 			let cb = this._destroyCBs.dequeue();
-			cb(err);
+			process.nextTick(() => {
+				cb.call(this, err);
+			});
 		}
 	}
 }
