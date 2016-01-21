@@ -132,8 +132,8 @@ async.forever(
 	() => { log.error("Maintenance loop ended") }
 );
 
-process.on("SIGTERM", () => {
-	log.info("RECEIVED SIGTERM.  Terminating gracefully.");
+function doExit() {
+	log.info("RECEIVED SIGNAL.  Terminating gracefully.");
 
 	sessionManager.terminate("Server Maintenance");
 	clearTimeout(getSessCodeTimer);
@@ -147,5 +147,10 @@ process.on("SIGTERM", () => {
 		redisScriptHandler.close();
 		redisMaintenanceHandler.close();
 		redisMessenger.close();
-	}, 15000);
-});
+	}, 5000);
+}
+
+process.on("SIGINT", doExit);
+process.on("SIGQUIT", doExit);
+process.on("SIGHUP", doExit);
+process.on("SIGTERM", doExit);

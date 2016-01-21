@@ -84,9 +84,16 @@ class DockerHandler extends StdioMessenger {
 	}
 
 	_handleLog(data) {
+		// Log message to console
 		data.toString().trim().split("\n").forEach((line) => {
 			this._log.log(line);
 		});
+
+		// Special handling of certain messages
+		// TODO: Make this message get sent from host.c instead of from here
+		if (/Process exited with status 0, signal 9/.test(data)) {
+			this.emit("message", "octave-killed");
+		}
 	}
 
 	_handleExit(code, signal) {

@@ -4,6 +4,7 @@ const EventEmitter = require("events");
 const log = require("@oo/shared").logger("message-translator");
 const crypto = require("crypto");
 const uuid = require("uuid");
+const config = require("@oo/shared").config;
 
 // This class "translates" messages between the older format expected by the downstream front end and the newer format expected by the upstream back ends (Octave host and file manager).
 
@@ -83,6 +84,14 @@ class MessageTranslator extends EventEmitter {
 			// The "exit" event from the child process:
 			case "docker-exit":
 				this.emit("destroy", sessCode, "Shell Exited");
+				break;
+
+			// The event for when the Octave process is killed:
+			case "octave-killed":
+				this._forDownstream(sessCode, "data", {
+					type: "stderr",
+					data: "Error: Octave process killed.\nYou may have been using too much memory.\nYour memory cap is: " + config.docker.memoryShares + "\n"
+				});
 				break;
 
 			// Turn "destroy" into "destroy" on this instance
