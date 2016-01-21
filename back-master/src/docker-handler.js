@@ -46,19 +46,16 @@ class DockerHandler extends StdioMessenger {
 
 				// Wait until we get an acknowledgement before continuing.  Two conditions: receipt of the acknowledgement message, and premature exit.
 				var ack = false;
-				this.once("message", () => {
+				this.once("message", (name, content) => {
 					if (ack) return;
 					ack = true;
+
+					// Error if the message is docker-exit
+					if (name === "docker-exit") return _next(new Error("Process exited prematurely"));
 
 					// Don't enable the write stream until down here because we don't want to write messages to the child's STDIN until we've acknowledged that it is online
 					this.setWriteStream(this._spwn.stdin);
 					_next(null);
-				});
-				this._spwn.once("exit", () => {
-					if (ack) return;
-					ack = true;
-
-					_next(new Error("Process exited prematurely"));
 				});
 			}
 		], (err) => {
