@@ -7,6 +7,7 @@ const uuid = require("uuid");
 const Queue = require("@oo/shared").Queue;
 const async = require("async");
 const config = require("@oo/shared").config;
+const timeLimit = require("@oo/shared").timeLimit;
 
 class SessionManager extends EventEmitter {
 	constructor() {
@@ -27,6 +28,7 @@ class SessionManager extends EventEmitter {
 		// Keep the pool populated with new sessions
 		async.forever(
 			(_next) => {
+				if (this._TERMINATED) return;
 				if (!this._POOL_ENABLED) this._makePoolTimer = setTimeout(_next, config.sessionManager.poolInterval);
 				else this._createMany(config.sessionManager.poolSize, () => {
 					this._makePoolTimer = setTimeout(_next, config.sessionManager.poolInterval);
@@ -54,10 +56,11 @@ class SessionManager extends EventEmitter {
 			cache.enqueue([name, content]);
 		});
 
-		session.create((err) => {
+		session.create(timeLimit(config.sessionManager.startupTimeLimit, [new Error("Time limit reached")], (err) => {
 			// Get rid of the session if it failed to create
 			if (err) {
 				log.warn("Session failed to create:", localCode, err);
+				session.destroy();
 				if (next) next();
 				return;
 			}
@@ -67,14 +70,14 @@ class SessionManager extends EventEmitter {
 
 			// Call the callback if necessary
 			if (next) next();
-		});
+		}));
 	}
 
 	_createMany(n, next) {
 		let attempts = 0;
 		async.whilst(
 			() => {
-				return (Object.keys(this._pool).length < n && attempts < 2*n);
+				return (Object.keys(this._pool).length < n && attempts < 2*n && this._POOL_ENABLED);
 			},
 			(_next) => {
 				attempts += 1;
@@ -199,6 +202,7 @@ class SessionManager extends EventEmitter {
 
 	terminate(reason) {
 		this.disablePool();
+		this._TERMINATED = true;
 		clearInterval(this._logInterval);
 		clearInterval(this._keepAliveInterval);
 		clearTimeout(this._makePoolTimer);

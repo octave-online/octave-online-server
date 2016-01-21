@@ -22,7 +22,6 @@ class OctaveSession extends OnlineOffline {
 		this._legalTime = config.session.legalTime.guest;
 		this._payloadLimit = config.session.payloadLimit.guest;
 
-		this.resetTimeout();
 		this._resetPayload();
 
 		this._cfs1 = new CappedFileSystem(this.sessCode, config.docker.diskQuotaKiB);
@@ -68,6 +67,7 @@ class OctaveSession extends OnlineOffline {
 		}, (err) => {
 			if (err) return next(err);
 			this._log.info("Session successfully created");
+			this.resetTimeout();
 			return next(null);
 		});
 	}
