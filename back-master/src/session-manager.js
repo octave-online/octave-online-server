@@ -15,13 +15,12 @@ class SessionManager extends EventEmitter {
 		this._pool = {};
 		this._online = {};
 		this._POOL_ENABLED = true;
-		this._activeOrPendingSessions = 0;
 
 		// Log the session index on a fixed interval
 		this._logInterval = setInterval(() => {
 			log.debug("Current Number of Pooled Sessions:", Object.keys(this._pool).length);
 			log.trace(Object.keys(this._pool).join("; "));
-			log.debug("Current Number of Online Sessions:", Object.keys(this._online).length, "-- including pending:", this._activeOrPendingSessions);
+			log.debug("Current Number of Online Sessions:", Object.keys(this._online).length);
 			log.trace(Object.keys(this._online).join("; "));
 		}, config.sessionManager.logInterval);
 
@@ -43,6 +42,14 @@ class SessionManager extends EventEmitter {
 				this._pool[localCode].session.resetTimeout();
 			});
 		}, config.session.timewarnTime/2);
+	}
+
+	numActiveSessions() {
+		return Object.keys(this._pool).length;
+	}
+
+	canAcceptNewSessions() {
+		return Object.keys(this._pool).length > 0 && this.numActiveSessions() < config.worker.maxSessions;
 	}
 
 	_create(next) {
@@ -87,28 +94,10 @@ class SessionManager extends EventEmitter {
 		);
 	}
 
-	numActiveSessions() {
-		return this._activeOrPendingSessions;
-	}
+	attach(remoteCode, user, next) {		// Move pool session to online session
+		if (!this.canAcceptNewSessions()) return log.warn("Cannot accept any new sessions right now");
 
-	attach(remoteCode, user) {
-		this._activeOrPendingSessions += 1;
-
-		// Make sure there is a pool session available
-		if (Object.keys(this._pool).length === 0) {
-			log.warn("No pooled sessions available for " + remoteCode);
-			async.until(
-				() => { Object.keys(this._pool).length > 0 },
-				(_next) => { setTimeout(_next, config.sessionManager.poolInterval/10) },
-				(err) => {
-					if (err) return log.error("Couldn't create session!");
-					this.attach(remoteCode, user);
-				}
-			);
-			return;
-		}
-
-		// Move pool session to online session
+		// Pull from the pool
 		const localCode = Object.keys(this._pool)[0];
 		this._online[remoteCode] = this._pool[localCode];
 		delete this._pool[localCode];
@@ -121,6 +110,10 @@ class SessionManager extends EventEmitter {
 		// Reset the session timeout to leave the user with a full allotment of time
 		session.resetTimeout();
 
+		// Backwards compatibility: if legalTime or payloadLimit is not specified in user object, set it to the user default
+		if (user && !user.legalTime) user.legalTime = config.session.legalTime.user;
+		if (user && !user.payloadLimit) user.payloadLimit = config.session.payloadLimit.user;
+
 		// Send user info upstream
 		session.sendMessage("user-info", { user });
 
@@ -131,7 +124,6 @@ class SessionManager extends EventEmitter {
 		});
 
 		// Create touch interval for Redis and save reference
-		this.emit("touch", remoteCode);
 		const touchInterval = setInterval(() => {
 			this.emit("touch", remoteCode);
 		}, config.redis.expire.interval);
@@ -183,7 +175,6 @@ class SessionManager extends EventEmitter {
 		// Remove it from the index
 		delete this._online[sessCode];
 		log.debug("Removed session from index", sessCode);
-		this._activeOrPendingSessions -= 1;
 	}
 
 	disablePool() {

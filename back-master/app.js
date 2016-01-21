@@ -53,18 +53,6 @@ redisExpireHandler.on("expired", (sessCode) => {
 	sessionManager.destroy(sessCode, "Octave Session Expired (downstream)");
 });
 
-redisScriptHandler.on("sesscode", (sessCode, user) => {
-	log.info("Received Session:", sessCode);
-	// Backwards compatibility: if legalTime or payloadLimit is not specified in user object, set it to the user default
-	if (user && !user.legalTime) user.legalTime = config.session.legalTime.user;
-	if (user && !user.payloadLimit) user.payloadLimit = config.session.payloadLimit.user;
-
-	// Send special message for beta testers
-	//redisMessenger.output(sessCode, "data", { type: "stdout", data: "Hello! You have been connected to an updated Octave kernel.\nIt should be more stable and reliable than the classic version.\nIf you encounter any problems, please notify the support team.\n\n\n\n\n\n\n\n\n" });
-
-	sessionManager.attach(sessCode, user);
-});
-
 sessionManager.on("touch", (sessCode) => {
 	redisMessenger.touchOutput(sessCode);
 });
@@ -79,15 +67,38 @@ maintenanceRequestManager.on("request-maintenance", redisMessenger.requestReboot
 maintenanceRequestManager.on("reply-to-maintenance-request", redisMessenger.replyToRebootRequest.bind(redisMessenger));
 
 // Connection-accepting loop
-let ACCEPT_CONS = true;
-var getSessCodeTimer;
-function getSessCode() {
-	if (ACCEPT_CONS && sessionManager.numActiveSessions() < config.worker.maxSessions) {
-		redisScriptHandler.getSessCode();
-	}
-	getSessCodeTimer = setTimeout(getSessCode, Math.floor(config.worker.clockInterval.min + Math.random()*(config.worker.clockInterval.max-config.worker.clockInterval.min)));
-}
-getSessCodeTimer = setTimeout(getSessCode, config.worker.clockInterval.max);
+var ACCEPT_CONS = true;
+async.forever(
+	(next) => {
+		if (!ACCEPT_CONS) return;
+		async.waterfall([
+			(_next) => {
+				let delay = Math.floor(config.worker.clockInterval.min + Math.random()*(config.worker.clockInterval.max-config.worker.clockInterval.min));
+				setTimeout(_next, delay);
+			},
+			(_next) => {
+				if (sessionManager.canAcceptNewSessions())
+					redisScriptHandler.getSessCode((err, sessCode, user) => {
+						if (err) log.error("Error getting sessCode:", err);
+						_next(null, sessCode, user);
+					});
+				else
+					process.nextTick(() => {
+						_next(null, null, null);
+					});
+			},
+			(sessCode, user, _next) => {
+				if (sessCode) {
+					log.info("Received Session:", sessCode);
+					sessionManager.attach(sessCode, user);
+				}
+
+				_next(null);
+			}
+		], next);
+	},
+	() => { log.error("Connection-accepting loop ended") }
+);
 
 // Request maintenance time every 12 hours
 var maintenanceTimer;
@@ -102,7 +113,6 @@ async.forever(
 				maintenanceRequestManager.once("maintenance-accepted", _next);
 			},
 			(_next) => {
-				ACCEPT_CONS = false;
 				sessionManager.disablePool();
 				async.whilst(
 					() => { return sessionManager.numActiveSessions() > 0 },
@@ -121,7 +131,6 @@ async.forever(
 				maintenanceTimer = setTimeout(_next, config.maintenance.pauseDuration);
 			},
 			(_next) => {
-				ACCEPT_CONS = true;
 				maintenanceRequestManager.reset();
 				_next();
 			}
@@ -136,9 +145,9 @@ function doExit() {
 	log.info("RECEIVED SIGNAL.  Terminating gracefully.");
 
 	sessionManager.terminate("Server Maintenance");
-	clearTimeout(getSessCodeTimer);
 	clearTimeout(maintenanceTimer);
 	maintenanceRequestManager.stop();
+	ACCEPT_CONS = false;
 
 	setTimeout(() => {
 		redisInputHandler.close();

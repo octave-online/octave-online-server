@@ -74,15 +74,16 @@ class RedisMessenger extends EventEmitter {
 		multi.exec(this._handleError.bind(this));
 	}
 
-	getSessCode() {
+	getSessCode(next) {
 		this._runScript("get-sesscode", [redisUtil.chan.needsOctave], [config.worker.token], (err, result) => {
 			if (err) this._handleError(err);
-			if (result === -1) return;
+			if (result === -1) return next(null, null, null);
 			try {
 				let user = JSON.parse(result[1]);
-				this.emit("sesscode", result[0], user);
+				this.touchOutput(result[0]);
+				next(null, result[0], user);
 			} catch (err) {
-				return this._handleError(err);
+				next(err, null, null);
 			}
 		});
 	}
