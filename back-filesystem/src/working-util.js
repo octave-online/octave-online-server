@@ -77,8 +77,7 @@ class WorkingUtil {
 					buf = new Iconv(encoding.toString(), "UTF-8").convert(buf);
 				}
 			} catch(err) {
-				log.warn("Could not convert encoding",
-					file, encoding, err);
+				log.warn("Could not convert encoding:", encoding, err);
 			}
 		}
 

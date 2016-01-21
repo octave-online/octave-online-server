@@ -60,7 +60,7 @@ redisScriptHandler.on("sesscode", (sessCode, user) => {
 	if (user && !user.payloadLimit) user.payloadLimit = config.session.payloadLimit.user;
 
 	// Send special message for beta testers
-	redisMessenger.output(sessCode, "data", { type: "stdout", data: "Hello! You have been connected to an updated Octave kernel.\nIt should be more stable and reliable than the classic version.\nIf you encounter any problems, please notify the support team.\n\n\n\n\n\n\n\n\n" });
+	//redisMessenger.output(sessCode, "data", { type: "stdout", data: "Hello! You have been connected to an updated Octave kernel.\nIt should be more stable and reliable than the classic version.\nIf you encounter any problems, please notify the support team.\n\n\n\n\n\n\n\n\n" });
 
 	sessionManager.attach(sessCode, user);
 });

@@ -93,6 +93,7 @@ class DockerHandler extends StdioMessenger {
 	}
 
 	_handleExit(code, signal) {
+		this._log.info("Docker Exit:", code, signal);
 		this.emit("message", "docker-exit", { code, signal });
 	}
 }
