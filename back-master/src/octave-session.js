@@ -1,17 +1,13 @@
 "use strict";
 
-const async = require("async");
-const CappedFileSystem = require("./capped-file-system");
+// This class needs to be extended in order to work.  See session-docker.js and session-selinux.js
+
 const logger = require("@oo/shared").logger;
 const OnlineOffline = require("@oo/shared").OnlineOffline;
-const DockerHandler = require("./docker-handler");
 const config = require("@oo/shared").config;
+const timeLimit = require("@oo/shared").timeLimit;
 const fs = require("fs");
 const path = require("path");
-
-// Include timeLimit() and silent()
-const timeLimit = require("@oo/shared").timeLimit;
-const silent = require("@oo/shared").silent;
 
 class OctaveSession extends OnlineOffline {
 	constructor(sessCode) {
@@ -21,111 +17,27 @@ class OctaveSession extends OnlineOffline {
 
 		this._legalTime = config.session.legalTime.guest;
 		this._payloadLimit = config.session.payloadLimit.guest;
-
 		this._resetPayload();
 
-		this._cfs1 = new CappedFileSystem(this.sessCode, config.docker.diskQuotaKiB);
-		this._cfs2 = new CappedFileSystem(this.sessCode, config.docker.diskQuotaKiB);
-		this._filesSession = new DockerHandler(this.sessCode, config.docker.images.filesystemSuffix);
-		this._hostSession = new DockerHandler(this.sessCode, config.docker.images.octaveSuffix);
-
-		this._filesSession.on("message", this._handleMessage.bind(this));
-		this._hostSession.on("message", this._handleMessage.bind(this));
-
-		this._cfs1.on("error", this._handleError.bind(this));
-		this._filesSession.on("error", this._handleError.bind(this));
-		this._hostSession.on("error", this._handleError.bind(this));
 		this.on("error", this._handleError.bind(this));
 	}
 
 	_doCreate(next) {
 		this._sessionLogStream = fs.createWriteStream(path.join("/srv/oo/logs", `${this.sessCode}.log`));
-
-		async.auto({
-			"cfs1": (_next) => {
-				this._log.trace("Requesting creation of capped file system 1");
-				this._cfs1.create((err, dataDir1) => {
-					if (!err) this._dataDir1 = dataDir1;
-					_next(err);
-				});
-			},
-			"cfs2": (_next) => {
-				this._log.trace("Requesting creation of capped file system 2");
-				this._cfs2.create((err, dataDir2) => {
-					if (!err) this._dataDir2 = dataDir2;
-					_next(err);
-				});
-			},
-			"files": ["cfs1", "cfs2", (_next) => {
-				this._log.trace("Requesting creation of file manager process");
-				this._filesSession.create(_next, this._dataDir1, this._dataDir2);
-			}],
-			"host": ["cfs1", "cfs2", (_next) => {
-				this._log.trace("Requesting creation of Octave host process");
-				this._hostSession.create(_next, this._dataDir1, this._dataDir2);
-			}]
-		}, (err) => {
-			if (err) return next(err);
-			this._log.info("Session successfully created");
-			this.resetTimeout();
-			return next(null);
-		});
+		this._doCreateImpl(next);
 	}
 
 	_doDestroy(next, reason) {
-		// TODO: Add an alternative destroy implementation that is synchronous, so that it can be run in an exit handler.
 		if (this._countdownTimer) clearTimeout(this._countdownTimer);
 		if (this._timewarnTimer) clearTimeout(this._timewarnTimer);
 		if (this._timeoutTimer) clearTimeout(this._timeoutTimer);
 		if (this._autoCommitTimer) clearInterval(this._autoCommitTimer);
 		if (this._sessionLogStream) this._sessionLogStream.end(reason);
-		async.auto({
-			"host": (_next) => {
-				this._log.trace("Requesting termination of Octave host process");
-				this._hostSession.destroy(_next);
-			},
-			"commit": (_next) => {
-				this._log.trace("Requesting to commit changes to Git");
-				this._commit("Scripted user file commit", silent(/Out of time/, _next));
-			},
-			"files": ["commit", (_next) => {
-				this._log.trace("Requesting termination of file manager process");
-				this._filesSession.destroy(_next);
-			}],
-			"cfs1": ["host", "files", (_next) => {
-				this._log.trace("Requesting deletion of capped file system 1");
-				this._cfs1.destroy(_next);
-			}],
-			"cfs2": ["host", "files", (_next) => {
-				this._log.trace("Requesting deletion of capped file system 2");
-				this._cfs2.destroy(_next);
-			}]
-		}, (err) => {
-			if (err) return next(err);
-			this._log.info("Session successfully destroyed:", reason);
-			return next(null);
-		});
+		this._doDestroyImpl(next, reason);
 	}
 
 	interrupt() {
-		this._hostSession.interrupt();
-	}
-
-	_commit(comment, next) {
-		// Set a 60-second time limit
-		let _next = timeLimit(config.git.commitTimeLimit, [new Error("Out of time")], next);
-
-		// Call the callback when a "committed" message is received
-		let messageCallback = (name, content) => {
-			if (name === "committed") {
-				_next(null);
-				this._filesSession.removeListener("message", messageCallback);
-			}
-		};
-		this._filesSession.on("message", messageCallback);
-
-		// Request the commit
-		this._filesSession.sendMessage("commit", { comment });
+		this._interrupt();
 	}
 
 	// COUNTDOWN METHODS: For interrupting the Octave kernel after a fixed number of seconds to ensure a fair distribution of CPU time.
@@ -178,6 +90,17 @@ class OctaveSession extends OnlineOffline {
 		}, config.git.autoCommitInterval);
 	}
 
+	_commit(comment, next) {
+		// Set a 60-second time limit
+		let _next = timeLimit(config.git.commitTimeLimit, [new Error("Out of time")], next);
+
+		// Call the callback when a "committed" message is received
+		this._onceMessageFromFiles("committed", () => { _next(null); })
+
+		// Request the commit
+		this._sendMessageToFiles("commit", { comment });
+	}
+
 	// SESSION LOG: Log all commands, input, and output to a log file
 	_appendToSessionLog(type, content) {
 		if (!this._sessionLogStream) return this._log.warn("Cannot log before created");
@@ -190,13 +113,13 @@ class OctaveSession extends OnlineOffline {
 		switch (name) {
 			// Messages requiring special handling
 			case "interrupt":
-				this._hostSession.interrupt();
+				this._interrupt();
 				break;
 
 			case "cmd":
 				this._startCountdown();
 				this.resetTimeout();
-				this._hostSession.sendMessage(name, content);
+				this._sendMessageToHost(name, content);
 				this._appendToSessionLog(name, content);
 				break;
 
@@ -206,7 +129,7 @@ class OctaveSession extends OnlineOffline {
 					if (content.user.legalTime) this._legalTime = content.user.legalTime;
 					if (content.user.payloadLimit) this._payloadLimit = content.user.payloadLimit;
 				}
-				this._filesSession.sendMessage(name, content);
+				this._sendMessageToFiles(name, content);
 				break;
 
 			// Messages to forward to the file manager
@@ -220,7 +143,7 @@ class OctaveSession extends OnlineOffline {
 			case "siofu_start":
 			case "siofu_progress":
 			case "siofu_done":
-				this._filesSession.sendMessage(name, content);
+				this._sendMessageToFiles(name, content);
 				break;
 
 			// Messages to forward to the Octave host
@@ -233,7 +156,7 @@ class OctaveSession extends OnlineOffline {
 			case "input-dialog-answer":
 			case "file-dialog-answer":
 			case "debug-cd-or-addpath-error-answer":
-				this._hostSession.sendMessage(name, content);
+				this._sendMessageToHost(name, content);
 				break;
 
 			// Unknown messages
@@ -275,28 +198,28 @@ class OctaveSession extends OnlineOffline {
 
 			// UNIMPLEMENTED FEATURES REQUIRING RESPONSE:
 			case "confirm-shutdown":
-				this._hostSession.sendMessage("confirm-shutdown-answer", true);
+				this._sendMessageToHost("confirm-shutdown-answer", true);
 				break;
 			case "prompt-new-edit-file":
-				this._hostSession.sendMessage("prompt-new-edit-file-answer", true);
+				this._sendMessageToHost("prompt-new-edit-file-answer", true);
 				break;
 			case "message-dialog":
-				this._hostSession.sendMessage("message-dialog-answer", 0);
+				this._sendMessageToHost("message-dialog-answer", 0);
 				break;
 			case "question-dialog":
-				this._hostSession.sendMessage("question-dialog-answer", "");
+				this._sendMessageToHost("question-dialog-answer", "");
 				break;
 			case "list-dialog":
-				this._hostSession.sendMessage("list-dialog-answer", [[],0]);
+				this._sendMessageToHost("list-dialog-answer", [[],0]);
 				break;
 			case "input-dialog":
-				this._hostSession.sendMessage("input-dialog-answer", []);
+				this._sendMessageToHost("input-dialog-answer", []);
 				break;
 			case "file-dialog":
-				this._hostSession.sendMessage("file-dialog-answer", []);
+				this._sendMessageToHost("file-dialog-answer", []);
 				break;
 			case "debug-cd-or-addpath-error":
-				this._hostSession.sendMessage("debug-cd-or-addpath-error-answer", 0);
+				this._sendMessageToHost("debug-cd-or-addpath-error-answer", 0);
 				break;
 
 			default:

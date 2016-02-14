@@ -2,7 +2,8 @@
 
 const log = require("@oo/shared").logger("session-manager");
 const EventEmitter = require("events");
-const OctaveSession = require("./octave-session");
+const SessionDocker = require("./session-docker");
+const SessionSELinux = require("./session-selinux");
 const uuid = require("uuid");
 const Queue = require("@oo/shared").Queue;
 const async = require("async");
@@ -53,9 +54,23 @@ class SessionManager extends EventEmitter {
 	}
 
 	_create(next) {
+		// Get the correct implementation
+		let SessionImpl;
+		switch (config.session.implementation) {
+			case "docker":
+				SessionImpl = SessionDocker;
+				break;
+			case "selinux":
+				SessionImpl = SessionSELinux;
+				break;
+			default:
+				log.error("Please set a valid entry for config.session.implementation.");
+				return;
+		}
+
 		// Create the session object
 		const localCode = uuid.v4(null, new Buffer(16)).toString("hex");
-		const session = new OctaveSession(localCode);
+		const session = new SessionImpl(localCode);
 
 		// Add messages to a cache when they are created
 		const cache = new Queue();
