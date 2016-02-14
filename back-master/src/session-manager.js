@@ -45,7 +45,7 @@ class SessionManager extends EventEmitter {
 	}
 
 	numActiveSessions() {
-		return Object.keys(this._pool).length;
+		return Object.keys(this._online).length;
 	}
 
 	canAcceptNewSessions() {

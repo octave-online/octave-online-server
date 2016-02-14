@@ -250,8 +250,10 @@ class OctaveSession extends OnlineOffline {
 			if (/warning: readline is not linked/.test(content)) return;
 			if (/warning: docstring file/.test(content)) return;
 			if (/error: unable to open .+macros\.texi/.test(content)) return;
+			if (/^\/tmp\/octave-help-/.test(content)) return;
+			if (/built-in-docstrings' not found/.test(content)) return;
 			if (/__unimplemented__/.test(content)) content = "Error: You called a function that is not currently available in Octave.\n";
-			if (/warning: function .* shadows a core library function/.test(content) && config.forge.placeholders.indexOf(content.match(/\/([^\.]+)\.m/)[1]) !== -1) return;
+			if (/warning: function .* shadows a core library function/.test(content) && config.forge.placeholders.indexOf(content.match(/\/([^\.\/]+)\.m/)[1]) !== -1) return;
 		}
 
 		// Forward all events downstream

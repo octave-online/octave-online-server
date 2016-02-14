@@ -92,9 +92,19 @@ class WorkingUtil {
 		// Create backup of file in memory in case there are any I/O errors
 		async.waterfall([
 			(_next) => {
-				fs.readFile(
+				fs.exists(
 					path.join(CWD, filename),
 					_next);
+			},
+			(exists, _next) => {
+				if (exists)
+					fs.readFile(
+						path.join(CWD, filename),
+						_next);
+				else
+					process.nextTick(() => {
+						_next(null, new Buffer());
+					});
 			},
 			(buf, _next) => {
 				fs.writeFile(
