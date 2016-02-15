@@ -8,6 +8,7 @@ const config = require("@oo/shared").config;
 const timeLimit = require("@oo/shared").timeLimit;
 const fs = require("fs");
 const path = require("path");
+const async = require("async");
 
 class OctaveSession extends OnlineOffline {
 	constructor(sessCode) {
@@ -28,12 +29,22 @@ class OctaveSession extends OnlineOffline {
 	}
 
 	_doDestroy(next, reason) {
-		if (this._countdownTimer) clearTimeout(this._countdownTimer);
-		if (this._timewarnTimer) clearTimeout(this._timewarnTimer);
-		if (this._timeoutTimer) clearTimeout(this._timeoutTimer);
-		if (this._autoCommitTimer) clearInterval(this._autoCommitTimer);
-		if (this._sessionLogStream) this._sessionLogStream.end(reason);
-		this._doDestroyImpl(next, reason);
+		async.series([
+			(_next) => {
+				if (this._countdownTimer) clearTimeout(this._countdownTimer);
+				if (this._timewarnTimer) clearTimeout(this._timewarnTimer);
+				if (this._timeoutTimer) clearTimeout(this._timeoutTimer);
+				if (this._autoCommitTimer) clearInterval(this._autoCommitTimer);
+				_next(null);
+			},
+			(_next) => {
+				this._doDestroyImpl(_next, reason);
+			},
+			(_next) => {
+				if (this._sessionLogStream) this._sessionLogStream.end(reason);
+				_next(null);
+			}
+		], next);
 	}
 
 	interrupt() {
@@ -103,8 +114,8 @@ class OctaveSession extends OnlineOffline {
 
 	// SESSION LOG: Log all commands, input, and output to a log file
 	_appendToSessionLog(type, content) {
-		if (!this._sessionLogStream) return this._log.warn("Cannot log before created");
-		if (this._sessionLogStream.closed) return this._log.warn("Cannot log to a closed stream");
+		if (!this._sessionLogStream) return this._log.warn("Cannot log before created", { type, content });
+		if (this._sessionLogStream.closed) return this._log.warn("Cannot log to a closed stream:", { type, content });
 		if (type === "cmd") content += "\n";
 		this._sessionLogStream.write(`${type}: ${content}----\n`);
 	}

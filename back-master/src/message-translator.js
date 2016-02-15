@@ -83,6 +83,7 @@ class MessageTranslator extends EventEmitter {
 
 			// The "exit" event from the child process:
 			case "docker-exit":
+			case "process-exit":
 				this.emit("destroy", sessCode, "Shell Exited");
 				break;
 

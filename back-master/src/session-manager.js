@@ -2,8 +2,7 @@
 
 const log = require("@oo/shared").logger("session-manager");
 const EventEmitter = require("events");
-const SessionDocker = require("./session-docker");
-const SessionSELinux = require("./session-selinux");
+const impls = require("./session-impl");
 const uuid = require("uuid");
 const Queue = require("@oo/shared").Queue;
 const async = require("async");
@@ -55,18 +54,8 @@ class SessionManager extends EventEmitter {
 
 	_create(next) {
 		// Get the correct implementation
-		let SessionImpl;
-		switch (config.session.implementation) {
-			case "docker":
-				SessionImpl = SessionDocker;
-				break;
-			case "selinux":
-				SessionImpl = SessionSELinux;
-				break;
-			default:
-				log.error("Please set a valid entry for config.session.implementation.");
-				return;
-		}
+		const SessionImpl = impls[config.session.implementation];
+		if (!SessionImpl) return log.error("Please set a valid entry for config.session.implementation.");
 
 		// Create the session object
 		const localCode = uuid.v4(null, new Buffer(16)).toString("hex");

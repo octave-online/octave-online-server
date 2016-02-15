@@ -60,7 +60,7 @@ class DockerHandler extends StdioMessenger {
 			}
 		], (err) => {
 			if (err) return next(err);
-			this._log.trace("Finished creating");
+			this._log.debug("Finished creating");
 			return next(null);
 		});
 	}
@@ -70,7 +70,7 @@ class DockerHandler extends StdioMessenger {
 		child_process.execFile("docker", ["stop", "-t", 0, this._dockerName], (err, stdout, stderr) => {
 		// child_process.execFile("docker", ["rm", "-f", this._dockerName], (err, stdout, stderr) => {
 			if (err) this._log.warn(err);
-			this._log.trace("Finished destroying");
+			this._log.debug("Finished destroying");
 			return next(null);
 		});
 	}
@@ -97,7 +97,7 @@ class DockerHandler extends StdioMessenger {
 	}
 
 	_handleExit(code, signal) {
-		this._log.info("Docker Exit:", code, signal);
+		this._log.debug("Docker Exit:", code, signal);
 		this.emit("message", "docker-exit", { code, signal });
 	}
 }
