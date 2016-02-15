@@ -72,10 +72,15 @@ class OnlineOffline extends EventEmitter {
 				}
 				break;
 
-			case "CREATING":
+			case "DESTROYED":
+				if (!err) {
+					err = new Error("Already destroyed");
+				}
+				break;
+
+			case "INIT":
 			case "ONLINE":
 			case "DESTROYING":
-			case "DESTROYED":
 				this._log.error("Unexpected state:", this._state);
 				break;
 
@@ -134,6 +139,7 @@ class OnlineOffline extends EventEmitter {
 	_afterDestroy(err) {
 		switch (this._state) {
 			case "DESTROYING":
+				this._state = "DESTROYED";
 				break;
 
 			case "INIT":
@@ -154,6 +160,29 @@ class OnlineOffline extends EventEmitter {
 			process.nextTick(() => {
 				cb.call(this, err);
 			});
+		}
+	}
+
+	_internalDestroyed(err) {
+		switch (this._state) {
+			case "DESTROYING":
+			case "CREATING":
+			case "ONLINE":
+			case "PENDING-DESTROY":
+				this._state = "DESTROYING";
+				this._afterDestroy(err);
+				break;
+
+			case "DESTROYED":
+				break;
+
+			case "INIT":
+				this._log.error("Unexpected state:", this._state);
+				break;
+
+			default:
+				this._log.error("Unknown state:", this._state);
+				break;
 		}
 	}
 }
