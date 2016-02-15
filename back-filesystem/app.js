@@ -19,6 +19,12 @@ fakeSocket.on("_emit", messenger.sendMessage.bind(messenger));
 // Customize options on the logger
 require("./src/logger");
 
+// Read command-line argument
+const CWD = process.argv[2];
+GitUtil.execOptions.cwd = CWD;
+WorkingUtil.cwd = CWD;
+log.info("CWD:", CWD);
+
 // Use a global variable to remember the identity of the user (required for backwards compatibility only with old events)
 var userGlobal;
 
@@ -143,7 +149,10 @@ messenger.on("message", (name, content) => {
 					WorkingUtil.saveFile(filename, value, _next);
 				}
 			], (err) => {
-				if (err) return fail("saved", err);
+				if (err) {
+					if (/ENOSPC/.test(err.message)) return fail("saved", `Whoops, you reached your space limit (${config.docker.diskQuotaKiB} KiB).\nYou should free up space to ensure that changes you make get committed.`);
+					else return fail("saved", err);
+				}
 				log.debug("File successfully saved");
 				return messenger.sendMessage("saved", { filename, success: true });
 			});
@@ -203,12 +212,13 @@ messenger.on("message", (name, content) => {
 });
 
 messenger.on("error", (err) => {
-	log.error(err);
+	log.error("messenger:", err);
 });
 
 // Set up SIOFU
 const uploader = new SocketIOFileUploadServer();
-uploader.dir = config.docker.cwd;
+uploader.dir = CWD;
+uploader.emitChunkFail = true;
 uploader.on("saved", (event) => {
 	const filename = path.basename(event.file.pathName);
 	WorkingUtil.getFileInfo(filename, (err, fileInfo) => {
@@ -217,6 +227,10 @@ uploader.on("saved", (event) => {
 		log.debug("File successfully uploaded");
 		return messenger.sendMessage("fileadd", fileInfo);
 	});
+});
+uploader.on("error", (event) => {
+	if (/ENOSPC/.test(event.error.message)) return fail("saved", `Uploading ${event.file.name}:\nIf your file is large and causes you to exceed your space limit\n(${config.docker.diskQuotaKiB} KiB), the file may be incomplete.`);
+	log.error("siofu:", event);
 });
 uploader.listen(fakeSocket);
 

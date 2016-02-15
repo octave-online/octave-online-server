@@ -12,7 +12,6 @@ const config = require("@oo/shared").config;
 // Load extra MIME types
 mime.load(path.join(__dirname, "mime.types"));
 
-const CWD = config.docker.cwd;
 const ACCEPTABLE_MIME_REGEX = /^(text\/.*)$/;
 const UNACCEPTABLE_FILENAME_REGEX = /^(\..*|octave-\w+)$/;
 
@@ -20,7 +19,7 @@ class WorkingUtil {
 	static listAll(next) {
 		async.waterfall([
 			(_next) => {
-				fs.readdir(CWD, _next);
+				fs.readdir(this.cwd, _next);
 			},
 			(files, _next) => {
 				async.map(files, this.getFileInfo.bind(this), _next);
@@ -43,7 +42,7 @@ class WorkingUtil {
 		if (ACCEPTABLE_MIME_REGEX.test(_mime)) {
 			async.waterfall([
 				(_next) => {
-					fs.readFile(path.join(CWD, filename), _next);
+					fs.readFile(path.join(this.cwd, filename), _next);
 				},
 				(buf, _next) => {
 					this._convertCharset(buf, _next)
@@ -92,23 +91,20 @@ class WorkingUtil {
 		// Create backup of file in memory in case there are any I/O errors
 		async.waterfall([
 			(_next) => {
-				fs.exists(
-					path.join(CWD, filename),
-					_next);
-			},
-			(exists, _next) => {
-				if (exists)
-					fs.readFile(
-						path.join(CWD, filename),
-						_next);
-				else
-					process.nextTick(() => {
-						_next(null, new Buffer());
+				fs.readFile(
+					path.join(this.cwd, filename),
+						(err, buf) => {
+						if (!err) return _next(null, buf);
+						if (/ENOENT/.test(err.message)) {
+							log.info("Creating new file:", filename);
+							return _next(null, new Buffer());
+						}
+						return _next(err);
 					});
 			},
 			(buf, _next) => {
 				fs.writeFile(
-					path.join(CWD, filename),
+					path.join(this.cwd, filename),
 					value,
 					(err) => {
 						_next(null, buf, err);
@@ -117,7 +113,7 @@ class WorkingUtil {
 			(buf, err, _next) => {
 				if (err) {
 					fs.writeFile(
-						path.join(CWD, filename),
+						path.join(this.cwd, filename),
 						buf,
 						() => {
 							_next(err);
@@ -133,21 +129,21 @@ class WorkingUtil {
 
 	static renameFile(oldname, newname, next) {
 		fs.rename(
-			path.join(CWD, oldname),
-			path.join(CWD, newname),
+			path.join(this.cwd, oldname),
+			path.join(this.cwd, newname),
 			next);
 	}
 
 	static deleteFile(filename, next) {
 		fs.unlink(
-			path.join(CWD, filename),
+			path.join(this.cwd, filename),
 			next);
 	}
 
 	static readBinary(filename, next) {
 		async.waterfall([
 			(_next) => {
-				fs.readFile(path.join(CWD, filename), _next);
+				fs.readFile(path.join(this.cwd, filename), _next);
 			},
 			(buf, _next) => {
 				const base64data = buf.toString("base64");
@@ -157,5 +153,7 @@ class WorkingUtil {
 		], next);
 	}
 }
+
+WorkingUtil.cwd = null;  // to be set in app.js
 
 module.exports = WorkingUtil;

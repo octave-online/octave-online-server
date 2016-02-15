@@ -14,15 +14,16 @@ const silent = require("@oo/shared").silent;
 class GitUtil {
 	static initialize(user, next) {
 		const remote = this._userToRemote(user);
-		log.info("Setting origin:", remote);
 		async.series([
 			(_next) => {
 				this._createOnRemote(user, _next);
 			},
 			(_next) => {
+				log.trace("Running git init...");
 				child_process.execFile("git", ["init"], this.execOptions, _next);
 			},
 			(_next) => {
+				log.info("Setting origin:", remote);
 				child_process.execFile("git", ["remote", "add", "origin", remote], this.execOptions, _next);
 			},
 			(_next) => {
@@ -100,8 +101,6 @@ class GitUtil {
 	}
 }
 
-GitUtil.execOptions = {
-	cwd: config.docker.cwd
-};
+GitUtil.execOptions = {};
 
 module.exports = GitUtil;
