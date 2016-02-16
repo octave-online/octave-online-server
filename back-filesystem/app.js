@@ -19,11 +19,12 @@ fakeSocket.on("_emit", messenger.sendMessage.bind(messenger));
 // Customize options on the logger
 require("./src/logger");
 
-// Read command-line argument
-const CWD = process.argv[2];
-GitUtil.execOptions.cwd = CWD;
-WorkingUtil.cwd = CWD;
-log.info("CWD:", CWD);
+// Read command-line arguments
+const GIT_DIR = process.argv[2];
+const WORK_DIR = process.argv[3];
+GitUtil.execOptions.cwd = GIT_DIR;
+WorkingUtil.cwd = WORK_DIR;
+log.info("Dirs:", GIT_DIR, WORK_DIR);
 
 // Use a global variable to remember the identity of the user (required for backwards compatibility only with old events)
 var userGlobal;
@@ -50,7 +51,7 @@ messenger.on("message", (name, content) => {
 
 			async.waterfall([
 				(_next) => {
-					GitUtil.initialize(userGlobal, _next);
+					GitUtil.initialize(userGlobal, WORK_DIR, _next);
 				},
 				(results, _next) => {
 					WorkingUtil.listAll(_next);
@@ -217,7 +218,7 @@ messenger.on("error", (err) => {
 
 // Set up SIOFU
 const uploader = new SocketIOFileUploadServer();
-uploader.dir = CWD;
+uploader.dir = WORK_DIR;
 uploader.emitChunkFail = true;
 uploader.on("saved", (event) => {
 	const filename = path.basename(event.file.pathName);

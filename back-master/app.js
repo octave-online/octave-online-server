@@ -160,6 +160,5 @@ function doExit() {
 }
 
 process.on("SIGINT", doExit);
-process.on("SIGQUIT", doExit);
 process.on("SIGHUP", doExit);
 process.on("SIGTERM", doExit);

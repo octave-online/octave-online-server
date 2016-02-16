@@ -10,6 +10,9 @@ const silent = require("@oo/shared").silent;
 const child_process = require("child_process");
 const path = require("path");
 const logger = require("@oo/shared").logger;
+const mkdirp = require("mkdirp");
+const pstree = require("ps-tree");
+const temp = require("temp");
 
 class SessionImpl extends OctaveSession {
 	constructor(sessCode) {
@@ -47,7 +50,7 @@ class SessionImpl extends OctaveSession {
 				this._log.trace("Requesting creation of file manager process");
 				this._filesSession.create(_next, this._dataDir1, this._dataDir2);
 			}],
-			"host": ["cfs1", "cfs2", (_next) => {
+			"host": ["cfs1", "cfs2", "files", (_next) => {
 				this._log.trace("Requesting creation of Octave host process");
 				this._hostSession.create(_next, this._dataDir1, this._dataDir2);
 			}]
@@ -123,11 +126,44 @@ class HostProcessHandler extends ProcessHandler {
 	_doCreate(next, dataDir1, dataDir2) {
 		async.series([
 			(_next) => {
-				super._doCreate(_next, child_process.spawn, "/usr/local/bin/octave-host", { cwd: dataDir1 });
+				// Spawn sandbox process
+				// super._doCreate(_next, child_process.spawn, "/usr/local/bin/octave-host", { cwd: dataDir1 });
+				super._doCreate(_next, child_process.spawn, "/usr/bin/sandbox", ["-M", "-H", dataDir1, "-T", dataDir2, "env", "GNUTERM='svg'", "/usr/local/bin/octave-host"]);
+			},
+			(_next) => {
+				// We need to get the octave-cli PID for signalling, because sandbox handles signals strangely.
+				this.octavePID = null;
+				async.whilst(
+					() => { return !this.octavePID && this._state !== "DESTROYED" },
+					(__next) => {
+						async.waterfall([
+							(___next) => {
+								setTimeout(___next, 250);
+							},
+							(___next) => {
+								this._log.trace("Attempting to get Octave PID...");
+								pstree(this._spwn.pid, ___next);
+							},
+							(children, ___next) => {
+								let child = children.find((_child) => { return /octave-cli/.test(_child.COMMAND) });
+								if (child) {
+									this.octavePID = child.PID;
+									this._log.debug("Got Octave PID:", this.octavePID);
+								}
+								___next(null);
+							}
+						], __next);
+					},
+					_next
+				);
 			}
-		], (err) => {
-			if (err) return next(err);
-			return next(null);
+		], next);
+	}
+
+	_signal(name) {
+		if (!this.octavePID) return this._log.error("Cannot signal Octave process yet");
+		child_process.exec(`kill -s ${name.slice(3)} ${this.octavePID}`, (err) => {
+			if (err) this._log.error("signalling octave:", err);
 		});
 	}
 }
@@ -143,16 +179,33 @@ class FilesProcessHandler extends ProcessHandler {
 	_doCreate(next, dataDir1, dataDir2) {
 		async.series([
 			(_next) => {
-				child_process.execFile("ln", ["-s", dataDir2, path.join(dataDir1, ".git")], _next);
+				temp.mkdir(null, (err, tmpdir) => {
+					this._log.debug("Created gitdir:", tmpdir);
+					this.gitdir = tmpdir;
+					_next(err);
+				});
 			},
 			(_next) => {
-				super._doCreate(_next, child_process.fork, path.join(__dirname, "..", "..", "back-filesystem", "app"), [dataDir1], { cwd: dataDir1, silent: true });
+				super._doCreate(_next, child_process.fork, path.join(__dirname, "../../back-filesystem/app"), [this.gitdir, dataDir1], { cwd: dataDir1, silent: true });
 			}
 		], (err) => {
 			if (err) return next(err);
 			this._log.debug("Successfully created");
 			return next(null);
 		});
+	}
+
+	_doDestroy(next) {
+		async.series([
+			(_next) => {
+				if (this.gitdir) {
+					child_process.exec(`rm -rf ${this.gitdir}`, _next);
+				} else {
+					process.nextTick(_next);
+				}
+			},
+			super._doDestroy.bind(this)
+		], next);
 	}
 }
 

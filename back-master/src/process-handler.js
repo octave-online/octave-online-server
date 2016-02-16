@@ -59,14 +59,18 @@ class ProcessHandler extends StdioMessenger {
 		// This method wont't be called unless the process state is ONLINE, so we don't need to check.
 		// We can ignore the "next" callback because it will be implicitly called by _handleExit()
 		this._log.trace("Sending SIGTERM");
-		this._spwn.kill("SIGTERM");
+		this._signal("SIGTERM");
 	}
 
 	interrupt() {
 		if (!this._spwn) return this._log.warn("Tried to signal child process, but it does not exist");
 		if (this._spwn.exitCode !== null) return this._log.warn("Tried to signal child process, but it is exited");
-		this._spwn.kill("SIGINT");
+		this._signal("SIGINT");
 		this._log.debug("Sent SIGINT to child process");
+	}
+
+	_signal(name) {
+		this._spwn.kill(name);
 	}
 
 	_handleLog(data) {

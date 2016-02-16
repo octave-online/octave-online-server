@@ -12,7 +12,7 @@ const GIT_SSH_FILE = path.join(__dirname, "..", "git", "git_ssh.sh");
 const silent = require("@oo/shared").silent;
 
 class GitUtil {
-	static initialize(user, next) {
+	static initialize(user, workDir, next) {
 		const remote = this._userToRemote(user);
 		async.series([
 			(_next) => {
@@ -20,7 +20,7 @@ class GitUtil {
 			},
 			(_next) => {
 				log.trace("Running git init...");
-				child_process.execFile("git", ["init"], this.execOptions, _next);
+				child_process.execFile("git", ["--git-dir=.", `--work-tree=${workDir}`, "init"], this.execOptions, _next);
 			},
 			(_next) => {
 				log.info("Setting origin:", remote);
