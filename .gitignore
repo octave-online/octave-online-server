@@ -5,3 +5,4 @@
 back-octave/octave-host
 _old/*
 bundle/*
+shared/config.json
