@@ -9,31 +9,17 @@ const config = require("@oo/shared").config;
 class DockerHandler extends StdioMessenger {
 	constructor(sessCode, dockerImage) {
 		super();
-
 		this._log = logger(`docker-handler:${dockerImage}:${sessCode}`);
-
 		this.sessCode = sessCode;
-		this._dockerImage = dockerImage;
-		this._dockerName = `oo-${this._dockerImage.replace(/\W/,"_")}-${this.sessCode}`;
 	}
 
-	_doCreate(next, dataDir1, dataDir2) {
+	_doCreate(next, dockerArgs) {
 		async.series([
 			(_next) => {
 				// Create the session
-				// More about resource management: https://goldmann.pl/blog/2014/09/11/resource-management-in-docker/
-				const dockerArgs = [
-					"run", "-i",
-					"-v", `${dataDir1}:${config.docker.cwd}`,
-					"-v", `${dataDir2}:${config.docker.cwd}/.git`,
-					"--cpu-shares", config.docker.cpuShares,
-					"-m", config.docker.memoryShares,
-					"--name", this._dockerName,
-					`oo/${this._dockerImage}`
-				];
 				this._spwn = child_process.spawn("docker", dockerArgs);
-				this._log.debug("Launched process with ID:", this._spwn.pid);
 				this._log.trace("Docker args:", dockerArgs.join(" "));
+				this._log.debug("Launched process with ID:", this._spwn.pid);
 
 				// Create stderr listener
 				this._spwn.stderr.on("data", this._handleLog.bind(this));

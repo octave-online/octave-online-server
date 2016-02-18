@@ -50,7 +50,7 @@ class SessionImpl extends OctaveSession {
 				this._log.trace("Requesting creation of file manager process");
 				this._filesSession.create(_next, this._dataDir1, this._dataDir2);
 			}],
-			"host": ["cfs1", "cfs2", "files", (_next) => {
+			"host": ["cfs1", "cfs2", (_next) => {
 				this._log.trace("Requesting creation of Octave host process");
 				this._hostSession.create(_next, this._dataDir1, this._dataDir2);
 			}]
@@ -119,7 +119,7 @@ class HostProcessHandler extends ProcessHandler {
 	constructor(sessCode) {
 		super(sessCode);
 
-		// Override default logger with something that says "files"
+		// Override default logger with something that says "host"
 		this._log = logger(`host-handler:${sessCode}`);
 	}
 
@@ -128,7 +128,7 @@ class HostProcessHandler extends ProcessHandler {
 			(_next) => {
 				// Spawn sandbox process
 				// super._doCreate(_next, child_process.spawn, "/usr/local/bin/octave-host", { cwd: dataDir1 });
-				super._doCreate(_next, child_process.spawn, "/usr/bin/sandbox", ["-M", "-H", dataDir1, "-T", dataDir2, "env", "GNUTERM='svg'", "/usr/local/bin/octave-host"]);
+				super._doCreate(_next, child_process.spawn, "/usr/bin/sandbox", ["-M", "-H", dataDir1, "-T", dataDir2, "env", "GNUTERM=svg", "/usr/local/bin/octave-host"]);
 			},
 			(_next) => {
 				// We need to get the octave-cli PID for signalling, because sandbox handles signals strangely.
@@ -216,10 +216,55 @@ class SessionSELinux extends SessionImpl {
 	}
 }
 
+class HostDockerHandler extends DockerHandler {
+	constructor(sessCode) {
+		super(sessCode);
+		this._dockerImage = config.docker.images.octaveSuffix;
+		this._dockerName = `oo-host-${sessCode}`;
+
+		// Override default logger with something that says "host"
+		this._log = logger(`host-handler:${sessCode}`);
+	}
+
+	_doCreate(next, dataDir1, dataDir2) {
+		// More about resource management: https://goldmann.pl/blog/2014/09/11/resource-management-in-docker/
+		const dockerArgs = [
+			"run", "-i",
+			"-v", `${dataDir1}:${config.docker.cwd}`,
+			"--cpu-shares", config.docker.cpuShares,
+			"-m", config.docker.memoryShares,
+			"--name", this._dockerName,
+			`oo/${this._dockerImage}`
+		];
+		super._doCreate(next, dockerArgs);
+	}
+}
+
+class FilesDockerHandler extends DockerHandler {
+	constructor(sessCode) {
+		super(sessCode);
+		this._dockerImage = config.docker.images.filesystemSuffix;
+		this._dockerName = `oo-files-${sessCode}`;
+
+		// Override default logger with something that says "files"
+		this._log = logger(`files-handler:${sessCode}`);
+	}
+
+	_doCreate(next, dataDir1, dataDir2) {
+		const dockerArgs = [
+			"run", "-i",
+			"-v", `${dataDir1}:${config.docker.cwd}`,
+			"--name", this._dockerName,
+			`oo/${this._dockerImage}`
+		];
+		super._doCreate(next, dockerArgs);
+	}
+}
+
 class SessionDocker extends SessionImpl {
 	_makeSessions() {
-		this._filesSession = new DockerHandler(this.sessCode, config.docker.images.filesystemSuffix);
-		this._hostSession = new DockerHandler(this.sessCode, config.docker.images.octaveSuffix);
+		this._filesSession = new FilesDockerHandler(this.sessCode);
+		this._hostSession = new HostDockerHandler(this.sessCode);
 	}
 }
 

@@ -234,13 +234,14 @@ int main() {
 	CATCH(uv_signal_init(loop, &sigterm_s));
 	CATCH(uv_signal_init(loop, &sighup_s));
 
-	char* args[6];
+	char* args[7];
 	args[0] = "octave";
 	args[1] = "--json-sock";
 	args[2] = com_path;
 	args[3] = "--interactive";
 	args[4] = "--quiet";
-	args[5] = NULL;
+	args[5] = "--no-window-system";
+	args[6] = NULL;
 
 	options.exit_cb = cb_exit;
 	options.file = "/usr/local/bin/octave";

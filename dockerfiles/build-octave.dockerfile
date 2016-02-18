@@ -1,7 +1,3 @@
-FROM centos:latest
-ENV DIR /root
-WORKDIR $DIR
-
 # Install build dependencies for Octave
 RUN yum install -y epel-release yum-utils
 RUN yum-builddep -y octave
@@ -128,9 +124,3 @@ RUN rm -rf /root/* && \
 		git \
 		icoutils \
 		transfig
-
-# Entrypoint
-WORKDIR /home/oo
-ENV GNUTERM "svg"
-# ENV GNUTERM "svg mouse jsdir '/js/gnuplot'"
-ENTRYPOINT [ "/usr/local/bin/octave-host" ]

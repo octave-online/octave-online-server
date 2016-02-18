@@ -4,3 +4,4 @@
 *.o
 back-octave/octave-host
 _old/*
+bundle/*

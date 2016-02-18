@@ -1,0 +1,61 @@
+policy_module(octave_online, 1.5);
+
+### TO SETUP THIS POLICY FILE:
+#
+# 0. Make sure the following packages are installed:
+#
+#    selinux-policy-devel
+#    policycoreutils-sandbox
+#    selinux-policy-sandbox
+#
+# 1. Copy or symlink this file to /etc/selinux/targeted/policy
+#
+# 2. Run the following commands as root:
+#
+#    make -f /usr/share/selinux/devel/Makefile octave_online.pp
+#    semodule -i octave_online.pp
+#
+# 3. Apply file permissions:
+#
+#    semanage fcontext -a -t octave_site_t "/usr/local/lib/octave(/.*)?"
+#    restorecon -R -v /usr/local/lib/octave
+#
+###
+
+require {
+	type unconfined_t;
+	type sandbox_t;
+	type home_root_t;
+	type file_t;
+	type urandom_device_t;
+	class unix_stream_socket { read write ioctl getattr connectto };
+	class dir { read open search getattr };
+	class chr_file open;
+	class file { open execute };
+	class lnk_file read;
+}
+
+# Create a new file permission context for Octave site files.
+type octave_site_t;
+files_type(octave_site_t);
+
+# Allow sandbox applications to communicate over UNIX sockets, which is
+# required for non-blocking mode.
+allow sandbox_t unconfined_t:unix_stream_socket { read write ioctl getattr };
+allow sandbox_t self:unix_stream_socket connectto;
+
+# The following line eliminates more errors from the audit file, and
+# seem to be necessary to enable Octave to load files from the sandbox
+# home path.
+allow sandbox_t home_root_t:dir { search getattr };
+
+# The following line enables Octave to access urandom.  Without this,
+# there are a lot of audit errors, and the oo-events.txt results in a
+# segmentation fault.
+#!!!! This avc can be allowed using the boolean 'global_ssp'
+allow sandbox_t urandom_device_t:chr_file open;
+
+# Give permissions to read and execute octave_site_t to sandbox
+allow sandbox_t octave_site_t:file { open execute };
+allow sandbox_t octave_site_t:dir { read open search getattr };
+allow sandbox_t octave_site_t:lnk_file read;
