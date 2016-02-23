@@ -76,7 +76,7 @@ class WorkingUtil {
 					buf = new Iconv(encoding.toString(), "UTF-8").convert(buf);
 				}
 			} catch(err) {
-				log.warn("Could not convert encoding:", encoding, err);
+				log.warn("Could not convert encoding:", encoding);
 			}
 		}
 
@@ -97,7 +97,7 @@ class WorkingUtil {
 						if (!err) return _next(null, buf);
 						if (/ENOENT/.test(err.message)) {
 							log.info("Creating new file:", filename);
-							return _next(null, new Buffer());
+							return _next(null, new Buffer(0));
 						}
 						return _next(err);
 					});

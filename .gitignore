@@ -1,8 +1,9 @@
-*/node_modules/*
+node_modules/
 *.pem
 *.pub
 *.o
 back-octave/octave-host
-_old/*
-bundle/*
+_old/
+bundle/
 shared/config.json
+*.log

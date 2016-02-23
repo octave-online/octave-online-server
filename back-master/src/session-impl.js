@@ -128,7 +128,7 @@ class HostProcessHandler extends ProcessHandler {
 			(_next) => {
 				// Spawn sandbox process
 				// super._doCreate(_next, child_process.spawn, "/usr/local/bin/octave-host", { cwd: dataDir1 });
-				super._doCreate(_next, child_process.spawn, "/usr/bin/sandbox", ["-M", "-H", dataDir1, "-T", dataDir2, "env", "GNUTERM=svg", "/usr/local/bin/octave-host"]);
+				super._doCreate(_next, child_process.spawn, "/usr/bin/sandbox", ["-M", "-H", dataDir1, "-T", dataDir2, "env", "GNUTERM=svg", "env", "LD_LIBRARY_PATH=/usr/local/lib", "/usr/local/bin/octave-host"]);
 			},
 			(_next) => {
 				// We need to get the octave-cli PID for signalling, because sandbox handles signals strangely.
