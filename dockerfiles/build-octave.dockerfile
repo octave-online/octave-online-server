@@ -100,9 +100,9 @@ RUN octave -q --eval "\
 	pkg install -forge -noauto stk; \
 	pkg install -forge -noauto ltfat; "
 RUN octave -q --eval "\
-	pkg install -forge -noauto nan; \
 	pkg install -forge -auto fuzzy-logic-toolkit; \
-	pkg install -forge -auto mechanics; "
+	pkg install -forge -auto mechanics; \
+	pkg install -forge -noauto nan; "
 
 # Copy placeholders
 COPY placeholders /usr/local/share/octave/site/m/placeholders/

@@ -31,9 +31,9 @@ var userGlobal;
 
 // Log and send failure messages
 function fail() {
-	let args = Array.prototype.slice.call(arguments, 1);
+	let args = Array.prototype.slice.call(arguments, 2);
 	let messageString = args.join(" ");
-	log.warn.apply(log, args);
+	log[arguments[1]].apply(log, args);
 	messenger.sendMessage(arguments[0], { success: false, message: messageString });
 }
 
@@ -74,7 +74,7 @@ messenger.on("message", (name, content) => {
 			break;
 
 		case "list":
-			if (!userGlobal) return log.warn("Won't perform action on null user repository");
+			if (!userGlobal) return log.debug("Won't perform action on null user repository");
 			log.debug("Listing files...");
 			async.waterfall([
 				(_next) => {
@@ -98,7 +98,7 @@ messenger.on("message", (name, content) => {
 			break;
 
 		case "refresh":
-			if (!userGlobal) return log.warn("Won't perform action on null user repository");
+			if (!userGlobal) return log.debug("Won't perform action on null user repository");
 			log.debug("Refreshing files...");
 			async.waterfall([
 				(_next) => {
@@ -125,16 +125,16 @@ messenger.on("message", (name, content) => {
 			break;
 
 		case "commit":
-			if (!userGlobal) return fail("committed", "Won't perform action on null user repository");
+			if (!userGlobal) return fail("committed", "debug", "Won't perform action on null user repository");
 			var comment = content.comment;
-			if (!comment) return fail("committed", "Empty comment:", comment);
+			if (!comment) return fail("committed", "warn", "Empty comment:", comment);
 			log.debug("Committing files...");
 			async.waterfall([
 				(_next) => {
 					GitUtil.pullPush(comment, _next);
 				}
 			], (err) => {
-				if (err) return fail("committed", err);
+				if (err) return fail("committed", "warn", err);
 				log.debug("Files successfully committed");
 				return messenger.sendMessage("committed", { success: true });
 			});
@@ -144,15 +144,15 @@ messenger.on("message", (name, content) => {
 			var filename = content.filename;
 			var value = content.content;
 			log.debug("Saving file:", filename);
-			if (!filename || !value) return fail("saved", "Empty file name or value:", filename, value);
+			if (!filename || !value) return fail("saved", "warn", "Empty file name or value:", filename, value);
 			async.waterfall([
 				(_next) => {
 					WorkingUtil.saveFile(filename, value, _next);
 				}
 			], (err) => {
 				if (err) {
-					if (/ENOSPC/.test(err.message)) return fail("saved", `Whoops, you reached your space limit (${config.docker.diskQuotaKiB} KiB).\nYou should free up space to ensure that changes you make get committed.`);
-					else return fail("saved", err);
+					if (/ENOSPC/.test(err.message)) return fail("saved", "warn", `Whoops, you reached your space limit (${config.docker.diskQuotaKiB} KiB).\nYou should free up space to ensure that changes you make get committed.`);
+					else return fail("saved", "warn", err);
 				}
 				log.debug("File successfully saved");
 				return messenger.sendMessage("saved", { filename, success: true });
@@ -162,14 +162,14 @@ messenger.on("message", (name, content) => {
 		case "rename":
 			var oldname = content.filename;
 			var newname = content.newname;
-			if (!oldname || !newname) return fail("renamed", "Empty file name or new name:", oldname, newname);
+			if (!oldname || !newname) return fail("renamed", "warn", "Empty file name or new name:", oldname, newname);
 			log.debug("Renaming file:", oldname, newname);
 			async.waterfall([
 				(_next) => {
 					WorkingUtil.renameFile(oldname, newname, _next);
 				}
 			], (err) => {
-				if (err) return fail("renamed", err);
+				if (err) return fail("renamed", "warn", err);
 				log.debug("File successfully renamed");
 				return messenger.sendMessage("renamed", { oldname, newname, success: true });
 			});
@@ -177,14 +177,14 @@ messenger.on("message", (name, content) => {
 
 		case "delete":
 			var filename = content.filename;
-			if (!filename) return fail("deleted", "Empty file name:", filename);
+			if (!filename) return fail("deleted", "warn", "Empty file name:", filename);
 			log.debug("Deleting file:", filename);
 			async.waterfall([
 				(_next) => {
 					WorkingUtil.deleteFile(filename, _next);
 				}
 			], (err) => {
-				if (err) return fail("deleted", err);
+				if (err) return fail("deleted", "warn", err);
 				log.debug("File successfully deleted");
 				return messenger.sendMessage("deleted", { filename, success: true });
 			});
@@ -192,14 +192,14 @@ messenger.on("message", (name, content) => {
 
 		case "binary":
 			var filename = content.filename;
-			if (!filename) return fail("binary", "Empty file name:", filename);
+			if (!filename) return fail("binary", "warn", "Empty file name:", filename);
 			log.debug("Loading binary file:", filename);
 			async.waterfall([
 				(_next) => {
 					WorkingUtil.readBinary(filename, _next);
 				}
 			], (err, base64data, mime) => {
-				if (err) return fail("binary", err);
+				if (err) return fail("binary", "warn", err);
 				log.debug("File successfully loaded");
 				return messenger.sendMessage("binary", { filename, base64data, mime, success: true });
 			});
@@ -224,13 +224,13 @@ uploader.on("saved", (event) => {
 	const filename = path.basename(event.file.pathName);
 	WorkingUtil.getFileInfo(filename, (err, fileInfo) => {
 		if (err) return log.warn(err);
-		if (!fileInfo) return fail("saved", "Your file uploaded, but it will not appear in the list due to an illegal file name.");
+		if (!fileInfo) return fail("saved", "warn", "Your file uploaded, but it will not appear in the list due to an illegal file name.");
 		log.debug("File successfully uploaded");
 		return messenger.sendMessage("fileadd", fileInfo);
 	});
 });
 uploader.on("error", (event) => {
-	if (/ENOSPC/.test(event.error.message)) return fail("saved", `Uploading ${event.file.name}:\nIf your file is large and causes you to exceed your space limit\n(${config.docker.diskQuotaKiB} KiB), the file may be incomplete.`);
+	if (/ENOSPC/.test(event.error.message)) return fail("saved", "warn", `Uploading ${event.file.name}:\nIf your file is large and causes you to exceed your space limit\n(${config.docker.diskQuotaKiB} KiB), the file may be incomplete.`);
 	log.error("siofu:", event);
 });
 uploader.listen(fakeSocket);

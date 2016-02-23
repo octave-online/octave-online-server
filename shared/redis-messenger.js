@@ -259,8 +259,8 @@ class RedisMessenger extends EventEmitter {
 		this._scriptManager.run(memo, keys, args, next);
 	}
 
-	_handleError(err) {
-		if (err) log.warn(err);
+	_handleError() {
+		if (arguments[0]) log.warn.apply(this, arguments);
 	}
 
 	_ensureNotSubscribed() {
