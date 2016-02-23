@@ -205,6 +205,25 @@ messenger.on("message", (name, content) => {
 			});
 			break;
 
+		case "read-delete-binary":
+			var filename = content.filename;
+			if (!filename) return fail("deleted-binary", "warn", "Empty file name:", filename);
+			log.debug("Loading and deleting binary file:", filename);
+			async.series([
+				(_next) => {
+					WorkingUtil.readBinary(filename, _next);
+				}, (_next) => {
+					WorkingUtil.deleteFile(filename, _next);
+				}
+			], (err, results) => {
+				if (err) return fail("deleted-binary", "warn", err);
+				let base64data = results[0][0];
+				let mime = results[0][1];
+				log.debug("File successfully loaded and deleted");
+				return messenger.sendMessage("deleted-binary", { filename, base64data, mime, success: true });
+			});
+			break;
+
 		// Send remaining messages to the fakeSocket
 		default:
 			fakeSocket.trigger(name, content);

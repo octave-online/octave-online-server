@@ -9,6 +9,7 @@ const timeLimit = require("@oo/shared").timeLimit;
 const fs = require("fs");
 const path = require("path");
 const async = require("async");
+const uuid = require("uuid");
 
 class OctaveSession extends OnlineOffline {
 	constructor(sessCode) {
@@ -19,6 +20,9 @@ class OctaveSession extends OnlineOffline {
 		this._legalTime = config.session.legalTime.guest;
 		this._payloadLimit = config.session.payloadLimit.guest;
 		this._resetPayload();
+
+		this._plotPngStore = {};
+		this._plotSvgStore = {};
 
 		this.on("error", this._handleError.bind(this));
 	}
@@ -116,7 +120,64 @@ class OctaveSession extends OnlineOffline {
 	_appendToSessionLog(type, content) {
 		if (!this._sessionLogStream) return this._log.warn("Cannot log before created", { type, content });
 		if (this._sessionLogStream.closed) return this._log.warn("Cannot log to a closed stream:", { type, content });
-		this._sessionLogStream.write(type + ": " + content.replace("\n", "\n" + type + ": "));
+		this._sessionLogStream.write(type + ": " + content.replace("\n", "\n" + type + ": ") + "\n");
+	}
+
+	// PLOTTED PNG IMAGE METHODS: Convert image links to base-64 data URIs
+	// TODO: A better way to do this would be to modify GNUPlot to directly save PNG images as base-64 URIs.  I did it this way because I wanted to avoid having to maintain a fork from another major project.
+	_convertPlotImages(content) {
+		// Search the plot SVG for local PNG files that we need to load
+		let imageNames = [];
+		let regex = /xlink:href='(\w+).png'/g;
+		let match;
+		while (match = regex.exec(content.content)) {
+			imageNames.push(match[1]);
+		}
+		if (imageNames.length === 0) return false;
+
+		// Enqueue the images for loading
+		let id = uuid.v4();
+		let svgObj = { content: content.content, waitCount: 0 };
+		imageNames.forEach((name) => {
+			let filename = name + ".png";
+			if (filename in this._plotPngStore) {
+				return this._log.error("Plot image is already in the queue:", filename);
+			}
+			this._plotPngStore[filename] = id;
+			svgObj.waitCount++;
+			// Actually send the read-image job upstream:
+			this._sendMessageToFiles("read-delete-binary", { filename });
+		});
+		this._plotSvgStore[id] = svgObj;
+		this._log.debug(`Loading ${svgObj.waitCount} images for plot`, id);
+		return true;
+	}
+	_onDeletedBinary(content) {
+		if (content.filename in this._plotPngStore) {
+			this._resolvePng(content);
+			return true;
+		} else {
+			return false;
+		}
+	}
+	_resolvePng(content) {
+		let filename = content.filename;
+		let base64data = content.base64data;
+		let id = this._plotPngStore[filename];
+		delete this._plotPngStore[filename];
+		let svgObj = this._plotSvgStore[id];
+		this._log.trace(`Loaded image '${filename}' for plot`, id);
+
+		// Perform the substitution
+		svgObj.content = svgObj.content.replace(`xlink:href='${filename}'`, `xlink:href='data:image/png;base64,${base64data}'`);
+
+		// Have we loaded all of the images we need to replace?
+		svgObj.waitCount--;
+		if (svgObj.waitCount === 0) {
+			this._log.debug("Loaded all images for plot", id);
+			this.emit("message", "show-static-plot", { content: svgObj.content });
+			delete this._plotSvgStore[id];
+		}
 	}
 
 	sendMessage(name, content) {
@@ -150,6 +211,7 @@ class OctaveSession extends OnlineOffline {
 			case "rename":
 			case "delete":
 			case "binary":
+			case "read-delete-binary":
 			case "siofu_start":
 			case "siofu_progress":
 			case "siofu_done":
@@ -178,21 +240,34 @@ class OctaveSession extends OnlineOffline {
 
 	_handleMessage(name, content) {
 
-		// Filter out some error messages
-		if (name === "err") {
-			if (/warning: readline is not linked/.test(content)) return;
-			if (/warning: docstring file/.test(content)) return;
-			if (/error: unable to open .+macros\.texi/.test(content)) return;
-			if (/^\/tmp\/octave-help-/.test(content)) return;
-			if (/built-in-docstrings' not found/.test(content)) return;
-			if (/__unimplemented__/.test(content)) content = "Error: You called a function that is not currently available in Octave.\n";
-			if (/warning: function .* shadows a core library function/.test(content) && config.forge.placeholders.indexOf(content.match(/\/([^\.\/]+)\.m/)[1]) !== -1) return;
+		// Special pre-processing of a few events here
+		switch (name) {
+			case "err":
+				// Filter out some error messages
+				if (/warning: readline is not linked/.test(content)) return;
+				if (/warning: docstring file/.test(content)) return;
+				if (/error: unable to open .+macros\.texi/.test(content)) return;
+				if (/^\/tmp\/octave-help-/.test(content)) return;
+				if (/built-in-docstrings' not found/.test(content)) return;
+				if (/warning: function .* shadows a core library function/.test(content) && config.forge.placeholders.indexOf(content.match(/\/([^\.\/]+)\.m/)[1]) !== -1) return;
+				break;
+
+			case "show-static-plot":
+				// Convert PNG file links to embedded base 64 data
+				if (this._convertPlotImages(content)) return;
+
+			case "deleted-binary":
+				// If we're waiting for any binary files, capture them here rather than sending them downstream
+				if (this._onDeletedBinary(content)) return;
+
+			default:
+				break;
 		}
 
-		// Forward all events downstream
+		// Forward events downstream
 		this.emit("message", name, content);
 
-		// Special handling of a few events here
+		// Special post-processing of a few more events here
 		switch (name) {
 			case "request-input":
 				this._endCountdown();
