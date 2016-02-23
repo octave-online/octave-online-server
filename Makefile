@@ -47,12 +47,9 @@ docker-master-selinux:
 
 install-selinux-policy:
 	yum install -y selinux-policy-devel policycoreutils-sandbox selinux-policy-sandbox
-	ln -s back-master/src/octave_online.te /etc/selinux/targeted/policy
-	(
-		cd /etc/selinux/targeted/policy
-		make -f /usr/share/selinux/devel/Makefile octave_online.pp
-		semodule -i octave_online.pp
-	)
+	ln -fs $$PWD/back-master/src/octave_online.te /etc/selinux/targeted/policy
+	cd /etc/selinux/targeted/policy && make -f /usr/share/selinux/devel/Makefile octave_online.pp
+	semodule -i /etc/selinux/targeted/policy/octave_online.pp
 	semanage fcontext -a -t octave_site_t "/usr/local/lib/octave(/.*)?"
 	restorecon -R -v /usr/local/lib/octave
 	setenforce enforcing

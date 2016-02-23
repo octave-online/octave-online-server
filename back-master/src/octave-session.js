@@ -24,7 +24,7 @@ class OctaveSession extends OnlineOffline {
 	}
 
 	_doCreate(next) {
-		this._sessionLogStream = fs.createWriteStream(path.join("/srv/oo/logs", `${this.sessCode}.log`));
+		this._sessionLogStream = fs.createWriteStream(path.join(config.worker.logDir, "sessions", `${this.sessCode}.log`));
 		this._doCreateImpl(next);
 	}
 
@@ -116,8 +116,7 @@ class OctaveSession extends OnlineOffline {
 	_appendToSessionLog(type, content) {
 		if (!this._sessionLogStream) return this._log.warn("Cannot log before created", { type, content });
 		if (this._sessionLogStream.closed) return this._log.warn("Cannot log to a closed stream:", { type, content });
-		if (type === "cmd") content += "\n";
-		this._sessionLogStream.write(`${type}: ${content}----\n`);
+		this._sessionLogStream.write(type + ": " + content.replace("\n", "\n" + type + ": "));
 	}
 
 	sendMessage(name, content) {
