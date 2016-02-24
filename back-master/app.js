@@ -9,7 +9,10 @@ const async = require("async");
 const runMaintenance = require("./src/maintenance");
 const config = require("@oo/shared").config;
 
-log.info("Master process ID:", process.pid);
+process.stdout.write("Process ID: " + process.pid + "\n");
+process.stderr.write("Process ID: " + process.pid + "\n");
+log.info("Process ID:", process.pid);
+log.log(process.env);
 
 const redisInputHandler = new RedisMessenger().subscribeToInput();
 const redisDestroyDHandler = new RedisMessenger().subscribeToDestroyD();
