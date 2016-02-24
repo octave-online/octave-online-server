@@ -1,0 +1,19 @@
+{
+  "name": "octave-online-projects",
+  "version": "1.0.0",
+  "description": "Parent to all Octave Online projects.  Contains entrypoints only.",
+  "main": "entrypoint-back.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@codebasehq.com:octave-online/octave/oo-projects.git"
+  },
+  "author": "Shane F. Carr",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "forever-monitor": "^1.7.0",
+    "moment": "^2.11.2"
+  }
+}

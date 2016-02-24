@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const logger = require("@oo/shared").logger;
 const OnlineOffline = require("@oo/shared").OnlineOffline;
+const config = require("@oo/shared").config;
 
 // This file is based on http://souptonuts.sourceforge.net/quota_tutorial.html
 
@@ -79,7 +80,8 @@ class CappedFileSystem extends OnlineOffline {
 			(_next) => {
 				this._log.trace("Claiming ownership of file system root...");
 				const imgMntDir = path.join(this._tmpdir, IMG_MNT_DIR);
-				child_process.execFile("sudo", ["chown", process.env.USER, imgMntDir], (err, stdout, stderr) => {
+				child_process.execFile("sudo", ["chown", config.worker.uid+":"+config.worker.uid, imgMntDir], (err, stdout, stderr) => {
+					if (stderr) err = new Error(stderr);
 					_next(err);
 				});
 			},
@@ -92,12 +94,9 @@ class CappedFileSystem extends OnlineOffline {
 				});
 			}
 		], (err) => {
-			if (err) return this.destroy((_err) => { next(err); });
-
 			const imgDataDir = path.join(this._tmpdir, IMG_MNT_DIR, IMG_DATA_DIR);
 			this.dir = imgDataDir;
-
-			return next(null, imgDataDir);
+			return next(err, imgDataDir);
 		});
 	}
 
