@@ -1,9 +1,16 @@
-node_modules/
-*.pem
-*.pub
-*.o
-back-octave/octave-host
+# Directory names that should not be tracked
 _old/
 bundle/
-shared/config.json
+node_modules/
+vendor/
+
+# File extensions that should not be tracked
+*.bak
 *.log
+*.o
+*.pem
+*.pub
+
+# Specific files to omit
+shared/config.json
+back-octave/octave-host

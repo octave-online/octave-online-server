@@ -7,6 +7,7 @@ const moment = require("moment");
 const path = require("path");
 
 console.log("Forever PID: " + process.pid);
+console.log(process.env);
 
 // Make log directories
 try {
@@ -20,23 +21,28 @@ try {
 	}
 }
 
+// Log stream
+const logPath = path.join(config.worker.logDir, "monitor", config.worker.token + "_" + moment().format("YYYY-MM-DD_HH-mm-ss-SSS") + ".log");
+const logFd = fs.openSync(logPath, "a", "0640");
+const logStream = fs.createWriteStream(null, { fd: logFd });
+
 // Prepare child for spawning
-const logPrefix = path.join(config.worker.logDir, "monitor", config.worker.token + "_" + moment().format("YYYY-MM-DD_HH-mm-ss-SSS"));
 const monitor = new (forever.Monitor)(path.join(__dirname, "back-master/app.js"), {
 	cwd: path.join(__dirname, "back-master"),
 	max: 10,
-	logFile: logPrefix + ".log",
-	outFile: logPrefix + ".out",
-	errFile: logPrefix + ".err",
+//	logFile: logPrefix + ".log",
+//	outFile: logPrefix + ".out",
+//	errFile: logPrefix + ".err",
+	stdio: ["ignore", "pipe", logStream],
 	env: {
 		"GIT_SSH": path.join(__dirname, "back-filesystem/git/git_ssh.sh"),
 		"GNUTERM": "svg",
 		"DEBUG": "*"
 	},
-	spawnWith: {
-		uid: config.worker.uid,
-		gid: config.worker.gid
-	}
+//	spawnWith: {
+//		uid: config.worker.uid,
+//		gid: config.worker.gid
+//	}
 });
 
 // Exit handler
