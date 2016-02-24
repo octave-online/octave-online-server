@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // This file is the entrypoint for back-master, intended for use with the "SELinux" backend.  The "Docker" backend has its own initialization built in to the Dockerfiles.
 
 const async = require("async");
@@ -69,6 +71,7 @@ var lastExitCode = null;
 async.whilst(
 	() => { return lastExitCode !== 0 },
 	(next) => {
+		console.log(spawnOptions);
 		spwn = child_process.spawn("node", ["app.js"], spawnOptions);
 		console.log("Starting child with PID:", spwn.pid);
 		spwn.once("exit", (code, signal) => {
