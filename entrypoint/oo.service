@@ -1,0 +1,11 @@
+[Service]
+ExecStart=/usr/local/bin/oo-back-selinux
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=oo
+User=1000
+Group=1000
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

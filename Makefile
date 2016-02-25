@@ -46,14 +46,18 @@ docker-master-selinux:
 	echo "It is not currently possible to install SELinux inside of a Docker container."
 
 install-selinux-policy:
-	yum install -y selinux-policy-devel policycoreutils-sandbox selinux-policy-sandbox
-	ln -fs $$PWD/back-master/src/octave_online.te /etc/selinux/targeted/policy
-	cd /etc/selinux/targeted/policy && make -f /usr/share/selinux/devel/Makefile octave_online.pp
-	semodule -i /etc/selinux/targeted/policy/octave_online.pp
-	semanage fcontext -a -t octave_site_t "/usr/local/lib/octave(/.*)?"
+	# yum install -y selinux-policy-devel policycoreutils-sandbox selinux-policy-sandbox
+	cd entrypoint/policy && make -f /usr/share/selinux/devel/Makefile octave_online.pp
+	semodule -i entrypoint/policy/octave_online.pp
 	restorecon -R -v /usr/local/lib/octave
+	restorecon -R -v /tmp
 	setenforce enforcing
 	echo "For maximum security, make sure to put SELinux in enforcing mode by default in /etc/selinux/config."
+
+install-selinux-bin:
+	cp entrypoint/back-selinux.js /usr/local/bin/oo-back-selinux
+	cp entrypoint/oo.service /usr/lib/systemd/system/oo.service
+	ln -sf $$PWD /usr/local/share/oo
 
 docker: docker-octave docker-files
 

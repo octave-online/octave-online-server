@@ -30,7 +30,7 @@ class CappedFileSystem extends OnlineOffline {
 		async.series([
 			(_next) => {
 				this._log.trace("Making temp dir...");
-				temp.mkdir(null, (err, tmpdir) => {
+				temp.mkdir("oo-", (err, tmpdir) => {
 					if (tmpdir) this._tmpdir = tmpdir;
 					if (!err) this._cleanups.unshift((__next) => {
 						this._log.trace("Removing temp dir...");

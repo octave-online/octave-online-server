@@ -3,6 +3,7 @@ _old/
 bundle/
 node_modules/
 vendor/
+tmp/
 
 # File extensions that should not be tracked
 *.bak
@@ -10,6 +11,7 @@ vendor/
 *.o
 *.pem
 *.pub
+*.pp
 
 # Specific files to omit
 shared/config.json

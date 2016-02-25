@@ -1,0 +1,35 @@
+interface(`oo_systemctl',`
+	gen_require(`
+		type oo_t, oo_unit_file_t;
+	')
+
+	systemd_exec_systemctl($1)
+	init_reload_services($1)
+	systemd_read_fifo_file_passwd_run($1)
+	allow $1 oo_unit_file_t:file read_file_perms;
+	allow $1 oo_unit_file_t:service manage_service_perms;
+
+	ps_process_pattern($1, oo_t)
+')
+
+interface(`oo_domtrans',`
+	gen_require(`
+		type oo_t, oo_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	domtrans_pattern($1, oo_exec_t, oo_t)
+')
+
+interface(`oo_admin',`
+	gen_require(`
+		type oo_t, oo_unit_file_t;
+	')
+
+	allow $1 oo_t:process { ptrace signal_perms };
+	ps_process_pattern($1, oo_t)
+
+	oo_systemctl($1)
+	admin_pattern($1, oo_unit_file_t)
+	allow $1 oo_unit_file_t:service all_service_perms;
+')

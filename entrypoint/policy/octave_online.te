@@ -1,4 +1,4 @@
-policy_module(octave_online, 1.5);
+policy_module(octave_online, 1.6);
 
 ### TO SETUP THIS POLICY FILE:
 #
@@ -23,25 +23,47 @@ policy_module(octave_online, 1.5);
 ###
 
 require {
-	type unconfined_t;
-	type sandbox_t;
-	type home_root_t;
 	type file_t;
+	type home_root_t;
+	type sandbox_t;
+	type unconfined_t;
+	type unconfined_service_t;
 	type urandom_device_t;
-	class unix_stream_socket { read write ioctl getattr connectto };
-	class dir { read open search getattr };
+	type unlabeled_t;
+
 	class chr_file open;
+	class dir { read open search getattr write add_name };
 	class file { open execute };
 	class lnk_file read;
+	class process { dyntransition transition sigchld };
+	class unix_stream_socket { read write ioctl getattr connectto };
 }
 
-# Create a new file permission context for Octave site files.
+# Create a new file permission context for GNU Octave site files.
 type octave_site_t;
 files_type(octave_site_t);
+
+# Create file type for temporary files
+type oo_tmp_t;
+files_type(oo_tmp_t);
+
+# Create domains for running the Octave Online process (see supplement.te/if)
+# type oo_t;
+# type oo_exec_t;
+# init_daemon_domain(oo_t, oo_exec_t);
+# type oo_unit_file_t;
+# systemd_unit_file(oo_unit_file_t);
+
+# Allow system_r to run and spawn sandbox_t
+# (required when running application as a systemd service)
+role system_r types sandbox_t;
+allow unconfined_service_t sandbox_t:process { dyntransition transition };
+allow sandbox_t unconfined_service_t:process sigchld;
 
 # Allow sandbox applications to communicate over UNIX sockets, which is
 # required for non-blocking mode.
 allow sandbox_t unconfined_t:unix_stream_socket { read write ioctl getattr };
+allow sandbox_t unconfined_service_t:unix_stream_socket { read write ioctl getattr };
 allow sandbox_t self:unix_stream_socket connectto;
 
 # The following line eliminates more errors from the audit file, and
@@ -52,7 +74,7 @@ allow sandbox_t home_root_t:dir { search getattr };
 # The following line enables Octave to access urandom.  Without this,
 # there are a lot of audit errors, and the oo-events.txt results in a
 # segmentation fault.
-#!!!! This avc can be allowed using the boolean 'global_ssp'
+# NOTE: This could instead be allowed using 'global_ssp'
 allow sandbox_t urandom_device_t:chr_file open;
 
 # Give permissions to read and execute octave_site_t to sandbox
