@@ -190,8 +190,10 @@ class OctaveSession extends OnlineOffline {
 			case "cmd":
 				this._startCountdown();
 				this.resetTimeout();
-				this._sendMessageToHost(name, content);
 				this._appendToSessionLog(name, content);
+				content.split("\n").forEach((line) => {
+					this._sendMessageToHost(name, line);
+				});
 				break;
 
 			case "user-info":
