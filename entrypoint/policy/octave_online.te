@@ -17,7 +17,6 @@ policy_module(octave_online, 1.6);
 #
 # 3. Apply file permissions:
 #
-#    semanage fcontext -a -t octave_site_t "/usr/local/lib/octave(/.*)?"
 #    restorecon -R -v /usr/local/lib/octave
 #
 ###
@@ -30,6 +29,7 @@ require {
 	type unconfined_service_t;
 	type urandom_device_t;
 	type unlabeled_t;
+	type tmp_t;
 
 	class chr_file open;
 	class dir { read open search getattr write add_name };
@@ -65,6 +65,10 @@ allow sandbox_t unconfined_service_t:process sigchld;
 allow sandbox_t unconfined_t:unix_stream_socket { read write ioctl getattr };
 allow sandbox_t unconfined_service_t:unix_stream_socket { read write ioctl getattr };
 allow sandbox_t self:unix_stream_socket connectto;
+
+# I tried making oo_tmp_t, but tmp_t is still being inherited, so
+# the following rule is required.
+#allow sandbox_t tmp_t:dir { write add_name create };
 
 # The following line eliminates more errors from the audit file, and
 # seem to be necessary to enable Octave to load files from the sandbox
