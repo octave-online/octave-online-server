@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+"use strict";
 
 // This file is the entrypoint for back-master, intended for use with the "SELinux" backend.  The "Docker" backend has its own initialization built in to the Dockerfiles.
 // This file intentionally has no dependencies on npm modules to make it more portable.
@@ -13,23 +14,31 @@ const config = require(path.join(prefix, "shared/config.json"));
 console.log("Daemon PID:", process.pid);
 
 // Make log directories
-try {
-	fs.mkdirSync(path.join(config.worker.logDir, "monitor"), "0740");
-	fs.mkdirSync(path.join(config.worker.logDir, "sessions"), "0740");
-} catch(err) {
-	if (/EEXIST/.test(err.message)) {
-		console.log("Using pre-existing log directories.")
-	} else {
-		throw err;
+function attemptMakeLogDirs(next) {
+	try {
+		fs.mkdirSync(path.join(config.worker.logDir, "monitor"), "0740");
+		fs.mkdirSync(path.join(config.worker.logDir, "sessions"), "0740");
+	} catch(err) {
+		if (/EEXIST/.test(err.message)) {
+			console.log("Using pre-existing log directories.");
+			return next();
+		} else if (/ENOENT/.test(err.message)) {
+			console.log("NFS not mounted yet; trying again in 5 seconds");
+			return setTimeout(attemptMakeLogDirs, 5000, next);
+		} else throw err;
 	}
+	return next();
 }
 
 // Create log stream
-const dateStr = new Date().toISOString().replace(/:/g,"-").replace(".","-").replace("T","_").replace("Z","");
-const logPath = path.join(config.worker.logDir, "monitor", config.worker.token+"_"+dateStr+".log");
-const logFd = fs.openSync(logPath, "a", "0640");
-const logStream = fs.createWriteStream(null, { fd: logFd });
-console.log("Logging to:", logPath);
+function createLogStream() {
+	let dateStr = new Date().toISOString().replace(/:/g,"-").replace(".","-").replace("T","_").replace("Z","");
+	let logPath = path.join(config.worker.logDir, "monitor", config.worker.token+"_"+dateStr+".log");
+	let logFd = fs.openSync(logPath, "a", "0640");
+	let logStream = fs.createWriteStream(null, { fd: logFd });
+	console.log("Logging to:", logPath);
+	return logStream;
+}
 
 // Prepare child for spawning
 const env = {
@@ -45,7 +54,6 @@ for (var name in process.env) {
 const spawnOptions = {
 	cwd: path.join(prefix, "back-master"),
 	env: env,
-	stdio: ["inherit", "inherit", logStream],
 	uid: config.worker.uid,
 	gid: config.worker.uid
 };
@@ -80,7 +88,15 @@ function runOnce() {
 		console.log(`Process exited with code ${code}, signal ${signal}`);
 		if (code !== 0) {
 			setTimeout(runOnce, 500);
+		} else {
+			child_process.execSync("sudo reboot");
 		}
 	});
 }
-runOnce();
+
+// Run it!
+attemptMakeLogDirs(() => {
+	let logStream = createLogStream();
+	spawnOptions.stdio = ["inherit", "inherit", logStream];
+	runOnce(logStream);
+});
