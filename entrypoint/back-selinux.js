@@ -7,7 +7,7 @@ const child_process = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-const prefix = (__dirname === "/usr/local/bin") ? "/usr/local/share/oo" : "..";
+const prefix = (__dirname === "/usr/local/bin") ? "/usr/local/share/oo" : path.join(__dirname, "..");
 const config = require(path.join(prefix, "shared/config.json"));
 
 console.log("Daemon PID:", process.pid);
