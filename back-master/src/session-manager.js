@@ -14,27 +14,28 @@ class SessionManager extends EventEmitter {
 		super();
 		this._pool = {};
 		this._online = {};
-		this._POOL_ENABLED = true;
+		this._monitor_session = null;
+		this._setup();
+		this.startPool();
+	}
 
+	_setup() {
 		// Log the session index on a fixed interval
 		this._logInterval = setInterval(() => {
 			log.debug("Current Number of Pooled Sessions:", Object.keys(this._pool).length);
 			log.trace(Object.keys(this._pool).join("; "));
 			log.debug("Current Number of Online Sessions:", Object.keys(this._online).length);
 			log.trace(Object.keys(this._online).join("; "));
-		}, config.sessionManager.logInterval);
 
-		// Keep the pool populated with new sessions
-		async.forever(
-			(_next) => {
-				if (this._TERMINATED) return;
-				if (!this._POOL_ENABLED) this._makePoolTimer = setTimeout(_next, config.sessionManager.poolInterval);
-				else this._createMany(config.sessionManager.poolSize, () => {
-					this._makePoolTimer = setTimeout(_next, config.sessionManager.poolInterval);
+			// Time an arbitrary command to test server health
+			if (this._monitor_session) {
+				let t1 = new Date().valueOf();
+				this._monitor_session.sendMessage("cmd", "sombrero");
+				this._monitor_session.once("msg:request-input", () => {
+					log.debug("Monitor Time (ms):", new Date().valueOf() - t1);
 				});
-			},
-			() => { log.error("Pool loop ended") }
-		);
+			}
+		}, config.sessionManager.logInterval);
 
 		// Keep pool sessions alive
 		this._keepAliveInterval = setInterval(() => {
@@ -49,7 +50,7 @@ class SessionManager extends EventEmitter {
 	}
 
 	canAcceptNewSessions() {
-		return Object.keys(this._pool).length > 0 && this.numActiveSessions() < config.worker.maxSessions;
+		return this._poolVar.enabled && Object.keys(this._pool).length > 0 && this.numActiveSessions() < config.worker.maxSessions;
 	}
 
 	_create(next) {
@@ -72,30 +73,13 @@ class SessionManager extends EventEmitter {
 			if (err) {
 				log.warn("Session failed to create:", localCode, err);
 				session.destroy();
-				if (next) next();
+				next();
 				return;
 			}
 
-			// Save reference
-			this._pool[localCode] = { session, cache };
-
-			// Call the callback if necessary
-			if (next) next();
+			// Call the callback
+			next(localCode, session, cache);
 		}));
-	}
-
-	_createMany(n, next) {
-		let attempts = 0;
-		async.whilst(
-			() => {
-				return (Object.keys(this._pool).length < n && attempts < 2*n && this._POOL_ENABLED);
-			},
-			(_next) => {
-				attempts += 1;
-				this._create(_next);
-			},
-			next
-		);
 	}
 
 	attach(remoteCode, user, next) {		// Move pool session to online session
@@ -181,8 +165,47 @@ class SessionManager extends EventEmitter {
 		log.debug("Removed session from index", sessCode);
 	}
 
+	startPool() {
+		if (this._poolVar && this._poolVar.enabled) {
+			throw new Error("Another pool is already running");
+		}
+
+		// I made poolVar a local variable so that there will be one instance for each startPool closure.  Each pool creation loop should be independent from any other pool creation loops that might start or stop.  (Potential problem that this approach prevents: if a session is in the middle of creating, and the pool is disabled and then immediately enabled again, the first pool might not be destroyed if the "pool enabled" variable were singleton.)
+		let poolVar = { enabled: true };
+		this._poolVar = poolVar;
+
+		let _poolCb = (localCode, session, cache) => {
+			// If we need to disable the pool...
+			if (!poolVar.enabled) {
+				if (session) session.destroy(null, "Pool Disabled");
+				return;
+			}
+
+			// If the session was created successfully...
+			if (session) {
+				if (!this._monitor_session) {
+					log.info("Created monitor session:", localCode);
+					this._monitor_session = session;
+					cache.enabled = false;
+					cache.removeAll();
+				} else {
+					this._pool[localCode] = { session, cache };
+				}
+			}
+
+			// If we need to put another session in our pool...
+			if (Object.keys(this._pool).length < config.sessionManager.poolSize) {
+				this._create(_poolCb);
+			} else {
+				setTimeout(_poolCb, config.sessionManager.poolInterval)
+			}
+		}
+		process.nextTick(_poolCb);
+	}
+
 	disablePool() {
-		this._POOL_ENABLED = false;
+		if (!this._poolVar || !this._poolVar.enabled) return;
+		this._poolVar.enabled = false;
 		Object.keys(this._pool).forEach((localCode) => {
 			this._pool[localCode].session.destroy(null, "Pool Disabled");
 			this._pool[localCode].session = null;
@@ -191,19 +214,24 @@ class SessionManager extends EventEmitter {
 		});
 	}
 
-	enablePool() {
-		this._POOL_ENABLED = true;
-	}
-
 	terminate(reason) {
 		this.disablePool();
-		this._TERMINATED = true;
 		clearInterval(this._logInterval);
 		clearInterval(this._keepAliveInterval);
-		clearTimeout(this._makePoolTimer);
+
+		if (this._monitor_session) {
+			this._monitor_session.destroy(null, reason);
+			this._monitor_session = null;
+		}
+
 		Object.keys(this._online).forEach((remoteCode) => {
 			this.destroy(remoteCode, reason);
 		});
+	}
+
+	restart() {
+		this.startPool();
+		this._setup();
 	}
 }
 

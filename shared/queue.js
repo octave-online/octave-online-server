@@ -7,16 +7,27 @@ const EventEmitter = require("events");
 class Queue extends EventEmitter {
 	constructor() {
 		super();
+		this.enabled = true;
 		this._items = [];
 	}
 
 	enqueue(item) {
-		this._items.push(item);
-		this.emit("enqueue");
+		if (this.enabled) {
+			this._items.push(item);
+			this.emit("enqueue");
+		}
 	}
 
 	dequeue() {
-		return this._items.shift();
+		if (this._items.length > 0) {
+			return this._items.shift();
+		} else {
+			throw new RangeError("Can't dequeue from an empty queue");
+		}
+	}
+
+	removeAll() {
+		this._items = [];
 	}
 
 	isEmpty() {

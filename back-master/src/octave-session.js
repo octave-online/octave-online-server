@@ -268,6 +268,7 @@ class OctaveSession extends OnlineOffline {
 
 		// Forward events downstream
 		this.emit("message", name, content);
+		this.emit(`msg:${name}`, content);
 
 		// Special post-processing of a few more events here
 		switch (name) {

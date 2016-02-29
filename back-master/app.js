@@ -124,13 +124,14 @@ async.forever(
 				);
 			},
 			(_next) => {
+				sessionManager.terminate();
 				maintenanceTimer = setTimeout(_next, config.maintenance.pauseDuration);
 			},
 			(_next) => {
 				runMaintenance(_next);
 			},
 			(_next) => {
-				sessionManager.enablePool();
+				sessionManager.restart();
 				maintenanceTimer = setTimeout(_next, config.maintenance.pauseDuration);
 			},
 			(_next) => {
@@ -141,7 +142,7 @@ async.forever(
 			next();
 		});
 	},
-	() => { log.error("Maintenance loop ended") }
+	(err) => { log.error("Maintenance loop ended", err); }
 );
 
 function doExit() {
