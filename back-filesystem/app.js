@@ -57,7 +57,10 @@ messenger.on("message", (name, content) => {
 					WorkingUtil.listAll(_next);
 				}
 			], (err, fileData) => {
-				if (err) return log.error(err);
+				if (err) {
+					if (/unable to write file/.test(err.message)) return fail("saved", "warn", `Whoops! You are currently exceeding your space limit of ${config.docker.diskQuotaKiB} KiB.\nPlease open a support ticket and we will help you resolve the\nissue. Sorry for the inconvenience!`);
+					else return log.error(err);
+				}
 				log.debug("User successfully initialized");
 				// Sending the user info with this event is deprecated and is for backwards compatibility only.  In the future, the event should be renamed to something like "files" and the user info should be removed.
 				messenger.sendMessage("user", {

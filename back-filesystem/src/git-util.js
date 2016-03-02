@@ -71,10 +71,11 @@ class GitUtil {
 			(_next) => {
 				child_process.execFile("git", ["add", "--all"], this.execOptions, _next);
 			},
-			(_next) => {
-				// Do not commit files greater than 1MB in size
-				child_process.exec("find . -size +1M -type f -exec git reset {} \\;", this.execOptions, _next);
-			},
+			// Remove the following check since the new "capped file system" should take care of this for us
+			// (_next) => {
+			// 	// Do not commit files greater than 1MB in size
+			// 	child_process.exec("find . -size +1M -type f -exec git reset {} \\;", this.execOptions, _next);
+			// },
 			(_next) => {
 				// This command can safely fail silently for the case when there are no files to commit (in that case, the error is empty)
 				// Note that specifying --author here does not seem to work; I have to do -c ... instead
