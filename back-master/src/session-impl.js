@@ -157,14 +157,15 @@ class HostProcessHandler extends ProcessHandler {
 
 	_doDestroy(next) {
 		async.series([
+			super._doDestroy.bind(this),
 			(_next) => {
 				if (this.tmpdir) {
+					this._log.trace("Destroying tmpdir");
 					child_process.exec(`rm -rf ${this.tmpdir}`, _next);
 				} else {
 					process.nextTick(_next);
 				}
-			},
-			super._doDestroy.bind(this)
+			}
 		], next);
 	}
 
@@ -205,14 +206,15 @@ class FilesProcessHandler extends ProcessHandler {
 
 	_doDestroy(next) {
 		async.series([
+			super._doDestroy.bind(this),
 			(_next) => {
 				if (this.gitdir) {
+					this._log.trace("Destroying gitdir");
 					child_process.exec(`rm -rf ${this.gitdir}`, _next);
 				} else {
 					process.nextTick(_next);
 				}
-			},
-			super._doDestroy.bind(this)
+			}
 		], next);
 	}
 }

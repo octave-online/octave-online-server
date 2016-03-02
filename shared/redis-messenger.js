@@ -247,7 +247,7 @@ class RedisMessenger extends EventEmitter {
 				let sessCode = redisUtil.getSessCodeFromChannel(message);
 				this.emit("_message", sessCode);
 			} catch (err) {
-				this._handleError(channel, message, err);
+				// Silently ignore this error; there are many examples of keys that expire that don't have sessCodes in the name.
 			}
 		});
 	}
