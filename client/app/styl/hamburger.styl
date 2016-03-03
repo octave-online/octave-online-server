@@ -1,0 +1,74 @@
+/*!
+ * Based on Hamburgers
+ * @description Tasty CSS-animated hamburgers
+ * @author Jonathan Suh @jonsuh
+ * @site https://jonsuh.com/hamburgers
+ * @link https://github.com/jonsuh/hamburgers
+ */
+
+@require("mixins.styl")
+
+.hamburger {
+	padding: 15px 15px
+	display: inline-block
+	transition-property: opacity, filter
+	transition-duration: 0.15s
+	transition-timing-function: linear
+
+	&:hover {
+		opacity: 0.7
+	}
+
+	.hamburger-box {
+		width: 40px
+		height: 24px
+		position: relative
+	}
+
+	.hamburger-inner {
+		top: 50%
+		margin-top: -2px
+	}
+
+	.hamburger-inner, .hamburger-inner::before, .hamburger-inner::after {
+		width: 40px
+		height: 4px
+		background-color: colorfgd
+		border-radius: 4px
+		position: absolute
+		transition-property: transform
+		transition-duration: 0.15s
+		transition-timing-function: ease
+	}
+
+	.hamburger-inner::before, .hamburger-inner::after {
+		content: ""
+		display: block
+	}
+
+	.hamburger-inner {
+		top: 0
+	}
+
+	.hamburger-inner::before {
+		top: 10px
+		transition-property: transform, opacity
+		transition-timing-function: ease
+		transition-duration: 0.2s
+	}
+
+	.hamburger-inner::after {
+		top: 20px
+	}
+
+	&.is-active .hamburger-inner {
+		transform: translate3d(0, 10px, 0) rotate(45deg)
+	}
+	&.is-active .hamburger-inner::before {
+		transform: rotate(-45deg) translate3d(-5.71429px, -6px, 0)
+		opacity: 0
+	}
+	&.is-active .hamburger-inner::after {
+		transform: translate3d(0, -20px, 0) rotate(-90deg)
+	}
+}

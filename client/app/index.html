@@ -96,7 +96,12 @@
 			<span data-bind="text: currentUser().name"></span>
 		</small>
 		<!-- /ko -->
-		<span id="hamburger"></span>
+		<div class="hamburger" id="hamburger" aria-label="Menu" role="button" aria-controls="navigation">
+			<div class="hamburger-box">
+				<span class="hamburger-memo">MENU</span>
+				<div class="hamburger-inner"></div>
+			</div>
+		</div>
 	</header>
 	<section data-hover="flex">
 		<div id="files_container" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 0 }">

@@ -198,7 +198,8 @@ define(
 
 		// Sign-In
 		$("#hamburger, #sign_in_shortcut").click(function () {
-			$("#main_menu").toggleSafe();
+			var opened = $("#main_menu").toggleSafe();
+			$("#hamburger").toggleClass("is-active", opened);
 			onboarding.hideScriptPromo();
 			anal.sitecontrol("hamburger");
 		});

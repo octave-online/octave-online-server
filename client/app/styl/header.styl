@@ -1,4 +1,5 @@
 @require("mixins.styl")
+@require("hamburger.styl")
 
 header {
 	background-color: color1
@@ -6,13 +7,29 @@ header {
 	line-height: header_height
 
 	#hamburger {
-		hamburger-button(colorfgd)
+		// hamburger-button(colorfgd)
 		float: right
 		cursor: pointer
 		display: inline-block
-		width: 30px
-		height: header_height - 12px
-		margin: 6px 6px 6px 0
+		// width: 30px
+		// height: header_height - 12px
+		margin: 11px 5px 0 0
+		padding: 0
+		
+		.hamburger-memo {
+			display: inline-block
+			position: absolute
+			top: 5px
+			right: 44px
+			font-family: narrow_font_family
+			font-weight: bold
+			font-size: .5em
+			line-height: @font-size
+	
+			@media (max-width: responsive_width_one) {
+				display: none
+			}
+		}
 	}
 
 	h1 {
