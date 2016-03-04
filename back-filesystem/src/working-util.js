@@ -42,6 +42,20 @@ class WorkingUtil {
 		if (ACCEPTABLE_MIME_REGEX.test(_mime)) {
 			async.waterfall([
 				(_next) => {
+					fs.stat(path.join(this.cwd, filename), _next);
+				},
+				(stats, _next) => {
+					if (stats.size > config.session.textFileSizeLimit) {
+						// This file is too big.  Do not perform any further processing on this file.
+						// FIXME: Show a nice message to the end user to let them know why their file isn't being loaded
+						log.debug("Skipping text file that is too big:", stats.size, filename);
+						return next(null, {
+							filename,
+							isText: false
+						});
+					}
+
+					// The file is small.  Continue processing.
 					fs.readFile(path.join(this.cwd, filename), _next);
 				},
 				(buf, _next) => {
