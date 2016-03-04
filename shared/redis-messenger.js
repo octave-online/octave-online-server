@@ -166,8 +166,8 @@ class RedisMessenger extends EventEmitter {
 
 	subscribeToExpired() {
 		this._epsubscribe();
-		this.on("_message", (sessCode) => {
-			this.emit("expired", sessCode);
+		this.on("_message", (sessCode, channel) => {
+			this.emit("expired", sessCode, channel);
 		});
 		return this;
 	}
@@ -245,7 +245,7 @@ class RedisMessenger extends EventEmitter {
 		this._client.on("message", (channel, message) => {
 			try {
 				let sessCode = redisUtil.getSessCodeFromChannel(message);
-				this.emit("_message", sessCode);
+				this.emit("_message", sessCode, message);
 			} catch (err) {
 				// Silently ignore this error; there are many examples of keys that expire that don't have sessCodes in the name.
 			}
