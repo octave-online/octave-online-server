@@ -50,9 +50,9 @@ redisDestroyDHandler.on("destroy-d", (sessCode, reason) => {
 	sessionManager.destroy(sessCode, reason);
 });
 
-redisExpireHandler.on("expired", (sessCode) => {
+redisExpireHandler.on("expired", (sessCode, channel) => {
 	if (!sessionManager.get(sessCode)) return;
-	log.info("Received Expire:", sessCode);
+	log.info("Received Expire:", sessCode, channel);
 	sessionManager.destroy(sessCode, "Octave Session Expired (downstream)");
 });
 
