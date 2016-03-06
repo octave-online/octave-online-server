@@ -93,7 +93,8 @@ class OctaveSession extends OnlineOffline {
 			// Send the error message after a small delay in order to let the output buffers flush first
 			setTimeout(() => {
 				this.emit("message", "err", "!!! PAYLOAD TOO LARGE !!!\n");
-				// Octave sometimes gets confused with the interrupt signal, so send an empty command to reset things
+
+				// Octave sometimes gets confused with the interrupt signal, so send an empty command to reset things.
 				this._sendMessageToHost("cmd", "");
 			}, config.session.payloadMessageDelay);
 		}
@@ -193,6 +194,7 @@ class OctaveSession extends OnlineOffline {
 				this._startCountdown();
 				this.resetTimeout();
 				this._appendToSessionLog(name, content);
+				// FIXME: This splitting should occur on the front end, not here, in order to make the command timer work correctly.
 				content.split("\n").forEach((line) => {
 					this._sendMessageToHost(name, line);
 				});

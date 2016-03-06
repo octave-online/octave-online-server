@@ -8,6 +8,7 @@ const MaintenanceReuestManager = require("./src/maintenance-request-manager");
 const async = require("async");
 const runMaintenance = require("./src/maintenance");
 const config = require("@oo/shared").config;
+const gcStats = (require('gc-stats'))();
 
 process.stdout.write("Process ID: " + process.pid + "\n");
 process.stderr.write("Process ID: " + process.pid + "\n");
@@ -63,6 +64,11 @@ sessionManager.on("touch", (sessCode) => {
 sessionManager.on("destroy-u", (sessCode, reason) => {
 	log.info("Sending Destroy-U:", reason, sessCode);
 	redisMessenger.destroyU(sessCode, reason);
+});
+
+gcStats.on("stats", (stats) => {
+	log.trace(`Garbage Collected (type ${stats.gctype}, ${stats.pause/1e6} ms)`);
+	// log.trace(stats);
 });
 
 redisMaintenanceHandler.on("reboot-request", maintenanceRequestManager.onMessage.bind(maintenanceRequestManager));

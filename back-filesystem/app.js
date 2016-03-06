@@ -147,7 +147,7 @@ messenger.on("message", (name, content) => {
 			var filename = content.filename;
 			var value = content.content;
 			log.debug("Saving file:", filename);
-			if (!filename || !value) return fail("saved", "warn", "Empty file name or value:", filename, value);
+			if (!filename) return fail("saved", "warn", "Empty file name:", filename, value);
 			async.waterfall([
 				(_next) => {
 					WorkingUtil.saveFile(filename, value, _next);

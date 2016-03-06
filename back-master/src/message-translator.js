@@ -144,6 +144,9 @@ class MessageTranslator extends EventEmitter {
 
 			// MESSAGES THAT CAN BE IGNORED:
 			case "init":
+			case "ot.cursor":
+			case "ot.change":
+			case "oo.reconnect":
 				break;
 
 			// REMAINING MESSAGES:

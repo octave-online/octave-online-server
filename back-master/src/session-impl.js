@@ -57,14 +57,14 @@ class SessionImpl extends OctaveSession {
 	_doDestroyImpl(next, reason) {
 		// TODO: Add an alternative destroy implementation that is synchronous, so that it can be run in an exit handler.
 		async.auto({
-			"host": (_next) => {
-				this._log.trace("Requesting termination of Octave host process");
-				this._hostSession.destroy(_next);
-			},
 			"commit": (_next) => {
 				this._log.trace("Requesting to commit changes to Git");
 				this._commit("Scripted user file commit", silent(/Out of time/, _next));
 			},
+			"host": ["commit", (_next) => {
+				this._log.trace("Requesting termination of Octave host process");
+				this._hostSession.destroy(_next);
+			}],
 			"files": ["commit", (_next) => {
 				this._log.trace("Requesting termination of file manager process");
 				this._filesSession.destroy(_next);
