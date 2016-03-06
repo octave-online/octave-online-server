@@ -2,28 +2,31 @@
 
 const async = require("async");
 const child_process = require("child_process");
-const log = require("@oo/shared").logger("git-util");
+const logger = require("@oo/shared").logger;
 const path = require("path");
 const config = require("@oo/shared").config;
+const silent = require("@oo/shared").silent;
 
 const GIT_SSH_FILE = path.join(__dirname, "..", "git", "git_ssh.sh");
 
-// Include silent()
-const silent = require("@oo/shared").silent;
-
 class GitUtil {
-	static initialize(user, workDir, next) {
+	constructor(gitDir, logMemo) {
+		this._log = logger(`git-util:${logMemo}`);
+		this.execOptions = { cwd: gitDir };
+	}
+
+	initialize(user, workDir, next) {
 		const remote = this._userToRemote(user);
 		async.series([
 			(_next) => {
 				this._createOnRemote(user, _next);
 			},
 			(_next) => {
-				log.trace("Running git init...");
+				this._log.trace("Running git init...");
 				child_process.execFile("git", ["--git-dir=.", `--work-tree=${workDir}`, "init"], this.execOptions, _next);
 			},
 			(_next) => {
-				log.info("Setting origin:", remote);
+				this._log.info("Setting origin:", remote);
 				child_process.execFile("git", ["remote", "add", "origin", remote], this.execOptions, _next);
 			},
 			(_next) => {
@@ -32,10 +35,10 @@ class GitUtil {
 		], next);
 	}
 
-	static pullPush(message, next) {
+	pullPush(message, next) {
 		async.series([
 			(_next) => {
-				log.debug("Preparing to pull-push...");
+				this._log.debug("Preparing to pull-push...");
 				_next();
 			},
 			(_next) => {
@@ -60,13 +63,13 @@ class GitUtil {
 				child_process.execFile("git", ["push", "origin", "master"], this.execOptions, silent(/src refspec master does not match any/, _next));
 			},
 			(_next) => {
-				log.debug("Finished pull-push");
+				this._log.debug("Finished pull-push");
 				_next();
 			}
 		], next);
 	}
 
-	static _commit(message, next) {
+	_commit(message, next) {
 		async.series([
 			(_next) => {
 				child_process.execFile("git", ["add", "--all"], this.execOptions, _next);
@@ -84,10 +87,10 @@ class GitUtil {
 		], next);
 	}
 
-	static _createOnRemote(user, next) {
+	_createOnRemote(user, next) {
 		async.series([
 			(_next) => {
-				log.debug("Preparing remote repo...");
+				this._log.debug("Preparing remote repo...");
 				_next();
 			},
 			(_next) => {
@@ -97,11 +100,9 @@ class GitUtil {
 		], next);
 	}
 
-	static _userToRemote(user) {
+	_userToRemote(user) {
 		return `git@${config.git.hostname}:repos/${user.parametrized}.git`;
 	}
 }
-
-GitUtil.execOptions = {};
 
 module.exports = GitUtil;

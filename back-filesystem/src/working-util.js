@@ -6,7 +6,7 @@ const path = require("path");
 const mime = require("mime");
 const charsetDetector = require("node-icu-charset-detector");
 const Iconv = require("iconv").Iconv;
-const log = require("@oo/shared").logger("working-util");
+const logger = require("@oo/shared").logger;
 const config = require("@oo/shared").config;
 
 // Load extra MIME types
@@ -16,7 +16,12 @@ const ACCEPTABLE_MIME_REGEX = /^(text\/.*)$/;
 const UNACCEPTABLE_FILENAME_REGEX = /^(\..*|octave-\w+)$/;
 
 class WorkingUtil {
-	static listAll(next) {
+	constructor(workDir, logMemo) {
+		this._log = logger(`working-util:${logMemo}`);
+		this.cwd = workDir;
+	}
+
+	listAll(next) {
 		async.waterfall([
 			(_next) => {
 				fs.readdir(this.cwd, _next);
@@ -37,7 +42,7 @@ class WorkingUtil {
 		], next);
 	}
 
-	static getFileInfo(filename, next) {
+	getFileInfo(filename, next) {
 		const _mime = mime.lookup(filename);
 		if (ACCEPTABLE_MIME_REGEX.test(_mime)) {
 			async.waterfall([
@@ -48,7 +53,7 @@ class WorkingUtil {
 					if (stats.size > config.session.textFileSizeLimit) {
 						// This file is too big.  Do not perform any further processing on this file.
 						// FIXME: Show a nice message to the end user to let them know why their file isn't being loaded
-						log.debug("Skipping text file that is too big:", stats.size, filename);
+						this._log.debug("Skipping text file that is too big:", stats.size, filename);
 						return next(null, {
 							filename,
 							isText: false
@@ -79,7 +84,7 @@ class WorkingUtil {
 		}
 	}
 
-	static _convertCharset(buf, next) {
+	_convertCharset(buf, next) {
 		var encoding;
 
 		// Detect and attempt to convert charset
@@ -90,7 +95,7 @@ class WorkingUtil {
 					buf = new Iconv(encoding.toString(), "UTF-8").convert(buf);
 				}
 			} catch(err) {
-				log.warn("Could not convert encoding:", encoding);
+				this._log.warn("Could not convert encoding:", encoding);
 			}
 		}
 
@@ -101,7 +106,7 @@ class WorkingUtil {
 		return next(null, buf);
 	}
 
-	static saveFile(filename, value, next) {
+	saveFile(filename, value, next) {
 		// Create backup of file in memory in case there are any I/O errors
 		async.waterfall([
 			(_next) => {
@@ -110,7 +115,7 @@ class WorkingUtil {
 						(err, buf) => {
 						if (!err) return _next(null, buf);
 						if (/ENOENT/.test(err.message)) {
-							log.info("Creating new file:", filename);
+							this._log.info("Creating new file:", filename);
 							return _next(null, new Buffer(0));
 						}
 						return _next(err);
@@ -141,20 +146,20 @@ class WorkingUtil {
 		], next);
 	}
 
-	static renameFile(oldname, newname, next) {
+	renameFile(oldname, newname, next) {
 		fs.rename(
 			path.join(this.cwd, oldname),
 			path.join(this.cwd, newname),
 			next);
 	}
 
-	static deleteFile(filename, next) {
+	deleteFile(filename, next) {
 		fs.unlink(
 			path.join(this.cwd, filename),
 			next);
 	}
 
-	static readBinary(filename, next) {
+	readBinary(filename, next) {
 		async.waterfall([
 			(_next) => {
 				fs.readFile(path.join(this.cwd, filename), _next);
@@ -167,7 +172,5 @@ class WorkingUtil {
 		], next);
 	}
 }
-
-WorkingUtil.cwd = null;  // to be set in app.js
 
 module.exports = WorkingUtil;
