@@ -230,7 +230,7 @@ class FilesController extends EventEmitter {
 	_fail() {
 		let args = Array.prototype.slice.call(arguments, 2);
 		let messageString = args.join(" ");
-		log[arguments[1]].apply(log, args);
+		this._log[arguments[1]].apply(this, args);
 		this._sendMessage(arguments[0], { success: false, message: messageString });
 	}
 

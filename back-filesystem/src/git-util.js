@@ -52,7 +52,7 @@ class GitUtil {
 			(_next) => {
 				// Resolve merge conflicts by committing all the conflicts into the repository, and let the user manually fix the conflict next time the log in.
 				// This command can fail silently for the case when origin/master does not exist
-				child_process.execFile("git", ["merge", "--no-commit", "origin/master"], this.execOptions, silent(/not something we can merge/, _next));
+				child_process.execFile("git", ["merge", "--no-commit", "origin/master"], this.execOptions, silent(/not something we can merge/, silent(/.*/, _next)));
 			},
 			(_next) => {
 				this._commit("Scripted merge", _next);
