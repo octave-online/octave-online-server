@@ -13,6 +13,9 @@ const logger = require("@oo/shared").logger;
 const mkdirp = require("mkdirp");
 const pstree = require("ps-tree");
 const temp = require("temp");
+const OnlineOffline = require("@oo/shared").OnlineOffline;
+const Queue = require("@oo/shared").Queue;
+const FilesController = require("../../back-filesystem/src/controller");
 
 class SessionImpl extends OctaveSession {
 	constructor(sessCode) {
@@ -177,17 +180,18 @@ class HostProcessHandler extends ProcessHandler {
 	}
 }
 
-class FilesProcessHandler extends ProcessHandler {
+class FilesControllerHandler extends OnlineOffline {
 	constructor(sessCode) {
-		super(sessCode);
-
-		// Override default logger with something that says "files"
+		super();
 		this._log = logger(`files-handler:${sessCode}`);
+		this.sessCode = sessCode;
+		this._messageQueue = new Queue();
 	}
 
 	_doCreate(next, dataDir) {
 		async.series([
 			(_next) => {
+				// Make the gitdir
 				temp.mkdir("oo-", (err, tmpdir) => {
 					this._log.debug("Created gitdir:", tmpdir);
 					this.gitdir = tmpdir;
@@ -195,18 +199,25 @@ class FilesProcessHandler extends ProcessHandler {
 				});
 			},
 			(_next) => {
-				super._doCreate(_next, child_process.fork, path.join(__dirname, "../../back-filesystem/app"), [this.gitdir, dataDir], { cwd: dataDir, silent: true });
+				// Make the controller
+				this.controller = new FilesController(this.gitdir, dataDir, this.sessCode);
+
+				// Flush messages to the controller
+				while (!this._messageQueue.isEmpty()) this._flush();
+				this._messageQueue.on("enqueue", this._flush.bind(this));
+
+				// Emit messages from the controller
+				this.controller.on("message", (name, content) => {
+					this.emit("message", name, content);
+				});
+
+				_next(null);
 			}
-		], (err) => {
-			if (err) return next(err);
-			this._log.debug("Successfully created");
-			return next(null);
-		});
+		], next);
 	}
 
 	_doDestroy(next) {
 		async.series([
-			super._doDestroy.bind(this),
 			(_next) => {
 				if (this.gitdir) {
 					this._log.trace("Destroying gitdir");
@@ -217,11 +228,19 @@ class FilesProcessHandler extends ProcessHandler {
 			}
 		], next);
 	}
+
+	sendMessage(name, content) {
+		this._messageQueue.enqueue([name, content]);
+	}
+
+	_flush() {
+		this.controller.receiveMessage.apply(this.controller, this._messageQueue.dequeue());
+	}
 }
 
 class SessionSELinux extends SessionImpl {
 	_makeSessions() {
-		this._filesSession = new FilesProcessHandler(this.sessCode);
+		this._filesSession = new FilesControllerHandler(this.sessCode);
 		this._hostSession = new HostProcessHandler(this.sessCode);
 	}
 }
