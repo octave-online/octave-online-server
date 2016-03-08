@@ -61,6 +61,10 @@ sessionManager.on("touch", (sessCode) => {
 	redisMessenger.touchOutput(sessCode);
 });
 
+sessionManager.on("live", (sessCode) => {
+	redisMessenger.setLive(sessCode);
+});
+
 sessionManager.on("destroy-u", (sessCode, reason) => {
 	log.info("Sending Destroy-U:", reason, sessCode);
 	redisMessenger.destroyU(sessCode, reason);

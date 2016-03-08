@@ -116,6 +116,9 @@ class SessionManager extends EventEmitter {
 			this.emit("touch", remoteCode);
 		}, config.redis.expire.interval);
 
+		// Emit an event to set to live in Redis (required for OT)
+		this.emit("live", remoteCode);
+
 		// Add user and touchInterval to store
 		this._online[remoteCode].user = user;
 		this._online[remoteCode].touchInterval = touchInterval;
