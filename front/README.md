@@ -67,8 +67,12 @@ This file contains the configuration options for your local install of Octave On
 			}
 		},
 		"ot": {
-			"operation_expire": 10,
-			"document_expire": 86400
+			"operation_expire": 120,
+			"stats_interval": 60,
+			"document_expire": {
+				"interval": 120,
+				"timeout": 86400
+			}
 		}
 	}
 
