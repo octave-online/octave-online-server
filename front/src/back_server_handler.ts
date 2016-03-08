@@ -107,6 +107,7 @@ class BackServerHandler extends EventEmitter2.EventEmitter2 {
 		if(IRedis.checkExpired(message, this.sessCode)){
 			// If the session becomes expired, trigger a destroy event
 			// both upstream and downstream.
+			console.log("Detected Expired:", message);
 			OctaveHelper.sendDestroyD(this.sessCode, "Octave Session Expired");
 			this.emit("destroy-u", "Octave Session Expired");
 		}
