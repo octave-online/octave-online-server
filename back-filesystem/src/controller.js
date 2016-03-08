@@ -141,8 +141,8 @@ class FilesController extends EventEmitter {
 					}
 				], (err) => {
 					if (err) {
-						if (/ENOSPC/.test(err.message)) return this._fail("saved", "warn", `Whoops, you reached your space limit (${config.docker.diskQuotaKiB} KiB).\nYou should free up space to ensure that changes you make get committed.`);
-						else return this._fail("saved", "warn", err);
+						if (/ENOSPC/.test(err.message)) return this._fail("saved", "warn", `Whoops, you reached your space limit (${config.docker.diskQuotaKiB} KiB).\nYou should free up space to ensure that changes you make get committed.\nRunning the command "system('rm octave-workspace')" might help.`);
+						else return this._fail("saved", "error", err);
 					}
 					this._log.debug("File successfully saved");
 					return this._sendMessage("saved", { filename, success: true });
@@ -174,7 +174,10 @@ class FilesController extends EventEmitter {
 						this.workingUtil.deleteFile(filename, _next);
 					}
 				], (err) => {
-					if (err) return this._fail("deleted", "warn", err);
+					if (err) {
+						if (/ENOENT/.test(err.message)) return this._fail("deleted", "warn", `Whoops, the file ${filename} does not exist any more.\nTry pressing the "refresh files" button in the file manager toolbar.`);
+						else return this._fail("deleted", "error", err);
+					}
 					this._log.debug("File successfully deleted");
 					return this._sendMessage("deleted", { filename, success: true });
 				});

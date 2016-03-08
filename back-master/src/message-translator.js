@@ -104,6 +104,7 @@ class MessageTranslator extends EventEmitter {
 			case "saved":
 			case "renamed":
 			case "deleted":
+				// FIXME: The rendering of error messages should occur on the client side, not here.
 				if (content && !content.success) {
 					this._forDownstream(sessCode, "data", {
 						type: "stderr",
