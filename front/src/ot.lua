@@ -2,16 +2,65 @@
 -- This code is heavily based on the JavaScript implementation ot.js:
 -- https://github.com/Operational-Transformation/ot.js/
 
--- Lua has poor support for UTF-8, so we need to have custom functions
-function utf8len(str)
-	-- returns the number of UTF8 characters in "str"
-	-- (UTF-8-friendly string.len)
-	-- TODO
+-- Lua has poor support for UTF-8, so we need to have custom functions.
+-- These are based on those originally written by Cosmin Apreutesei:
+-- https://github.com/luapower/utf8
+-- Use the prefix "lutf8" in case at some point in the future Redis adds the Lua 5.3 built-in "utf8" library.
+
+-- Byte index of the next char after the char at byte index i, followed by a valid flag for the char at byte index i.
+-- nil if not found. invalid characters are iterated as 1-byte chars.
+function lutf8_next(s, i)
+	if not i then
+		if #s == 0 then return nil end
+		return 1, true --fake flag (doesn't matter since this flag is not to be taken as full validation)
+	end
+	if i > #s then return end
+	local c = s:byte(i)
+	if c >= 0x00 and c <= 0x7F then
+		i = i + 1
+	elseif c >= 0xC2 and c <= 0xDF then
+		i = i + 2
+	elseif c >= 0xE0 and c <= 0xEF then
+		i = i + 3
+	elseif c >= 0xF0 and c <= 0xF4 then
+		i = i + 4
+	else --invalid
+		return i + 1, false
+	end
+	if i > #s then return end
+	return i, true
 end
-function utf8sub(str, start, end)
-	-- returns UTF8 chars in str from the start'th to the end'th char
-	-- (UTF-8-friendly string.sub)
-	-- TODO
+
+-- Iterator over byte indices in the string.
+function lutf8_byte_indices(s, previ)
+	return lutf8_next, s, previ
+end
+
+-- Returns the number of UTF-8 characters in the string, like string.len.
+function lutf8_len(s)
+	local len = 0
+	for _ in lutf8_byte_indices(s) do
+		len = len + 1
+	end
+	return len
+end
+
+-- Performs a substring operation, like string.sub.
+function lutf8_sub(s, start_ci, end_ci)
+	local ci = 0
+	local start_i = 1
+	local end_i = s:len()
+	for i in lutf8_byte_indices(s) do
+		ci = ci + 1
+		if ci == start_ci then
+			start_i = i
+		end
+		if ci == end_ci+1 then
+			end_i = i-1
+			break
+		end
+	end
+	return string.sub(s, start_i, end_i)
 end
 
 -- Remove redundant ops from an operations table
@@ -80,12 +129,12 @@ function transform(ops1, ops2)
 		-- break tie by prefering player 1
 		if type(op1) == "string" then
 			table.insert(ops1p, op1) -- insert
-			table.insert(ops2p, utf8len(op1)) -- retain
+			table.insert(ops2p, lutf8_len(op1)) -- retain
 			i1 = i1+1; op1 = ops1[i1]
 
 		-- insert by player 2
 		elseif type(op2) == "string" then
-			table.insert(ops1p, utf8len(op2)) -- retain
+			table.insert(ops1p, lutf8_len(op2)) -- retain
 			table.insert(ops2p, op2) -- insert
 			i2 = i2+1; op2 = ops2[i2]
 
@@ -188,7 +237,7 @@ function apply(str, ops)
 
 		-- retain
 		else
-			res = res .. utf8sub(str, j, j+op-1)
+			res = res .. lutf8_sub(str, j, j+op-1)
 			j = j + op
 		end
 	end

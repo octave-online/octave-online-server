@@ -40,3 +40,8 @@ ops1p, ops2p = transform(ops1, ops2) -- hello world
 str1 = apply(apply(str, ops1), ops2p)
 str2 = apply(apply(str, ops2), ops1p)
 assert(str1 == str2)
+
+-- Test some UTF-8 commands
+str = "abçd"
+assert(lutf8_len(str) == 4)
+assert(lutf8_sub(str, 2, 3) == "bç")
