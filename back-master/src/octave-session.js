@@ -159,6 +159,11 @@ class OctaveSession extends OnlineOffline {
 		if (content.filename in this._plotPngStore) {
 			this._resolvePng(content);
 			return true;
+		} else if (!content.success) {
+			// TODO: Implement a better way to resolve load errors.
+			this._log.warn("Failed loading a plot image; discarding all pending plots");
+			this._plotPngStore = {};
+			this._plotSvgStore = {};
 		} else {
 			return false;
 		}

@@ -159,7 +159,7 @@ class FilesController extends EventEmitter {
 						this.workingUtil.renameFile(oldname, newname, _next);
 					}
 				], (err) => {
-					if (err) return this._fail("renamed", "warn", err);
+					if (err) return this._fail("renamed", "error", err);
 					this._log.debug("File successfully renamed");
 					return this._sendMessage("renamed", { oldname, newname, success: true });
 				});
@@ -192,7 +192,7 @@ class FilesController extends EventEmitter {
 						this.workingUtil.readBinary(filename, _next);
 					}
 				], (err, base64data, mime) => {
-					if (err) return this._fail("binary", "warn", err);
+					if (err) return this._fail("binary", "error", err);
 					this._log.debug("File successfully loaded");
 					return this._sendMessage("binary", { filename, base64data, mime, success: true });
 				});
@@ -209,7 +209,7 @@ class FilesController extends EventEmitter {
 						this.workingUtil.deleteFile(filename, _next);
 					}
 				], (err, results) => {
-					if (err) return this._fail("deleted-binary", "warn", err);
+					if (err) return this._fail("deleted-binary", "error", err);
 					let base64data = results[0][0];
 					let mime = results[0][1];
 					this._log.debug("File successfully loaded and deleted");
