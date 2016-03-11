@@ -266,10 +266,12 @@ class OctaveSession extends OnlineOffline {
 			case "show-static-plot":
 				// Convert PNG file links to embedded base 64 data
 				if (this._convertPlotImages(content)) return;
+				break;
 
 			case "deleted-binary":
 				// If we're waiting for any binary files, capture them here rather than sending them downstream
 				if (this._onDeletedBinary(content)) return;
+				break;
 
 			default:
 				break;
