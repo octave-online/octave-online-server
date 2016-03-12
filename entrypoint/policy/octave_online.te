@@ -1,4 +1,4 @@
-policy_module(octave_online, 1.6);
+policy_module(octave_online, 1.7);
 
 ### TO SETUP THIS POLICY FILE:
 #
@@ -24,12 +24,14 @@ policy_module(octave_online, 1.6);
 require {
 	type file_t;
 	type home_root_t;
+	type passwd_file_t;
 	type sandbox_t;
-	type unconfined_t;
-	type unconfined_service_t;
-	type urandom_device_t;
-	type unlabeled_t;
+	type sysfs_t;
 	type tmp_t;
+	type unconfined_service_t;
+	type unconfined_t;
+	type unlabeled_t;
+	type urandom_device_t;
 
 	class chr_file open;
 	class dir { read open search getattr write add_name };
@@ -85,3 +87,7 @@ allow sandbox_t urandom_device_t:chr_file open;
 allow sandbox_t octave_site_t:file { open execute };
 allow sandbox_t octave_site_t:dir { read open search getattr };
 allow sandbox_t octave_site_t:lnk_file read;
+
+# Don't-Audit rules for sandbox to clean up log files a bit
+dontaudit sandbox_t passwd_file_t:file open;
+dontaudit sandbox_t sysfs_t:dir read;
