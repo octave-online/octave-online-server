@@ -14,7 +14,8 @@ const child_process = require("child_process");
 process.stdout.write("Process ID: " + process.pid + "\n");
 process.stderr.write("Process ID: " + process.pid + "\n");
 log.info("Process ID:", process.pid);
-log.info("Hostname:", child_process.execSync("hostname").toString("utf8").trim());
+const hostname = child_process.execSync("hostname").toString("utf8").trim();
+log.info("Hostname:", hostname);
 log.log(process.env);
 
 const redisInputHandler = new RedisMessenger().subscribeToInput();
@@ -49,7 +50,7 @@ translator.on("destroy", (sessCode, reason) => {
 
 translator.on("ping", (code) => {
 	log.debug("Received Ping:", code);
-	redisMessenger.output(code, "pong", true);
+	redisMessenger.output(code, "pong", { hostname });
 });
 
 redisDestroyDHandler.on("destroy-d", (sessCode, reason) => {
