@@ -159,6 +159,11 @@ class OctaveSession extends OnlineOffline {
 		if (content.filename in this._plotPngStore) {
 			this._resolvePng(content);
 			return true;
+		} else if (!content.success) {
+			// TODO: Implement a better way to resolve load errors.
+			this._log.warn("Failed loading a plot image; discarding all pending plots");
+			this._plotPngStore = {};
+			this._plotSvgStore = {};
 		} else {
 			return false;
 		}
@@ -261,10 +266,12 @@ class OctaveSession extends OnlineOffline {
 			case "show-static-plot":
 				// Convert PNG file links to embedded base 64 data
 				if (this._convertPlotImages(content)) return;
+				break;
 
 			case "deleted-binary":
 				// If we're waiting for any binary files, capture them here rather than sending them downstream
 				if (this._onDeletedBinary(content)) return;
+				break;
 
 			default:
 				break;

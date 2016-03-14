@@ -9,10 +9,12 @@ const async = require("async");
 const runMaintenance = require("./src/maintenance");
 const config = require("@oo/shared").config;
 const gcStats = (require('gc-stats'))();
+const child_process = require("child_process");
 
 process.stdout.write("Process ID: " + process.pid + "\n");
 process.stderr.write("Process ID: " + process.pid + "\n");
 log.info("Process ID:", process.pid);
+log.info("Hostname:", child_process.execSync("hostname").toString("utf8").trim());
 log.log(process.env);
 
 const redisInputHandler = new RedisMessenger().subscribeToInput();

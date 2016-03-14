@@ -8,56 +8,68 @@ const child_process = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-const prefix = (__dirname === "/usr/local/bin") ? "/usr/local/share/oo" : path.join(__dirname, "..");
-const config = require(path.join(prefix, "shared/config.json"));
-
+// Print basic information about the process
 console.log("Daemon PID:", process.pid);
+console.log("Date:", new Date().toISOString());
+
+// What files will we be loading?
+const prefix = (__dirname === "/usr/local/bin") ? "/usr/local/share/oo" : path.join(__dirname, "..");
+const configFile = path.join(prefix, "shared/config.json");
+const gitSshFile = path.join(prefix, "back-filesystem/git/git_ssh.sh");
+const spawnDirectory = path.join(prefix, "back-master");
+const spawnFile = path.join(prefix, "back-master/app.js");
+
+// Wait until the application code is ready before continuing.  Example: network drives being mounted at startup.
+while (true) {
+	try {
+		fs.statSync(configFile);
+		fs.statSync(gitSshFile);
+		fs.statSync(spawnDirectory);
+		fs.statSync(spawnFile);
+		break;
+	} catch(err) {
+		console.log("One or more dependencies not available!  Trying again in 5 seconds...");
+		child_process.execSync("sleep 5");  // blocking sleep
+	}
+}
+
+// Load config file dependency
+const config = require(configFile);
 
 // Make log directories
-function attemptMakeLogDirs(next) {
-	try {
-		fs.mkdirSync(path.join(config.worker.logDir, "monitor"), "0740");
-		fs.mkdirSync(path.join(config.worker.logDir, "sessions"), "0740");
-	} catch(err) {
-		if (/EEXIST/.test(err.message)) {
-			console.log("Using pre-existing log directories.");
-			return next();
-		} else if (/ENOENT/.test(err.message)) {
-			console.log("NFS not mounted yet; trying again in 5 seconds");
-			return setTimeout(attemptMakeLogDirs, 5000, next);
-		} else throw err;
-	}
-	return next();
+try {
+	fs.mkdirSync(path.join(config.worker.logDir, "monitor"), "0740");
+	fs.mkdirSync(path.join(config.worker.logDir, "sessions"), "0740");
+} catch(err) {
+	if (/EEXIST/.test(err.message)) {
+		console.log("Using pre-existing log directories.");
+	} else throw err;
 }
 
 // Create log stream
-function createLogStream() {
-	let dateStr = new Date().toISOString().replace(/:/g,"-").replace(".","-").replace("T","_").replace("Z","");
-	let logPath = path.join(config.worker.logDir, "monitor", config.worker.token+"_"+dateStr+".log");
-	let logFd = fs.openSync(logPath, "a", "0640");
-	let logStream = fs.createWriteStream(null, { fd: logFd });
-	console.log("Logging to:", logPath);
-	return logStream;
-}
+let dateStr = new Date().toISOString().replace(/:/g,"-").replace(".","-").replace("T","_").replace("Z","");
+let logPath = path.join(config.worker.logDir, "monitor", config.worker.token+"_"+dateStr+".log");
+let logFd = fs.openSync(logPath, "a", "0640");
+let logStream = fs.createWriteStream(null, { fd: logFd });
+console.log("Logging to:", logPath);
 
-// Prepare child for spawning
-const env = {
-	"GIT_SSH": path.join(prefix, "back-filesystem/git/git_ssh.sh"),
-	"GNUTERM": "svg",
-	"DEBUG": "*"
+// Prepare child process environment and copy all environment variables
+const spawnOptions = {
+	cwd: spawnDirectory,
+	env: {
+		"GIT_SSH": gitSshFile,
+		"GNUTERM": "svg",
+		"DEBUG": "*"
+	},
+	uid: config.worker.uid,
+	gid: config.worker.uid,
+	stdio: ["inherit", "inherit", logStream]
 };
 for (var name in process.env) {
-	if (!(name in env)) {
-		env[name] = process.env[name];
+	if (!(name in spawnOptions.env)) {
+		spawnOptions.env[name] = process.env[name];
 	}
 }
-const spawnOptions = {
-	cwd: path.join(prefix, "back-master"),
-	env: env,
-	uid: config.worker.uid,
-	gid: config.worker.uid
-};
-const spawnFile = path.join(prefix, "back-master/app.js");
 
 // Signal Handling
 var sigCount = 0;
@@ -95,8 +107,4 @@ function runOnce() {
 }
 
 // Run it!
-attemptMakeLogDirs(() => {
-	let logStream = createLogStream();
-	spawnOptions.stdio = ["inherit", "inherit", logStream];
-	runOnce(logStream);
-});
+runOnce(logStream);
