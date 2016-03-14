@@ -45,6 +45,11 @@ translator.on("destroy", (sessCode, reason) => {
 	sessionManager.destroy(sessCode, reason);
 });
 
+translator.on("ping", (code) => {
+	log.debug("Received Ping:", code);
+	redisMessenger.output(code, "pong", true);
+});
+
 redisDestroyDHandler.on("destroy-d", (sessCode, reason) => {
 	if (!sessionManager.get(sessCode)) return;
 	log.info("Received Destroy-D:", sessCode, reason);

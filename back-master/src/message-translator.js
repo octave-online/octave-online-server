@@ -143,6 +143,14 @@ class MessageTranslator extends EventEmitter {
 				this._forUpstream(sessCode, "interrupt");
 				break;
 
+			// Emit ping/pong as an event
+			case "oo.ping":
+				this.emit("ping", sessCode, content);
+				break;
+			case "oo.pong":
+				this.emit("pong", sessCode, content);
+				break;
+
 			// MESSAGES THAT CAN BE IGNORED:
 			case "init":
 			case "ot.cursor":
