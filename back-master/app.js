@@ -31,11 +31,14 @@ const maintenanceRequestManager = new MaintenanceReuestManager();
 redisInputHandler.on("message", translator.fromDownstream.bind(translator));
 sessionManager.on("message", translator.fromUpstream.bind(translator));
 
-translator.on("for-upstream", (sessCode, name, content) => {
+translator.on("for-upstream", (sessCode, name, getData) => {
 	const session = sessionManager.get(sessCode);
+
+	// Stop processing this message if it doesn't have to do with a session running on this node.
 	if (!session) return;
-	log.trace("Sending Upstream:", sessCode, name);
-	session.sendMessage(name, content);
+
+	// Now we can safely continue.  The following method will download the data from Redis.
+	session.enqueueMessage(name, getData);
 });
 
 translator.on("for-downstream", (sessCode, name, content) => {
@@ -49,6 +52,7 @@ translator.on("destroy", (sessCode, reason) => {
 });
 
 translator.on("ping", (code) => {
+	// Not currently used
 	log.debug("Received Ping:", code);
 	redisMessenger.output(code, "pong", { hostname });
 });

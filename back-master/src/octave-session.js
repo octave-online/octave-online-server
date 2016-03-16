@@ -10,6 +10,7 @@ const fs = require("fs");
 const path = require("path");
 const async = require("async");
 const uuid = require("uuid");
+const Queue = require("@oo/shared").Queue;
 
 class OctaveSession extends OnlineOffline {
 	constructor(sessCode) {
@@ -23,6 +24,8 @@ class OctaveSession extends OnlineOffline {
 
 		this._plotPngStore = {};
 		this._plotSvgStore = {};
+
+		this._messageQueue = new Queue();
 
 		this.on("error", this._handleError.bind(this));
 	}
@@ -188,6 +191,25 @@ class OctaveSession extends OnlineOffline {
 		}
 	}
 
+	// Use a queue to handle incoming messages to ensure that messages are processed in order.  The loading of data via attachments is asynchronous and may cause messages to change order.
+	enqueueMessage(name, getData) {
+		let message = { name, ready: false };
+		this._messageQueue.enqueue(message);
+		getData((err, content) => {
+			if (err) this._log.error(err);
+			message.content = content;
+			message.ready = true;
+			this._flushMessageQueue();
+		});
+	}
+	_flushMessageQueue() {
+		while (!this._messageQueue.isEmpty() && this._messageQueue.peek().ready) {
+			let message = this._messageQueue.dequeue();
+			this._log.trace("Sending Upstream:", message.name);
+			this.sendMessage(message.name, message.content);
+		}
+	}
+
 	sendMessage(name, content) {
 		switch (name) {
 			// Messages requiring special handling
@@ -196,6 +218,8 @@ class OctaveSession extends OnlineOffline {
 				break;
 
 			case "cmd":
+				// FIXME: The following translation (from content to content.data) should be performed in message-translator.js, but we're unable to do so because the data isn't downloaded from Redis until after message-translator is run.  Is there a more elegant place to put this?  Maybe all message translation should happen here in octave-session.js instead?
+				content = content.data;
 				this._startCountdown();
 				this.resetTimeout();
 				this._appendToSessionLog(name, content);

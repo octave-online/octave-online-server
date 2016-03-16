@@ -16,6 +16,16 @@ class RedisMessenger extends EventEmitter {
 		this._client = redisUtil.createClient();
 		this._subscribed = false;
 		this._scriptManager = null;
+
+		this._client.on("error", (err) => {
+			log.error("REDIS CLIENT", err);
+		});
+		this._client.on("end", () => {
+			log.info("Redis connection ended");
+		});
+		this._client.on("reconnecting", (info) => {
+			log.info("Redis reconnecting:", info);
+		});
 	}
 
 	// PUBLIC METHODS
@@ -26,37 +36,33 @@ class RedisMessenger extends EventEmitter {
 		return this;
 	}
 
-	input(sessCode, name, data) {
+	input(sessCode, name, content) {
 		this._ensureNotSubscribed();
 
 		let channel = redisUtil.chan.input(sessCode);
-		let message = { name, data };
+		let messageString = this._serializeMessage(name, content);
 
-		this._client.publish(channel, JSON.stringify(message));
+		this._client.publish(channel, messageString);
 	}
 
 	subscribeToInput() {
 		this._psubscribe(redisUtil.chan.input("*"));
-		this.on("_message", (sessCode, message) => {
-			this.emit("message", sessCode, message.name, message.data);
-		});
+		this.on("_message", this._emitMessage.bind(this));
 		return this;
 	}
 
-	output(sessCode, name, data) {
+	output(sessCode, name, content) {
 		this._ensureNotSubscribed();
 
 		let channel = redisUtil.chan.output(sessCode);
-		let message = { name, data };
+		let messageString = this._serializeMessage(name, content);
 
-		this._client.publish(channel, JSON.stringify(message));
+		this._client.publish(channel, messageString);
 	}
 
 	subscribeToOutput() {
 		this._psubscribe(redisUtil.chan.output("*"));
-		this.on("_message", (sessCode, message) => {
-			this.emit("message", sessCode, message.name, message.data);
-		});
+		this.on("_message", this._emitMessage.bind(this));
 		return this;
 	}
 
@@ -257,6 +263,78 @@ class RedisMessenger extends EventEmitter {
 		if (!this._scriptManager) throw new Error("Need to call enableScripts() first");
 
 		this._scriptManager.run(memo, keys, args, next);
+	}
+
+	_serializeMessage(name, content) {
+		// Protect against name length
+		if (name.length > config.redis.maxPayload) {
+			log.error(new Error("Name length exceeds max redis payload length!"));
+			return null;
+		}
+
+		// If data is too long, save it as an "attachment"
+		let contentString = JSON.stringify(content);
+		if (contentString.length > config.redis.maxPayload) {
+			let id = uuid.v4();
+			log.trace("Sending content as attachment:", name, id, contentString.length);
+			this._uploadAttachment(id, contentString, this._handleError.bind(this));
+			return JSON.stringify({ name, attachment: id });
+		}
+
+		// The message is short enough to send as one chunk!
+		return JSON.stringify({ name, data: content });
+	}
+
+	_emitMessage(sessCode, message) {
+		let getData = (next) => {
+			if (message.data) return process.nextTick(() => {
+				next(null, message.data);
+			});
+			else {
+				return this._downloadAttachment(message.attachment, (err, contentString) => {
+					log.trace("Received content as attachment:", message.name, message.attachment, contentString.length);
+					try {
+						next(null, JSON.parse(contentString));
+					} catch (err) {
+						next(err);
+					}
+				});
+			}
+		};
+
+		this.emit("message", sessCode, message.name, getData);
+	}
+
+	_uploadAttachment(id, contentString, next) {
+		let channel = redisUtil.chan.attachment(id);
+
+		// Create a new client to offload bandwidth from the main artery channel
+		let client = redisUtil.createClient();
+		client.on("error", this._handleError.bind(this));
+
+		// Upload the attachment along with an expire time
+		let multi = client.multi();
+		multi.lpush(channel, contentString);
+		multi.expire(channel, config.redis.expire.timeout/1000);
+		multi.exec((err) => {
+			client.quit();
+			next(err);
+		});
+	}
+
+	_downloadAttachment(id, next) {
+		let channel = redisUtil.chan.attachment(id);
+
+		// Create a new client to offload bandwidth from the main artery channel
+		let client = redisUtil.createClient();
+		client.on("error", this._handleError.bind(this));
+
+		// Download the attachment
+		client.brpop(channel, 0, (err, response) => {
+			client.quit();
+			if (err) return next(err);
+			else return next(null, response[1]);
+		});
 	}
 
 	_handleError() {
