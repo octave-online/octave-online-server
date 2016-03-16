@@ -27,6 +27,9 @@ module.exports = {
 		},
 		output: (sessCode) => {
 			return "oo:output:" + sessCode;
+		},
+		attachment: (id) => {
+			return "attachment:" + id;
 		}
 	},
 

@@ -30,7 +30,7 @@ class SessionManager extends EventEmitter {
 			// Time an arbitrary command to test server health
 			if (this._monitor_session) {
 				let t1 = new Date().valueOf();
-				this._monitor_session.sendMessage("cmd", "sombrero");
+				this._monitor_session.sendMessage("cmd", { data: "sombrero" });
 				this._monitor_session.once("msg:request-input", () => {
 					log.debug("Monitor Time (ms):", new Date().valueOf() - t1);
 				});

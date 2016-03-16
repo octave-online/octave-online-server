@@ -26,6 +26,14 @@ class Queue extends EventEmitter {
 		}
 	}
 
+	peek() {
+		if (this._items.length > 0) {
+			return this._items[0];
+		} else {
+			throw new RangeError("Can't peek into an empty queue");
+		}
+	}
+
 	removeAll() {
 		this._items = [];
 	}

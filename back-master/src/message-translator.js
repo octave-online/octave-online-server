@@ -129,13 +129,13 @@ class MessageTranslator extends EventEmitter {
 	}
 
 	// When the downstream client sends us a message:
-	fromDownstream(sessCode, name, content) {
+	fromDownstream(sessCode, name, getData) {
 		switch(name) {
 			// MESSAGES NEEDING TRANSLATION:
 
 			// "data" needs to be translated to the "cmd" event (which is a synonym for "request-input-answer")
 			case "data":
-				this._forUpstream(sessCode, "cmd", content.data);
+				this._forUpstream(sessCode, "cmd", getData);
 				break;
 
 			// Translate "signal" to "interrupt"
@@ -145,10 +145,10 @@ class MessageTranslator extends EventEmitter {
 
 			// Emit ping/pong as an event
 			case "oo.ping":
-				this.emit("ping", sessCode, content);
+				this.emit("ping", sessCode, getData);
 				break;
 			case "oo.pong":
-				this.emit("pong", sessCode, content);
+				this.emit("pong", sessCode, getData);
 				break;
 
 			// MESSAGES THAT CAN BE IGNORED:
@@ -160,7 +160,7 @@ class MessageTranslator extends EventEmitter {
 
 			// REMAINING MESSAGES:
 			default:
-				this._forUpstream(sessCode, name, content);
+				this._forUpstream(sessCode, name, getData);
 				break;
 		}
 	}
@@ -169,8 +169,8 @@ class MessageTranslator extends EventEmitter {
 		this.emit("for-downstream", sessCode, name, content);
 	}
 
-	_forUpstream(sessCode, name, content) {
-		this.emit("for-upstream", sessCode, name, content);
+	_forUpstream(sessCode, name, getData) {
+		this.emit("for-upstream", sessCode, name, getData);
 	}
 }
 
