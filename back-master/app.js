@@ -83,6 +83,10 @@ gcStats.on("stats", (stats) => {
 	// log.trace(stats);
 });
 
+var redisHealthLoop = setInterval(() => {
+	log.log("Redis Client Status", redisInputHandler._client);
+}, 300000);
+
 redisMaintenanceHandler.on("reboot-request", maintenanceRequestManager.onMessage.bind(maintenanceRequestManager));
 maintenanceRequestManager.on("request-maintenance", redisMessenger.requestReboot.bind(redisMessenger));
 maintenanceRequestManager.on("reply-to-maintenance-request", redisMessenger.replyToRebootRequest.bind(redisMessenger));
