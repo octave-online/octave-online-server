@@ -14,6 +14,7 @@ module IRedis {
 	export interface Message {
 		name:string
 		data:any
+		attachment?:string
 	}
 	export interface DestroyMessage {
 		sessCode:string
@@ -83,6 +84,9 @@ module IRedis {
 		},
 		wsSub: function(wsId: string): string {
 			return "oo:workspace:" + wsId + ":sub";
+		},
+		attachment: function(id: string): string {
+			return "attachment:" + id;
 		}
 	};
 

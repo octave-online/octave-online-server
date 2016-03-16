@@ -10,6 +10,7 @@ import IRedis = require("./typedefs/iredis");
 import Config = require("./config");
 import OctaveHelper = require("./octave_session_helper");
 import Fs = require("fs");
+import Attachment = require("./attachment");
 
 var outputClient = IRedis.createClient();
 var pushClient = IRedis.createClient();
@@ -26,6 +27,7 @@ expireClient.setMaxListeners(30);
 class BackServerHandler extends EventEmitter2.EventEmitter2 {
 	public sessCode:string = null;
 	private touchInterval;
+	private messageQueue = [];
 
 	constructor() {
 		super();
@@ -37,12 +39,12 @@ class BackServerHandler extends EventEmitter2.EventEmitter2 {
 	}
 
 	public dataD(name:string, data:any) {
-		var inputMessage:IRedis.Message = {
-			name: name,
-			data: data
-		};
-
-		pushClient.publish(IRedis.Chan.input(this.sessCode), JSON.stringify(inputMessage));
+		try {
+			let messageString = Attachment.serializeMessage(name, data);
+			pushClient.publish(IRedis.Chan.input(this.sessCode), messageString);
+		} catch(err) {
+			console.log("ATTACHMENT ERROR", err);
+		}
 	}
 
 	public subscribe() {
@@ -88,8 +90,23 @@ class BackServerHandler extends EventEmitter2.EventEmitter2 {
 	private pMessageListener = (pattern, channel, message) => {
 		if (!this.depend(["sessCode"])) return;
 
+		// Check if this message is for us.
 		var obj = IRedis.checkPMessage(channel, message, this.sessCode);
-		if (obj) this.emit("data", obj.name, obj.data);
+		if (!obj) return;
+
+		// Everything from here down will be run only if this instance is associated with the sessCode of the message.
+		// Use a "queue" to ensure that messages are processed in the order in which they were sent.  Since loading message content is asynchronous, there is a possibility that messages could be processed out of order.
+		let queueObj = { name: obj.name, ready: false, content: null };
+		this.messageQueue.push(queueObj);
+		Attachment.loadMessage(obj, (name, content) => {
+			queueObj.content = content;
+			queueObj.ready = true;
+
+			while (this.messageQueue.length > 0 && this.messageQueue[0].ready) {
+				let _queueObj = this.messageQueue.shift();
+				this.emit("data", _queueObj.name, _queueObj.content);
+			}
+		});
 	};
 
 	private destroyUListener = (channel, message) => {

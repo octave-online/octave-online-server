@@ -33,7 +33,8 @@ interface IAppConfig {
 		expire: {
 			interval: number;
 			timeout: number;
-		}
+		},
+		maxPayload: number;
 	}
 	ot: {
 		operation_expire: number;
