@@ -1,3 +1,5 @@
+-- Tests for the OT implementation.
+
 require "ot"
 
 function table_equals(a,b)

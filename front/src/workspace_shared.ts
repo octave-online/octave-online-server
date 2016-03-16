@@ -265,7 +265,9 @@ implements IWorkspace {
 				if (this.shareKey && !this.user) {
 					User.findOne({ share_key: this.shareKey }, next);
 				} else {
-					next(null, this.user);
+					process.nextTick(() => {
+						next(null, this.user);
+					});
 				}
 			},
 			ready: ["user", (next, {user}) => {

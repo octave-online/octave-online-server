@@ -46,6 +46,7 @@ function lutf8_len(s)
 end
 
 -- Performs a substring operation, like string.sub.
+-- TODO: This is an O(N) operation, which makes merging changes together O(N^2) in the worst case.  See if there's a way to make this operation more efficient.
 function lutf8_sub(s, start_ci, end_ci)
 	local ci = 0
 	local start_i = 1
