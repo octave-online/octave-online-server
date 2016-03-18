@@ -1,0 +1,138 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1453120461 21600
+#      Mon Jan 18 06:34:21 2016 -0600
+# Branch oo
+# Node ID 6ff3e34eea77bae35e07007cbd7a1a17e7fedacc
+# Parent  4d28376c34a877ba9eb5aefb84282c5bdf72a277
+Adding support for condition variables to octave_mutex.
+
+diff -r 4d28376c34a8 -r 6ff3e34eea77 liboctave/util/oct-mutex.cc
+--- a/liboctave/util/oct-mutex.cc	Mon Jan 18 06:33:06 2016 -0600
++++ b/liboctave/util/oct-mutex.cc	Mon Jan 18 06:34:21 2016 -0600
+@@ -53,6 +53,18 @@
+   return false;
+ }
+ 
++void
++octave_base_mutex::cond_wait (void)
++{
++  (*current_liboctave_error_handler) ("mutex not supported on this platform");
++}
++
++void
++octave_base_mutex::cond_signal (void)
++{
++  (*current_liboctave_error_handler) ("mutex not supported on this platform");
++}
++
+ #if defined (__WIN32__) && ! defined (__CYGWIN__)
+ 
+ class
+@@ -63,11 +75,13 @@
+     : octave_base_mutex ()
+   {
+     InitializeCriticalSection (&cs);
++    InitializeConditionVariable (&cv);
+   }
+ 
+   ~octave_w32_mutex (void)
+   {
+     DeleteCriticalSection (&cs);
++    // no need to delete cv: http://stackoverflow.com/a/28981408/1407170
+   }
+ 
+   void lock (void)
+@@ -85,8 +99,21 @@
+     return (TryEnterCriticalSection (&cs) != 0);
+   }
+ 
++  void cond_wait (void)
++  {
++    SleepConditionVariableCS (&cv, &cs, INFINITE);
++  }
++
++  void cond_signal (void)
++  {
++    WakeConditionVariable (&cv);
++  }
++
++  void 
++
+ private:
+   CRITICAL_SECTION cs;
++  CONDITION_VARIABLE cv;
+ };
+ 
+ static DWORD octave_thread_id = 0;
+@@ -118,11 +145,18 @@
+     pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
+     pthread_mutex_init (&pm, &attr);
+     pthread_mutexattr_destroy (&attr);
++
++    pthread_condattr_t condattr;
++
++    pthread_condattr_init (&condattr);
++    pthread_cond_init (&condv, &condattr);
++    pthread_condattr_destroy (&condattr);
+   }
+ 
+   ~octave_pthread_mutex (void)
+   {
+     pthread_mutex_destroy (&pm);
++    pthread_cond_destroy (&condv);
+   }
+ 
+   void lock (void)
+@@ -140,8 +174,20 @@
+     return (pthread_mutex_trylock (&pm) == 0);
+   }
+ 
++  void cond_wait (void)
++  {
++    pthread_cond_wait (&condv, &pm);
++  }
++
++  void cond_signal (void)
++  {
++    pthread_cond_signal (&condv);
++  }
++
+ private:
+   pthread_mutex_t pm;
++  pthread_cond_t condv;
++
+ };
+ 
+ static pthread_t octave_thread_id = 0;
+diff -r 4d28376c34a8 -r 6ff3e34eea77 liboctave/util/oct-mutex.h
+--- a/liboctave/util/oct-mutex.h	Mon Jan 18 06:33:06 2016 -0600
++++ b/liboctave/util/oct-mutex.h	Mon Jan 18 06:34:21 2016 -0600
+@@ -43,6 +43,10 @@
+ 
+   virtual bool try_lock (void);
+ 
++  virtual void cond_wait (void);
++
++  virtual void cond_signal (void);
++
+ private:
+   octave_refcount<int> count;
+ };
+@@ -95,6 +99,16 @@
+     return rep->try_lock ();
+   }
+ 
++  void cond_wait (void)
++  {
++    rep->cond_wait ();
++  }
++
++  void cond_signal (void)
++  {
++    rep->cond_signal ();
++  }
++
+ protected:
+   octave_base_mutex *rep;
+ };

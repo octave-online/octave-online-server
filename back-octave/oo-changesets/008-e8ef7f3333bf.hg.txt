@@ -1,0 +1,282 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1458303601 18000
+#      Fri Mar 18 07:20:01 2016 -0500
+# Branch oo
+# Node ID e8ef7f3333bfd96d811bde8cbc68738f37b191a6
+# Parent  4d778d6ebbd04afad8886efb7770690fbba675a9
+Moving macro "MAP_SET" into json-util.h and renaming it to "JSON_MAP_SET"
+
+diff -r 4d778d6ebbd0 -r e8ef7f3333bf libinterp/corefcn/json-util.h
+--- a/libinterp/corefcn/json-util.h	Wed Jan 20 01:33:28 2016 -0600
++++ b/libinterp/corefcn/json-util.h	Fri Mar 18 07:20:01 2016 -0500
+@@ -17,6 +17,10 @@
+ #define JSON_OBJECT_T json_object*
+ #define JSON_MAP_T std::map<std::string, JSON_OBJECT_T>
+ 
++#define JSON_MAP_SET(M, FIELD, TYPE){ \
++	m[#FIELD] = json_util::from_##TYPE (FIELD); \
++}
++
+ class json_util {
+ public:
+ 	static JSON_OBJECT_T from_string(const std::string& str);
+diff -r 4d778d6ebbd0 -r e8ef7f3333bf libinterp/corefcn/octave-json-link.cc
+--- a/libinterp/corefcn/octave-json-link.cc	Wed Jan 20 01:33:28 2016 -0600
++++ b/libinterp/corefcn/octave-json-link.cc	Fri Mar 18 07:20:01 2016 -0500
+@@ -28,12 +28,7 @@
+ #include "octave-json-link.h"
+ #include "workspace-element.h"
+ #include "json-main.h"
+-
+-// MAP_SET(m, foo, string)
+-//   => m["foo"] = json_util::from_string(foo);
+-#define MAP_SET(M, FIELD, TYPE){ \
+-	m[#FIELD] = json_util::from_##TYPE (FIELD); \
+-}
++#include "json-util.h"
+ 
+ octave_json_link::octave_json_link(json_main* __json_main)
+ 	: octave_link (),
+@@ -61,7 +56,7 @@
+ 
+ bool octave_json_link::do_exit(int status) {
+ 	JSON_MAP_T m;
+-	MAP_SET(m, status, int);
++	JSON_MAP_SET(m, status, int);
+ 	_publish_message("exit", json_util::from_map(m));
+ 
+ 	// It is our responsibility in octave_link to call exit. If we don't, then
+@@ -74,7 +69,7 @@
+ bool octave_json_link::do_copy_image_to_clipboard(const std::string& file) {
+ 	// This endpoint might be unused?  (References appear only in libgui)
+ 	JSON_MAP_T m;
+-	MAP_SET(m, file, string);
++	JSON_MAP_SET(m, file, string);
+ 	_publish_message("copy-image-to-clipboard", json_util::from_map(m));
+ 
+ 	return true;
+@@ -83,7 +78,7 @@
+ bool octave_json_link::do_edit_file(const std::string& file) {
+ 	// Triggered in "edit" for existing files
+ 	JSON_MAP_T m;
+-	MAP_SET(m, file, string);
++	JSON_MAP_SET(m, file, string);
+ 	_publish_message("edit-file", json_util::from_map(m));
+ 
+ 	return true;
+@@ -92,7 +87,7 @@
+ bool octave_json_link::do_prompt_new_edit_file(const std::string& file) {
+ 	// Triggered in "edit" for new files
+ 	JSON_MAP_T m;
+-	MAP_SET(m, file, string);
++	JSON_MAP_SET(m, file, string);
+ 	_publish_message("prompt-new-edit-file", json_util::from_map(m));
+ 
+ 	return prompt_new_edit_file_queue.dequeue();
+@@ -101,9 +96,9 @@
+ int octave_json_link::do_message_dialog(const std::string& dlg, const std::string& msg, const std::string& title) {
+ 	// Triggered in "msgbox", "helpdlg", and "errordlg", among others
+ 	JSON_MAP_T m;
+-	MAP_SET(m, dlg, string); // i.e., m["dlg"] = json_util::from_string(dlg);
+-	MAP_SET(m, msg, string);
+-	MAP_SET(m, title, string);
++	JSON_MAP_SET(m, dlg, string); // i.e., m["dlg"] = json_util::from_string(dlg);
++	JSON_MAP_SET(m, msg, string);
++	JSON_MAP_SET(m, title, string);
+ 	_publish_message("message-dialog", json_util::from_map(m));
+ 
+ 	return message_dialog_queue.dequeue();
+@@ -112,12 +107,12 @@
+ std::string octave_json_link::do_question_dialog(const std::string& msg, const std::string& title, const std::string& btn1, const std::string& btn2, const std::string& btn3, const std::string& btndef) {
+ 	// Triggered in "questdlg"
+ 	JSON_MAP_T m;
+-	MAP_SET(m, msg, string);
+-	MAP_SET(m, title, string);
+-	MAP_SET(m, btn1, string);
+-	MAP_SET(m, btn2, string);
+-	MAP_SET(m, btn3, string);
+-	MAP_SET(m, btndef, string);
++	JSON_MAP_SET(m, msg, string);
++	JSON_MAP_SET(m, title, string);
++	JSON_MAP_SET(m, btn1, string);
++	JSON_MAP_SET(m, btn2, string);
++	JSON_MAP_SET(m, btn3, string);
++	JSON_MAP_SET(m, btndef, string);
+ 	_publish_message("question-dialog", json_util::from_map(m));
+ 
+ 	return question_dialog_queue.dequeue();
+@@ -126,15 +121,15 @@
+ std::pair<std::list<int>, int> octave_json_link::do_list_dialog(const std::list<std::string>& list, const std::string& mode, int width, int height, const std::list<int>& initial_value, const std::string& name, const std::list<std::string>& prompt, const std::string& ok_string, const std::string& cancel_string) {
+ 	// Triggered in "listdlg"
+ 	JSON_MAP_T m;
+-	MAP_SET(m, list, string_list);
+-	MAP_SET(m, mode, string);
+-	MAP_SET(m, width, int);
+-	MAP_SET(m, height, int);
+-	MAP_SET(m, initial_value, int_list);
+-	MAP_SET(m, name, string);
+-	MAP_SET(m, prompt, string_list);
+-	MAP_SET(m, ok_string, string);
+-	MAP_SET(m, cancel_string, string);
++	JSON_MAP_SET(m, list, string_list);
++	JSON_MAP_SET(m, mode, string);
++	JSON_MAP_SET(m, width, int);
++	JSON_MAP_SET(m, height, int);
++	JSON_MAP_SET(m, initial_value, int_list);
++	JSON_MAP_SET(m, name, string);
++	JSON_MAP_SET(m, prompt, string_list);
++	JSON_MAP_SET(m, ok_string, string);
++	JSON_MAP_SET(m, cancel_string, string);
+ 	_publish_message("list-dialog", json_util::from_map(m));
+ 
+ 	return list_dialog_queue.dequeue();
+@@ -143,11 +138,11 @@
+ std::list<std::string> octave_json_link::do_input_dialog(const std::list<std::string>& prompt, const std::string& title, const std::list<float>& nr, const std::list<float>& nc, const std::list<std::string>& defaults) {
+ 	// Triggered in "inputdlg"
+ 	JSON_MAP_T m;
+-	MAP_SET(m, prompt, string_list);
+-	MAP_SET(m, title, string);
+-	MAP_SET(m, nr, float_list);
+-	MAP_SET(m, nc, float_list);
+-	MAP_SET(m, defaults, string_list);
++	JSON_MAP_SET(m, prompt, string_list);
++	JSON_MAP_SET(m, title, string);
++	JSON_MAP_SET(m, nr, float_list);
++	JSON_MAP_SET(m, nc, float_list);
++	JSON_MAP_SET(m, defaults, string_list);
+ 	_publish_message("input-dialog", json_util::from_map(m));
+ 
+ 	return input_dialog_queue.dequeue();
+@@ -156,11 +151,11 @@
+ std::list<std::string> octave_json_link::do_file_dialog(const filter_list& filter, const std::string& title, const std::string &filename, const std::string &pathname, const std::string& multimode) {
+ 	// Triggered in "uiputfile", "uigetfile", and "uigetdir"
+ 	JSON_MAP_T m;
+-	MAP_SET(m, filter, filter_list);
+-	MAP_SET(m, title, string);
+-	MAP_SET(m, filename, string);
+-	MAP_SET(m, pathname, string);
+-	MAP_SET(m, multimode, string);
++	JSON_MAP_SET(m, filter, filter_list);
++	JSON_MAP_SET(m, title, string);
++	JSON_MAP_SET(m, filename, string);
++	JSON_MAP_SET(m, pathname, string);
++	JSON_MAP_SET(m, multimode, string);
+ 	_publish_message("file-dialog", json_util::from_map(m));
+ 	
+ 	return file_dialog_queue.dequeue();
+@@ -169,9 +164,9 @@
+ int octave_json_link::do_debug_cd_or_addpath_error(const std::string& file, const std::string& dir, bool addpath_option) {
+ 	// This endpoint might be unused?  (No references)
+ 	JSON_MAP_T m;
+-	MAP_SET(m, file, string);
+-	MAP_SET(m, dir, string);
+-	MAP_SET(m, addpath_option, boolean);
++	JSON_MAP_SET(m, file, string);
++	JSON_MAP_SET(m, dir, string);
++	JSON_MAP_SET(m, addpath_option, boolean);
+ 	_publish_message("debug-cd-or-addpath-error", json_util::from_map(m));
+ 
+ 	return debug_cd_or_addpath_error_queue.dequeue();
+@@ -180,23 +175,23 @@
+ void octave_json_link::do_change_directory(const std::string& dir) {
+ 	// This endpoint might be unused?  (References appear only in libgui)
+ 	JSON_MAP_T m;
+-	MAP_SET(m, dir, string);
++	JSON_MAP_SET(m, dir, string);
+ 	_publish_message("change-directory", json_util::from_map(m));
+ }
+ 
+ void octave_json_link::do_execute_command_in_terminal(const std::string& command) {
+ 	// This endpoint might be unused?  (References appear only in libgui)
+ 	JSON_MAP_T m;
+-	MAP_SET(m, command, string);
++	JSON_MAP_SET(m, command, string);
+ 	_publish_message("execute-command-in-terminal", json_util::from_map(m));
+ }
+ 
+ void octave_json_link::do_set_workspace(bool top_level, bool debug, const std::list<workspace_element>& ws) {
+ 	// Triggered on every new line entry
+ 	JSON_MAP_T m;
+-	MAP_SET(m, top_level, boolean);
+-	MAP_SET(m, debug, boolean);
+-	MAP_SET(m, ws, workspace_list);
++	JSON_MAP_SET(m, top_level, boolean);
++	JSON_MAP_SET(m, debug, boolean);
++	JSON_MAP_SET(m, ws, workspace_list);
+ 	_publish_message("set-workspace", json_util::from_map(m));
+ }
+ 
+@@ -208,14 +203,14 @@
+ void octave_json_link::do_set_history(const string_vector& hist) {
+ 	// Called at startup, possibly more?
+ 	JSON_MAP_T m;
+-	MAP_SET(m, hist, string_vector);
++	JSON_MAP_SET(m, hist, string_vector);
+ 	_publish_message("set-history", json_util::from_map(m));
+ }
+ 
+ void octave_json_link::do_append_history(const std::string& hist_entry) {
+ 	// Appears to be tied to readline, if available
+ 	JSON_MAP_T m;
+-	MAP_SET(m, hist_entry, string);
++	JSON_MAP_SET(m, hist_entry, string);
+ 	_publish_message("append-history", json_util::from_map(m));
+ }
+ 
+@@ -239,15 +234,15 @@
+ 
+ void octave_json_link::do_enter_debugger_event(const std::string& file, int line) {
+ 	JSON_MAP_T m;
+-	MAP_SET(m, file, string);
+-	MAP_SET(m, line, int);
++	JSON_MAP_SET(m, file, string);
++	JSON_MAP_SET(m, line, int);
+ 	_publish_message("enter-debugger-event", json_util::from_map(m));
+ }
+ 
+ void octave_json_link::do_execute_in_debugger_event(const std::string& file, int line) {
+ 	JSON_MAP_T m;
+-	MAP_SET(m, file, string);
+-	MAP_SET(m, line, int);
++	JSON_MAP_SET(m, file, string);
++	JSON_MAP_SET(m, line, int);
+ 	_publish_message("execute-in-debugger-event", json_util::from_map(m));
+ }
+ 
+@@ -257,18 +252,18 @@
+ 
+ void octave_json_link::do_update_breakpoint(bool insert, const std::string& file, int line) {
+ 	JSON_MAP_T m;
+-	MAP_SET(m, insert, boolean);
+-	MAP_SET(m, file, string);
+-	MAP_SET(m, line, int);
++	JSON_MAP_SET(m, insert, boolean);
++	JSON_MAP_SET(m, file, string);
++	JSON_MAP_SET(m, line, int);
+ 	_publish_message("update-breakpoint", json_util::from_map(m));
+ }
+ 
+ void octave_json_link::do_set_default_prompts(std::string& ps1, std::string& ps2, std::string& ps4) {
+ 	// Triggered upon interpreter startup
+ 	JSON_MAP_T m;
+-	MAP_SET(m, ps1, string);
+-	MAP_SET(m, ps2, string);
+-	MAP_SET(m, ps4, string);
++	JSON_MAP_SET(m, ps1, string);
++	JSON_MAP_SET(m, ps2, string);
++	JSON_MAP_SET(m, ps4, string);
+ 	_publish_message("set-default-prompts", json_util::from_map(m));
+ }
+ 
+@@ -285,8 +280,8 @@
+ void octave_json_link::do_show_static_plot(const std::string& term, const std::string& content) {
+ 	// Triggered on all plot commands with setenv("GNUTERM","svg")
+ 	JSON_MAP_T m;
+-	MAP_SET(m, term, string);
+-	MAP_SET(m, content, string);
++	JSON_MAP_SET(m, term, string);
++	JSON_MAP_SET(m, content, string);
+ 	_publish_message("show-static-plot", json_util::from_map(m));
+ }
+ 

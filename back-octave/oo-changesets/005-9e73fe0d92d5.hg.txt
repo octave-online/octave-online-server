@@ -1,0 +1,29 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1453121851 21600
+#      Mon Jan 18 06:57:31 2016 -0600
+# Branch oo
+# Node ID 9e73fe0d92d5817002f67034983af5b557f874be
+# Parent  6ff3e34eea77bae35e07007cbd7a1a17e7fedacc
+Changing definition of "isguirunning()" to "octave_link::enabled()".  This enables triggering octave link endpoints by implementations of octave link other than the GUI.
+
+diff -r 6ff3e34eea77 -r 9e73fe0d92d5 libinterp/octave.cc
+--- a/libinterp/octave.cc	Mon Jan 18 06:34:21 2016 -0600
++++ b/libinterp/octave.cc	Mon Jan 18 06:57:31 2016 -0600
+@@ -65,6 +65,7 @@
+ #include "oct-map.h"
+ #include "oct-mutex.h"
+ #include "oct-obj.h"
++#include "octave-link.h"
+ #include "ops.h"
+ #include "options-usage.h"
+ #include "ov.h"
+@@ -989,7 +990,7 @@
+   octave_value retval;
+ 
+   if (args.length () == 0)
+-    retval = start_gui;
++    retval = octave_link::enabled ();
+   else
+     print_usage ();
+ 

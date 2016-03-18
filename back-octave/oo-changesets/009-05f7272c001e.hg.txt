@@ -1,0 +1,158 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1458307337 18000
+#      Fri Mar 18 08:22:17 2016 -0500
+# Branch oo
+# Node ID 05f7272c001e9be692baa7ad0d0f5b4d4b29c642
+# Parent  e8ef7f3333bfd96d811bde8cbc68738f37b191a6
+Adding a new "--json-max-len" option that puts a limit on the size of messages pushed through the JSON socket.
+
+diff -r e8ef7f3333bf -r 05f7272c001e libinterp/corefcn/json-main.cc
+--- a/libinterp/corefcn/json-main.cc	Fri Mar 18 07:20:01 2016 -0500
++++ b/libinterp/corefcn/json-main.cc	Fri Mar 18 08:22:17 2016 -0500
+@@ -24,8 +24,9 @@
+   _json_main->process_json_object(name, jobj);
+ }
+ 
+-json_main::json_main(const std::string& json_sock_path)
++json_main::json_main(const std::string& json_sock_path, int max_message_length)
+   : _json_sock_path (json_sock_path),
++    _max_message_length (max_message_length),
+     _loop_thread_active (false),
+     _octave_json_link (this)
+ {
+@@ -52,6 +53,19 @@
+ 
+ void json_main::publish_message(const std::string& name, JSON_OBJECT_T jobj) {
+   std::string jstr = json_util::to_message(name, jobj);
++
++  // Do not send any messages over the socket that exceed the user-specified max length.  Instead, send an error message.  If max_length is 0 (default), do not suppress any messages.
++  // In stress testing, Node may be able to handle as much as 10-20 MB, but I'd prefer to stay on the safe side.  Before this safeguard was implemented, fewer than 5% of plots exceeded 1 MB.
++  int length = jstr.length();
++  int max_length = _max_message_length;
++  if (max_length > 0 && length > max_length) {
++    JSON_MAP_T m;
++    JSON_MAP_SET(m, name, string);
++    JSON_MAP_SET(m, length, int);
++    JSON_MAP_SET(m, max_length, int);
++    jstr = json_util::to_message("message-too-long", json_util::from_map(m));
++  }
++
+   send(sockfd, jstr.c_str(), jstr.length(), 0);
+ }
+ 
+diff -r e8ef7f3333bf -r 05f7272c001e libinterp/corefcn/json-main.h
+--- a/libinterp/corefcn/json-main.h	Fri Mar 18 07:20:01 2016 -0500
++++ b/libinterp/corefcn/json-main.h	Fri Mar 18 08:22:17 2016 -0500
+@@ -10,7 +10,7 @@
+ 
+ class json_main {
+ public:
+-	json_main(const std::string& json_sock_path);
++	json_main(const std::string& json_sock_path, int max_message_length);
+ 	~json_main(void);
+ 
+ 	void publish_message(const std::string& name, JSON_OBJECT_T jobj);
+@@ -20,6 +20,7 @@
+ 
+ private:
+ 	std::string _json_sock_path;
++	int _max_message_length;
+ 	int sockfd;
+ 	bool _loop_thread_active;
+ 	pthread_t _loop_thread;
+diff -r e8ef7f3333bf -r 05f7272c001e libinterp/octave.cc
+--- a/libinterp/octave.cc	Fri Mar 18 07:20:01 2016 -0500
++++ b/libinterp/octave.cc	Fri Mar 18 08:22:17 2016 -0500
+@@ -159,6 +159,10 @@
+ // (--json-sock)
+ static std::string json_sock_path;
+ 
++// The maximum message length; valid only if "JSON_SOCK" is specified.
++// (--json-max-len)
++static int json_max_message_length = 0;
++
+ // If TRUE, ignore the window system even if it is available.
+ // (--no-window-system, -W)
+ static bool no_window_system = false;
+@@ -667,6 +671,11 @@
+             json_sock_path = optarg;
+           break;
+ 
++        case JSON_MAX_LEN_OPTION:
++          if (optarg)
++            json_max_message_length = strtol(optarg, NULL, 10);
++          break;
++
+         case NO_GUI_OPTION:
+           no_gui_option = true;
+           break;
+@@ -843,7 +852,7 @@
+   initialize_version_info ();
+ 
+   if (!json_sock_path.empty ()) {
+-    static json_main _json_main (json_sock_path);
++    static json_main _json_main (json_sock_path, json_max_message_length);
+     _json_main.run_loop_on_new_thread();
+   }
+ 
+diff -r e8ef7f3333bf -r 05f7272c001e libinterp/options-usage.h
+--- a/libinterp/options-usage.h	Fri Mar 18 07:20:01 2016 -0500
++++ b/libinterp/options-usage.h	Fri Mar 18 08:22:17 2016 -0500
+@@ -33,10 +33,10 @@
+        [--echo-commands] [--eval CODE] [--exec-path path]\n\
+        [--force-gui] [--help] [--image-path path]\n\
+        [--info-file file] [--info-program prog] [--interactive]\n\
+-       [--jit-compiler] [--json-sock] [--line-editing] [--no-gui]\n\
+-       [--no-history][--no-init-file] [--no-init-path] [--no-line-editing]\n\
+-       [--no-site-file] [--no-window-system] [--norc] [-p path]\n\
+-       [--path path] [--persist] [--silent] [--traditional]\n\
++       [--jit-compiler] [--json-sock] [--json-max-len] [--line-editing]\n\
++       [--no-gui] [--no-history][--no-init-file] [--no-init-path]\n\
++       [--no-line-editing] [--no-site-file] [--no-window-system] [--norc]\n\
++       [-p path] [--path path] [--persist] [--silent] [--traditional]\n\
+        [--verbose] [--version] [file]";
+ 
+ // This is here so that it's more likely that the usage message and
+@@ -57,15 +57,16 @@
+ #define DEBUG_JIT_OPTION 9
+ #define JIT_COMPILER_OPTION 10
+ #define JSON_SOCK_OPTION 11
+-#define LINE_EDITING_OPTION 12
+-#define NO_GUI_OPTION 13
+-#define NO_INIT_FILE_OPTION 14
+-#define NO_INIT_PATH_OPTION 15
+-#define NO_LINE_EDITING_OPTION 16
+-#define NO_SITE_FILE_OPTION 17
+-#define PERSIST_OPTION 18
+-#define TEXI_MACROS_FILE_OPTION 19
+-#define TRADITIONAL_OPTION 20
++#define JSON_MAX_LEN_OPTION 12
++#define LINE_EDITING_OPTION 13
++#define NO_GUI_OPTION 14
++#define NO_INIT_FILE_OPTION 15
++#define NO_INIT_PATH_OPTION 16
++#define NO_LINE_EDITING_OPTION 17
++#define NO_SITE_FILE_OPTION 18
++#define PERSIST_OPTION 19
++#define TEXI_MACROS_FILE_OPTION 20
++#define TRADITIONAL_OPTION 21
+ struct option long_opts[] =
+ {
+   { "braindead",                no_argument,       0, TRADITIONAL_OPTION },
+@@ -84,6 +85,7 @@
+   { "interactive",              no_argument,       0, 'i' },
+   { "jit-compiler",             no_argument,       0, JIT_COMPILER_OPTION },
+   { "json-sock",                required_argument, 0, JSON_SOCK_OPTION },
++  { "json-max-len",             required_argument, 0, JSON_MAX_LEN_OPTION },
+   { "line-editing",             no_argument,       0, LINE_EDITING_OPTION },
+   { "no-gui",                   no_argument,       0, NO_GUI_OPTION },
+   { "no-history",               no_argument,       0, 'H' },
+@@ -131,6 +133,7 @@
+   --interactive, -i       Force interactive behavior.\n\
+   --jit-compiler          Enable the JIT compiler.\n\
+   --json-sock PATH        Listen to and publish events on this UNIX socket.\n\
++  --json-max-len LEN      Suppress JSON messages greater than LEN bytes.\n\
+   --line-editing          Force readline use for command-line editing.\n\
+   --no-gui                Disable the graphical user interface.\n\
+   --no-history, -H        Don't save commands to the history list\n\

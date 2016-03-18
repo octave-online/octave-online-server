@@ -37,16 +37,18 @@ RUN git clone https://github.com/json-c/json-c.git && \
 
 # Enlist the correct Octave revision
 RUN hg clone http://www.octave.org/hg/octave
-COPY oo-changesets.tar.gz $DIR/
-RUN tar zxf oo-changesets.tar.gz && \
-	cd octave && \
+COPY oo-changesets $DIR/oo-changesets/
+RUN cd octave && \
 	hg update 323e92c4589f && \
 	hg import ../oo-changesets/001-d38b7c534496.hg.txt && \
 	hg import ../oo-changesets/002-d3de6023e846.hg.txt && \
 	hg import ../oo-changesets/003-4d28376c34a8.hg.txt && \
 	hg import ../oo-changesets/004-6ff3e34eea77.hg.txt && \
 	hg import ../oo-changesets/005-9e73fe0d92d5.hg.txt && \
-	hg import ../oo-changesets/006-15d21ceec728.hg.txt
+	hg import ../oo-changesets/006-15d21ceec728.hg.txt && \
+	hg import ../oo-changesets/007-4d778d6ebbd0.hg.txt && \
+	hg import ../oo-changesets/008-e8ef7f3333bf.hg.txt && \
+	hg import ../oo-changesets/009-05f7272c001e.hg.txt
 
 # Configure and Build Octave
 # This is the slowest part of the Dockerfile
