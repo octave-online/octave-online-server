@@ -1,0 +1,57 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1458312433 18000
+#      Fri Mar 18 09:47:13 2016 -0500
+# Branch oo
+# Node ID 4a1afb661c55f34994b53920f97c33ff3d03a27d
+# Parent  05f7272c001e9be692baa7ad0d0f5b4d4b29c642
+Modifying code to not emit "request-input" events when there is a command waiting in the queue.
+
+diff -r 05f7272c001e -r 4a1afb661c55 libinterp/corefcn/octave-json-link.cc
+--- a/libinterp/corefcn/octave-json-link.cc	Fri Mar 18 08:22:17 2016 -0500
++++ b/libinterp/corefcn/octave-json-link.cc	Fri Mar 18 09:47:13 2016 -0500
+@@ -42,9 +42,13 @@
+ 
+ std::string octave_json_link::do_request_input(const std::string& prompt) {
+ 	// Triggered whenever the console prompts for user input
+-	_publish_message("request-input", json_util::from_string(prompt));
+ 
+-	return request_input_queue.dequeue();
++	std::string value;
++	if (!request_input_queue.dequeue_to(&value)) {
++		_publish_message("request-input", json_util::from_string(prompt));
++		value = request_input_queue.dequeue();
++	}
++	return value;
+ }
+ 
+ bool octave_json_link::do_confirm_shutdown(void) {
+diff -r 05f7272c001e -r 4a1afb661c55 libinterp/corefcn/octave-json-link.h
+--- a/libinterp/corefcn/octave-json-link.h	Fri Mar 18 08:22:17 2016 -0500
++++ b/libinterp/corefcn/octave-json-link.h	Fri Mar 18 09:47:13 2016 -0500
+@@ -41,6 +41,7 @@
+ 
+   void enqueue(const T& value);
+   T dequeue();
++  bool dequeue_to(T* destination);
+ 
+ private:
+   std::queue<T> _queue;
+@@ -182,4 +183,17 @@
+   return value;
+ }
+ 
++template<typename T>
++bool json_queue<T>::dequeue_to(T* destination) {
++  _mutex.lock();
++  bool retval = false;
++  if (!_queue.empty()) {
++    retval = true;
++    *destination = _queue.front();
++    _queue.pop();
++  }
++  _mutex.unlock();
++  return retval;
++}
++
+ #endif

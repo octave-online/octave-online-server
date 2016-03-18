@@ -38,7 +38,7 @@ class OctaveSession extends OnlineOffline {
 	_doDestroy(next, reason) {
 		async.series([
 			(_next) => {
-				if (this._countdownTimer) clearTimeout(this._countdownTimer);
+				if (this._countdownTimer) clearInterval(this._countdownTimer);
 				if (this._timewarnTimer) clearTimeout(this._timewarnTimer);
 				if (this._timeoutTimer) clearTimeout(this._timeoutTimer);
 				if (this._autoCommitTimer) clearInterval(this._autoCommitTimer);
@@ -59,15 +59,19 @@ class OctaveSession extends OnlineOffline {
 	}
 
 	// COUNTDOWN METHODS: For interrupting the Octave kernel after a fixed number of seconds to ensure a fair distribution of CPU time.
+	// Use an interval to signal Octave once after the first timeout and then repeatedly after that, until the kernel sends us a "request-input" event to signal that it is done processing commands.
 	_startCountdown() {
-		this._endCountdown();
-		this._countdownTimer = setTimeout(() => {
+		if (this._countdownTimer) return;
+		this._countdownTimer = setInterval(() => {
 			this.interrupt();
 			this.emit("message", "err", "!!! OUT OF TIME !!!\n");
 		}, this._legalTime);
 	}
 	_endCountdown() {
-		if (this._countdownTimer) clearTimeout(this._countdownTimer);
+		if (this._countdownTimer) {
+			clearInterval(this._countdownTimer);
+			this._countdownTimer = null;
+		}
 	}
 
 	// TIMEOUT METHODS: For killing the Octave kernel after a fixed number of seconds to clear server resources when the client is inactive.
@@ -223,7 +227,7 @@ class OctaveSession extends OnlineOffline {
 				this._startCountdown();
 				this.resetTimeout();
 				this._appendToSessionLog(name, content);
-				// FIXME: This splitting should occur on the front end, not here, in order to make the command timer work correctly.
+				// Split the command into individual lines and send them to Octave one-by-one.
 				content.split("\n").forEach((line) => {
 					this._sendMessageToHost(name, line);
 				});
