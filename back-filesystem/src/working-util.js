@@ -18,6 +18,7 @@ const UNACCEPTABLE_FILENAME_REGEX = /^(\..*|octave-\w+)$/;
 class WorkingUtil {
 	constructor(workDir, logMemo) {
 		this._log = logger(`working-util:${logMemo}`);
+		this._mlog = logger(`working-util:${logMemo}:minor`);
 		this.cwd = workDir;
 	}
 

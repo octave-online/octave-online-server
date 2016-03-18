@@ -1,6 +1,7 @@
 "use strict";
 
 const log = require("@oo/shared").logger("app");
+const mlog = require("@oo/shared").logger("app:minor");
 const MessageTranslator = require("./src/message-translator");
 const RedisMessenger = require("@oo/shared").RedisMessenger;
 const SessionManager = require("./src/session-manager");
@@ -83,8 +84,7 @@ sessionManager.on("destroy-u", (sessCode, reason) => {
 });
 
 gcStats.on("stats", (stats) => {
-	log.trace(`Garbage Collected (type ${stats.gctype}, ${stats.pause/1e6} ms)`);
-	// log.trace(stats);
+	mlog.trace(`Garbage Collected (type ${stats.gctype}, ${stats.pause/1e6} ms)`);
 });
 
 redisMaintenanceHandler.on("reboot-request", maintenanceRequestManager.onMessage.bind(maintenanceRequestManager));

@@ -10,6 +10,7 @@ class ProcessHandler extends StdioMessenger {
 	constructor(sessCode) {
 		super();
 		this._log = logger(`process-handler:${sessCode}`);
+		this._mlog = logger(`process-handler:${sessCode}:minor`);
 		this.sessCode = sessCode;
 	}
 
@@ -50,7 +51,7 @@ class ProcessHandler extends StdioMessenger {
 			}
 		], (err) => {
 			if (err) return next(err);
-			this._log.debug("Finished creating");
+			this._mlog.debug("Finished creating");
 			return next(null);
 		});
 	}
@@ -76,7 +77,7 @@ class ProcessHandler extends StdioMessenger {
 	_handleLog(data) {
 		// Log message to console
 		data.toString().trim().split("\n").forEach((line) => {
-			this._log.log(line);
+			this._mlog.log(line);
 		});
 	}
 

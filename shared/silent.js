@@ -1,4 +1,4 @@
-var log = require("./logger")("silent");
+var mlog = require("./logger")("silent:minor");
 
 // Callback wrapper that catches errors and prevents them from propagating.
 function silent(messageRegex, _next) {
@@ -9,8 +9,8 @@ function silent(messageRegex, _next) {
 		if (err && !messageRegex.test(err.message)) {
 			return _next.apply(this, arguments);
 		} else if (err) {
-			log.trace(err.message.split("\n")[0], "(regex: " + messageRegex + ")");
-			// log.warn(arguments);
+			mlog.trace(err.message.split("\n")[0], "(regex: " + messageRegex + ")");
+			// mlog.warn(arguments);
 		}
 		var args = Array.prototype.slice.call(arguments, 1);
 		args.unshift(null);

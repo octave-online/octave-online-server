@@ -17,6 +17,7 @@ class OctaveSession extends OnlineOffline {
 		super();
 		this.sessCode = sessCode;
 		this._log = logger("octave-session:" + sessCode);
+		this._mlog = logger("octave-session:" + sessCode + ":minor");
 
 		this._legalTime = config.session.legalTime.guest;
 		this._payloadLimit = config.session.payloadLimit.guest;

@@ -14,6 +14,7 @@ class FilesController extends EventEmitter {
 	constructor(gitDir, workDir, logMemo) {
 		super();
 		this._log = logger(`files-controller:${logMemo}`);
+		this._mlog = logger(`files-controller:${logMemo}:minor`);
 
 		this.gitUtil = new GitUtil(gitDir, logMemo);
 		this.workingUtil = new WorkingUtil(workDir, logMemo);
@@ -48,7 +49,7 @@ class FilesController extends EventEmitter {
 						if (/unable to write file/.test(err.message)) return this._fail("saved", "warn", `Whoops! You are currently exceeding your space limit of ${config.docker.diskQuotaKiB} KiB.\nPlease open a support ticket and we will help you resolve the\nissue. Sorry for the inconvenience!`);
 						else return this._log.error(err);
 					}
-					this._log.debug("User successfully initialized");
+					this._mlog.debug("User successfully initialized");
 					// Sending the user info with this event is deprecated and is for backwards compatibility only.  In the future, the event should be renamed to something like "files" and the user info should be removed.
 					this._sendMessage("user", {
 						name: this.user.displayName,
@@ -64,8 +65,8 @@ class FilesController extends EventEmitter {
 				break;
 
 			case "list":
-				if (!this.user) return this._log.debug("Won't perform action on null user repository");
-				this._log.debug("Listing files...");
+				if (!this.user) return this._mlog.debug("Won't perform action on null user repository");
+				this._mlog.debug("Listing files...");
 				async.waterfall([
 					(_next) => {
 						this.workingUtil.listAll(_next);
@@ -88,8 +89,8 @@ class FilesController extends EventEmitter {
 				break;
 
 			case "refresh":
-				if (!this.user) return this._log.debug("Won't perform action on null user repository");
-				this._log.debug("Refreshing files...");
+				if (!this.user) return this._mlog.debug("Won't perform action on null user repository");
+				this._mlog.debug("Refreshing files...");
 				async.waterfall([
 					(_next) => {
 						this.gitUtil.pullPush("Scripted user file commit", _next);
@@ -118,7 +119,7 @@ class FilesController extends EventEmitter {
 				if (!this.user) return this._fail("committed", "debug", "Won't perform action on null user repository");
 				var comment = content.comment;
 				if (!comment) return this._fail("committed", "warn", "Empty comment:", comment);
-				this._log.debug("Committing files...");
+				this._mlog.debug("Committing files...");
 				async.waterfall([
 					(_next) => {
 						this.gitUtil.pullPush(comment, _next);
@@ -133,7 +134,7 @@ class FilesController extends EventEmitter {
 			case "save":
 				var filename = content.filename;
 				var value = content.content;
-				this._log.debug("Saving file:", filename);
+				this._mlog.debug("Saving file:", filename);
 				if (!filename) return this._fail("saved", "warn", "Empty file name:", filename, value);
 				async.waterfall([
 					(_next) => {
@@ -153,7 +154,7 @@ class FilesController extends EventEmitter {
 				var oldname = content.filename;
 				var newname = content.newname;
 				if (!oldname || !newname) return this._fail("renamed", "warn", "Empty file name or new name:", oldname, newname);
-				this._log.debug("Renaming file:", oldname, newname);
+				this._mlog.debug("Renaming file:", oldname, newname);
 				async.waterfall([
 					(_next) => {
 						this.workingUtil.renameFile(oldname, newname, _next);
@@ -168,7 +169,7 @@ class FilesController extends EventEmitter {
 			case "delete":
 				var filename = content.filename;
 				if (!filename) return this._fail("deleted", "warn", "Empty file name:", filename);
-				this._log.debug("Deleting file:", filename);
+				this._mlog.debug("Deleting file:", filename);
 				async.waterfall([
 					(_next) => {
 						this.workingUtil.deleteFile(filename, _next);
@@ -186,7 +187,7 @@ class FilesController extends EventEmitter {
 			case "binary":
 				var filename = content.filename;
 				if (!filename) return this._fail("binary", "warn", "Empty file name:", filename);
-				this._log.debug("Loading binary file:", filename);
+				this._mlog.debug("Loading binary file:", filename);
 				async.waterfall([
 					(_next) => {
 						this.workingUtil.readBinary(filename, _next);
@@ -201,7 +202,7 @@ class FilesController extends EventEmitter {
 			case "read-delete-binary":
 				var filename = content.filename;
 				if (!filename) return this._fail("deleted-binary", "warn", "Empty file name:", filename);
-				this._log.debug("Loading and deleting binary file:", filename);
+				this._mlog.debug("Loading and deleting binary file:", filename);
 				async.series([
 					(_next) => {
 						this.workingUtil.readBinary(filename, _next);

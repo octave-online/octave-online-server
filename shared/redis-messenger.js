@@ -4,6 +4,7 @@ const async = require("async");
 const redis = require("redis");
 const EventEmitter = require("events");
 const log = require("./logger")("redis-messenger");
+const mlog = require("./logger")("redis-messenger:minor");
 const redisUtil = require("./redis-util");
 const Scripto = require("redis-scripto");
 const path = require("path");
@@ -276,7 +277,7 @@ class RedisMessenger extends EventEmitter {
 		let contentString = JSON.stringify(content);
 		if (contentString.length > config.redis.maxPayload) {
 			let id = uuid.v4();
-			log.trace("Sending content as attachment:", name, id, contentString.length);
+			mlog.trace("Sending content as attachment:", name, id, contentString.length);
 			this._uploadAttachment(id, contentString, this._handleError.bind(this));
 			return JSON.stringify({ name, attachment: id });
 		}
@@ -292,7 +293,7 @@ class RedisMessenger extends EventEmitter {
 			});
 			else {
 				return this._downloadAttachment(message.attachment, (err, contentString) => {
-					log.trace("Received content as attachment:", message.name, message.attachment, contentString.length);
+					mlog.trace("Received content as attachment:", message.name, message.attachment, contentString.length);
 					try {
 						next(null, JSON.parse(contentString));
 					} catch (err) {

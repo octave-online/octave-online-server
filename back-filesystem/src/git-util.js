@@ -12,6 +12,7 @@ const GIT_SSH_FILE = path.join(__dirname, "..", "git", "git_ssh.sh");
 class GitUtil {
 	constructor(gitDir, logMemo) {
 		this._log = logger(`git-util:${logMemo}`);
+		this._mlog = logger(`git-util:${logMemo}:minor`);
 		this.execOptions = { cwd: gitDir };
 	}
 
@@ -22,11 +23,11 @@ class GitUtil {
 				this._createOnRemote(user, _next);
 			},
 			(_next) => {
-				this._log.trace("Running git init...");
+				this._mlog.trace("Running git init...");
 				child_process.execFile("git", ["--git-dir=.", `--work-tree=${workDir}`, "init"], this.execOptions, _next);
 			},
 			(_next) => {
-				this._log.info("Setting origin:", remote);
+				this._mlog.info("Setting origin:", remote);
 				child_process.execFile("git", ["remote", "add", "origin", remote], this.execOptions, _next);
 			},
 			(_next) => {
@@ -38,7 +39,7 @@ class GitUtil {
 	pullPush(message, next) {
 		async.series([
 			(_next) => {
-				this._log.debug("Preparing to pull-push...");
+				this._mlog.debug("Preparing to pull-push...");
 				_next();
 			},
 			(_next) => {
@@ -63,7 +64,7 @@ class GitUtil {
 				child_process.execFile("git", ["push", "origin", "master"], this.execOptions, silent(/src refspec master does not match any/, _next));
 			},
 			(_next) => {
-				this._log.debug("Finished pull-push");
+				this._mlog.debug("Finished pull-push");
 				_next();
 			}
 		], next);
@@ -90,7 +91,7 @@ class GitUtil {
 	_createOnRemote(user, next) {
 		async.series([
 			(_next) => {
-				this._log.debug("Preparing remote repo...");
+				this._mlog.debug("Preparing remote repo...");
 				_next();
 			},
 			(_next) => {

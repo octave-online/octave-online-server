@@ -35,18 +35,18 @@ class SessionImpl extends OctaveSession {
 	_doCreateImpl(next) {
 		async.auto({
 			"cfs": (_next) => {
-				this._log.trace("Requesting creation of capped file system");
+				this._mlog.trace("Requesting creation of capped file system");
 				this._cfs.create((err, dataDir) => {
 					if (!err) this._dataDir = dataDir;
 					_next(err);
 				});
 			},
 			"files": ["cfs", (_next) => {
-				this._log.trace("Requesting creation of file manager process");
+				this._mlog.trace("Requesting creation of file manager process");
 				this._filesSession.create(_next, this._dataDir);
 			}],
 			"host": ["cfs", (_next) => {
-				this._log.trace("Requesting creation of Octave host process");
+				this._mlog.trace("Requesting creation of Octave host process");
 				this._hostSession.create(_next, this._dataDir);
 			}]
 		}, (err) => {
@@ -61,19 +61,19 @@ class SessionImpl extends OctaveSession {
 		// TODO: Add an alternative destroy implementation that is synchronous, so that it can be run in an exit handler.
 		async.auto({
 			"commit": (_next) => {
-				this._log.trace("Requesting to commit changes to Git");
+				this._mlog.trace("Requesting to commit changes to Git");
 				this._commit("Scripted user file commit", silent(/Out of time/, _next));
 			},
 			"host": ["commit", (_next) => {
-				this._log.trace("Requesting termination of Octave host process");
+				this._mlog.trace("Requesting termination of Octave host process");
 				this._hostSession.destroy(_next);
 			}],
 			"files": ["commit", (_next) => {
-				this._log.trace("Requesting termination of file manager process");
+				this._mlog.trace("Requesting termination of file manager process");
 				this._filesSession.destroy(_next);
 			}],
 			"cfs": ["host", "files", (_next) => {
-				this._log.trace("Requesting deletion of capped file system");
+				this._mlog.trace("Requesting deletion of capped file system");
 				this._cfs.destroy(_next);
 			}]
 		}, (err) => {
@@ -112,13 +112,14 @@ class HostProcessHandler extends ProcessHandler {
 
 		// Override default logger with something that says "host"
 		this._log = logger(`host-handler:${sessCode}`);
+		this._mlog = logger(`host-handler:${sessCode}:minor`);
 	}
 
 	_doCreate(next, dataDir) {
 		async.series([
 			(_next) => {
 				temp.mkdir("oo-", (err, tmpdir) => {
-					this._log.debug("Created tmpdir:", tmpdir);
+					this._mlog.debug("Created tmpdir:", tmpdir);
 					this.tmpdir = tmpdir;
 					_next(err);
 				});
@@ -139,14 +140,14 @@ class HostProcessHandler extends ProcessHandler {
 								setTimeout(___next, 250);
 							},
 							(___next) => {
-								this._log.trace("Attempting to get Octave PID...");
+								this._mlog.trace("Attempting to get Octave PID...");
 								pstree(this._spwn.pid, ___next);
 							},
 							(children, ___next) => {
 								let child = children.find((_child) => { return /octave-cli/.test(_child.COMMAND) });
 								if (child) {
 									this.octavePID = child.PID;
-									this._log.debug("Got Octave PID:", this.octavePID);
+									this._mlog.debug("Got Octave PID:", this.octavePID);
 								}
 								___next(null);
 							}
@@ -163,7 +164,7 @@ class HostProcessHandler extends ProcessHandler {
 			super._doDestroy.bind(this),
 			(_next) => {
 				if (this.tmpdir) {
-					this._log.trace("Destroying tmpdir");
+					this._mlog.trace("Destroying tmpdir");
 					child_process.exec(`rm -rf ${this.tmpdir}`, _next);
 				} else {
 					process.nextTick(_next);
@@ -184,6 +185,7 @@ class FilesControllerHandler extends OnlineOffline {
 	constructor(sessCode) {
 		super();
 		this._log = logger(`files-handler:${sessCode}`);
+		this._mlog = logger(`files-handler:${sessCode}:minor`);
 		this.sessCode = sessCode;
 		this._messageQueue = new Queue();
 	}
@@ -193,7 +195,7 @@ class FilesControllerHandler extends OnlineOffline {
 			(_next) => {
 				// Make the gitdir
 				temp.mkdir("oo-", (err, tmpdir) => {
-					this._log.debug("Created gitdir:", tmpdir);
+					this._mlog.debug("Created gitdir:", tmpdir);
 					this.gitdir = tmpdir;
 					_next(err);
 				});
@@ -220,7 +222,7 @@ class FilesControllerHandler extends OnlineOffline {
 		async.series([
 			(_next) => {
 				if (this.gitdir) {
-					this._log.trace("Destroying gitdir");
+					this._mlog.trace("Destroying gitdir");
 					child_process.exec(`rm -rf ${this.gitdir}`, _next);
 				} else {
 					process.nextTick(_next);
@@ -253,6 +255,7 @@ class HostDockerHandler extends DockerHandler {
 
 		// Override default logger with something that says "host"
 		this._log = logger(`host-handler:${sessCode}`);
+		this._mlog = logger(`host-handler:${sessCode}:minor`);
 	}
 
 	_doCreate(next, dataDir) {
@@ -277,6 +280,7 @@ class FilesDockerHandler extends DockerHandler {
 
 		// Override default logger with something that says "files"
 		this._log = logger(`files-handler:${sessCode}`);
+		this._mlog = logger(`files-handler:${sessCode}:minor`);
 	}
 
 	_doCreate(next, dataDir) {

@@ -1,6 +1,7 @@
 "use strict";
 
 const log = require("@oo/shared").logger("session-manager");
+const mlog = require("@oo/shared").logger("session-manager:minor");
 const EventEmitter = require("events");
 const impls = require("./session-impl");
 const uuid = require("uuid");
@@ -127,7 +128,7 @@ class SessionManager extends EventEmitter {
 		// Do this at the end in case any of the messages are "exit" messages
 		while (!cache.isEmpty()) {
 			const message = cache.dequeue();
-			log.trace("Flushing message:", remoteCode, message[0]);
+			mlog.trace("Flushing message:", remoteCode, message[0]);
 			if (/exit/.test(message[0])) log.warn("Exit message:", message[1]);
 			this.emit("message", remoteCode, message[0], message[1]);
 		}

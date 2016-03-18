@@ -2,6 +2,7 @@
 
 const redis = require("redis");
 const log = require("./logger")("redis-util");
+const mlog = require("./logger")("redis-util:minor");
 const config = require("./config.json");
 
 const PORT = config.redis.port;
@@ -10,7 +11,7 @@ const OPTIONS = config.redis.options;
 
 module.exports = {
 	createClient: () => {
-		log.debug("Connecting to Redis");
+		mlog.debug("Connecting to Redis");
 		return redis.createClient(PORT, HOSTNAME, OPTIONS)
 	},
 
