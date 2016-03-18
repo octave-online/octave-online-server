@@ -1,0 +1,215 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1453119478 21600
+#      Mon Jan 18 06:17:58 2016 -0600
+# Branch oo
+# Node ID d3de6023e84666d9db08e00e3417d2601d05989e
+# Parent  d38b7c534496ca887f197901cf4fea75788ea579
+Adding "show_static_plot" endpoint in octave link and synchronizing with GNUPlot when creating output files upon redraw plot commands.
+
+diff -r d38b7c534496 -r d3de6023e846 libinterp/corefcn/octave-link.cc
+--- a/libinterp/corefcn/octave-link.cc	Mon Jan 18 02:07:42 2016 -0600
++++ b/libinterp/corefcn/octave-link.cc	Mon Jan 18 06:17:58 2016 -0600
+@@ -448,5 +448,30 @@
+   return retval;
+ }
+ 
++DEFUN (__octave_link_plot_destination__, , ,
++       "-*- texinfo -*-\n\
++@deftypefn {} {} __octave_link_plot_destination__ ()\n\
++Undocumented internal function.\n\
++@end deftypefn")
++{
++  return octave_value (octave_link::plot_destination ());
++}
+ 
++DEFUN (__octave_link_show_static_plot__, args, ,
++       "-*- texinfo -*-\n\
++@deftypefn {} {} __octave_link_show_static_plot__ (@var{term}, @var{content})\n\
++Undocumented internal function.\n\
++@end deftypefn")
++{
++  if (args.length () != 2) {
++    octave_value retval; return retval;  // v4.0
++    // return ovl ();  // v4.1.0+
++  }
+ 
++  std::string term = args(0).string_value();
++  std::string content = args(1).string_value();
++  return octave_value (octave_link::show_static_plot (term, content));
++}
++
++
++
+diff -r d38b7c534496 -r d3de6023e846 libinterp/corefcn/octave-link.h
+--- a/libinterp/corefcn/octave-link.h	Mon Jan 18 02:07:42 2016 -0600
++++ b/libinterp/corefcn/octave-link.h	Mon Jan 18 06:17:58 2016 -0600
+@@ -335,6 +335,29 @@
+     return enabled () ? instance->_request_input_enabled : false;
+   }
+ 
++  enum plot_destination_t {
++    TERMINAL_ONLY = 0,
++    STATIC_ONLY = 1,
++    TERMINAL_AND_STATIC = 2
++  };
++
++  static plot_destination_t plot_destination (void)
++  {
++    return enabled () ? instance->_plot_destination : TERMINAL_ONLY;
++  }
++
++  static bool
++  show_static_plot (const std::string& term, const std::string& content)
++  {
++    if (enabled ())
++      {
++        instance->do_show_static_plot (term, content);
++        return true;
++      }
++    else
++      return false;
++  }
++
+   static bool
+   show_preferences ()
+   {
+@@ -488,7 +511,11 @@
+ 
+   virtual void do_show_preferences (void) = 0;
+ 
+-  virtual void do_show_doc (const std::string &file) = 0;
++  virtual void do_show_doc (const std::string& file) = 0;
++
++  plot_destination_t _plot_destination;
++  virtual void do_show_static_plot (const std::string& term,
++                                    const std::string& content) = 0;
+ };
+ 
+ #endif // OCTAVELINK_H
+diff -r d38b7c534496 -r d3de6023e846 scripts/plot/util/__gnuplot_drawnow__.m
+--- a/scripts/plot/util/__gnuplot_drawnow__.m	Mon Jan 18 02:07:42 2016 -0600
++++ b/scripts/plot/util/__gnuplot_drawnow__.m	Mon Jan 18 06:17:58 2016 -0600
+@@ -27,9 +27,75 @@
+ 
+   if (nargin < 1 || nargin > 5 || nargin == 2)
+     print_usage ();
++
++  elseif (nargin >= 3 && nargin <= 5)
++    ## Write the plot to the given file (e.g., via the "print" command)
++    __gnuplot_draw_to_file__ (h, term, file, mono, debug_file);
++
++  elseif (nargin == 1)
++    ## Plot to terminal and/or static (e.g., via the "plot" command)
++    plot_stream = get (h, "__plot_stream__");
++    if (isempty (plot_stream))
++      plot_stream = __gnuplot_open_stream__ (2, h);
++      new_stream = true;
++    else
++      new_stream = false;
++    endif
++    term = gnuplot_default_term (plot_stream);
++
++    ## There are a few options for how we can proceed.
++    ## In most cases, we will tell GNUPLOT to put the plot in its terminal.
++    ## If we have no display, we want to use the "dumb" terminal.
++    ## Octave Link may request that we send the plot as an event.
++    ## The latter two cases require plotting to a temp file.
++
++    should_plot_to_terminal = (
++      !strcmp (term, "dumb") && (
++        __octave_link_plot_destination__ () == 0 ||
++        __octave_link_plot_destination__ () == 2
++      )
++    );
++
++    if (should_plot_to_terminal)
++      enhanced = gnuplot_set_term (plot_stream(1), new_stream, h, term);
++      __go_draw_figure__ (h, plot_stream(1), enhanced, mono);
++      fflush (plot_stream(1));
++    endif
++
++    should_plot_to_temp_file = (
++      strcmp (term, "dumb") ||
++      __octave_link_plot_destination__ () == 1 ||
++      __octave_link_plot_destination__ () == 2
++    );
++
++    if (should_plot_to_temp_file)
++      tmp_file = tempname ();
++      __gnuplot_draw_to_file__ (h, term, tmp_file);
++      pause (1);
++
++      ## Read the temp file into memory and then delete it
++      fid = fopen (tmp_file, 'r');
++      [a, count] = fscanf (fid, '%c', Inf);
++      fclose (fid);
++      unlink (tmp_file);
++
++      ## What to do with the plot data?
++      if (count > 0)
++        if (a(1) == 12)
++          a = a(2:end);  # avoid ^L at the beginning
++        endif
++        if strcmp (term, "dumb")
++          puts (a);
++        else
++          __octave_link_show_static_plot__ (term, a);
++        endif
++      endif
++    endif
++
+   endif
++endfunction
+ 
+-  if (nargin >= 3 && nargin <= 5)
++function __gnuplot_draw_to_file__ (h, term, file, mono = false, debug_file)
+     ## Produce various output formats, or redirect gnuplot stream to a
+     ## debug file.
+     plot_stream = [];
+@@ -65,45 +131,6 @@
+         fclose (fid);
+       endif
+     end_unwind_protect
+-  else  # nargin == 1
+-    ##  Graphics terminal for display.
+-    plot_stream = get (h, "__plot_stream__");
+-    if (isempty (plot_stream))
+-      plot_stream = __gnuplot_open_stream__ (2, h);
+-      new_stream = true;
+-    else
+-      new_stream = false;
+-    endif
+-    term = gnuplot_default_term (plot_stream);
+-    if (strcmp (term, "dumb"))
+-      ## popen2 eats stdout of gnuplot, use temporary file instead
+-      dumb_tmp_file = tempname ();
+-      enhanced = gnuplot_set_term (plot_stream(1), new_stream, h,
+-                                   term, dumb_tmp_file);
+-    else
+-      enhanced = gnuplot_set_term (plot_stream(1), new_stream, h, term);
+-    endif
+-    __go_draw_figure__ (h, plot_stream(1), enhanced, mono);
+-    fflush (plot_stream(1));
+-    if (strcmp (term, "dumb"))
+-      fid = -1;
+-      while (fid < 0)
+-        pause (0.1);
+-        fid = fopen (dumb_tmp_file, 'r');
+-      endwhile
+-      ## reprint the plot on screen
+-      [a, count] = fscanf (fid, '%c', Inf);
+-      fclose (fid);
+-      if (count > 0)
+-        if (a(1) == 12)
+-          a = a(2:end);  # avoid ^L at the beginning
+-        endif
+-        puts (a);
+-      endif
+-      unlink (dumb_tmp_file);
+-    endif
+-  endif
+-
+ endfunction
+ 
+ function enhanced = gnuplot_set_term (plot_stream, new_stream, h, term, file)

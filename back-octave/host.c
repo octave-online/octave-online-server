@@ -211,7 +211,7 @@ void cb_connect(uv_stream_t* comm, int status) {
 
 // MAIN FUNCTION
 
-int main() {
+int main(int argc, char* argv[]) {
 	signal(SIGPIPE, SIG_IGN);
 	loop = uv_default_loop();
 
@@ -234,14 +234,21 @@ int main() {
 	CATCH(uv_signal_init(loop, &sigterm_s));
 	CATCH(uv_signal_init(loop, &sighup_s));
 
-	char* args[7];
+	// Let the command line argument translate into "--json-max-len"
+	char* args[9];
 	args[0] = "octave";
 	args[1] = "--json-sock";
 	args[2] = com_path;
 	args[3] = "--interactive";
 	args[4] = "--quiet";
 	args[5] = "--no-window-system";
-	args[6] = NULL;
+	args[6] = "--json-max-len";
+	if (argc > 1) {
+		args[7] = argv[1];
+	} else {
+		args[7] = "0";
+	}
+	args[8] = NULL;
 
 	options.exit_cb = cb_exit;
 	options.file = "/usr/local/bin/octave";

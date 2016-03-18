@@ -1,0 +1,64 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1453104462 21600
+#      Mon Jan 18 02:07:42 2016 -0600
+# Branch oo
+# Node ID d38b7c534496ca887f197901cf4fea75788ea579
+# Parent  323e92c4589f7a47d67033e689e61dfa510cf911
+Adding octave link binding "request_input".  When enabled, the binding will be called whenever the user is prompted for input, and it should return a string corresponding to what the user entered in response.  It should be enabled on an instance of octave_link by setting the private field _request_input_enabled=true.
+
+diff -r 323e92c4589f -r d38b7c534496 libinterp/corefcn/input.cc
+--- a/libinterp/corefcn/input.cc	Sat Jan 16 18:14:35 2016 -0800
++++ b/libinterp/corefcn/input.cc	Mon Jan 18 02:07:42 2016 -0600
+@@ -184,7 +184,11 @@
+ 
+   eof = false;
+ 
+-  std::string retval = command_editor::readline (s, eof);
++  std::string retval;
++  if (octave_link::request_input_enabled ())
++    retval = octave_link::request_input (s);
++  else
++    retval = command_editor::readline (s, eof);
+ 
+   if (! eof && retval.empty ())
+     retval = "\n";
+diff -r 323e92c4589f -r d38b7c534496 libinterp/corefcn/octave-link.h
+--- a/libinterp/corefcn/octave-link.h	Sat Jan 16 18:14:35 2016 -0800
++++ b/libinterp/corefcn/octave-link.h	Mon Jan 18 02:07:42 2016 -0600
+@@ -276,6 +276,13 @@
+       instance->do_post_input_event ();
+   }
+ 
++  static std::string request_input (const std::string& prompt)
++  {
++    return request_input_enabled ()
++      ? instance->do_request_input (prompt)
++      : std::string ();
++  }
++
+   static void enter_debugger_event (const std::string& file, int line)
+   {
+     if (enabled ())
+@@ -323,6 +330,11 @@
+     return instance_ok () ? instance->link_enabled : false;
+   }
+ 
++  static bool request_input_enabled (void)
++  {
++    return enabled () ? instance->_request_input_enabled : false;
++  }
++
+   static bool
+   show_preferences ()
+   {
+@@ -396,6 +408,9 @@
+   void do_entered_readline_hook (void) { }
+   void do_finished_readline_hook (void) { }
+ 
++  bool _request_input_enabled;
++  virtual std::string do_request_input (const std::string&) = 0;
++
+   virtual bool do_confirm_shutdown (void) = 0;
+   virtual bool do_exit (int status) = 0;
+ 

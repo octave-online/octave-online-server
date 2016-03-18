@@ -1,0 +1,25 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1453275208 21600
+#      Wed Jan 20 01:33:28 2016 -0600
+# Branch oo
+# Node ID 4d778d6ebbd04afad8886efb7770690fbba675a9
+# Parent  15d21ceec7282b94db2d86503127d03730d5c316
+Fixing undefined reference error when DISPLAY is enabled.
+
+diff -r 15d21ceec728 -r 4d778d6ebbd0 scripts/plot/util/__gnuplot_drawnow__.m
+--- a/scripts/plot/util/__gnuplot_drawnow__.m	Mon Jan 18 08:34:13 2016 -0600
++++ b/scripts/plot/util/__gnuplot_drawnow__.m	Wed Jan 20 01:33:28 2016 -0600
+@@ -30,7 +30,11 @@
+ 
+   elseif (nargin >= 3 && nargin <= 5)
+     ## Write the plot to the given file (e.g., via the "print" command)
+-    __gnuplot_draw_to_file__ (h, term, file, mono, debug_file);
++    if (nargin == 5)
++      __gnuplot_draw_to_file__ (h, term, file, mono, debug_file);
++    else
++      __gnuplot_draw_to_file__ (h, term, file, mono);
++    endif
+ 
+   elseif (nargin == 1)
+     ## Plot to terminal and/or static (e.g., via the "plot" command)

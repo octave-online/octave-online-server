@@ -1,0 +1,81 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1453120386 21600
+#      Mon Jan 18 06:33:06 2016 -0600
+# Branch oo
+# Node ID 4d28376c34a877ba9eb5aefb84282c5bdf72a277
+# Parent  d3de6023e84666d9db08e00e3417d2601d05989e
+Adding octave link endpoint clear_screen (for the "clc" command).
+
+diff -r d3de6023e846 -r 4d28376c34a8 libgui/src/octave-qt-link.cc
+--- a/libgui/src/octave-qt-link.cc	Mon Jan 18 06:17:58 2016 -0600
++++ b/libgui/src/octave-qt-link.cc	Mon Jan 18 06:33:06 2016 -0600
+@@ -509,6 +509,11 @@
+ }
+ 
+ void
++octave_qt_link::do_clear_screen (void)
++{
++}
++
++void
+ octave_qt_link::do_pre_input_event (void)
+ {
+ }
+diff -r d3de6023e846 -r 4d28376c34a8 libgui/src/octave-qt-link.h
+--- a/libgui/src/octave-qt-link.h	Mon Jan 18 06:17:58 2016 -0600
++++ b/libgui/src/octave-qt-link.h	Mon Jan 18 06:33:06 2016 -0600
+@@ -117,6 +117,8 @@
+   void do_append_history (const std::string& hist_entry);
+   void do_clear_history (void);
+ 
++  void do_clear_screen (void);
++
+   void do_pre_input_event (void);
+   void do_post_input_event (void);
+ 
+diff -r d3de6023e846 -r 4d28376c34a8 libinterp/corefcn/octave-link.h
+--- a/libinterp/corefcn/octave-link.h	Mon Jan 18 06:17:58 2016 -0600
++++ b/libinterp/corefcn/octave-link.h	Mon Jan 18 06:33:06 2016 -0600
+@@ -264,6 +264,12 @@
+       instance->do_clear_history ();
+   }
+ 
++  static void clear_screen (void)
++  {
++    if (enabled ())
++      instance->do_clear_screen ();
++  }
++
+   static void pre_input_event (void)
+   {
+     if (enabled ())
+@@ -492,6 +498,8 @@
+   virtual void do_append_history (const std::string& hist_entry) = 0;
+   virtual void do_clear_history (void) = 0;
+ 
++  virtual void do_clear_screen (void) = 0;
++
+   virtual void do_pre_input_event (void) = 0;
+   virtual void do_post_input_event (void) = 0;
+ 
+diff -r d3de6023e846 -r 4d28376c34a8 libinterp/corefcn/sysdep.cc
+--- a/libinterp/corefcn/sysdep.cc	Mon Jan 18 06:17:58 2016 -0600
++++ b/libinterp/corefcn/sysdep.cc	Mon Jan 18 06:33:06 2016 -0600
+@@ -75,6 +75,7 @@
+ #include "error.h"
+ #include "input.h"
+ #include "oct-obj.h"
++#include "octave-link.h"
+ #include "ov.h"
+ #include "pager.h"
+ #include "parse.h"
+@@ -596,6 +597,8 @@
+ {
+   bool skip_redisplay = true;
+ 
++  octave_link::clear_screen ();
++
+   command_editor::clear_screen (skip_redisplay);
+ 
+   return octave_value_list ();

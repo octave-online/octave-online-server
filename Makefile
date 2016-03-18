@@ -6,6 +6,7 @@ GIT_DIR = $(shell jq -r ".docker.gitdir" shared/config.json)
 WORK_DIR = $(shell jq -r ".docker.cwd" shared/config.json)
 OCTAVE_SUFFIX = $(shell jq -r ".docker.images.octaveSuffix" shared/config.json)
 FILES_SUFFIX = $(shell jq -r ".docker.images.filesystemSuffix" shared/config.json)
+JSON_MAX_LEN = $(shell jq -r ".session.jsonMaxMessageLength" shared/config.json)
 
 docker-octave:
 	if [[ -e bundle ]]; then rm -rf bundle; fi
@@ -15,6 +16,7 @@ docker-octave:
 	cat dockerfiles/build-octave.dockerfile \
 		>> bundle/Dockerfile
 	cat dockerfiles/entrypoint-octave.dockerfile \
+		| sed -e "s;%JSON_MAX_LEN%;$(JSON_MAX_LEN);g" \
 		>> bundle/Dockerfile
 	cp -rL back-octave/* bundle
 	docker build -t oo/$(OCTAVE_SUFFIX) bundle
