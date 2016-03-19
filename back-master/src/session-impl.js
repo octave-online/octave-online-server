@@ -115,7 +115,7 @@ class HostProcessHandler extends ProcessHandler {
 		this._mlog = logger(`host-handler:${sessCode}:minor`);
 	}
 
-	_doCreate(next, dataDir) {
+	_doCreate(next, dataDir, skipSandbox) {
 		async.series([
 			(_next) => {
 				temp.mkdir("oo-", (err, tmpdir) => {
@@ -126,8 +126,11 @@ class HostProcessHandler extends ProcessHandler {
 			},
 			(_next) => {
 				// Spawn sandbox process
-				// super._doCreate(_next, child_process.spawn, "/usr/local/bin/octave-host", { cwd: dataDir });
-				super._doCreate(_next, child_process.spawn, "/usr/bin/sandbox", ["-M", "-H", dataDir, "-T", this.tmpdir, "--level", "s0", "env", "GNUTERM=svg", "env", "LD_LIBRARY_PATH=/usr/local/lib", "/usr/local/bin/octave-host", config.session.jsonMaxMessageLength]);
+				if (skipSandbox) {
+					super._doCreate(_next, child_process.spawn, "env", ["GNUTERM=svg", "env", "LD_LIBRARY_PATH=/usr/local/lib", "/usr/local/bin/octave-host", config.session.jsonMaxMessageLength], { cwd: dataDir });
+				} else {
+					super._doCreate(_next, child_process.spawn, "/usr/bin/sandbox", ["-M", "-H", dataDir, "-T", this.tmpdir, "--level", "s0", "env", "GNUTERM=svg", "env", "LD_LIBRARY_PATH=/usr/local/lib", "/usr/local/bin/octave-host", config.session.jsonMaxMessageLength]);
+				}
 			},
 			(_next) => {
 				// We need to get the octave-cli PID for signalling, because sandbox handles signals strangely.
@@ -303,5 +306,7 @@ class SessionDocker extends SessionImpl {
 
 module.exports = {
 	docker: SessionDocker,
-	selinux: SessionSELinux
+	selinux: SessionSELinux,
+	docker_handler: HostDockerHandler,
+	selinux_handler: HostProcessHandler
 };

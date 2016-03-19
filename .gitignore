@@ -17,3 +17,4 @@ back-octave/placeholders/
 # Specific files to omit
 shared/config.json
 back-octave/octave-host
+back-octave/bin/cwd/

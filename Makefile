@@ -61,6 +61,12 @@ install-selinux-bin:
 	cp entrypoint/oo.service /usr/lib/systemd/system/oo.service
 	ln -sf $$PWD /usr/local/share/oo
 
+install-site-m:
+	if [[ -e /usr/local/share/octave/site/m/placeholders ]]; then rm -rf /usr/local/share/octave/site/m/placeholders; fi
+	back-octave/bin/make_placeholders.js
+	cp -r back-octave/placeholders /usr/local/share/octave/site/m/placeholders
+	cp back-octave/octaverc.m /usr/local/share/octave/site/m/startup/octaverc
+
 docker: docker-octave docker-files
 
 clean:

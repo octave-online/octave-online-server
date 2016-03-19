@@ -52,6 +52,7 @@ class StdioMessenger extends OnlineOffline {
 		}
 
 		this.emit("message", data[0], data[1]);
+		this.emit(`msg:${data[0]}`, data[1]);
 	}
 }
 
