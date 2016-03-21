@@ -52,7 +52,7 @@ class MaintenanceReuestManager extends EventEmitter {
 				return s + (v ? 1 : 0);
 			}, 0);
 			let numNo = this._responses[id].length - numYes;
-			let success = numYes > numNo;
+			let success = numNo < config.maintenance.maxNodesInMaintenance && numYes > 0;
 
 			// Were we successful?
 			if (success) {
