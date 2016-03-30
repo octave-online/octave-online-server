@@ -15,12 +15,19 @@ class MessageTranslator extends EventEmitter {
 		switch(name) {
 			// MESSAGES NEEDING TRANSLATION:
 
-			// "request-input" is the newer version of "prompt", which provided a line number as an integer.
+			// "request-input" is the newer version of "prompt", which provided a line number as an integer.  The line number needs to be extracted via regex for backwards compatibility.
 			case "request-input":
-				let match = content.match(/\d+/);
+				let match = content.match(/^octave:(\d+)>\s+$/);
 				let line_number = -1;
-				if (match) line_number = parseInt(match[0]);
-				this._forDownstream(sessCode, "prompt", { line_number });
+				if (match) {
+					line_number = parseInt(match[1]);
+				} else {
+					this._forDownstream(sessCode, "data", {
+						type: "stdout",
+						data: content
+					});
+				}
+				this._forDownstream(sessCode, "prompt", { line_number, prompt: content });
 				break;
 
 			// "out" and "err" need to be translated to "data" events
