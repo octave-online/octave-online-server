@@ -153,7 +153,7 @@ class MessageTranslator extends EventEmitter {
 
 			// Translate "signal" to "interrupt"
 			case "signal":
-				this._forUpstream(sessCode, "interrupt");
+				this._forUpstream(sessCode, "interrupt", getData);
 				break;
 
 			// Emit ping/pong as an event
