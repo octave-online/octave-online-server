@@ -6,6 +6,7 @@ const path = require("path");
 const async = require("async");
 const fs = require("fs");
 const child_process = require("child_process");
+const silent = require("../../shared/silent");
 
 // Packages for which to generate placeholder files that tell the user to run "pkg load XXX"
 const PLACEHOLDER_PACKAGES = ["ltfat", "nan", "stk", "tsa"];
@@ -88,7 +89,10 @@ async.series([
 		}, _next);
 	},
 	(_next) => {
-		child_process.exec("rm ../placeholders/*.m", { cwd: __dirname }, _next);
+		child_process.exec("rm ../placeholders/*.m", { cwd: __dirname }, silent(/.*/, _next));
+	},
+	(_next) => {
+		fs.mkdir(path.join(__dirname, "../placeholders"), silent(/.*/, _next));
 	},
 	(_next) => {
 		async.each(placeholders, (ph, __next) => {
@@ -114,4 +118,6 @@ endfunction`;
 	process.destroy();
 });
 
-process.create(()=>{}, path.join(__dirname, "cwd"), true);
+const cwd = path.join(__dirname, "cwd");
+try { fs.mkdirSync(cwd) } catch(err) {}
+process.create(()=>{}, cwd, true);

@@ -1,10 +1,9 @@
-## back-octave/octaverc.m
-## Site-wide octaverc file.
-
 function o = xlsopen(name)
+% XLS files are not currently supported in Octave Online.
+% Try saving your spreadsheet in the CSV format.
+
   disp("XLS files are not currently supported in Octave Online.");
-  disp("Try saving your spreadsheet in the CSV format.  Make sure your file");
-  disp("has either Linux-style or Windows-style line breaks.");
+  disp("Try saving your spreadsheet in the CSV format.");
 endfunction
 
 # Clear Vars Patch from wiki.octave.org

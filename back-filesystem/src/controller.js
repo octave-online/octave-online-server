@@ -253,7 +253,7 @@ class FilesController extends EventEmitter {
 			});
 		});
 		uploader.on("error", (event) => {
-			if (/ENOSPC/.test(event.error.message)) return this._fail("saved", "warn", `Uploading ${event.file.name}:\nIf your file is large and causes you to exceed your space limit\n(${config.docker.diskQuotaKiB} KiB), the file may be incomplete.`);
+			if (/ENOSPC/.test(event.error.message)) return this._fail("saved", "debug", `Uploading ${event.file.name}:\nIf your file is large and causes you to exceed your space limit\n(${config.docker.diskQuotaKiB} KiB), the file may be incomplete.`);
 			this._log.error("siofu:", event);
 		});
 		uploader.listen(this.fakeSocket);
