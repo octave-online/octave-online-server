@@ -40,6 +40,7 @@ class OctaveSession extends OnlineOffline {
 	}
 
 	_doDestroy(next, reason) {
+		this._mlog.trace("Starting Destroy Procedure:", reason);
 		async.series([
 			(_next) => {
 				if (this._countdownTimer) clearInterval(this._countdownTimer);
@@ -66,6 +67,7 @@ class OctaveSession extends OnlineOffline {
 	// Use an interval to signal Octave once after the first timeout and then repeatedly after that, until the kernel sends us a "request-input" event to signal that it is done processing commands.
 	_startCountdown() {
 		if (this._countdownTimer) return;
+		if (this._state !== "ONLINE") return;
 		this._countdownTimer = setInterval(() => {
 			this.interrupt();
 			this.emit("message", "err", "!!! OUT OF TIME !!!\n");
@@ -80,6 +82,7 @@ class OctaveSession extends OnlineOffline {
 
 	// TIMEOUT METHODS: For killing the Octave kernel after a fixed number of seconds to clear server resources when the client is inactive.
 	resetTimeout() {
+		if (this._state !== "ONLINE") return;
 		if (this._timewarnTimer) clearTimeout(this._timewarnTimer);
 		if (this._timeoutTimer) clearTimeout(this._timeoutTimer);
 		this._timewarnTimer = setTimeout(() => {
