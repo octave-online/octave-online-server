@@ -73,7 +73,7 @@ class SessionManager extends EventEmitter {
 			// Get rid of the session if it failed to create
 			if (err) {
 				log.warn("Session failed to create:", localCode, err);
-				session.destroy();
+				session.destroy(null, "Failed To Create");
 				next();
 				return;
 			}

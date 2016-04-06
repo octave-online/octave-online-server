@@ -28,6 +28,9 @@ class OctaveSession extends OnlineOffline {
 
 		this._messageQueue = new Queue();
 
+		this._throttleCounter = 0;
+		this._throttleTime = process.hrtime();
+
 		this.on("error", this._handleError.bind(this));
 	}
 
@@ -215,6 +218,27 @@ class OctaveSession extends OnlineOffline {
 		}
 	}
 
+	// Prevent spammy messages from clogging up the server.
+	// TODO: It would be better if this were done deeper in the stack, such as host.c, so that message spamming doesn't reach all the way into the main event loop.
+	_checkThrottle() {
+		// FIXME: Make these config values.
+		// Nominal values: 100 messages per 100 milliseconds (1000 messages/second) = spam.
+		// INTERVAL_DURATION should be less than 1e9.
+		let MSGS_PER_INTERVAL = 100;
+		let INTERVAL_DURATION = 1e8;
+
+		if (++this._throttleCounter < MSGS_PER_INTERVAL) return;
+
+		this._throttleCounter = 0;
+		let diff = process.hrtime(this._throttleTime);
+		this._throttleTime = process.hrtime();
+
+		if (diff[0] === 0 && diff[1] < INTERVAL_DURATION) {
+			this._log.warn("Messages too rapid!  Killing process!", diff);
+			this.emit("message", "destroy", "Too Many Packets");
+		}
+	}
+
 	sendMessage(name, content) {
 		switch (name) {
 			// Messages requiring special handling
@@ -279,6 +303,8 @@ class OctaveSession extends OnlineOffline {
 	}
 
 	_handleMessage(name, content) {
+		// Check for message throttling, except for "out" and "err" messages, which are throttled via payload.
+		if (name !== "out" && name !== "err") this._checkThrottle();
 
 		// Special pre-processing of a few events here
 		switch (name) {
