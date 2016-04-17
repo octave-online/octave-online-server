@@ -94,26 +94,32 @@ define(["ace/ace", "ot"], function(ace, ot){
 	};
 
 	ACEAdapter.prototype.operationFromACEChange = function(change) {
-		var action, delta, inverse, operation, ref, ref1, restLength, start, text;
-		delta = change.data;
-		if ((ref = delta.action) === "insertLines" || ref === "removeLines") {
-			text = delta.lines.join("\n") + "\n";
-			action = delta.action.replace("Lines", "");
+		var action, delete_op, delta, insert_op, ref, restLength, start, text;
+		if (change.data) {
+			delta = change.data;
+			if ((ref = delta.action) === 'insertLines' || ref === 'removeLines') {
+				text = delta.lines.join('\n') + '\n';
+				action = delta.action.replace('Lines', '');
+			} else {
+				text = delta.text.replace(this.aceDoc.getNewLineCharacter(), '\n');
+				action = delta.action.replace('Text', '');
+			}
+			start = this.indexFromPos(delta.range.start);
 		} else {
-			text = delta.text.replace(this.aceDoc.getNewLineCharacter(), '\n');
-			action = delta.action.replace("Text", "");
+			text = change.lines.join('\n');
+			start = this.indexFromPos(change.start);
 		}
-		start = this.indexFromPos(delta.range.start);
 		restLength = this.lastDocLines.join('\n').length - start;
-		if (action === "remove") {
+		if (change.action === 'remove') {
 			restLength -= text.length;
 		}
-		operation = new ot.TextOperation().retain(start).insert(text).retain(restLength);
-		inverse = new ot.TextOperation().retain(start)["delete"](text).retain(restLength);
-		if (action === 'remove') {
-			ref1 = [inverse, operation], operation = ref1[0], inverse = ref1[1];
+		insert_op = new ot.TextOperation().retain(start).insert(text).retain(restLength);
+		delete_op = new ot.TextOperation().retain(start)["delete"](text).retain(restLength);
+		if (change.action === 'remove') {
+			return [delete_op, insert_op];
+		} else {
+			return [insert_op, delete_op];
 		}
-		return [operation, inverse];
 	};
 
 	ACEAdapter.prototype.applyOperationToACE = function(operation) {
