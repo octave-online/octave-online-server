@@ -69,8 +69,14 @@ export function downloadAttachment(id: string, next: (err: Error, contentString:
 	client.on("error", console.log);
 
 	// Download the attachment
-	client.brpop(channel, 0, (err, [_channel, contentString]) => {
+	client.brpoplpush(channel, channel, Config.redis.expire.timeout / 1000, (err, response) => {
 		client.quit();
-		next(err, contentString);
+		if (response) {
+			// Succeeded getting the data
+			next(err, response);
+		} else {
+			// Timeout
+			next(err, JSON.stringify(null));
+		}
 	});
 }

@@ -95,8 +95,8 @@ class BackServerHandler extends EventEmitter2.EventEmitter2 {
 		if (!obj) return;
 
 		// Everything from here down will be run only if this instance is associated with the sessCode of the message.
-		// Use a "queue" to ensure that messages are processed in the order in which they were sent.  Since loading message content is asynchronous, there is a possibility that messages could be processed out of order.
 		let queueObj = { name: obj.name, ready: false, content: null };
+		// Use a "queue" to ensure that messages are processed in the order in which they were sent.  Since loading message content is asynchronous, there would be a possibility that messages could be processed out of order.
 		this.messageQueue.push(queueObj);
 		Attachment.loadMessage(obj, (name, content) => {
 			queueObj.content = content;
