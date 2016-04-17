@@ -285,7 +285,10 @@ function($, ko, canvg, splittr, Base64, download,
 				anal.command(cmd);
 			},
 			signal: function(event){
+				// Trigger both a signal and an empty command upstream.  The empty command will sometimes help if, for any reason, the "prompt" message was lost in transit.
+				// This could be slightly improved by adding the empty command elsewhere in the stack, to reduce the number of packets that need to be sent.
 				OctMethods.socket.signal();
+				OctMethods.socket.command("");
 				anal.sigint();
 			},
 			historyUp: function(prompt){
