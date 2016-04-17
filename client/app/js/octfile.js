@@ -102,7 +102,7 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 		self.isModified = ko.computed(function(){
 			return self.content() !== self.savedContent();
 		});
-		self.buttonsShown = ko.observable(!self.editable);
+		self.buttonsShown = ko.observable(true);
 		self.buttonsShown.subscribe(function(){
 			// Fire the "resize" event here so that the Ace editor redraws itself.
 			// This is probably not the most efficient way to achieve that end goal.
