@@ -31,10 +31,13 @@ define(["knockout", "require"], function(ko, require){
 			var isNumeric = (self.class_name() === "double");
 			var isSym = (self.class_name() === "sym");
 			var isTF = (self.class_name() === "tf");
+			var isImg = (self.class_name() === "uint8");
 			
 			if ( isChar                ) return "(abc)";
 			if ( isSym                 ) return "$";
 			if ( isTF                  ) return "\u2112";
+			if ( isImg    &&  isComplex) return "\u276C"+self.dimension()+"\u276D*";
+			if ( isImg    && !isComplex) return "\u276C"+self.dimension()+"\u276D";
 			if ( isCell   &&  isComplex) return "{"+self.dimension()+"}*";
 			if ( isCell   && !isComplex) return "{"+self.dimension()+"}";
 			if ( isFn     &&  isComplex) return "@*";
@@ -56,10 +59,12 @@ define(["knockout", "require"], function(ko, require){
 			var isNumeric = (self.class_name() === "double");
 			var isSym = (self.class_name() === "sym");
 			var isTF = (self.class_name() === "tf");
+			var isImg = (self.class_name() === "uint8");
 			
 			if ( isChar                ) return "characters";
 			if ( isSym                 ) return "symbolic";
 			if ( isTF                  ) return "transfer function";
+			if ( isImg                 ) return "uint8 data (images)";
 			if ( isCell   &&  isComplex) return "complex cell array";
 			if ( isCell   && !isComplex) return "cell array";
 			if ( isFn     &&  isComplex) return "complex function handle";
