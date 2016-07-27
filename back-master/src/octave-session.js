@@ -65,13 +65,23 @@ class OctaveSession extends OnlineOffline {
 
 	// COUNTDOWN METHODS: For interrupting the Octave kernel after a fixed number of seconds to ensure a fair distribution of CPU time.
 	// Use an interval to signal Octave once after the first timeout and then repeatedly after that, until the kernel sends us a "request-input" event to signal that it is done processing commands.
-	_startCountdown() {
+	_startCountdown(command) {
 		if (this._countdownTimer) return;
 		if (this._state !== "ONLINE") return;
+
+		// Special handling to give more time to a few commands.
+		// FIXME: This is a hack.
+		let time = this._legalTime;
+		if (/^pkg install [\w\-\. ]+\.tar\.gz\s*$/.test(command)) {
+			// matches a command like "pkg install -auto bim-1.1.5.tar.gz"
+			this._log.trace("Adding 30 seconds of runtime to command:", command);
+			time += 30000;
+		}
+
 		this._countdownTimer = setInterval(() => {
 			this.interrupt();
 			this.emit("message", "err", "!!! OUT OF TIME !!!\n");
-		}, this._legalTime);
+		}, time);
 	}
 	_endCountdown() {
 		if (this._countdownTimer) {
@@ -251,8 +261,8 @@ class OctaveSession extends OnlineOffline {
 
 			case "cmd":
 				// FIXME: The following translation (from content to content.data) should be performed in message-translator.js, but we're unable to do so because the data isn't downloaded from Redis until after message-translator is run.  Is there a more elegant place to put this?  Maybe all message translation should happen here in octave-session.js instead?
-				content = content.data;
-				this._startCountdown();
+				content = content.data || "";
+				this._startCountdown(content);
 				this.resetTimeout();
 				this._appendToSessionLog(name, content);
 				// Split the command into individual lines and send them to Octave one-by-one.
