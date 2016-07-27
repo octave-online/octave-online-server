@@ -3,8 +3,7 @@
 const async = require("async");
 const redis = require("redis");
 const EventEmitter = require("events");
-const log = require("./logger")("redis-messenger");
-const mlog = require("./logger")("redis-messenger:minor");
+const logger = require("./logger");
 const redisUtil = require("./redis-util");
 const Scripto = require("redis-scripto");
 const path = require("path");
@@ -17,15 +16,22 @@ class RedisMessenger extends EventEmitter {
 		this._client = redisUtil.createClient();
 		this._subscribed = false;
 		this._scriptManager = null;
+		this.id = uuid.v4();  // For logging
+		this._log = logger("redis-messenger:" + this.id);
+		this._mlog = logger("redis-messenger:" + this.id + ":minor");
 
 		this._client.on("error", (err) => {
-			log.error("REDIS CLIENT", err);
+			this._log.error("REDIS CLIENT", err);
 		});
 		this._client.on("end", () => {
-			log.info("Redis connection ended");
+			this._log.info("Redis connection ended");
 		});
 		this._client.on("reconnecting", (info) => {
-			log.info("Redis reconnecting:", info);
+			this._log.info("Redis reconnecting:", info);
+			this._log.debug("FYI: Subscription set:", this._client.subscription_set);
+		});
+		this._client.on("ready", (info) => {
+			this._log.info("Redis ready:", info);
 		});
 	}
 
@@ -215,6 +221,8 @@ class RedisMessenger extends EventEmitter {
 		this._ensureNotSubscribed();
 		this._subscribed = true;
 
+		this._log.info("Subscribing to channel:", channel);
+
 		this._client.subscribe(channel);
 		this._client.on("message", (channel, message) => {
 			try {
@@ -230,6 +238,8 @@ class RedisMessenger extends EventEmitter {
 	_psubscribe(pattern) {
 		this._ensureNotSubscribed();
 		this._subscribed = true;
+
+		this._log.info("Subscribing to pattern:", pattern);
 
 		this._client.psubscribe(pattern);
 		this._client.on("pmessage", (pattern, channel, message) => {
@@ -248,6 +258,8 @@ class RedisMessenger extends EventEmitter {
 		this._ensureNotSubscribed();
 		this._subscribed = true;
 
+		this._log.info("Subscribing to expiring keys");
+
 		this._client.subscribe("__keyevent@0__:expired");
 		this._client.on("message", (channel, message) => {
 			try {
@@ -263,13 +275,15 @@ class RedisMessenger extends EventEmitter {
 		this._ensureNotSubscribed();
 		if (!this._scriptManager) throw new Error("Need to call enableScripts() first");
 
+		this._mlog.trace("Running script:", memo, keys);
+
 		this._scriptManager.run(memo, keys, args, next);
 	}
 
 	_serializeMessage(name, content) {
 		// Protect against name length
 		if (name.length > config.redis.maxPayload) {
-			log.error(new Error("Name length exceeds max redis payload length!"));
+			this._log.error(new Error("Name length exceeds max redis payload length!"));
 			return null;
 		}
 
@@ -277,12 +291,13 @@ class RedisMessenger extends EventEmitter {
 		let contentString = JSON.stringify(content);
 		if (contentString.length > config.redis.maxPayload) {
 			let id = uuid.v4();
-			mlog.trace("Sending content as attachment:", name, id, contentString.length);
+			this._mlog.trace("Sending content as attachment:", name, id, contentString.length);
 			this._uploadAttachment(id, contentString, this._handleError.bind(this));
 			return JSON.stringify({ name, attachment: id });
 		}
 
 		// The message is short enough to send as one chunk!
+		this._mlog.trace("Sending content on channel:", name);
 		return JSON.stringify({ name, data: content });
 	}
 
@@ -342,7 +357,7 @@ class RedisMessenger extends EventEmitter {
 	}
 
 	_handleError() {
-		if (arguments[0]) log.warn.apply(this, arguments);
+		if (arguments[0]) this._log.warn.apply(this, arguments);
 	}
 
 	_ensureNotSubscribed() {
