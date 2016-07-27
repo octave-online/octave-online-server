@@ -293,11 +293,11 @@ class RedisMessenger extends EventEmitter {
 			});
 			else {
 				return this._downloadAttachment(message.attachment, (err, contentString) => {
-					mlog.trace("Received content as attachment:", message.name, message.attachment, contentString.length);
+					this._mlog.trace("Received content as attachment:", message.name, message.attachment, contentString.length);
 					try {
-						next(null, JSON.parse(contentString));
-					} catch (err) {
-						next(err);
+						next(err, JSON.parse(contentString));
+					} catch (_err) {
+						next(_err);
 					}
 				});
 			}
@@ -331,10 +331,13 @@ class RedisMessenger extends EventEmitter {
 		client.on("error", this._handleError.bind(this));
 
 		// Download the attachment
-		client.brpop(channel, 0, (err, response) => {
+		client.brpoplpush(channel, channel, config.redis.expire.timeout/1000, (err, response) => {
 			client.quit();
-			if (err) return next(err);
-			else return next(null, response[1]);
+			if (response) {
+				next(err, response);
+			} else {
+				next(err, JSON.stringify(null));
+			}
 		});
 	}
 
