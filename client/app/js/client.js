@@ -724,6 +724,9 @@ function($, ko, canvg, Base64, download,
 				});
 				viewModel.instructorPrograms.push(data);
 			},
+			restartCountdown: function(){
+				OctMethods.prompt.startCountdown();
+			},
 			init: function(){
 				// Regular session or shared session?
 				if (OctMethods.vars.wsId) {

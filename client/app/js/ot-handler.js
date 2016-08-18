@@ -13,11 +13,13 @@ define(["js/client", "js/ot-client", "ot", "js/polyfill"],
 
 	var clientListeners = {
 		send: function(revision, operation){
-			OctMethods.socket.emit("ot.change", {
-				docId: this.id,
-				rev: revision,
-				op: operation
-			});
+			setTimeout(function(){
+				OctMethods.socket.emit("ot.change", {
+					docId: this.id,
+					rev: revision,
+					op: operation
+				});
+			}.bind(this), 500);
 		},
 		cursor: function(cursor){
 			OctMethods.socket.emit("ot.cursor", {
