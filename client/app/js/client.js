@@ -977,12 +977,17 @@ function($, ko, canvg, Base64, download,
 				OctMethods.load.stopPatience();
 				OctMethods.load.bePatientTimeout = setTimeout(function(){
 					$("#site_loading_patience").showSafe();
-					OctMethods.load.bePatientTimeout = null;
 					anal.patience();
+					OctMethods.load.bePatientTimeout = setTimeout(function(){
+						$("#site_loading_patience").hideSafe();
+						$("#site_loading_more_patience").showSafe();
+						OctMethods.load.bePatientTimeout = null;
+					}, 35000);
 				}, 10000);
 			},
 			stopPatience: function(){
 				$("#site_loading_patience").hideSafe();
+				$("#site_loading_more_patience").hideSafe();
 				if (!OctMethods.load.bePatientTimeout) return;
 				clearTimeout(OctMethods.load.bePatientTimeout);
 				OctMethods.load.bePatientTimeout = null;
