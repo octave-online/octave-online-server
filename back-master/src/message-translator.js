@@ -86,7 +86,7 @@ class MessageTranslator extends EventEmitter {
 					log.trace("Plot message too long:", content);
 					this._forDownstream(sessCode, "data", {
 						type: "stderr",
-						data: `Warning: Suppressed a large plot (${content.length} bytes).\nMaximum allowable length is ${content.max_length} bytes.\nTip: Try generating a rasterized plot (e.g., imshow)\ninstead of a vector plot.\n`
+						data: `Warning: Suppressed a large plot (${content.length} bytes).\nMaximum allowable length is ${content.max_length} bytes.\nTip: Try generating a rasterized plot (e.g., imagesc)\ninstead of a vector plot.\n`
 					});
 				} else {
 					log.warn("Unknown message too long:", content);
