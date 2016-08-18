@@ -43,6 +43,7 @@ define(
 		socket.on("disconnect", OctMethods.socketListeners.disconnect);
 		socket.on("reload", OctMethods.socketListeners.reload);
 		socket.on("instructor", OctMethods.socketListeners.instructor);
+		socket.on("restart-countdown", OctMethods.socketListeners.restartCountdown);
 		socket.on("ot.doc", OtHandler.listeners.doc);
 		socket.on("ot.broadcast", OtHandler.listeners.broadcast);
 		socket.on("ot.ack", OtHandler.listeners.ack);
