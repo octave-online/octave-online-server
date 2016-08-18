@@ -1,6 +1,7 @@
 // Main RequireJS configuration for local builds.
 
 require.config({
+  waitSeconds: 0,
   paths: {
     // jQuery and Plugins
     "jquery": "vendor/jquery/dist/jquery",
