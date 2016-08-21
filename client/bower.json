@@ -1,5 +1,5 @@
 {
-  "name": "RequireJS Starter",
+  "name": "octave-online",
   "version": "1.0.0",
   "dependencies": {
     "requirejs": "latest",
@@ -9,7 +9,7 @@
     "jquery-md5": "latest",
     "purl": "latest",
     "canvg": "latest",
-    "ace-builds": "latest",
+    "ace": "https://github.com/vote539/ace/archive/oo.zip",
     "splittr": "latest",
     "canvas-toBlob.js": "latest",
     "blob": "latest",
