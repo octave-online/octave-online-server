@@ -54,7 +54,7 @@ export function uploadAttachment(id: string, contentString: string, next: (err: 
 	// Upload the attachment along with an expire time
 	let multi = client.multi();
 	multi.lpush(channel, contentString);
-	multi.expire(channel, Config.redis.expire.timeout / 1000);
+	multi.expire(channel, Config.redis.expire.timeout);
 	multi.exec((err) => {
 		client.quit();
 		next(err);
@@ -69,7 +69,7 @@ export function downloadAttachment(id: string, next: (err: Error, contentString:
 	client.on("error", console.log);
 
 	// Download the attachment
-	client.brpoplpush(channel, channel, (Config.redis.expire.timeout / 1000) >> 0, (err, response) => {
+	client.brpoplpush(channel, channel, Config.redis.expire.timeout, (err, response) => {
 		client.quit();
 		if (response) {
 			// Succeeded getting the data
