@@ -204,7 +204,7 @@ define(
 			onboarding.hideScriptPromo();
 			anal.sitecontrol("hamburger");
 		});
-		$("#sign_in_with_email").click(function () {
+		$("#sign_in_with_persona").click(function () {
 			require(["js/login"], function(L){
 				L.login(false);
 			});
@@ -213,6 +213,10 @@ define(
 			require(["js/login"], function(L){
 				L.login(true);
 			});
+		});
+		$("#sign_in_with_email").click(function () {
+			$("#email_token").showSafe();
+			$("#emailField").focus();
 		});
 
 		// Theme bindings

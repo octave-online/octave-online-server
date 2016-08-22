@@ -44,11 +44,39 @@ popover(_width, _height, _zindex){
 }
 
 // Privacy Policy
-#privacy{
+#privacy {
 	popover(90%, 90%, 310)
 	
 	article {
 		white-space: pre-wrap
+	}
+}
+
+// Email Token
+#email_token {
+	popover(50%, 50%, 320)
+	
+	text-align: center
+	font-size: 1.3em
+	
+	input#emailField {
+		font-size: 1.4em
+		display: block
+		width: 95%
+		margin: 10px auto
+
+		// valid/invalid not currently used
+		&.invalid {
+			background-color: #E094A5
+		}
+		&.valid {
+			background-color: #94E0D4
+		}
+	}
+	
+	input[type=submit] {
+		height: 1.5em
+		font-size: 1.5em
 	}
 }
 

@@ -260,11 +260,14 @@
 		</div>
 		<div id="main_menu" aria-hidden="true">
 			<!-- ko ifnot: currentUser -->
-				<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
-					<image xlink:href="images/sign-in-with-persona.svg" src="images/sign-in-with-persona.png" width="200" height="40" alt="Sign in with Email" />
-				</svg>
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
 					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="Sign in with Google" />
+				</svg>
+				<svg width="200" height="40" class="login_btn" id="sign_in_with_persona">
+					<image xlink:href="images/sign-in-with-persona.svg" src="images/sign-in-with-persona.png" width="200" height="40" alt="Sign in with Persona" />
+				</svg>
+				<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
+					<image xlink:href="images/sign-in-with-email.svg" src="images/sign-in-with-email.png" width="200" height="40" alt="Sign in with Email" />
 				</svg>
 				<p class="login_bottom">
 					Signed in before but need to change your email address?  Click "Feedback" and create a ticket.  We will change it for you.
@@ -362,6 +365,15 @@
 
 <div id="privacy" data-purpose="popover" aria-hidden="true"><div><div>
 	<article></article>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
+
+<div id="email_token" data-purpose="popover" aria-hidden="true"><div><div>
+	<label for="emailField">Enter your email address:</label>
+	<form action="./auth/tok" method="get">
+		<input type="email" id="emailField" name="s" />
+		<input type="submit" value="Submit" />
+	</form>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
