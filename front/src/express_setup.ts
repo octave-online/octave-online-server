@@ -27,20 +27,24 @@ module ExpressApp {
 			.use("/*.git", BasicAuth.middleware("Octave Online Repos"))
 			.use("/*.git", PushoverHandler.router)
 			.use(Siofu.router)
+			.set("views", "./src/views")
+			.set("view engine", "ejs")
 			.post("/auth/persona", Passport.authenticate("persona"), function(req, res){
 				res.sendStatus(204);
+			})
+			.get("/auth/tok", Passport.authenticate("easy", {
+				successRedirect: "/",
+				failureRedirect: "/errors/login.html"
+			}), function(req, res) {
+				res.render("token_page", { query: req.query });
 			})
 			.get("/auth/google", Passport.authenticate("google", {
 				scope: "profile email"
 			}))
 			.get("/auth/google/callback", Passport.authenticate("google", {
 				successRedirect: "/",
-				failureRedirect: "/login/failure"
+				failureRedirect: "/errors/login.html"
 			}))
-			.get("/login/failure", function(req, res){
-				res.setHeader("Content-Type", "text/plain");
-				res.end("Login failed; please try again later");
-			})
 			.get("/logout", function(req, res){
 				req.logout();
 				res.redirect("/");

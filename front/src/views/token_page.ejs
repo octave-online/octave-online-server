@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+
+<head>
+	<title>Octave Online</title>
+	<style type="text/css">
+	body {
+		width: 75%;
+		min-width: 400px;
+		background-color: #FF5C4A; /* OO Fire Red */
+		margin: 0 auto;
+		padding: 0;
+		font-family: sans-serif;
+	}
+	#main {
+		background-color: #fff;
+		margin: 0;
+		padding: 10px;
+		text-align: center;
+	}
+	input {
+		font-size: 2em;
+		text-align: center;
+	}
+	</style>
+</head>
+
+<body>
+	<div id="main">
+		<p>
+			<img src="/images/touch-icons/120.png" />
+		</p>
+		<h1>Email Sign-In</h1>
+		<form action="./tok" method="get">
+			<p>
+				<label for="token">An email has been sent to you with your login token.  When you receive your token, enter it here:</label>
+			</p>
+			<input type="hidden" name="u" value="<%= query ? query.s : '' %>" />
+			<p>
+				<input type="text" name="t" id="t" value="" />
+			</p>
+			<p>
+				<input type="submit" value="Submit" />
+			</p>
+		</form>
+		<p>
+			Octave Online emails you a token whenever you sign in.  This prevents you from having to remember a unique password for Octave Online.
+		</p>
+		<p>
+			The email address you entered was: <strong><%= query ? query.s : "(empty)" %></strong>.  If you entered an invalid email address, please click the back button and try again.
+		</p>
+	</div>
+</body>

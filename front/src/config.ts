@@ -21,6 +21,13 @@ interface IAppConfig {
 		oauth_key: string;
 		oauth_secret: string;
 	}
+	easy: {
+		secret: string;
+	}
+	mailgun: {
+		api_key: string;
+		domain: string;
+	}
 	cookie: {
 		name: string;
 		secret: string;

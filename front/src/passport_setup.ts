@@ -1,17 +1,26 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/passport/passport.d.ts'/>
 ///<reference path='typedefs/passport-google.d.ts'/>
+///<reference path='typedefs/easy-no-password.d.ts'/>
+///<reference path='typedefs/mailgun.d.ts'/>
 ///<reference path='typedefs/iuser.ts'/>
 
 import Passport = require("passport");
 import Config = require("./config");
+import EasyNoPassword = require("easy-no-password");
 import GoogleOAuth = require("passport-google-oauth");
+import Mailgun = require("mailgun-js");
 import Persona = require("passport-persona");
 import User = require("./user_model");
 
 var baseUrl = Config.url.protocol + "://" + Config.url.hostname
 	+ ":" + Config.url.port + "/";
-var callbackUrl = baseUrl + "auth/google/callback";
+var googCallbackUrl = baseUrl + "auth/google/callback";
+
+var mailgun = Mailgun({
+	apiKey: Config.mailgun.api_key,
+	domain: Config.mailgun.domain
+});
 
 function findOrCreateUser(email:string, profile:any,
 		done:(err:Error, user?:IUser)=>void) {
@@ -42,7 +51,7 @@ function findOrCreateUser(email:string, profile:any,
 }
 
 var googleStrategy = new (GoogleOAuth.OAuth2Strategy)({
-		callbackURL: callbackUrl,
+		callbackURL: googCallbackUrl,
 		clientID: Config.google.oauth_key,
 		clientSecret: Config.google.oauth_secret
 	},
@@ -56,13 +65,36 @@ var personaStrategy = new (Persona.Strategy)({
 	},
 	function (email, done) {
 		console.log("Persona Callback", email);
-		findOrCreateUser(email, {}, done);
+		findOrCreateUser(email, { method: "persona" }, done);
+	});
+
+var easyStrategy = new (EasyNoPassword.Strategy)({
+		secret: Config.easy.secret
+	},
+	function (email, token, done) {
+		var url = `${baseUrl}auth/tok?u=${encodeURIComponent(email)}&t=${token}`;
+		mailgun.messages().send({
+			from: "Octave Online <webmaster@octave-online.net>",
+			to: email,
+			subject: "Octave Online Login",
+			text: `Thanks for using Octave Online.  Your login token is: ${token}\n\nYou can also click the following link.\n\n${url}\n\nMore Info: When you want to sign in to Octave Online, you will receive an email with your token.  This eliminates the need for you to create and remember a password for Octave Online.`
+		}, (err, info) => {
+			if (err) {
+				console.error("Failed sending email:", email, info);
+			}
+			done(null);
+		});
+	},
+	function (email, done) {
+		console.log("Easy Callback", email);
+		findOrCreateUser(email, { method: "easy" }, done);
 	});
 
 module PassportSetup {
 	export function init(){
 		Passport.use(googleStrategy);
 		Passport.use(personaStrategy);
+		Passport.use(easyStrategy);
 		Passport.serializeUser((user, cb) => {
 			cb(null, user.id);
 		});
