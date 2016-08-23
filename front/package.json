@@ -15,7 +15,7 @@
     "connect-mongo": "^0.8.2",
     "connect-redis": "^2.1.0",
     "console-stamp": "^0.1.3",
-    "easy-no-password": "^1.0.0",
+    "easy-no-password": "^1.0.3",
     "ejs": "^2.5.1",
     "eventemitter2": "^0.4.14",
     "express": "^4.10.6",

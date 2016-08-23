@@ -2,14 +2,19 @@
 
 <head>
 	<title>Octave Online</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<style type="text/css">
 	body {
 		width: 75%;
-		min-width: 400px;
 		background-color: #FF5C4A; /* OO Fire Red */
 		margin: 0 auto;
 		padding: 0;
 		font-family: sans-serif;
+	}
+	@media (max-width: 480px) {
+		body {
+			width: 100%;
+		}
 	}
 	#main {
 		background-color: #fff;
@@ -17,9 +22,13 @@
 		padding: 10px;
 		text-align: center;
 	}
-	input {
+	input[type=text] {
 		font-size: 2em;
 		text-align: center;
+		border: 2px solid #FF5C4A; /* OO Fire Red */
+	}
+	input[type=submit] {
+		font-size: 1.5em;
 	}
 	</style>
 </head>
@@ -36,7 +45,7 @@
 			</p>
 			<input type="hidden" name="u" value="<%= query ? query.s : '' %>" />
 			<p>
-				<input type="text" name="t" id="t" value="" autofocus="autofocus" />
+				<input type="text" name="t" id="t" value="" autofocus="autofocus" placeholder="Enter Token" />
 			</p>
 			<p>
 				<input type="submit" value="Submit" />
