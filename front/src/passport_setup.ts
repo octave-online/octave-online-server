@@ -71,6 +71,15 @@ var personaStrategy = new (Persona.Strategy)({
 var easyStrategy = new (EasyNoPassword.Strategy)({
 		secret: Config.easy.secret
 	},
+	function (req) {
+		if (req.body && req.body.s) {
+			return { stage: 1, username: req.body.s };
+		} else if (req.query && req.query.u && req.query.t) {
+			return { stage: 2, username: req.query.u, token: req.query.t };
+		} else {
+			return null;
+		}
+	},
 	function (email, token, done) {
 		var url = `${baseUrl}auth/tok?u=${encodeURIComponent(email)}&t=${token}`;
 		mailgun.messages().send({
@@ -81,6 +90,8 @@ var easyStrategy = new (EasyNoPassword.Strategy)({
 		}, (err, info) => {
 			if (err) {
 				console.error("Failed sending email:", email, info);
+			} else {
+				console.log("Sent token email:", email);
 			}
 			done(null);
 		});

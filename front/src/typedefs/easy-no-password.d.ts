@@ -8,6 +8,18 @@ declare module 'easy-no-password' {
 		secret: string;
 	}
 
+	interface IRequestData {
+		stage: number;
+		username: string;
+		token?: string;
+	}
+
+	interface ParseRequestFunction {
+		(
+			req: express.Request
+		): IRequestData;
+	}
+
 	interface SendTokenFunction {
 		(
 			email: string,
@@ -32,7 +44,7 @@ declare module 'easy-no-password' {
 		createToken(username:string, cb:(err:Error, token:string)=>void): void;
 		isValid(token:string, username:string, cb:(err:Error, isValid:boolean)=>void): void;
 
-		static Strategy(options: IStrategyOptions, sendToken: SendTokenFunction, verify: VerifyFunction): void;  // TODO: this is the EasyStrategy constructor, but I can't figure out how to make Typescript recognize that
+		static Strategy(options: IStrategyOptions, parseRequest: ParseRequestFunction, sendToken: SendTokenFunction, verify: VerifyFunction): void;  // TODO: this is the EasyStrategy constructor, but I can't figure out how to make Typescript recognize that
 	}
 
 	export = EasyNoPassword;

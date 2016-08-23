@@ -35,7 +35,11 @@ module ExpressApp {
 			.get("/auth/tok", Passport.authenticate("easy", {
 				successRedirect: "/",
 				failureRedirect: "/errors/login.html"
-			}), function(req, res) {
+			}))
+			.post("/auth/tok", Passport.authenticate("easy"), function(req, res) {
+				res.redirect("/auth/entry?s=" + encodeURIComponent(req.body && req.body.s));
+			})
+			.get("/auth/entry", function(req, res) {
 				res.render("token_page", { query: req.query });
 			})
 			.get("/auth/google", Passport.authenticate("google", {
