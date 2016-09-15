@@ -6,6 +6,11 @@ function o = xlsopen(name)
   disp("Try saving your spreadsheet in the CSV format.");
 endfunction
 
+function o = fork()
+% error: fork: command not available
+  fprintf(stderr, "error: fork: command not available\n");
+endfunction
+
 # Clear Vars Patch from wiki.octave.org
 function clear (varargin)
   args = sprintf (', "%s"', varargin{:});
