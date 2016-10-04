@@ -32,7 +32,7 @@
     "redis": "^0.12.1",
     "serve-static": "^1.7.1",
     "socket.io": "^1.2.1",
-    "socketio-file-upload": "^0.3.2",
+    "socketio-file-upload": "^0.4",
     "socketio-wildcard": "^0.1.1",
     "string": "^3.0.0",
     "uuid": "^2.0.1"
