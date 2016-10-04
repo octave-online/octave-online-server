@@ -21,6 +21,6 @@
   },
   "dependencies": {
     "socket.io-client": "^1.2.1",
-    "socketio-file-upload": "^0.3.2"
+    "socketio-file-upload": "^0.4"
   }
 }
