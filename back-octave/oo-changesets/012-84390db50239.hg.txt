@@ -1,0 +1,76 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1481412676 28800
+#      Sat Dec 10 15:31:16 2016 -0800
+# Branch oo
+# Node ID 84390db5023918d68c1c133642f9fa6cb6aa189d
+# Parent  7327936fa23e3070c748c8db6ef4d1a0fc473da1
+Removing the "fork" command from the Octave interpreter.
+
+diff -r 7327936fa23e -r 84390db50239 libinterp/corefcn/syscalls.cc
+--- a/libinterp/corefcn/syscalls.cc	Sat Dec 10 23:19:25 2016 +0000
++++ b/libinterp/corefcn/syscalls.cc	Sat Dec 10 15:31:16 2016 -0800
+@@ -167,9 +167,8 @@
+ @deftypefn {Built-in Function} {[@var{err}, @var{msg}] =} exec (@var{file}, @var{args})\n\
+ Replace current process with a new process.\n\
+ \n\
+-Calling @code{exec} without first calling @code{fork} will terminate your\n\
+-current Octave process and replace it with the program named by @var{file}.\n\
+-For example,\n\
++Calling @code{exec} will terminate your current Octave process and replace\n\
++it with the program named by @var{file}. For example,\n\
+ \n\
+ @example\n\
+ exec (\"ls\" \"-l\")\n\
+@@ -552,51 +551,6 @@
+   return retval;
+ }
+ 
+-DEFUNX ("fork", Ffork, args, ,
+-        "-*- texinfo -*-\n\
+-@deftypefn {Built-in Function} {[@var{pid}, @var{msg}] =} fork ()\n\
+-Create a copy of the current process.\n\
+-\n\
+-Fork can return one of the following values:\n\
+-\n\
+-@table @asis\n\
+-@item > 0\n\
+-You are in the parent process.  The value returned from @code{fork} is the\n\
+-process id of the child process.  You should probably arrange to wait for\n\
+-any child processes to exit.\n\
+-\n\
+-@item 0\n\
+-You are in the child process.  You can call @code{exec} to start another\n\
+-process.  If that fails, you should probably call @code{exit}.\n\
+-\n\
+-@item < 0\n\
+-The call to @code{fork} failed for some reason.  You must take evasive\n\
+-action.  A system dependent error message will be waiting in @var{msg}.\n\
+-@end table\n\
+-@end deftypefn")
+-{
+-  octave_value_list retval;
+-
+-  retval(1) = std::string ();
+-  retval(0) = -1;
+-
+-  int nargin = args.length ();
+-
+-  if (nargin == 0)
+-    {
+-      std::string msg;
+-
+-      pid_t pid = octave_syscalls::fork (msg);
+-
+-      retval(1) = msg;
+-      retval(0) = pid;
+-    }
+-  else
+-    print_usage ();
+-
+-  return retval;
+-}
+-
+ DEFUNX ("getpgrp", Fgetpgrp, args, ,
+         "-*- texinfo -*-\n\
+ @deftypefn {Built-in Function} {pgid =} getpgrp ()\n\

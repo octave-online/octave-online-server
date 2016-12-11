@@ -1,0 +1,52 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1481421015 28800
+#      Sat Dec 10 17:50:15 2016 -0800
+# Branch oo
+# Node ID 21fd506b753001b4d568e34b06a9f8dd94c1d8df
+# Parent  f4110d638cdb9b0a06d504cfe2420aad4e954a17
+Adding support for binary text via base64 to oo_url_transfer.
+
+diff -r f4110d638cdb -r 21fd506b7530 liboctave/util/url-transfer.cc
+--- a/liboctave/util/url-transfer.cc	Sat Dec 10 16:54:01 2016 -0800
++++ b/liboctave/util/url-transfer.cc	Sat Dec 10 17:50:15 2016 -0800
+@@ -37,6 +37,7 @@
+ #include "file-ops.h"
+ #include "file-stat.h"
+ #include "../../libinterp/corefcn/octave-link.h"
++#include "base64.h"
+ #include "unwind-prot.h"
+ #include "url-transfer.h"
+ 
+@@ -266,7 +267,7 @@
+       bool success;
+       std::string result = octave_link::request_url (url, paramList, action, success);
+       if (success) {
+-        (*curr_ostream) << result;
++        process_success(result);
+       } else {
+         ok = false;
+         errmsg = result;
+@@ -276,6 +277,22 @@
+       errmsg = "octave_link not connected for oo_url_transfer";
+     }
+   }
++
++  void process_success(const std::string& result) {
++    // If success, the result is returned as a base64 string, and we need to decode it.
++    // Use the base64 implementation from gnulib, which is already an Octave dependency.
++    const char *inc = &(result[0]);
++    char *out;
++    size_t outlen;
++    bool b64_ok = base64_decode_alloc(inc, result.length(), &out, &outlen);
++    if (!b64_ok) {
++      ok = false;
++      errmsg = "failed decoding base64 from octave_link";
++    } else {
++      curr_ostream->write(out, outlen);
++      ::free(out);
++    }
++  }
+ };
+ 
+ 

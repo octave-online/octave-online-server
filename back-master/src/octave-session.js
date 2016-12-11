@@ -9,6 +9,9 @@ const timeLimit = require("@oo/shared").timeLimit;
 const fs = require("fs");
 const path = require("path");
 const async = require("async");
+const url = require("url");
+const http = require("http");
+const querystring = require("querystring");
 const uuid = require("uuid");
 const Queue = require("@oo/shared").Queue;
 
@@ -212,6 +215,88 @@ class OctaveSession extends OnlineOffline {
 		}
 	}
 
+	// URL METHODS: Perform URL requests on behalf of the user.  Uses a hard-coded whitelist in the config file for filtering out legal URLs.
+	_handleRequestUrl(content) {
+		try {
+			let urlObj = url.parse(content.url);
+
+			// Check if the hostname is legal
+			if (urlObj.hostname === null) {
+				this._sendMessageToHost("request-url-answer", [false, `You must specify a URL of the form http://example.com/`]);
+				return;
+			}
+			let isLegal = false;
+			for (let pattern of config.session.urlreadPatterns) {
+				if (new RegExp(pattern).test(urlObj.hostname)) {
+					isLegal = true;
+					break;
+				}
+			}
+			if (!isLegal) {
+				this._sendMessageToHost("request-url-answer", [false, `The hostname ${urlObj.hostname} is not whitelisted\nfor access by Octave Online. If you think this hostname\nshould be whitelisted, please open a support ticket.`]);
+				return;
+			}
+
+			// Convert from the query param list to a query string
+			let paramObj = {};
+			for (let i=0; i<content.param.length; i+=2) {
+				paramObj[content.param[i]] = content.param[i+1];
+			}
+			let encodedParams = querystring.stringify(paramObj);
+
+			// Set up and perform the request
+			let payload = "";
+			if (content.action.toLowerCase() === "post") {
+				urlObj.method = "POST";
+				urlObj.headers = {
+					"Content-Type": "application/x-www-form-urlencoded",
+					"Content-Length": Buffer.byteLength(encodedParams)
+				};
+				payload = encodedParams;
+			} else {
+				urlObj.method = "GET";
+				if (urlObj.query) {
+					urlObj.query += "&" + encodedParams;
+				} else {
+					urlObj.query = encodedParams;
+				}
+				// shouldn't updating the path and href be automatic inside the url module? :/
+				urlObj.path = urlObj.pathname + (urlObj.query ? "?" + urlObj.query : "") + (urlObj.hash ? urlObj.hash : "");
+				urlObj.href = urlObj.protocol  + "//" + (urlObj.auth ? urlObj.auth + "@" : "") + urlObj.hostname + (urlObj.port ? ":" + urlObj.port : "") + urlObj.path;
+			}
+
+			this._log.trace("Sending URL request:", urlObj.href);
+			let req = http.request(urlObj, (res) => {
+				this._log.trace("Received URL response:", res.statusCode, urlObj.href);
+				res.setEncoding("base64");
+				let fullResult = "";
+				let errmsg = "";
+				res.on("data", (chunk) => {
+					if (chunk.length + fullResult.length > config.session.jsonMaxMessageLength) {
+						errmsg = `Requested URL exceeds maximum of ${config.session.jsonMaxMessageLength} bytes`;
+					} else {
+						fullResult += chunk;
+					}
+				});
+				res.on("end", () => {
+					this._log.trace("URL response after processing:", errmsg, fullResult.length);
+					if (errmsg) {
+						this._sendMessageToHost("request-url-answer", [false, errmsg]);
+					} else {
+						this._sendMessageToHost("request-url-answer", [true, fullResult]);
+					}
+				});
+			});
+			req.on("error", (err) => {
+				this._sendMessageToHost("request-url-answer", [false, err.message]);
+			});
+			req.write(payload);
+			req.end();
+		} catch(err) {
+			this._sendMessageToHost("request-url-answer", [false, err.message]);
+		}
+	}
+
 	// Use a queue to handle incoming messages to ensure that messages are processed in order.  The loading of data via attachments is asynchronous and may cause messages to change order.
 	enqueueMessage(name, getData) {
 		let message = { name, ready: false };
@@ -297,6 +382,7 @@ class OctaveSession extends OnlineOffline {
 
 			// Messages to forward to the Octave host
 			case "request-input-answer":
+			case "request-url-answer":
 			case "confirm-shutdown-answer":
 			case "prompt-new-edit-file-answer":
 			case "message-dialog-answer":
@@ -361,6 +447,10 @@ class OctaveSession extends OnlineOffline {
 			case "out":
 				this._appendToPayload(content);
 				this._appendToSessionLog(name, content);
+				break;
+
+			case "request-url":
+				this._handleRequestUrl(content);
 				break;
 
 			// UNIMPLEMENTED FEATURES REQUIRING RESPONSE:

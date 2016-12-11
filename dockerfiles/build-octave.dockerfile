@@ -48,7 +48,12 @@ RUN cd octave && \
 	hg import ../oo-changesets/006-15d21ceec728.hg.txt && \
 	hg import ../oo-changesets/007-4d778d6ebbd0.hg.txt && \
 	hg import ../oo-changesets/008-e8ef7f3333bf.hg.txt && \
-	hg import ../oo-changesets/009-05f7272c001e.hg.txt
+	hg import ../oo-changesets/009-05f7272c001e.hg.txt && \
+	hg import ../oo-changesets/010-4a1afb661c55.hg.txt && \
+	hg import ../oo-changesets/011-7327936fa23e.hg.txt && \
+	hg import ../oo-changesets/012-84390db50239.hg.txt && \
+	hg import ../oo-changesets/013-f4110d638cdb.hg.txt && \
+	hg import ../oo-changesets/014-21fd506b7530.hg.txt
 
 # Configure and Build Octave
 # This is the slowest part of the Dockerfile

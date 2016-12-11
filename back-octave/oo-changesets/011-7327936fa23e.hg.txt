@@ -1,0 +1,230 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1481411965 0
+#      Sat Dec 10 23:19:25 2016 +0000
+# Branch oo
+# Node ID 7327936fa23e3070c748c8db6ef4d1a0fc473da1
+# Parent  4a1afb661c55f34994b53920f97c33ff3d03a27d
+Adding support for a "request-url" JSON event.
+
+diff -r 4a1afb661c55 -r 7327936fa23e libinterp/corefcn/json-util.cc
+--- a/libinterp/corefcn/json-util.cc	Fri Mar 18 09:47:13 2016 -0500
++++ b/libinterp/corefcn/json-util.cc	Sat Dec 10 23:19:25 2016 +0000
+@@ -152,6 +152,22 @@
+ 	return ret;
+ }
+ 
++std::pair<bool, std::string> json_util::to_bool_string_pair(JSON_OBJECT_T jobj) {
++	std::pair<bool, std::string> ret;
++
++	struct array_list* arr = json_object_get_array(jobj);
++	if (arr == NULL)
++		return ret;
++
++	JSON_OBJECT_T first = static_cast<JSON_OBJECT_T> (array_list_get_idx(arr, 0));
++	JSON_OBJECT_T second = static_cast<JSON_OBJECT_T> (array_list_get_idx(arr, 1));
++
++	ret.first = json_object_get_boolean(first);
++	ret.second = json_object_get_string(second);
++
++	return ret;
++}
++
+ std::list<std::string> json_util::to_string_list(JSON_OBJECT_T jobj) {
+ 	return json_object_to_list<std::string>(jobj, json_util::to_string);
+ }
+diff -r 4a1afb661c55 -r 7327936fa23e libinterp/corefcn/json-util.h
+--- a/libinterp/corefcn/json-util.h	Fri Mar 18 09:47:13 2016 -0500
++++ b/libinterp/corefcn/json-util.h	Sat Dec 10 23:19:25 2016 +0000
+@@ -46,6 +46,7 @@
+ 
+ 	static std::string to_string(JSON_OBJECT_T jobj);
+ 	static std::pair<std::list<int>, int> to_int_list_int_pair(JSON_OBJECT_T jobj);
++	static std::pair<bool, std::string> to_bool_string_pair(JSON_OBJECT_T jobj);
+ 	static std::list<std::string> to_string_list(JSON_OBJECT_T jobj);
+ 	static int to_int(JSON_OBJECT_T jobj);
+ 	static bool to_boolean(JSON_OBJECT_T jobj);
+diff -r 4a1afb661c55 -r 7327936fa23e libinterp/corefcn/octave-json-link.cc
+--- a/libinterp/corefcn/octave-json-link.cc	Fri Mar 18 09:47:13 2016 -0500
++++ b/libinterp/corefcn/octave-json-link.cc	Sat Dec 10 23:19:25 2016 +0000
+@@ -51,6 +51,20 @@
+ 	return value;
+ }
+ 
++std::string octave_json_link::do_request_url(const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success) {
++	// Triggered on urlread/urlwrite
++
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, url, string);
++	JSON_MAP_SET(m, param, string_list);
++	JSON_MAP_SET(m, action, string);
++
++	_publish_message("request-url", json_util::from_map(m));
++	std::pair<bool, std::string> result = request_url_queue.dequeue();
++	success = result.first;
++	return result.second;
++}
++
+ bool octave_json_link::do_confirm_shutdown(void) {
+ 	// Triggered when the kernel tries to exit
+ 	_publish_message("confirm-shutdown", json_util::empty());
+@@ -294,6 +308,10 @@
+ 		std::string answer = json_util::to_string(jobj);
+ 		request_input_queue.enqueue(answer);
+ 	}
++	else if (name == "request-url-answer") {
++		std::pair<bool, std::string> answer = json_util::to_bool_string_pair(jobj);
++		request_url_queue.enqueue(answer);
++	}
+ 	else if (name == "confirm-shutdown-answer"){
+ 		bool answer = json_util::to_boolean(jobj);
+ 		confirm_shutdown_queue.enqueue(answer);
+diff -r 4a1afb661c55 -r 7327936fa23e libinterp/corefcn/octave-json-link.h
+--- a/libinterp/corefcn/octave-json-link.h	Fri Mar 18 09:47:13 2016 -0500
++++ b/libinterp/corefcn/octave-json-link.h	Sat Dec 10 23:19:25 2016 +0000
+@@ -58,6 +58,7 @@
+   ~octave_json_link (void);
+ 
+   std::string do_request_input (const std::string& prompt);
++  std::string do_request_url (const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success);
+ 
+   bool do_confirm_shutdown (void);
+   bool do_exit (int status);
+@@ -145,6 +146,7 @@
+ 
+   // Queues
+   json_queue<std::string> request_input_queue;
++  json_queue<std::pair<bool, std::string> > request_url_queue;
+   json_queue<bool> confirm_shutdown_queue;
+   json_queue<bool> prompt_new_edit_file_queue;
+   json_queue<int> message_dialog_queue;
+diff -r 4a1afb661c55 -r 7327936fa23e libinterp/corefcn/octave-link.h
+--- a/libinterp/corefcn/octave-link.h	Fri Mar 18 09:47:13 2016 -0500
++++ b/libinterp/corefcn/octave-link.h	Sat Dec 10 23:19:25 2016 +0000
+@@ -289,6 +289,13 @@
+       : std::string ();
+   }
+ 
++  static std::string request_url (const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success)
++  {
++    return request_input_enabled ()
++      ? instance->do_request_url (url, param, action, success)
++      : std::string ();
++  }
++
+   static void enter_debugger_event (const std::string& file, int line)
+   {
+     if (enabled ())
+@@ -439,6 +446,7 @@
+ 
+   bool _request_input_enabled;
+   virtual std::string do_request_input (const std::string&) = 0;
++  virtual std::string do_request_url (const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success) = 0;
+ 
+   virtual bool do_confirm_shutdown (void) = 0;
+   virtual bool do_exit (int status) = 0;
+diff -r 4a1afb661c55 -r 7327936fa23e liboctave/util/url-transfer.cc
+--- a/liboctave/util/url-transfer.cc	Fri Mar 18 09:47:13 2016 -0500
++++ b/liboctave/util/url-transfer.cc	Sat Dec 10 23:19:25 2016 +0000
+@@ -36,6 +36,7 @@
+ #include "dir-ops.h"
+ #include "file-ops.h"
+ #include "file-stat.h"
++#include "../../libinterp/corefcn/octave-link.h"
+ #include "unwind-prot.h"
+ #include "url-transfer.h"
+ 
+@@ -214,6 +215,75 @@
+   return file_list;
+ }
+ 
++
++class oo_url_transfer : public base_url_transfer
++{
++public:
++
++  oo_url_transfer (void)
++      : base_url_transfer () {
++    valid = true;
++    std::cout << "init method 1" << std::endl;
++  }
++
++  oo_url_transfer (const std::string& host, const std::string& user_arg,
++                 const std::string& passwd, std::ostream& os)
++      : base_url_transfer (host, user_arg, passwd, os) {
++    valid = true;
++    // url = "ftp://" + host;
++    std::cout << "init method 2" << std::endl;
++    // Set up the link, with no transfer.
++    // perform ();
++  }
++
++  oo_url_transfer (const std::string& url_str, std::ostream& os)
++      : base_url_transfer (url_str, os) {
++    valid = true;
++    std::cout << "init method 3" << std::endl;
++  }
++
++  ~oo_url_transfer (void) {}
++
++  void http_get (const Array<std::string>& param) {
++    perform (param, "get");
++  }
++
++  void http_post (const Array<std::string>& param) {
++    perform (param, "post");
++  }
++
++  void http_action (const Array<std::string>& param, const std::string& action) {
++    perform (param, action);
++  }
++
++private:
++  void perform(const Array<std::string>& param, const std::string& action) {
++    std::string url = host_or_url;
++
++    // Convert from Array to std::list
++    std::list<std::string> paramList;
++    for (int i = 0; i < param.numel(); i ++) {
++      std::string value = param(i);
++      paramList.push_back(value);
++    }
++
++    if (octave_link::request_input_enabled ()) {
++      bool success;
++      std::string result = octave_link::request_url (url, paramList, action, success);
++      if (success) {
++        (*curr_ostream) << result;
++      } else {
++        ok = false;
++        errmsg = result;
++      }
++    } else {
++      ok = false;
++      errmsg = "octave_link not connected for oo_url_transfer";
++    }
++  }
++};
++
++
+ #if defined (HAVE_CURL)
+ 
+ static int
+@@ -769,11 +839,12 @@
+ 
+ #endif
+ 
+-#if defined (HAVE_CURL)
+-# define REP_CLASS curl_transfer
+-#else
+-# define REP_CLASS base_url_transfer
+-#endif
++// #if defined (HAVE_CURL)
++// # define REP_CLASS curl_transfer
++// #else
++// # define REP_CLASS base_url_transfer
++// #endif
++#define REP_CLASS oo_url_transfer
+ 
+ url_transfer::url_transfer (void) : rep (new REP_CLASS ())
+ { }

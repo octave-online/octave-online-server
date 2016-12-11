@@ -1,0 +1,36 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1481417641 28800
+#      Sat Dec 10 16:54:01 2016 -0800
+# Branch oo
+# Node ID f4110d638cdb9b0a06d504cfe2420aad4e954a17
+# Parent  84390db5023918d68c1c133642f9fa6cb6aa189d
+Removing debugging print statements from url-transfer.cc.
+
+diff -r 84390db50239 -r f4110d638cdb liboctave/util/url-transfer.cc
+--- a/liboctave/util/url-transfer.cc	Sat Dec 10 15:31:16 2016 -0800
++++ b/liboctave/util/url-transfer.cc	Sat Dec 10 16:54:01 2016 -0800
+@@ -223,7 +223,6 @@
+   oo_url_transfer (void)
+       : base_url_transfer () {
+     valid = true;
+-    std::cout << "init method 1" << std::endl;
+   }
+ 
+   oo_url_transfer (const std::string& host, const std::string& user_arg,
+@@ -231,15 +230,11 @@
+       : base_url_transfer (host, user_arg, passwd, os) {
+     valid = true;
+     // url = "ftp://" + host;
+-    std::cout << "init method 2" << std::endl;
+-    // Set up the link, with no transfer.
+-    // perform ();
+   }
+ 
+   oo_url_transfer (const std::string& url_str, std::ostream& os)
+       : base_url_transfer (url_str, os) {
+     valid = true;
+-    std::cout << "init method 3" << std::endl;
+   }
+ 
+   ~oo_url_transfer (void) {}
