@@ -1,0 +1,11 @@
+[Unit]
+Description=Install the Octave Online host file
+
+[Service]
+ExecStart=/bin/true
+ExecStop=/usr/bin/make -C /srv/oo/projects/back-octave/ install
+Type=oneshot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
