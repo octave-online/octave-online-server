@@ -1,6 +1,6 @@
 "use strict";
 
-// This class needs to be extended in order to work.  See session-docker.js and session-selinux.js
+// The code in this file is shared among all implementations of the Octave session.  See session-impl.js for examples of implementations.
 
 const logger = require("@oo/shared").logger;
 const OnlineOffline = require("@oo/shared").OnlineOffline;
@@ -288,6 +288,7 @@ class OctaveSession extends OnlineOffline {
 				});
 			});
 			req.on("error", (err) => {
+				this._log.trace("Problem with URL request:", err.message);
 				this._sendMessageToHost("request-url-answer", [false, err.message]);
 			});
 			req.write(payload);

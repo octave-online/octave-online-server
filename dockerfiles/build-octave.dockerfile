@@ -27,8 +27,8 @@ RUN git clone https://github.com/libuv/libuv.git && \
 	make && \
 	make install
 
-# Build and install json-c
-RUN git clone https://github.com/json-c/json-c.git && \
+# Build and install json-c with our custom UTF-8 sanitize patch
+RUN git clone https://github.com/vote539/json-c.git && \
 	cd json-c && \
 	sh autogen.sh && \
 	./configure && \
