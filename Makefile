@@ -59,6 +59,10 @@ install-selinux-policy:
 install-selinux-bin:
 	cp entrypoint/back-selinux.js /usr/local/bin/oo-back-selinux
 	cp entrypoint/oo.service /usr/lib/systemd/system/oo.service
+	cp entrypoint/oo-install-host.service /usr/lib/systemd/system/oo-install-host.service
+	systemctl daemon-reload
+	systemctl enable oo
+	systemctl enable oo-install-host
 	ln -sf $$PWD /usr/local/share/oo
 
 install-site-m:

@@ -6,6 +6,7 @@ SyslogIdentifier=oo
 User=1500
 Group=1500
 Environment=NODE_ENV=production
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
