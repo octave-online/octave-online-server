@@ -63,6 +63,18 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 			return OctFile.regexps.filename.test(self.filename());
 		});
 
+		// Display functions
+		self.dirpart = ko.computed(function(){
+			var slashIndex = self.filename().lastIndexOf("/");
+			if (slashIndex === -1) return "";
+			return self.filename().substring(0, slashIndex + 1);
+		});
+		self.filepart = ko.computed(function(){
+			var slashIndex = self.filename().lastIndexOf("/");
+			if (slashIndex === -1) return self.filename();
+			return self.filename().substring(slashIndex + 1);
+		});
+
 		// Open file in the editor
 		self.open = function(){
 			OctMethods.editor.open(self);
@@ -133,7 +145,7 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 	OctFile.regexps = {};
 	OctFile.regexps.isFunction = /^(?:[\t\f ]*(?:[\%\#].*)?\n)*\s*function\s/;
 	OctFile.regexps.matchParameters = /function[^\(]+\(\s*([^\)]*?)\s*\)/;
-	OctFile.regexps.filename = /^(([\w_\-]+)\.m|\.octaverc)$/;
+	OctFile.regexps.filename = /^(([\w_\-]+\/){1,3}[\w_\-]+\.\w+|\.octaverc)$/;
 
 	// Expose interface
 	return OctFile;

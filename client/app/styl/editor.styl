@@ -69,6 +69,17 @@ top-right-control() {
 				&.file_active {
 					background-color: color3
 					color: colorbkg
+					.dirpart {
+						color: mix(colorbkg, color3, 35%)
+					}
+				}
+
+				.dirpart {
+					color: mix(colorfgd, color2, 35%)
+					padding-right: 1px
+					letter-spacing: -1px
+				}
+				.filepart {
 				}
 			}
 		}

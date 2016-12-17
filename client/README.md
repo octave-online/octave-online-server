@@ -7,13 +7,10 @@ This repository contains the web frontend code for Octave Online.
 
 Before you can run any of the build scripts, you will need to install Node.JS.
 
-Once Node.JS is installed, you will need Grunt, Bower, and Compass.
+Once Node.JS is installed, you will need Grunt and Bower.
 
     npm install -g grunt-cli
     npm install -g bower
-    gem install compass
-
-Note: [Compass](http://compass-style.org/) requires that you have a Ruby runtime running on your machine.  If you don't want to spend the time installing a Ruby runtime, you can manually download *css/main.css* and *css/themes/fire.css* from the web site into the *app/css* and *dist/css* directories (which you will need to make), if you don't plan on customizing the CSS.  Another alternative if you plan on customizing the CSS is to download a program like [Scout](http://mhs.github.io/scout-app/) and let that compile the SCSS code for you.  You need to choose *app/scss* as your source directory and *app/css* or *dist/css* as your output directory.
 
 Now, install the Octave Online Client dependencies like so:
 
