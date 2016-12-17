@@ -19,7 +19,7 @@ define(["js/client", "js/ot-client", "ot", "js/polyfill"],
 					rev: revision,
 					op: operation
 				});
-			}.bind(this), 500);
+			}.bind(this), 150);
 		},
 		cursor: function(cursor){
 			OctMethods.socket.emit("ot.cursor", {

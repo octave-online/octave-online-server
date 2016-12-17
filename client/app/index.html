@@ -112,7 +112,7 @@
 			<div id="files_toolbar_lower">
 				<span id="files_toolbar_upload" title="Upload file"></span>
 				<span id="files_toolbar_refresh" title="Refresh files"></span>
-				<span id="files_toolbar_info" title="Octave Online Sync"></span>
+				<span id="files_toolbar_info" title="Clone with Git"></span>
 			</div>
 			<div id="files_list_container">
 				<ul data-bind="foreach: files">
@@ -402,16 +402,13 @@
 	<span class="l4" data-purpose="close">dismiss</span>
 </div>
 <div id="sync_info_box" data-purpose="popover" aria-hidden="true"><div><div>
-	<h3>Octave Online Sync</h3>
+	<h3>Git Sync</h3>
 	<p>
-		We are testing a new feature that enables you to synchronize your Octave Online script files with your local machine.  This lets you use Octave or MATLAB when you're on your own computer and Octave Online when you're on the road.
-	</p>
-	<p>
-		We use <a href="http://git-scm.com/" target="_blank">Git</a>, a popular version control system, to handle the syncing process, so you can also see the revision history on your script files.  <a href="https://vimeo.com/116342867" target="_blank">Watch this screencast</a> for an example of how to use Octave Online Sync.
+		All of your code in Octave Online is backed by a Git repository.  <a href="http://git-scm.com/" target="_blank">Git</a> is a popular version control system that enables you to sync code between multiple computers and keep track of changes over time.  Use the URL, username, and password below to clone your repository.  <a href="https://vimeo.com/116342867" target="_blank">Watch this screencast</a> for an example of how to use Git syncing with Octave Online.
 	</p>
 	<!-- ko if: currentUser -->
 	<ul>
-		<li><strong>URL</strong> <kbd>http://octave-online.net/sync.git</kbd></li>
+		<li><strong>URL</strong> <kbd>https://octave-online.net/sync.git</kbd></li>
 		<li><strong>Username</strong> <kbd data-bind="text: currentUser().email"></kbd></li>
 		<li><strong>Password</strong> <kbd data-bind="text: currentUser().repo_key"></kbd></li>
 	</ul>
