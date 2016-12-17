@@ -55,7 +55,7 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 					argumentsStore[i] = arg;
 				}
 				return (self.dirpart()?"source(\""+self.filename()+"\"); ":"")+baseName+"("+argumentsStore.join(", ")+")";
-			} else if (parameters) {
+			} else {
 				return 'source("'+self.filename()+'")';
 			}
 		};
