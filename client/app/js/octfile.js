@@ -24,9 +24,9 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 
 		// Methods relating to running the file
 		self.baseName = ko.computed(function(){
-			var nameMatch = OctFile.regexps.filename.exec(self.filename());
-			if (!nameMatch || nameMatch.length < 2) return false;
-			return nameMatch[2];
+			var nameMatch = OctFile.regexps.functionname.exec(self.filename());
+			if (!nameMatch || nameMatch.length < 1) return false;
+			return nameMatch[1];
 		})
 		self.isFunction = ko.computed(function(){
 			return OctFile.regexps.isFunction.test(self.content());
@@ -42,7 +42,7 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 			if (!self.runnable()) return false;
 			var parameters = self.getFunctionParameters();
 			var baseName = self.baseName();
-			if(parameters){
+			if (parameters) {
 				var arg;
 				for(var i=0; i<parameters.length; i++){
 					if(typeof argumentsStore[i] === "undefined"){
@@ -54,8 +54,8 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 					}
 					argumentsStore[i] = arg;
 				}
-				return baseName+"("+argumentsStore.join(", ")+")";
-			}else{
+				return (self.dirpart()?"source(\""+self.filename()+"\"); ":"")+baseName+"("+argumentsStore.join(", ")+")";
+			} else if (parameters) {
 				return 'source("'+self.filename()+'")';
 			}
 		};
@@ -146,6 +146,7 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 	OctFile.regexps.isFunction = /^(?:[\t\f ]*(?:[\%\#].*)?\n)*\s*function\s/;
 	OctFile.regexps.matchParameters = /function[^\(]+\(\s*([^\)]*?)\s*\)/;
 	OctFile.regexps.filename = /^(([\w_\-]+\/){0,3}[\w_\-]+\.\w+|\.octaverc)$/;
+	OctFile.regexps.functionname = /([\w_\-]+)\.m$/;
 
 	// Expose interface
 	return OctFile;
