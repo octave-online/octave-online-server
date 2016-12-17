@@ -145,7 +145,7 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 	OctFile.regexps = {};
 	OctFile.regexps.isFunction = /^(?:[\t\f ]*(?:[\%\#].*)?\n)*\s*function\s/;
 	OctFile.regexps.matchParameters = /function[^\(]+\(\s*([^\)]*?)\s*\)/;
-	OctFile.regexps.filename = /^(([\w_\-]+\/){1,3}[\w_\-]+\.\w+|\.octaverc)$/;
+	OctFile.regexps.filename = /^(([\w_\-]+\/){0,3}[\w_\-]+\.\w+|\.octaverc)$/;
 
 	// Expose interface
 	return OctFile;
