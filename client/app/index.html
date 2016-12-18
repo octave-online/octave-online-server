@@ -253,6 +253,9 @@
 							Seconds Remaining:
 							<span id="seconds_remaining">0</span>
 						</span>
+						<!-- ko if: window.oo$version >= 20161218.1 -->
+						<span id="add_time_container" class="clickable" data-bind="click: addTime">Add 15 Seconds</span>
+						<!-- /ko -->
 					</div>
 					<span id="plot_opener" title="Expand Plot Window" data-bind="click: togglePlot"></span>
 				</div>

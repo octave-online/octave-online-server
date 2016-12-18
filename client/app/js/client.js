@@ -180,6 +180,10 @@ function($, ko, canvg, Base64, download,
 			return !!viewModel.getOctFileFromName(filename);
 		},
 
+		addTime: function() {
+			OctMethods.prompt.addTime();
+		},
+
 		flex: {
 			sizes: ko.observableArray([100, 400, 75, 325]),
 			shown: ko.observable(false)
@@ -353,6 +357,7 @@ function($, ko, canvg, Base64, download,
 			history: [""],
 			index: 0,
 			legalTime: 5000,
+			extraTime: 0,
 			countdownInterval: null,
 			countdownTime: 0,
 			countdownDelay: 20,
@@ -383,6 +388,7 @@ function($, ko, canvg, Base64, download,
 			startCountdown: function(){
 				$("#runtime_controls_container").showSafe();
 				OctMethods.prompt.countdownTime = new Date().valueOf();
+				OctMethods.prompt.extraTime = 0;
 
 				OctMethods.prompt.countdownTick();
 				clearInterval(OctMethods.prompt.countdownInterval);
@@ -392,12 +398,17 @@ function($, ko, canvg, Base64, download,
 			},
 			countdownTick: function(){
 				var elapsed = new Date().valueOf() - OctMethods.prompt.countdownTime;
-				var remaining = (OctMethods.prompt.legalTime - elapsed);
+				var remaining = (OctMethods.prompt.legalTime + OctMethods.prompt.extraTime - elapsed);
 				if(remaining<=0) {
 					clearInterval(OctMethods.prompt.countdownInterval);
 					$("#seconds_remaining").text("---");
 				}else{
 					$("#seconds_remaining").text((remaining/1000).toFixed(2));
+				}
+				if (remaining <= 3000) {
+					$("#add_time_container").showSafe();
+				} else {
+					$("#add_time_container").hideSafe();
 				}
 			},
 			endCountdown: function(){
@@ -423,6 +434,10 @@ function($, ko, canvg, Base64, download,
 					OctMethods.socket.enroll(program);
 					viewModel.currentUser().program = program; // note: this is not observable
 				}
+			},
+			addTime: function() {
+				OctMethods.prompt.extraTime += 15000;
+				OctMethods.socket.addTime();
 			}
 		},
 
@@ -538,6 +553,9 @@ function($, ko, canvg, Base64, download,
 				return OctMethods.socket.emit("oo.toggle_sharing", {
 					enabled: enabled
 				});
+			},
+			addTime: function() {
+				return OctMethods.socket.emit("oo.add_time", {});
 			},
 			emit: function(message, data){
 				if (!OctMethods.socket.instance

@@ -9,6 +9,9 @@ define(
 	          splittr, SocketIOFileUpload, anal, onboarding,
 	          OtHandler, WsShared) {
 
+		// Set OO version for index.html compatibility
+		window.oo$version = 20161218.1;
+
 		// Initial GUI setup
 		splittr.init();
 
