@@ -23,6 +23,8 @@ class OctaveSession extends OnlineOffline {
 		this._log = logger("octave-session:" + sessCode);
 		this._mlog = logger("octave-session:" + sessCode + ":minor");
 
+		this._extraTime = 0;
+
 		this._legalTime = config.session.legalTime.guest;
 		this._payloadLimit = config.session.payloadLimit.guest;
 		this._resetPayload();
@@ -47,7 +49,7 @@ class OctaveSession extends OnlineOffline {
 		this._mlog.trace("Starting Destroy Procedure:", reason);
 		async.series([
 			(_next) => {
-				if (this._countdownTimer) clearInterval(this._countdownTimer);
+				if (this._countdownTimer) clearTimeout(this._countdownTimer);
 				if (this._timewarnTimer) clearTimeout(this._timewarnTimer);
 				if (this._timeoutTimer) clearTimeout(this._timeoutTimer);
 				if (this._autoCommitTimer) clearInterval(this._autoCommitTimer);
@@ -73,25 +75,31 @@ class OctaveSession extends OnlineOffline {
 		if (this._countdownTimer) return;
 		if (this._state !== "ONLINE") return;
 
-		// Special handling to give more time to a few commands.
-		// FIXME: This is a hack.
-		let time = this._legalTime;
-		if (/^pkg install [\w\-\. ]+\.tar\.gz\s*$/.test(command)) {
-			// matches a command like "pkg install -auto bim-1.1.5.tar.gz"
-			this._log.trace("Adding 30 seconds of runtime to command:", command);
-			time += 30000;
-		}
-
-		this._countdownTimer = setInterval(() => {
-			this.interrupt();
-			this.emit("message", "err", "!!! OUT OF TIME !!!\n");
-		}, time);
+		this._countdownTimer = setTimeout(this._onCountdownEnd.bind(this), this._legalTime);
 	}
 	_endCountdown() {
 		if (this._countdownTimer) {
-			clearInterval(this._countdownTimer);
+			clearTimeout(this._countdownTimer);
 			this._countdownTimer = null;
 		}
+	}
+	_onCountdownEnd() {
+		// Note: it is a good idea to make countdownRequestTime slightly larger than the delay on the frontend to account for time lag.
+		if (new Date().valueOf() - this._extraTime < config.session.countdownRequestTime) {
+			// Add 15 seconds and don't send an interrupt signal
+			this._log.trace("Extending countdown with extra time");
+			this._countdownTimer = setTimeout(this._onCountdownEnd.bind(this), config.session.countdownExtraTime);
+		} else {
+			// Send an interrupt signal now and again in 5 seconds
+			this._log.trace("Interrupting execution due to countdown");
+			this.interrupt();
+			this.emit("message", "err", "!!! OUT OF TIME !!!\n");
+			this._countdownTimer = setTimeout(this._onCountdownEnd.bind(this), 5000);
+		}
+	}
+	_addTime() {
+		// This method gets called when the user clicks the "Add 15 Seconds" button on the front end.
+		this._extraTime = new Date().valueOf();
 	}
 
 	// TIMEOUT METHODS: For killing the Octave kernel after a fixed number of seconds to clear server resources when the client is inactive.
@@ -345,6 +353,10 @@ class OctaveSession extends OnlineOffline {
 			// Messages requiring special handling
 			case "interrupt":
 				this._interrupt();
+				break;
+
+			case "oo.add_time":
+				this._addTime();
 				break;
 
 			case "cmd":
