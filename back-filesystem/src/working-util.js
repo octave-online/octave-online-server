@@ -49,6 +49,7 @@ class WorkingUtil {
 
 		async.waterfall([
 			(_next) => {
+				this._mlog.log("Entering directory", directory);
 				fs.readdir(directory, _next);
 			},
 			(files, _next) => {
@@ -62,6 +63,7 @@ class WorkingUtil {
 							fs.lstat(pathname, ___next);
 						},
 						(stats, ___next) => {
+							this._mlog.log("Got lstats", relname, stats.isDirectory(), stats.isFile());
 							if (stats.isDirectory()) {
 								return this._recursiveReaddir(pathname, depth+1, ___next);
 							} else if (stats.isFile()) {
@@ -73,13 +75,32 @@ class WorkingUtil {
 					], __next);
 				}, (err, results) => {
 					if (err) return _next(err);
+					this._mlog.log("Leaving directory", directory);
 					_next(null, Array.prototype.concat.apply([], results));
 				});
 			}
 		], next);
 	}
 
+	// Endpoint for standalone getFileInfo (used by SIOFU)
+	getFileInfo(filename, next) {
+		let pathname = this._safePath(filename);
+		let relname = path.relative(this.cwd, pathname);
+		async.waterfall([
+			(_next) => {
+				fs.lstat(pathname, _next);
+			},
+			(stats, _next) => {
+				this._getFileInfo(filename, pathname, relname, stats, _next);
+			},
+			(arr, _next) => {
+				_next(null, arr[0]);
+			}
+		], next);
+	}
+
 	_getFileInfo(filename, pathname, relname, stats, next) {
+		this._mlog.log("Getting file info for", relname);
 		let _mime = mime.lookup(filename);
 		if (ACCEPTABLE_MIME_REGEX.test(_mime)) {
 			if (stats.size > config.session.textFileSizeLimit) {
