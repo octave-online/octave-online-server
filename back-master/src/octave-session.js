@@ -11,6 +11,7 @@ const path = require("path");
 const async = require("async");
 const url = require("url");
 const http = require("http");
+const https = require("https");
 const querystring = require("querystring");
 const uuid = require("uuid");
 const Queue = require("@oo/shared").Queue;
@@ -266,7 +267,8 @@ class OctaveSession extends OnlineOffline {
 			}
 
 			this._log.trace("Sending URL request:", urlObj.href);
-			let req = http.request(urlObj, (res) => {
+			let httpLib = (urlObj.protocol === "https:") ? https : http;
+			let req = httpLib.request(urlObj, (res) => {
 				this._log.trace("Received URL response:", res.statusCode, urlObj.href);
 				res.setEncoding("base64");
 				let fullResult = "";
