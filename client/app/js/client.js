@@ -336,9 +336,11 @@ function($, ko, canvg, Base64, download,
 
 				// Add command to history
 				var history = OctMethods.prompt.history;
-				history[history.length-1] = cmd;
-				history.push("");
-				OctMethods.prompt.index = history.length - 1;
+				if (cmd !== "" && history[history.length-2] !== cmd) {
+					history[history.length-1] = cmd;
+					history.push("");
+					OctMethods.prompt.index = history.length - 1;
+				}
 
 				// Start countdown
 				OctMethods.prompt.startCountdown();
@@ -366,12 +368,17 @@ function($, ko, canvg, Base64, download,
 			enabled: true,
 			enable: function(){
 				$("#runtime_controls_container").hideSafe();
-				$("#prompt_container")[0].style.visibility = "visible";
+				$("#prompt").showSafe();
+				$("#prompt_sign").showSafe();
 				OctMethods.prompt.enabled = true;
 				OctMethods.prompt.endCountdown();
+
+				// There is a bug/feature in ACE that disables rendering when the element is hidden with display: none.  This hack forces a re-render now.
+				OctMethods.prompt.instance.resize(true);
 			},
 			disable: function(){
-				$("#prompt_container")[0].style.visibility = "hidden";
+				$("#prompt").hideSafe();
+				$("#prompt_sign").hideSafe();
 				OctMethods.prompt.enabled = false;
 			},
 			clear: function(skipLine){
@@ -440,6 +447,7 @@ function($, ko, canvg, Base64, download,
 			addTime: function() {
 				OctMethods.prompt.extraTime += 15000;
 				OctMethods.socket.addTime();
+				anal.extraTime();
 			}
 		},
 
@@ -681,6 +689,12 @@ function($, ko, canvg, Base64, download,
 					// Set up the UI
 					$("#files_container").showSafe();
 					onboarding.showSyncPromo();
+
+					// Fire a window "resize" event to make sure everything adjusts,
+					// like the ACE editor in the prompt
+					var evt = document.createEvent("UIEvents");
+					evt.initUIEvent("resize", true, false, window, 0);
+					window.dispatchEvent(evt);
 
 					// Legal runtime
 					OctMethods.prompt.legalTime = data.legalTime;

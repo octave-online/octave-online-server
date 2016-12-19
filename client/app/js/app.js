@@ -92,7 +92,12 @@ define(
 		prompt.renderer.setShowGutter(false);
 		prompt.setHighlightActiveLine(false);
 		prompt.setShowPrintMargin(false);
-		prompt.setOptions({enableBasicAutocompletion: true});
+		prompt.setOptions({
+			enableBasicAutocompletion: true,
+			maxLines: 6
+		});
+		prompt.renderer.setScrollMargin(5, 5);
+		prompt.getSession().setUseWrapMode(true);
 		prompt.commands.addCommand({
 			name: 'nullifyLineNumber',
 			bindKey: {mac: 'Command-L', win: 'Ctrl-L'},

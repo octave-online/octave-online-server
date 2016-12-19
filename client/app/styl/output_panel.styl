@@ -12,15 +12,15 @@ plot-svg-styles()
 		image-rendering: pixelated
 	}
 
-#console_container {
-	position: relative;
+#console_output_container {
 
 	pre#console {
-		position: absolute;
+		position: absolute
 		top: 0
-		left: 0
 		right: 0
-		bottom: prompt_height
+		bottom: 0
+		left: 0
+		background-color: colorbkg
 
 		text-align: left
 		overflow: auto
@@ -93,12 +93,13 @@ plot-svg-styles()
 		font-style: italic
 	}
 
+}
+
+#console_prompt_container {
+
 	div#runtime_controls_container{
-		position: absolute
-		left: 0
-		bottom: 0
-		width: 100%
 		height: prompt_height
+		background-color: colorbkg
 
 		#signal{
 			flaticon-button(cross, 12px)
@@ -121,33 +122,19 @@ plot-svg-styles()
 			left: 200px
 		}
 	}
-	div#prompt_container{
-		position: absolute
-		left: 0
-		bottom: 0px
-		width: 100%
-		height: prompt_height
 
-		div#prompt_sign{
-			position: absolute;
-			left: 0
-			bottom: -4px
-			width: prompt_sign_width
-			height: prompt_height
-			text-align: right
-			font-size: prompt_height
-			font-family: unicode_font_family
-		}
-		div#prompt {
-			position: absolute
-			bottom: 4px
-			right: 0
-			left: prompt_sign_width
-			height: 20px
+	div#prompt_sign {
+		float: left
+		font-size: prompt_font_size
+		margin-top: 6px
+		color: colorbkg
+		margin-right: -5px
+		font-family: unicode_font_family
+	}
 
-			font-size: prompt_font_size
-			line-height: prompt_font_size
-		}
+	div#prompt {
+		font-size: prompt_font_size
+		line-height: prompt_font_size
 	}
 }
 

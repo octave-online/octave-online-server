@@ -28,6 +28,8 @@ define(function(){
 		}
 	}
 
+	var numExtraTime = 0;
+
 	// Return methods to register certain events
 	return {
 		pageview: function(){
@@ -56,6 +58,9 @@ define(function(){
 		},
 		duration: function(duration){
 			_ga("send", "event", "command", "duration", "millis", duration);
+		},
+		extraTime: function(){
+			_ga("send", "event", "extra-time", "from-prompt", numExtraTime++);
 		}
 	};
 });

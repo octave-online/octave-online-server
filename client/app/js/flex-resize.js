@@ -115,6 +115,7 @@ define(["jquery", "knockout"], function($, ko){
 	// This part of the code is not portable
 	$(document).ready(function(){
 		$(document).on("mouseover", function(e){
+			if (!window.viewModel) return;
 			window.viewModel.flex.shown(
 				active
 				|| $(e.target).attr("data-hover") === "flex"
