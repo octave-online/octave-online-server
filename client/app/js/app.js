@@ -9,6 +9,9 @@ define(
 	          splittr, SocketIOFileUpload, anal, onboarding,
 	          OtHandler, WsShared) {
 
+		// Set OO version for index.html compatibility
+		window.oo$version = 20161218.2;
+
 		// Initial GUI setup
 		splittr.init();
 
@@ -44,6 +47,7 @@ define(
 		socket.on("reload", OctMethods.socketListeners.reload);
 		socket.on("instructor", OctMethods.socketListeners.instructor);
 		socket.on("restart-countdown", OctMethods.socketListeners.restartCountdown);
+		socket.on("change-directory", OctMethods.socketListeners.changeDirectory);
 		socket.on("ot.doc", OtHandler.listeners.doc);
 		socket.on("ot.broadcast", OtHandler.listeners.broadcast);
 		socket.on("ot.ack", OtHandler.listeners.ack);
@@ -88,7 +92,12 @@ define(
 		prompt.renderer.setShowGutter(false);
 		prompt.setHighlightActiveLine(false);
 		prompt.setShowPrintMargin(false);
-		prompt.setOptions({enableBasicAutocompletion: true});
+		prompt.setOptions({
+			enableBasicAutocompletion: true,
+			maxLines: 6
+		});
+		prompt.renderer.setScrollMargin(5, 5);
+		prompt.getSession().setUseWrapMode(true);
 		prompt.commands.addCommand({
 			name: 'nullifyLineNumber',
 			bindKey: {mac: 'Command-L', win: 'Ctrl-L'},

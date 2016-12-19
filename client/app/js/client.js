@@ -180,6 +180,12 @@ function($, ko, canvg, Base64, download,
 			return !!viewModel.getOctFileFromName(filename);
 		},
 
+		cwd: ko.observable(""), // current working directory
+
+		addTime: function() {
+			OctMethods.prompt.addTime();
+		},
+
 		flex: {
 			sizes: ko.observableArray([100, 400, 75, 325]),
 			shown: ko.observable(false)
@@ -330,9 +336,11 @@ function($, ko, canvg, Base64, download,
 
 				// Add command to history
 				var history = OctMethods.prompt.history;
-				history[history.length-1] = cmd;
-				history.push("");
-				OctMethods.prompt.index = history.length - 1;
+				if (cmd !== "" && history[history.length-2] !== cmd) {
+					history[history.length-1] = cmd;
+					history.push("");
+					OctMethods.prompt.index = history.length - 1;
+				}
 
 				// Start countdown
 				OctMethods.prompt.startCountdown();
@@ -353,18 +361,24 @@ function($, ko, canvg, Base64, download,
 			history: [""],
 			index: 0,
 			legalTime: 5000,
+			extraTime: 0,
 			countdownInterval: null,
 			countdownTime: 0,
 			countdownDelay: 20,
 			enabled: true,
 			enable: function(){
 				$("#runtime_controls_container").hideSafe();
-				$("#prompt_container")[0].style.visibility = "visible";
+				$("#prompt").showSafe();
+				$("#prompt_sign").showSafe();
 				OctMethods.prompt.enabled = true;
 				OctMethods.prompt.endCountdown();
+
+				// There is a bug/feature in ACE that disables rendering when the element is hidden with display: none.  This hack forces a re-render now.
+				OctMethods.prompt.instance.resize(true);
 			},
 			disable: function(){
-				$("#prompt_container")[0].style.visibility = "hidden";
+				$("#prompt").hideSafe();
+				$("#prompt_sign").hideSafe();
 				OctMethods.prompt.enabled = false;
 			},
 			clear: function(skipLine){
@@ -383,6 +397,7 @@ function($, ko, canvg, Base64, download,
 			startCountdown: function(){
 				$("#runtime_controls_container").showSafe();
 				OctMethods.prompt.countdownTime = new Date().valueOf();
+				OctMethods.prompt.extraTime = 0;
 
 				OctMethods.prompt.countdownTick();
 				clearInterval(OctMethods.prompt.countdownInterval);
@@ -392,12 +407,17 @@ function($, ko, canvg, Base64, download,
 			},
 			countdownTick: function(){
 				var elapsed = new Date().valueOf() - OctMethods.prompt.countdownTime;
-				var remaining = (OctMethods.prompt.legalTime - elapsed);
+				var remaining = (OctMethods.prompt.legalTime + OctMethods.prompt.extraTime - elapsed);
 				if(remaining<=0) {
 					clearInterval(OctMethods.prompt.countdownInterval);
 					$("#seconds_remaining").text("---");
 				}else{
 					$("#seconds_remaining").text((remaining/1000).toFixed(2));
+				}
+				if (remaining <= 3000) {
+					$("#add_time_container").showSafe();
+				} else {
+					$("#add_time_container").hideSafe();
 				}
 			},
 			endCountdown: function(){
@@ -423,6 +443,11 @@ function($, ko, canvg, Base64, download,
 					OctMethods.socket.enroll(program);
 					viewModel.currentUser().program = program; // note: this is not observable
 				}
+			},
+			addTime: function() {
+				OctMethods.prompt.extraTime += 15000;
+				OctMethods.socket.addTime();
+				anal.extraTime();
 			}
 		},
 
@@ -538,6 +563,9 @@ function($, ko, canvg, Base64, download,
 				return OctMethods.socket.emit("oo.toggle_sharing", {
 					enabled: enabled
 				});
+			},
+			addTime: function() {
+				return OctMethods.socket.emit("oo.add_time", {});
 			},
 			emit: function(message, data){
 				if (!OctMethods.socket.instance
@@ -662,6 +690,12 @@ function($, ko, canvg, Base64, download,
 					$("#files_container").showSafe();
 					onboarding.showSyncPromo();
 
+					// Fire a window "resize" event to make sure everything adjusts,
+					// like the ACE editor in the prompt
+					var evt = document.createEvent("UIEvents");
+					evt.initUIEvent("resize", true, false, window, 0);
+					window.dispatchEvent(evt);
+
 					// Legal runtime
 					OctMethods.prompt.legalTime = data.legalTime;
 				}
@@ -726,6 +760,9 @@ function($, ko, canvg, Base64, download,
 			},
 			restartCountdown: function(){
 				OctMethods.prompt.startCountdown();
+			},
+			changeDirectory: function(data) {
+				viewModel.cwd(data.dir);
 			},
 			init: function(){
 				// Regular session or shared session?

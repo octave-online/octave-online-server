@@ -24,8 +24,6 @@
 	
 		& > #files_container {
 			flex: 2 4 100px
-			overflow: auto
-			-ms-overflow-style: -ms-autohiding-scrollbar
 			margin-right: gutter_size
 			background-color: colorbkg
 		}
@@ -73,6 +71,7 @@
 					flex: 1 1 75px
 					margin-right: gutter_size
 					background-color: color2
+					position: relative
 
 					@media (max-width: responsive_width_two) {
 						display: none
@@ -82,8 +81,20 @@
 				& > #console_container {
 					flex: 8 1 325px
 					overflow: hidden
+					display: flex
+					flex-flow: column nowrap
 					position: relative
-					background-color: colorbkg
+					
+					& > #console_output_container {
+						flex: 1 1 auto
+						position: relative
+						margin-bottom: 2px
+					}
+					
+					& > #console_prompt_container {
+						flex: 1 1 content
+						position: relative
+					}
 				}
 			}
 		}

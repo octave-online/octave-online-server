@@ -235,35 +235,44 @@
 					</div>
 				</div>
 				<div id="console_container" data-bind="resizeFlex:{ group: flex.sizes, index: 3 }">
-					<pre id="console"></pre>
-					<div id="instructor-promo" aria-hidden="true">
-						<span class="l1">Did you know you can use Octave Online in your class?</span>
-						<span class="l2">Open a support ticket to inquire about how we can set you up as an instructor.</span>
-						<span class="l3" data-purpose="close">dismiss</span>
+					<div id="console_output_container">
+						<pre id="console"></pre>
+						<div id="instructor-promo" aria-hidden="true">
+							<span class="l1">Did you know you can use Octave Online in your class?</span>
+							<span class="l2">Open a support ticket to inquire about how we can set you up as an instructor.</span>
+							<span class="l3" data-purpose="close">dismiss</span>
+						</div>
+						<!-- ko if: window.oo$version >= 20161218.2 -->
+						<div id="cwd_box" style="display: none" data-bind="visible: !!cwd()">cwd: <span data-bind="text: cwd"></span></div>
+						<!-- /ko -->
+						<div id="type_here" aria-hidden="true">
+							<span class="l1">Octave Command Prompt</span>
+							<span class="l2">Type expressions here and press enter.</span>
+							<span class="l3">Tip: <a href="javascript:void(0)" id="sign_in_shortcut">Sign in</a> to run script files.</span>
+						</div>
+						<span id="plot_opener" title="Expand Plot Window" data-bind="click: togglePlot"></span>
 					</div>
-					<div id="type_here" aria-hidden="true">
-						<span class="l1">Octave Command Prompt</span>
-						<span class="l2">Type expressions here and press enter.</span>
-						<span class="l3">Tip: <a href="javascript:void(0)" id="sign_in_shortcut">Sign in</a> to run script files.</span>
-					</div>
-					<div id="prompt_container" style="visibility: hidden">
-						<div id="prompt_sign">&#x25B7;</div>
+					<div id="console_prompt_container">
 
+						<div id="prompt_sign" aria-hidden="true">&#x300B;</div>
 						<!--
 						NOTE: Removing this inline height style and moving it to CSS
 						will result in a race condition between Ace and the CSS file
 						being loaded.
 						-->
-						<div id="prompt" style="height: 20px"></div>
+						<div id="prompt" style="height: 28px" aria-hidden="true"></div>
+
+						<div id="runtime_controls_container" aria-hidden="true">
+							<span id="signal" title="Stop Currently Running Command (send SIGINT)"></span>
+							<span id="seconds_remaining_container">
+								Seconds Remaining:
+								<span id="seconds_remaining">0</span>
+							</span>
+							<!-- ko if: window.oo$version >= 20161218.1 -->
+							<span id="add_time_container" class="clickable" data-bind="click: addTime">Add 15 Seconds</span>
+							<!-- /ko -->
+						</div>
 					</div>
-					<div id="runtime_controls_container" aria-hidden="true">
-						<span id="signal" title="Stop Currently Running Command (send SIGINT)"></span>
-						<span id="seconds_remaining_container">
-							Seconds Remaining:
-							<span id="seconds_remaining">0</span>
-						</span>
-					</div>
-					<span id="plot_opener" title="Expand Plot Window" data-bind="click: togglePlot"></span>
 				</div>
 			</div>
 		</div>
