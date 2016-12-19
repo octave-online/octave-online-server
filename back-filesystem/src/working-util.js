@@ -49,7 +49,7 @@ class WorkingUtil {
 
 		async.waterfall([
 			(_next) => {
-				this._mlog.log("Entering directory", directory);
+				this._mlog.trace("Entering directory", directory);
 				fs.readdir(directory, _next);
 			},
 			(files, _next) => {
@@ -63,7 +63,7 @@ class WorkingUtil {
 							fs.lstat(pathname, ___next);
 						},
 						(stats, ___next) => {
-							this._mlog.log("Got lstats", relname, stats.isDirectory(), stats.isFile());
+							this._mlog.trace("Got lstats", relname, stats.isDirectory(), stats.isFile());
 							if (stats.isDirectory()) {
 								return this._recursiveReaddir(pathname, depth+1, ___next);
 							} else if (stats.isFile()) {
@@ -75,7 +75,7 @@ class WorkingUtil {
 					], __next);
 				}, (err, results) => {
 					if (err) return _next(err);
-					this._mlog.log("Leaving directory", directory);
+					this._mlog.trace("Leaving directory", directory);
 					_next(null, Array.prototype.concat.apply([], results));
 				});
 			}
@@ -100,7 +100,7 @@ class WorkingUtil {
 	}
 
 	_getFileInfo(filename, pathname, relname, stats, next) {
-		this._mlog.log("Getting file info for", relname);
+		this._mlog.trace("Getting file info for", relname);
 		let _mime = mime.lookup(filename);
 		if (ACCEPTABLE_MIME_REGEX.test(_mime)) {
 			if (stats.size > config.session.textFileSizeLimit) {

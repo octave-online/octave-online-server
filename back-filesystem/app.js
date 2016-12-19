@@ -1,6 +1,6 @@
 "use strict";
 
-// This is the entrypoint for a standalone version of back-filesystem.
+// This is the entrypoint for a standalone version of back-filesystem, used by the Docker mode but NOT the SELinux mode.
 
 const messenger = new (require("@oo/shared").StdioMessenger)();
 const log = require("@oo/shared").logger("app");
