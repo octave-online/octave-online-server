@@ -180,6 +180,8 @@ function($, ko, canvg, Base64, download,
 			return !!viewModel.getOctFileFromName(filename);
 		},
 
+		cwd: ko.observable(""), // current working directory
+
 		addTime: function() {
 			OctMethods.prompt.addTime();
 		},
@@ -744,6 +746,9 @@ function($, ko, canvg, Base64, download,
 			},
 			restartCountdown: function(){
 				OctMethods.prompt.startCountdown();
+			},
+			changeDirectory: function(data) {
+				viewModel.cwd(data.dir);
 			},
 			init: function(){
 				// Regular session or shared session?

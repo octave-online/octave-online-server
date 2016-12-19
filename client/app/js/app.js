@@ -10,7 +10,7 @@ define(
 	          OtHandler, WsShared) {
 
 		// Set OO version for index.html compatibility
-		window.oo$version = 20161218.1;
+		window.oo$version = 20161218.2;
 
 		// Initial GUI setup
 		splittr.init();
@@ -47,6 +47,7 @@ define(
 		socket.on("reload", OctMethods.socketListeners.reload);
 		socket.on("instructor", OctMethods.socketListeners.instructor);
 		socket.on("restart-countdown", OctMethods.socketListeners.restartCountdown);
+		socket.on("change-directory", OctMethods.socketListeners.changeDirectory);
 		socket.on("ot.doc", OtHandler.listeners.doc);
 		socket.on("ot.broadcast", OtHandler.listeners.broadcast);
 		socket.on("ot.ack", OtHandler.listeners.ack);

@@ -232,6 +232,9 @@
 						<span class="l2">Open a support ticket to inquire about how we can set you up as an instructor.</span>
 						<span class="l3" data-purpose="close">dismiss</span>
 					</div>
+					<!-- ko if: window.oo$version >= 20161218.2 -->
+					<div id="cwd_box" style="display: none" data-bind="visible: !!cwd()">cwd: <span data-bind="text: cwd"></span></div>
+					<!-- /ko -->
 					<div id="type_here" aria-hidden="true">
 						<span class="l1">Octave Command Prompt</span>
 						<span class="l2">Type expressions here and press enter.</span>
