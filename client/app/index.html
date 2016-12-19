@@ -116,7 +116,16 @@
 			</div>
 			<div id="files_list_container">
 				<ul data-bind="foreach: files">
-					<li data-bind="click: open, css: { 'file_active': $data==$root.openFile(), 'modified': isModified }"><span class="dirpart" data-bind="text: dirpart, visible: !!dirpart"></span><span class="filepart" data-bind="text: filepart"></span></li>
+					<li data-bind="click: open, css: { 'file_active': $data==$root.openFile(), 'modified': isModified }">
+					  <!-- The ko if statements are for backwards compatibility between an old main.js and a new index.html -->
+					  <!-- ko if: dirpart -->
+					  <span class="dirpart" data-bind="text: dirpart, visible: !!dirpart"></span>
+					  <span class="filepart" data-bind="text: filepart"></span>
+					  <!-- /ko -->
+					  <!-- ko ifnot: dirpart -->
+					  <span data-bind="text: filename"></span>
+					  <!-- /ko -->
+					</li>
 				</ul>
 				<span id="files_drop_notification">
 					Drop Files Here to Upload
