@@ -1,5 +1,6 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/passport/passport.d.ts'/>
+///<reference path='boris-typedefs/passport-local/passport-local.d.ts'/>
 ///<reference path='typedefs/passport-google.d.ts'/>
 ///<reference path='typedefs/easy-no-password.d.ts'/>
 ///<reference path='typedefs/mailgun.d.ts'/>
@@ -9,6 +10,7 @@ import Passport = require("passport");
 import Config = require("./config");
 import EasyNoPassword = require("easy-no-password");
 import GoogleOAuth = require("passport-google-oauth");
+import Local = require("passport-local");
 import Mailgun = require("mailgun-js");
 import Persona = require("passport-persona");
 import User = require("./user_model");
@@ -46,6 +48,33 @@ function findOrCreateUser(email:string, profile:any,
 				console.log("New User", user.consoleText);
 				done(err, user);
 			});
+		}
+	});
+}
+
+enum PasswordStatus { UNKNOWN, INCORRECT, VALID }
+
+function findWithPassword(email:string, password:string,
+		done:(err:Error, status?:PasswordStatus, user?:IUser)=>void) {
+	User.findOne({
+		email: email
+	}, (err, user) => {
+		if (err) return done(err);
+
+		if (user) {
+			// Returning user.  Check password
+			user.checkPassword(password, function(err, valid) {
+				if (err) return done(err);
+				if (valid) {
+					return done(null, PasswordStatus.VALID, user);
+				} else {
+					return done(null, PasswordStatus.INCORRECT);
+				}
+			});
+
+		} else {
+			// User creation is not supported
+			return done(null, PasswordStatus.UNKNOWN);
 		}
 	});
 }
@@ -101,11 +130,29 @@ var easyStrategy = new (EasyNoPassword.Strategy)({
 		findOrCreateUser(email, { method: "easy" }, done);
 	});
 
+var passwordStrategy = new (Local.Strategy)({
+		usernameField: "s",
+		passwordField: "p"
+	},
+	function(username, password, done) {
+		findWithPassword(username, password, function(err, status, user) {
+			if (err) return done(err);
+			console.log("Password Callback", status, username);
+			if (status === PasswordStatus.UNKNOWN || status == PasswordStatus.INCORRECT) {
+				return done(null, false);
+			} else {
+				return done(null, user);
+			}
+		});
+	}
+);
+
 module PassportSetup {
 	export function init(){
 		Passport.use(googleStrategy);
 		Passport.use(personaStrategy);
 		Passport.use(easyStrategy);
+		Passport.use(passwordStrategy);
 		Passport.serializeUser((user, cb) => {
 			cb(null, user.id);
 		});

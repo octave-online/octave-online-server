@@ -1,6 +1,7 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/socket.io/socket.io.d.ts'/>
 ///<reference path='boris-typedefs/async/async.d.ts'/>
+///<reference path='typedefs/easy-no-password.d.ts'/>
 ///<reference path='typedefs/ot.d.ts'/>
 ///<reference path='typedefs/idestroyable.d.ts'/>
 ///<reference path='typedefs/iworkspace.ts'/>
@@ -14,6 +15,8 @@ import SharedWorkspace = require("./workspace_shared");
 import ChildProcess = require("child_process");
 import Ot = require("ot");
 import Async = require("async");
+
+const enp = require("easy-no-password")(Config.easy.secret);
 
 interface ISocketCustom extends SocketIO.Socket {
 	handler: SocketHandler;
@@ -207,6 +210,9 @@ class SocketHandler implements IDestroyable {
 			case "oo.reconnect":
 				this.onOoReconnect();
 				break;
+			case "oo.set_password":
+				this.onSetPassword(data);
+				break;
 			default:
 				break;
 		}
@@ -262,6 +268,15 @@ class SocketHandler implements IDestroyable {
 		});
 	}
 
+	private onSetPassword = (obj)=> {
+		if (!obj) return;
+		if (!this.user) return;
+		this.user.setPassword(obj.new_pwd, (err) => {
+			if (err) return this.log("SET PASSWORD ERROR", err);
+			this.sendMessage("Your password has been changed.");
+		});
+	}
+
 	private onOoReconnect = ():void => {
 		if (this.workspace) this.workspace.beginOctaveRequest();
 	};
@@ -289,7 +304,7 @@ class SocketHandler implements IDestroyable {
 		this.log("Enrolling", this.user.consoleText, "in program", program);
 		this.user.program = program;
 		this.user.save((err)=> {
-			if (err) this.log("MONGO ERROR", err);
+			if (err) return this.log("MONGO ERROR", err);
 			this.sendMessage("Successfully enrolled");
 		});
 	};

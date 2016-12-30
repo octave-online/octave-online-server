@@ -42,6 +42,20 @@ module ExpressApp {
 			.get("/auth/entry", function(req, res) {
 				res.render("token_page", { query: req.query });
 			})
+			.post("/auth/pwd", function(req, res, next) {
+				Passport.authenticate("local", function(err, user, info, status) {
+					if (err) return next(err);
+					if (!user) return res.redirect("/auth/incorrect?s=" + encodeURIComponent(req.body && req.body.s));
+					// Since we overrode the Passport callback function, we need to manually call res.logIn().
+					req.logIn(user, {}, function(err) {
+						if (err) return next(err);
+						res.redirect("/");
+					});
+				})(req, res, next);
+			})
+			.get("/auth/incorrect", function(req, res) {
+				res.render("incorrect_page", { query: req.query });
+			})
 			.get("/auth/google", Passport.authenticate("google", {
 				scope: "profile email"
 			}))

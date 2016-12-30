@@ -25,6 +25,8 @@ interface IUser /* extends require("mongoose").Document */ {
 	// Methods
 	createShareKey(callback?:(err?:any)=>void): void
 	removeShareKey(callback?:(err?:any)=>void): void
+	setPassword(password:string, callback?:(err?:any)=>void): void
+	checkPassword(password:string, callback?:(err:any, success:boolean)=>void): void
 
 	// Extended methods from Mongoose Document
 	save<T>(callback?: (err: any, res: T) => void): void

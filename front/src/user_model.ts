@@ -1,11 +1,14 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 ///<reference path='boris-typedefs/mongoose/mongoose.d.ts'/>
+///<reference path='boris-typedefs/bcrypt/bcrypt.d.ts'/>
 ///<reference path='typedefs/iuser.ts'/>
 
 // Mongoose User: stores OpenID information for a user.
 
 import Mongoose = require("mongoose");
 import Crypto = require("crypto");
+import Bcrypt = require("bcrypt");
+import Config = require("./config");
 
 // Initialize the schema
 var userSchema = new Mongoose.Schema({
@@ -18,6 +21,7 @@ var userSchema = new Mongoose.Schema({
 	},
 	repo_key: String,
 	share_key: String,
+	password_hash: String,
 	program: String,
 	instructor: [String]
 });
@@ -113,6 +117,34 @@ userSchema.pre("save", function(next){
 	this.share_key = null;
 	console.log("Removing share key from user", this.parametrized);
 	this.save(next);
+};
+
+// Instance methods for password hashes
+(<any>userSchema).methods.setPassword = function(password, next){
+	var self = this;
+	console.log("Setting password for user", this.parametrized);
+	if (!password) {
+		process.nextTick(function() {
+			self.password_hash = "";
+			self.save(next);
+		});
+	} else {
+		Bcrypt.hash(password, Config.password.salt_rounds, function(err, hash) {
+			self.password_hash = hash;
+			self.save(next);
+		});
+	}
+};
+(<any>userSchema).methods.checkPassword = function(password, next){
+	console.log("Checking password for user", this.parametrized);
+	if (!this.password_hash || !password) {
+		// Fail if no password is set on user
+		process.nextTick(function() {
+			next(null, false);
+		});
+	} else {
+		Bcrypt.compare(password, this.password_hash, next);
+	}
 };
 
 // Make sure the fields are initialized

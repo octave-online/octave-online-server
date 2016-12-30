@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+
+<head>
+	<title>Octave Online</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<style type="text/css">
+	body {
+		width: 75%;
+		background-color: #FF5C4A; /* OO Fire Red */
+		margin: 0 auto;
+		padding: 0;
+		font-family: sans-serif;
+	}
+	@media (max-width: 480px) {
+		body {
+			width: 100%;
+		}
+	}
+	#main {
+		background-color: #fff;
+		margin: 0;
+		padding: 10px;
+		text-align: center;
+	}
+	input[type=submit] {
+		font-size: 1.5em;
+	}
+	</style>
+</head>
+
+<body>
+	<div id="main">
+		<p>
+			<img src="/images/touch-icons/120.png" />
+		</p>
+		<h1>Authentication Failure</h1>
+		<p>
+			You could not be logged in with the email and password that you provided.  If you want to create a new account or if you forgot your password, click the button below to be emailed an 11-digit code to <strong><%= query ? query.s : "(empty)" %></strong>.
+		</p>
+		<form action="./tok" method="post">
+			<input type="hidden" name="s" value="<%= query ? query.s : "(empty)" %>" />
+			<p>
+				<input type="submit" value="Send Code" />
+			</p>
+		</form>
+		<p>
+			Once you are signed in, use the "Change Password" option in the menu to set a new password.
+		</p>
+	</div>
+</body>

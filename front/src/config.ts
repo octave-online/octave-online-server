@@ -24,6 +24,9 @@ interface IAppConfig {
 	easy: {
 		secret: string;
 	}
+	password: {
+		salt_rounds: number;
+	}
 	mailgun: {
 		api_key: string;
 		domain: string;
