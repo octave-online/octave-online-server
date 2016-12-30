@@ -15,6 +15,8 @@ https://tools.google.com/dlpage/gaoptout/
 
 Unless required by law, we do not give or sell personally identifiable information to third parties.
 
+If you lose your email address, you may open a support ticket asking to restore access to your account. We will ask you questions about your old account to verify your identity. It is your responsibility to protect information about the files in your account so that no one can wrongfully gain access.
+
 Octave Online reserves the right to send you email announcements about Octave Online.  Such announcements will be released only for major updates and reports.
 
 Octave Online may also save cookies to your computer.  These cookies help us keep you logged in during a session and between sessions.  Disabling cookies will limit the features we are able to provide.

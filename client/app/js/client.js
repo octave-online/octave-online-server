@@ -153,7 +153,12 @@ function($, ko, canvg, Base64, download,
 		// Sign In / Sign Out
 		currentUser: ko.observable(),
 		doLogout: function(){
-			require(["js/login"], function(L){ L.logout(); });
+			onboarding.reset();
+			window.location.href = "/logout";
+		},
+		showChangePassword: function() {
+			$("#change_password").showSafe();
+			$("#new_pwd").focus();
 		},
 
 		toggleSharing: function(){
@@ -566,6 +571,11 @@ function($, ko, canvg, Base64, download,
 			},
 			addTime: function() {
 				return OctMethods.socket.emit("oo.add_time", {});
+			},
+			setPassword: function(password) {
+				return OctMethods.socket.emit("oo.set_password", {
+					new_pwd: password
+				});
 			},
 			emit: function(message, data){
 				if (!OctMethods.socket.instance

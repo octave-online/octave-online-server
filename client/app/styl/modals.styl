@@ -60,7 +60,7 @@ popover(_width, _height, _zindex){
 	font-size: 1.3em
 	line-height: 1.4em
 	
-	input#emailField {
+	input[type="email"] {
 		font-size: 1.4em
 		display: block
 		width: 95%
@@ -73,6 +73,46 @@ popover(_width, _height, _zindex){
 		&.valid {
 			background-color: #94E0D4
 		}
+	}
+}
+
+// Email Password
+#email_password {
+	popover(50%, 50%, 320)
+	
+	text-align: center
+	font-size: 1.3em
+	line-height: 1.4em
+	
+	input[type="email"], input[type="password"] {
+		font-size: 1.3em
+		display: block
+		width: 95%
+		margin: 10px auto
+	}
+	
+	p {
+		margin: 0 auto 1em
+	}
+}
+
+// Change Password
+#change_password {
+	popover(50%, 50%, 320)
+	
+	text-align: center
+	font-size: 1.3em
+	line-height: 1.4em
+	
+	input[type="password"] {
+		font-size: 1.3em
+		display: block
+		width: 95%
+		margin: 10px auto
+	}
+	
+	p {
+		margin: 0 auto 1em
 	}
 }
 

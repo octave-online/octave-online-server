@@ -281,14 +281,17 @@
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
 					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="Sign in with Google" />
 				</svg>
-				<svg width="200" height="40" class="login_btn" id="sign_in_with_persona">
-					<image xlink:href="images/sign-in-with-persona.svg" src="images/sign-in-with-persona.png" width="200" height="40" alt="Sign in with Persona" />
+				<svg width="200" height="40" class="login_btn" id="sign_in_with_password">
+					<image xlink:href="images/sign-in-with-password.svg" src="images/sign-in-with-password.png" width="200" height="40" alt="Sign in with Password" />
 				</svg>
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
 					<image xlink:href="images/sign-in-with-email.svg" src="images/sign-in-with-email.png" width="200" height="40" alt="Sign in with Email" />
 				</svg>
 				<p class="login_bottom">
-					Signed in before but need to change your email address?  Click "Feedback" and create a ticket.  We will change it for you.
+					Looking for Persona? It was discontinued by Mozilla in 2016. Please sign in using your same email address with one of the other methods.
+				</p>
+				<p class="login_bottom">
+					Signed in before but need to change your email address? Click "Feedback" and create a ticket. We will change it for you.
 				</p>
 			<!-- /ko -->
 			<!-- ko if: currentUser -->
@@ -300,12 +303,19 @@
 					<!-- ko if: currentUser().share_key -->
 						<em>Others can use the following link to connect to your workspace.</em>
 						<input data-bind="value: shareLink" onclick="this.select()" readonly="readonly" />
-						<a data-bind="click: toggleSharing">Disable Sharing<br/><small>(will reload page)</small></a>
+						<div class="site-control-item" data-bind="click: toggleSharing">
+							<a href="javascript:void(0)">Disable Sharing</a>
+						</div>
 					<!-- /ko -->
 					<!-- ko ifnot: currentUser().share_key -->
 						<em>Sharing is currently disabled.  If you enable it, you get a link that you can use for real-time collaboration with colleagues.</em>
-						<a data-bind="click: toggleSharing">Enable Sharing<br/><small>(will reload page)</small></a>
+						<div class="site-control-item" data-bind="click: toggleSharing">
+							<a href="javascript:void(0)">Enable Sharing</a>
+						</div>
 					<!-- /ko -->
+				</div>
+				<div class="site-control-item" id="create-password-btn" data-bind="click: showChangePassword">
+					<a href="javascript:void(0)">Change Password</a>
 				</div>
 			<!-- /ko -->
 			<!-- ko foreach: instructorPrograms -->
@@ -316,12 +326,6 @@
 					</ul>
 				</div>
 			<!-- /ko -->
-			<div id="show-plots-inline-item">
-				<label>
-					<input type="checkbox" data-bind="checked: inlinePlots" />
-					Render New Plots Inline
-				</label>
-			</div>
 			<div class="site-control-item" id="feedback-btn">
 				<a href="javascript:void(0)"
 				data-uv-lightbox="classic_widget"
@@ -344,6 +348,12 @@
 			<div id="twitter-follow-holder" class="site-control-item">
 				<a href="https://twitter.com/OctaveOnline" class="twitter-follow-button" data-show-count="false"
 				data-lang="en" data-size="large" data-show-screen-name="false" target="_blank">Follow on Twitter</a>
+			</div>
+			<div id="show-plots-inline-item">
+				<label>
+					<input type="checkbox" data-bind="checked: inlinePlots" />
+					Render New Plots Inline
+				</label>
 			</div>
 			<div id="footnotes">
 				Icons made by <a href="http://www.flaticon.com/authors/bogdan-rosu" title="Bogdan Rosu" target="_blank">Bogdan Rosu</a>, <a href="http://www.flaticon.com/authors/daniel-bruce" title="Daniel Bruce" target="_blank">Daniel Bruce</a>, <a href="http://www.flaticon.com/authors/sarfraz-shoukat" title="Sarfraz Shoukat" target="_blank">Sarfraz Shoukat</a>, <a href="http://www.flaticon.com/authors/icomoon" title="Icomoon" target="_blank">Icomoon</a>, <a href="http://www.flaticon.com/authors/freepik" title="Freepik" target="_blank">Freepik</a>, <a href="http://www.flaticon.com/authors/icon-works" title="Icon Works" target="_blank">Icon Works</a>, <a href="http://www.flaticon.com/authors/plainicon" title="Plainicon" target="_blank">Plainicon</a>, and <a href="http://www.flaticon.com/authors/simpleicon" title="SimpleIcon" target="_blank">SimpleIcon</a> are from <a href="http://www.flaticon.com" title="Flaticon" target="_blank">www.flaticon.com</a> and licensed by <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank" title="Creative Commons BY 3.0">CC BY 3.0</a>.
@@ -389,10 +399,33 @@
 <div id="email_token" data-purpose="popover" aria-hidden="true"><div><div>
 	<label for="emailField">Enter your email address:</label>
 	<form action="./auth/tok" method="post">
-		<input type="email" id="emailField" name="s" />
+		<input type="email" id="emailField1" name="s" placeholder="email address" />
 		<input type="submit" value="Submit" />
 	</form>
 	<p>You will be emailed an 11-digit code that you will need to enter on the next screen.</p>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
+
+<div id="email_password" data-purpose="popover" aria-hidden="true"><div><div>
+	<p><strong>New user? Forgot your password?</strong>  Use the "email token" sign-in option instead.  Once you are signed in, use the "Change Password" option in the menu to set a new password.</p>
+	<form action="./auth/pwd" method="post">
+		<input type="email" id="emailField2" name="s" placeholder="email address" />
+		<input type="password" name="p" placeholder="password" />
+		<!-- ko if: window.location.protocol === "http:" -->
+		<p><strong>Caution:</strong>  You are using an unsecured connection (http).  People might be able to see what you submit.  <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }">Switch to a secured connection (https)</a></p>
+		<!-- /ko -->
+		<input type="submit" value="Submit" />
+	</form>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
+
+<div id="change_password" data-purpose="popover" aria-hidden="true"><div><div>
+	<p>Enter your new password below.  To remove your password and disable password-based logins, leave the password field blank and click "Save Password".</p>
+	<input type="password" id="new_pwd" placeholder="password" />
+	<!-- ko if: window.location.protocol === "http:" -->
+	<p><strong>Caution:</strong>  You are using an unsecured connection (http).  People might be able to see what you submit.  <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }">Switch to a secured connection (https)</a></p>
+	<!-- /ko -->
+	<button id="save-password-btn">Save Password</button>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 

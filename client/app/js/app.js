@@ -206,26 +206,31 @@ define(
 			});
 		}
 
-		// Sign-In
+		// Sign-In and Password
 		$("#hamburger, #sign_in_shortcut").click(function () {
 			var opened = $("#main_menu").toggleSafe();
 			$("#hamburger").toggleClass("is-active", opened);
 			onboarding.hideScriptPromo();
 			anal.sitecontrol("hamburger");
 		});
-		$("#sign_in_with_persona").click(function () {
-			require(["js/login"], function(L){
-				L.login(false);
-			});
-		});
 		$("#sign_in_with_google").click(function () {
-			require(["js/login"], function(L){
-				L.login(true);
-			});
+			window.location.href = "/auth/google";
+		});
+		$("#sign_in_with_password").click(function () {
+			$("#email_password").showSafe();
+			$("#emailField2").focus();
 		});
 		$("#sign_in_with_email").click(function () {
 			$("#email_token").showSafe();
-			$("#emailField").focus();
+			$("#emailField1").focus();
+		});
+		// Callback for #create-password-btn is in Knockout setup
+		$("#save-password-btn").click(function() {
+			var password = $("#new_pwd").val();
+			$("#new_pwd").val("");
+			$("#change_password").hideSafe();
+
+			OctMethods.socket.setPassword(password);
 		});
 
 		// Theme bindings

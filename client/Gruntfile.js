@@ -68,7 +68,6 @@ module.exports = function (grunt) {
 				files: {
 					"dist/js/require.js": ["app/vendor/requirejs/require.js"],
 					"dist/js/runtime.js": ["app/js/runtime.js"],
-					"dist/js/login.js": ["app/js/login.js"],
 					"dist/js/modernizr-201406b.js": ["app/js/modernizr-201406b.js"]
 				}
 			}
