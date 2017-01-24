@@ -10,6 +10,8 @@ JSON_MAX_LEN = $(shell jq -r ".session.jsonMaxMessageLength" shared/config.json)
 CGROUP_NAME = $(shell jq -r ".cgroup.name" shared/config.json)
 CPU_SHARES = $(shell jq -r ".cgroup.cpuShares" shared/config.json)
 CPU_QUOTA = $(shell jq -r ".cgroup.cpuQuota" shared/config.json)
+CGROUP_UID = $(shell jq -r ".cgroup.uid" shared/config.json)
+CGROUP_GID = $(shell jq -r ".cgroup.gid" shared/config.json)
 
 docker-octave:
 	if [[ -e bundle ]]; then rm -rf bundle; fi
@@ -51,10 +53,24 @@ docker-master-selinux:
 	echo "It is not currently possible to install SELinux inside of a Docker container."
 
 install-cgroup:
-	sudo cgcreate -t $(USER):$(USER) -g cpu:$(CGROUP_NAME)
-	sudo cgset -r cpu.shares=$(CPU_SHARES) $(CGROUP_NAME)
-	sudo cgset -r cpu.cfs_period_us=1000000 $(CGROUP_NAME)
-	sudo cgset -r cpu.cfs_quota_us=$(CPU_QUOTA) $(CGROUP_NAME)
+	systemctl enable cgconfig
+	echo "group $(CGROUP_NAME) {" >> /etc/cgconfig.conf
+	echo "  perm {" >> /etc/cgconfig.conf
+	echo "    admin {" >> /etc/cgconfig.conf
+	echo "      uid = root;" >> /etc/cgconfig.conf
+	echo "      gid = root;" >> /etc/cgconfig.conf
+	echo "    }" >> /etc/cgconfig.conf
+	echo "    task {" >> /etc/cgconfig.conf
+	echo "      uid = $(CGROUP_UID);" >> /etc/cgconfig.conf
+	echo "      gid = $(CGROUP_GID);" >> /etc/cgconfig.conf
+	echo "    }" >> /etc/cgconfig.conf
+	echo "  }" >> /etc/cgconfig.conf
+	echo "  cpu {" >> /etc/cgconfig.conf
+	echo "    cpu.shares = $(CPU_SHARES);" >> /etc/cgconfig.conf
+	echo "    cpu.cfs_period_us = 1000000;" >> /etc/cgconfig.conf
+	echo "    cpu.cfs_quota_us = $(CPU_QUOTA);" >> /etc/cgconfig.conf
+	echo "  }" >> /etc/cgconfig.conf
+	echo "}" >> /etc/cgconfig.conf
 
 install-selinux-policy:
 	# yum install -y selinux-policy-devel policycoreutils-sandbox selinux-policy-sandbox

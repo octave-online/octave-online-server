@@ -19,11 +19,11 @@ Ensure that you are running on CentOS or another distribution of Linux that supp
 
 Make and build Octave from source.  Follow a procedure similar to the one put forth in *dockerfiles/build-octave.dockerfile*.
 
-Run `sudo yum install -y selinux-policy-devel policycoreutils-sandbox selinux-policy-sandbox`
+Run `sudo yum install -y selinux-policy-devel policycoreutils-sandbox selinux-policy-sandbox libcgroup-tools jq`
 
 Run all of the following make commands from the projects directory.
 
-- `make install-cgroup`  ## => don't use sudo on this one
+- `sudo make install-cgroup`
 - `sudo make install-selinux-policy`
 - `sudo make install-selinux-bin`
 - `sudo make install-site-m`
@@ -113,9 +113,11 @@ You need to create a file called *config.json* at *shared/config.json*.  Here is
 			"maxPayload": 10000
 		},
 		"cgroup": {
-			"name": "oo/octave2",
+			"name": "oo/octave",
 			"cpuShares": 128,
-			"cpuQuota": 800000
+			"cpuQuota": 800000,
+			"uid": "oo",
+			"gid": "oo"
 		},
 		"prlimit": {
 			"addressSpace": 1000000000
