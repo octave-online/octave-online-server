@@ -7,6 +7,9 @@ WORK_DIR = $(shell jq -r ".docker.cwd" shared/config.json)
 OCTAVE_SUFFIX = $(shell jq -r ".docker.images.octaveSuffix" shared/config.json)
 FILES_SUFFIX = $(shell jq -r ".docker.images.filesystemSuffix" shared/config.json)
 JSON_MAX_LEN = $(shell jq -r ".session.jsonMaxMessageLength" shared/config.json)
+CGROUP_NAME = $(shell jq -r ".cgroup.name" shared/config.json)
+CPU_SHARES = $(shell jq -r ".cgroup.cpuShares" shared/config.json)
+CPU_QUOTA = $(shell jq -r ".cgroup.cpuQuota" shared/config.json)
 
 docker-octave:
 	if [[ -e bundle ]]; then rm -rf bundle; fi
@@ -46,6 +49,12 @@ docker-master-docker:
 
 docker-master-selinux:
 	echo "It is not currently possible to install SELinux inside of a Docker container."
+
+install-cgroup:
+	sudo cgcreate -t $(USER):$(USER) -g cpu:$(CGROUP_NAME)
+	sudo cgset -r cpu.shares=$(CPU_SHARES) $(CGROUP_NAME)
+	sudo cgset -r cpu.cfs_period_us=1000000 $(CGROUP_NAME)
+	sudo cgset -r cpu.cfs_quota_us=$(CPU_QUOTA) $(CGROUP_NAME)
 
 install-selinux-policy:
 	# yum install -y selinux-policy-devel policycoreutils-sandbox selinux-policy-sandbox

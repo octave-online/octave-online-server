@@ -129,7 +129,7 @@ class HostProcessHandler extends ProcessHandler {
 				if (skipSandbox) {
 					super._doCreate(_next, child_process.spawn, "env", ["GNUTERM=svg", "env", "LD_LIBRARY_PATH=/usr/local/lib", "/usr/local/bin/octave-host", config.session.jsonMaxMessageLength], { cwd: dataDir });
 				} else {
-					super._doCreate(_next, child_process.spawn, "/usr/bin/sandbox", ["-M", "-H", dataDir, "-T", this.tmpdir, "--level", "s0", "env", "GNUTERM=svg", "env", "LD_LIBRARY_PATH=/usr/local/lib", "/usr/local/bin/octave-host", config.session.jsonMaxMessageLength]);
+					super._doCreate(_next, child_process.spawn, "/usr/bin/prlimit", ["--as="+config.prlimit.addressSpace, "/usr/bin/cgexec", "-g", "cpu:"+config.cgroup.name, "/usr/bin/sandbox", "-M", "-H", dataDir, "-T", this.tmpdir, "--level", "s0", "env", "GNUTERM=svg", "env", "LD_LIBRARY_PATH=/usr/local/lib", "/usr/local/bin/octave-host", config.session.jsonMaxMessageLength]);
 				}
 			},
 			(_next) => {
