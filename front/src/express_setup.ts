@@ -29,6 +29,9 @@ module ExpressApp {
 			.use(Siofu.router)
 			.set("views", "./src/views")
 			.set("view engine", "ejs")
+			.get("/ping", function(req, res){
+				res.sendStatus(204);
+			})
 			.post("/auth/persona", Passport.authenticate("persona"), function(req, res){
 				res.sendStatus(204);
 			})

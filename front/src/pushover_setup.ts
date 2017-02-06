@@ -39,22 +39,27 @@ function _router(req, res, next){
 		}
 
 		// Check the user's password
-		if (user.repo_key !== req.basic_auth.password) {
-			return res.sendStatus(403);
-		}
+		user.checkPassword(req.basic_auth.password, function(err1, isValid) {
+			if (err1) {
+				console.log("ERROR CHECKING PASSWORD", err1);
+				return res.sendStatus(500);
+			}
+			if (!isValid) {
+				return res.sendStatus(403);
+			}
 
-
-		// We should be all good now.  Give request to Pushover.
-		// 
-		// We need to do this req.pause() hack because Pushover doesn't support
-		// Express servers out of the box.
-		// 
-		// See https://github.com/substack/pushover/issues/30
-		// 
-		req.pause();
-		req.url = "/" + user.parametrized + ".git" + req.url;
-		repos.handle(req, res);
-		req.resume();
+			// We should be all good now.  Give request to Pushover.
+			// 
+			// We need to do this req.pause() hack because Pushover doesn't support
+			// Express servers out of the box.
+			// 
+			// See https://github.com/substack/pushover/issues/30
+			// 
+			req.pause();
+			req.url = "/" + user.parametrized + ".git" + req.url;
+			repos.handle(req, res);
+			req.resume();
+		});
 	});
 };
 
