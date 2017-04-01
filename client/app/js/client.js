@@ -1,12 +1,12 @@
 // Client-Side JavaScript for Octave Online
 
 define(
-	["jquery", "knockout", "canvg", "base64", "js/download",
+	["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_highlight",
 		"js/anal", "base64-toblob", "ismobile", "exports", "js/octfile",
 		"js/vars", "ko-takeArray", "require", "js/onboarding", "js/ws-shared",
 		"blob", "jquery.md5", "jquery.purl", "ace/theme/crimson_editor",
 		"ace/theme/merbivore_soft", "js/ko-ace"],
-function($, ko, canvg, Base64, download,
+function($, ko, canvg, Base64, download, aceStaticHighlight,
          anal, b64ToBlob, isMobile, exports, OctFile,
          Var, koTakeArray, require, onboarding, WsShared){
 
@@ -911,7 +911,7 @@ function($, ko, canvg, Base64, download,
 				doc.append(h1);
 
 				// Create the Ace highlighter
-				var highlight = require("ace/ext/static_highlight").render(
+				var highlight = aceStaticHighlight.render(
 					octfile.content(),
 					new (require("ace/mode/octave").Mode)(),
 					require("ace/theme/crimson_editor")
