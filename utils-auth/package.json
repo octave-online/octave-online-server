@@ -1,0 +1,16 @@
+{
+  "name": "@oo/utilsauth",
+  "version": "0.0.0",
+  "description": "Authenticates users accessing git repos on the back server",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shane F. Carr",
+  "license": "AGPL-3.0",
+  "private": true,
+  "dependencies": {
+    "bcrypt": "^1.0.1",
+    "mongoose": "~3.8.21",
+  }
+}
