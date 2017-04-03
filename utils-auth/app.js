@@ -1,3 +1,6 @@
+#!/usr/bin/env node
+"use strict";
+
 const http = require("http");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
@@ -59,7 +62,7 @@ const server = http.createServer((req, res) => {
 		prompt(res, "Please enter your email and password");
 	}
 });
-server.listen(PORT);
+server.listen(PORT, "127.0.0.1");
 
 function prompt(res, message) {
 	res.writeHead(401, {

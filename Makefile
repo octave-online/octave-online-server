@@ -90,6 +90,12 @@ install-selinux-bin:
 	systemctl enable oo-install-host
 	ln -sf $$PWD /usr/local/share/oo
 
+install-utils-auth:
+	cp entrypoint/oo_utils_auth.service /usr/lib/systemd/system/oo_utils_auth.service
+	systemctl daemon-reload
+	systemctl enable oo_utils_auth
+	ln -sf $$PWD /usr/local/share/oo
+
 install-site-m:
 	if [[ -e /usr/local/share/octave/site/m/placeholders ]]; then rm -rf /usr/local/share/octave/site/m/placeholders; fi
 	back-octave/bin/make_placeholders.js

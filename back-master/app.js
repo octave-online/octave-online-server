@@ -188,3 +188,6 @@ function doExit() {
 process.on("SIGINT", doExit);
 process.on("SIGHUP", doExit);
 process.on("SIGTERM", doExit);
+
+//const heapdump = require("heapdump");
+//setInterval(() => { heapdump.writeSnapshot("/srv/oo/logs/heap/" + hostname + "." + process.pid + "." + Date.now() + ".heapsnapshot"); }, 30000);
