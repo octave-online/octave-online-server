@@ -10,7 +10,8 @@
   "license": "AGPL-3.0",
   "private": true,
   "dependencies": {
+    "basic-auth": "^1.1.0",
     "bcrypt": "^1.0.1",
-    "mongoose": "~3.8.21",
+    "mongoose": "^4.0.6"
   }
 }
