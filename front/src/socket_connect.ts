@@ -204,6 +204,9 @@ class SocketHandler implements IDestroyable {
 			case "update_students":
 				this.onUpdateStudents(data);
 				break;
+			case "oo.ping":
+				this.onPing(data);
+				break;
 			case "oo.toggle_sharing":
 				this.onToggleSharing(data);
 				break;
@@ -332,6 +335,13 @@ class SocketHandler implements IDestroyable {
 				}
 			}
 		);
+	};
+
+	private onPing = (obj)=> {
+		if (!obj) return;
+		this.socket.emit("oo.pong", {
+			startTime: parseInt(obj.startTime)
+		});
 	};
 
 	private onToggleSharing = (obj)=> {
