@@ -344,8 +344,8 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				if (cmd !== "" && history[history.length-2] !== cmd) {
 					history[history.length-1] = cmd;
 					history.push("");
-					OctMethods.prompt.index = history.length - 1;
 				}
+				OctMethods.prompt.index = history.length - 1;
 
 				// Start countdown
 				OctMethods.prompt.startCountdown();
