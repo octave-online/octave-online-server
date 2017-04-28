@@ -464,6 +464,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				// Check if this command is a front-end command
 				var enrollRegex = /^enroll\s*\(['"](\w+)['"]\).*$/;
 				var updateStudentsRegex = /^update_students\s*\(['"](\w+)['"]\).*$/;
+				var pingRegex = /^ping$/;
 
 				if(enrollRegex.test(cmd)){
 					var program = cmd.match(enrollRegex)[1];
@@ -473,6 +474,9 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 					var program = cmd.match(updateStudentsRegex)[1];
 					OctMethods.socket.updateStudents(program);
 					OctMethods.prompt.clear(true);
+				}else if(pingRegex.test(cmd)) {
+					OctMethods.socket.ping();
+					OctMethods.prompt.clear(false);
 				}else{
 					OctMethods.console.command(cmd);
 					OctMethods.prompt.clear(false);
@@ -559,6 +563,11 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			updateStudents: function(program, password){
 				return OctMethods.socket.emit("update_students", {
 					program: program
+				});
+			},
+			ping: function() {
+				return OctMethods.socket.emit("oo.ping", {
+					startTime: new Date().valueOf()
 				});
 			},
 			refresh: function(){
@@ -767,6 +776,11 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 						+ "?s=" + user.share_key;
 				});
 				viewModel.instructorPrograms.push(data);
+			},
+			pong: function(data) {
+				var startTime = parseInt(data.startTime);
+				var endTime = new Date().valueOf();
+				OctMethods.console.write("Ping time: " + (endTime-startTime) + "ms\n");
 			},
 			restartCountdown: function(){
 				OctMethods.prompt.startCountdown();

@@ -46,6 +46,7 @@ define(
 		socket.on("disconnect", OctMethods.socketListeners.disconnect);
 		socket.on("reload", OctMethods.socketListeners.reload);
 		socket.on("instructor", OctMethods.socketListeners.instructor);
+		socket.on("oo.pong", OctMethods.socketListeners.pong);
 		socket.on("restart-countdown", OctMethods.socketListeners.restartCountdown);
 		socket.on("change-directory", OctMethods.socketListeners.changeDirectory);
 		socket.on("ot.doc", OtHandler.listeners.doc);
