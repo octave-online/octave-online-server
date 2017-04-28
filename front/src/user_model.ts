@@ -156,7 +156,14 @@ userSchema.post("init", function(doc){
 
 // JSON representation: include the virtuals (this object will be transmitted
 // to the actual Octave server)
-userSchema.set('toJSON', { virtuals: true });
+// Leave out the password_hash field to avoid leaking it to the front end
+userSchema.set('toJSON', {
+	virtuals: true,
+	transform: function(doc, ret, options) {
+		delete ret.password_hash;
+		return ret;
+	}
+});
 
 // Export the Mongoose model for the rest of the program.
 // The casting mania in the line below bypasses TypeScript.  If you want to
