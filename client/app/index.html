@@ -324,7 +324,7 @@
 				<div class="instructor-programs">
 					<strong>Students Enrolled in <span data-bind="text: program"></span>:</strong>
 					<ul data-bind="foreach: users">
-						<li><a data-bind="attr: { href: shareUrl }, text: displayName" target="_blank"></a></li>
+						<li><a data-bind="attr: { href: shareUrl }, text: displayName" target="_blank"></a> (<a data-bind="click: $root.unenrollStudent" title="Unenroll">&#x232B;</a> <a data-bind="click: $root.reenrollStudent" title="Move">&#x2794;</a>)</li>
 					</ul>
 				</div>
 			<!-- /ko -->

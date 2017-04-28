@@ -161,6 +161,24 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			$("#new_pwd").focus();
 		},
 
+		unenrollStudent: function(user) {
+			if (confirm("Are you sure that you want to remove the following student from your course?\n\nName: " + user.displayName + "\nCourse: " + user.program)) {
+				OctMethods.socket.unenrollStudent(user);
+			}
+		},
+		reenrollStudent: function(user) {
+			var newProgram = prompt("Enter the course code to which you want to move this student:", "");
+			var programs = viewModel.instructorPrograms();
+			for (var i=0; i<programs.length; i++) {
+				if (programs[i].program === newProgram) {
+					OctMethods.socket.reenrollStudent(user, newProgram);
+					alert("The following student is being re-enrolled.  Reload the page to see the update.\n\nName: " + user.displayName + "\nNew Course: " + newProgram);
+					return;
+				}
+			}
+			alert("Error: Could not find the program " + newProgram);
+		},
+
 		toggleSharing: function(){
 			var shareKey = viewModel.currentUser().share_key;
 			var program = viewModel.currentUser().program;
@@ -563,6 +581,17 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			updateStudents: function(program, password){
 				return OctMethods.socket.emit("update_students", {
 					program: program
+				});
+			},
+			unenrollStudent: function(user){
+				return OctMethods.socket.emit("oo.unenroll_student", {
+					userId: user._id
+				});
+			},
+			reenrollStudent: function(user, newProgram){
+				return OctMethods.socket.emit("oo.reenroll_student", {
+					userId: user._id,
+					program: newProgram
 				});
 			},
 			ping: function() {
