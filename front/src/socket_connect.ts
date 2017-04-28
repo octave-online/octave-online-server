@@ -204,6 +204,12 @@ class SocketHandler implements IDestroyable {
 			case "update_students":
 				this.onUpdateStudents(data);
 				break;
+			case "oo.unenroll_student":
+				this.onUnenrollStudent(data);
+				break;
+			case "oo.reenroll_student":
+				this.onReenrollStudent(data);
+				break;
 			case "oo.ping":
 				this.onPing(data);
 				break;
@@ -336,6 +342,36 @@ class SocketHandler implements IDestroyable {
 			}
 		);
 	};
+
+	private onUnenrollStudent = (obj)=> {
+		if (!obj) return;
+		if (!obj.userId) return;
+		User.findById(obj.userId, (err, student)=> {
+			if (err) return this.log("MONGO ERROR", err);
+			if (this.user.instructor.indexOf(student.program) === -1) return this.log("Warning: illegal call to unenroll student");
+			student.program = "default";
+			student.save((err1) =>{
+				if (err1) return this.log("MONGO ERROR", err1);
+				this.sendMessage("Student successfully unenrolled");
+			});
+		});
+	}
+
+	private onReenrollStudent = (obj)=> {
+		if (!obj) return;
+		if (!obj.userId) return;
+		if (!obj.program) return;
+		if (this.user.instructor.indexOf(obj.program) === -1) return this.log("Warning: illegal call to reenroll student");
+		User.findById(obj.userId, (err, student)=> {
+			if (err) return this.log("ERROR ON UNENROLL STUDENT", err);
+			if (this.user.instructor.indexOf(student.program) === -1) return this.log("Warning: illegal call to reenroll student");
+			student.program = obj.program;
+			student.save((err1) =>{
+				if (err1) return this.log("MONGO ERROR", err1);
+				this.sendMessage("Student successfully re-enrolled");
+			});
+		});
+	}
 
 	private onPing = (obj)=> {
 		if (!obj) return;
