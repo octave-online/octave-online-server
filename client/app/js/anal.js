@@ -6,7 +6,9 @@ define(function(){
 	// Wait to load Google Analytics to not slow down the module
 	require(["js/runtime"], function(){
 	require(["analytics"], function(_garef){
-		garef = _garef;
+		// If _garef is null, the user might be blocking Google Analytics.
+		// Suppress console errors by passing a noop function.
+		garef = _garef ? _garef : function(){};
 
 		// Set up Analytics
 		window.GoogleAnalyticsObject = "ga";
