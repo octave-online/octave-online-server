@@ -494,7 +494,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 					OctMethods.prompt.clear(true);
 				}else if(pingRegex.test(cmd)) {
 					OctMethods.socket.ping();
-					OctMethods.prompt.clear(false);
+					OctMethods.prompt.clear(true);
 				}else{
 					OctMethods.console.command(cmd);
 					OctMethods.prompt.clear(false);
