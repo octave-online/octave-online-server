@@ -96,7 +96,7 @@ class GitUtil {
 			},
 			(_next) => {
 				// This command can safely fail silently for the case when the remote repo already exists
-				child_process.execFile(GIT_SSH_FILE, [`git_helper@${config.git.hostname}`, `./create_repo.sh '${user.parametrized}'`], this.execOptions, silent(/File exists/, _next));
+				child_process.execFile(GIT_SSH_FILE, [`${config.git.helperUser}@${config.git.hostname}`, `./create_repo.sh '${user.parametrized}'`], this.execOptions, silent(/File exists/, _next));
 			}
 		], next);
 	}
