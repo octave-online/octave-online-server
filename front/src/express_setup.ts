@@ -12,8 +12,6 @@ import Http = require("http");
 import ServeStatic = require("serve-static");
 import Compression = require("compression");
 import BodyParser = require("body-parser");
-import PushoverHandler = require("./pushover_setup");
-import BasicAuth = require("./basic_auth");
 
 module ExpressApp {
 	export function init(){
@@ -24,8 +22,6 @@ module ExpressApp {
 			.use(BodyParser.urlencoded({ extended: true }))
 			.use(Passport.initialize())
 			.use(Passport.session())
-			.use("/*.git", BasicAuth.middleware("Octave Online Repos"))
-			.use("/*.git", PushoverHandler.router)
 			.use(Siofu.router)
 			.set("views", "./src/views")
 			.set("view engine", "ejs")

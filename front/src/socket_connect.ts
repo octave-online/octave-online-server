@@ -320,27 +320,7 @@ class SocketHandler implements IDestroyable {
 
 	private onUpdateStudents = (obj)=> {
 		if (!obj) return;
-		if (!this.user)
-			return this.sendMessage("Please sign in first");
-		if (!this.user.instructor || this.user.instructor.length === 0)
-			return this.sendMessage("You're not registered as an instructor");
-		if (this.user.instructor.indexOf(obj.program) === -1)
-			return this.sendMessage("Check the spelling of your program name");
-
-		this.log("Updating students in program", obj.program);
-		this.sendMessage("Updating students...");
-		ChildProcess.execFile(
-			__dirname+"/../src/program_update.sh",
-			[this.user.parametrized, obj.program, Config.mongodb.db],
-			(err, stdout, stderr)=> {
-				if (err) {
-					this.log("ERROR ON UPDATE STUDENTS", err, stdout, stderr);
-					this.sendMessage("Error while updating students: " + err);
-				} else {
-					this.sendMessage("Successfully updated students");
-				}
-			}
-		);
+		return this.sendMessage("The update_students command has been replaced.\nOpen a support ticket for more information.");
 	};
 
 	private onUnenrollStudent = (obj)=> {
