@@ -439,7 +439,7 @@
 
 <div id="sync-promo" aria-hidden="true">
 	<span class="l1">Keep your Octave Online scripts <strong>in sync</strong> with your computer!</span>
-	<span class="l2">Click the folder icon for more info.</span>
+	<span class="l2">Click the icon for more info.</span>
 	<span class="l3" data-purpose="close">dismiss</span>
 </div>
 <div id="share-promo" aria-hidden="true">
@@ -454,25 +454,6 @@
 	<span class="l3">Sign in to make script files that you can share with colleagues.</span>
 	<span class="l4" data-purpose="close">dismiss</span>
 </div>
-<div id="sync_info_box" data-purpose="popover" aria-hidden="true"><div><div>
-	<h3>Git Sync</h3>
-	<p>
-		All of your code in Octave Online is backed by a Git repository.  <a href="http://git-scm.com/" target="_blank">Git</a> is a popular version control system that enables you to sync code between multiple computers and keep track of changes over time.  <a href="https://vimeo.com/116342867" target="_blank">Watch this screencast</a> for an example of how to use Git syncing with Octave Online.
-	</p>
-	<!-- ko if: currentUser -->
-	<ul>
-		<li><strong>URL</strong> <kbd>https://octave-online.net/sync.git</kbd></li>
-		<li><strong>Username</strong> <kbd data-bind="text: currentUser().email"></kbd></li>
-	</ul>
-	<!-- /ko -->
-	<p>
-		To set your password, open the main menu and click "Change Password".  You cannot use Git Sync without setting a password.
-	</p>
-	<p>
-		Please send feedback on this feature to our support team using the "Feedback" link.
-	</p>
-	<span class="closebtn" data-purpose="close"></span>
-</div></div></div>
 
 <!-- Begin RequireJS -->
 <script type="text/javascript" src="vendor/requirejs/require.js"></script>

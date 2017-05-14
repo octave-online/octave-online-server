@@ -1017,7 +1017,9 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				}
 			},
 			info: function(e){
-				$("#sync_info_box").showSafe();
+				var currentUser = window.viewModel.currentUser();
+				var parametrized = currentUser ? currentUser.parametrized : "unknown";
+				window.open("https://git.octave-online.net/?next=" + parametrized + ".git");
 			},
 			run: function(editor){
 				OctMethods.editor.run(viewModel.openFile());
