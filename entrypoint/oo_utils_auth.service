@@ -3,8 +3,8 @@ ExecStart=/usr/local/share/oo/utils-auth/app.js
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=oo-utils-auth
-User=1500
-Group=1500
+User=nginx
+Group=nginx
 Environment=NODE_ENV=production
 Restart=always
 

@@ -7,8 +7,11 @@ const bcrypt = require("bcrypt");
 const config = require("@oo/shared").config;
 const path = require("path");
 const basicAuth = require("basic-auth");
+const fs = require("fs");
 
-const PORT = 5123;
+//const PORT = 5123;
+const SOCKET_PATH = "/var/run/oosocks/auth.sock";
+try { fs.unlinkSync(SOCKET_PATH); } catch(err) {}
 
 mongoose.connect("mongodb://127.0.0.1: " + config.mongo.port + "/" + config.mongo.db);
 const User = mongoose.model("User", {
@@ -17,7 +20,7 @@ const User = mongoose.model("User", {
 	password_hash: String
 });
 
-console.log("Listening on port " + PORT);
+console.log("Listening on UNIX socket " + SOCKET_PATH);
 const server = http.createServer((req, res) => {
 	const originalUri = path.normalize(req.headers["x-original-uri"] || "");
 	const match = /^\/(\w+)\.git\/.+$/.exec(originalUri);
@@ -62,7 +65,7 @@ const server = http.createServer((req, res) => {
 		prompt(res, "Please enter your email and password");
 	}
 });
-server.listen(PORT, "127.0.0.1");
+server.listen(SOCKET_PATH);
 
 function prompt(res, message) {
 	res.writeHead(401, {
