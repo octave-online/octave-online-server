@@ -1019,7 +1019,8 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			info: function(e){
 				var currentUser = window.viewModel.currentUser();
 				var parametrized = currentUser ? currentUser.parametrized : "unknown";
-				window.open("https://git.octave-online.net/?next=" + parametrized + ".git");
+				var email = currentUser ? currentUser.email : "";
+				window.open("https://git.octave-online.net/?next=" + parametrized + ".git&user=" + email);
 			},
 			run: function(editor){
 				OctMethods.editor.run(viewModel.openFile());

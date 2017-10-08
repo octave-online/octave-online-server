@@ -97,6 +97,7 @@ define(
 			enableBasicAutocompletion: true,
 			maxLines: 6
 		});
+		prompt.setBehavioursEnabled(false);  // disables quto-quote
 		prompt.renderer.setScrollMargin(5, 5);
 		prompt.getSession().setUseWrapMode(true);
 		prompt.commands.addCommand({
