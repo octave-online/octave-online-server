@@ -95,9 +95,6 @@ install-utils-auth:
 	systemctl daemon-reload
 	systemctl enable oo_utils_auth
 	ln -sf $$PWD /usr/local/share/oo
-	mkdir /var/run/oosocks
-	echo "NOTICE: Verify the server's username and change file permissions here AND ALSO IN oo_utils_auth.service"
-	chown nginx:nginx /var/run/oosocks
 
 install-site-m:
 	if [[ -e /usr/local/share/octave/site/m/placeholders ]]; then rm -rf /usr/local/share/octave/site/m/placeholders; fi

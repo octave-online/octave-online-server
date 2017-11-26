@@ -5,6 +5,7 @@ StandardError=syslog
 SyslogIdentifier=oo-utils-auth
 User=nginx
 Group=nginx
+RuntimeDirectory=oosocks
 Environment=NODE_ENV=production
 Restart=always
 
