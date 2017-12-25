@@ -1,0 +1,38 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1514203589 21600
+#      Mon Dec 25 06:06:29 2017 -0600
+# Branch oo-4.2.1
+# Node ID bc8cd93feec50aa5f30d6ad0aa0e85f31693c71f
+# Parent  2d1fd5fdd1d591cb643542703e3679da48056fee
+Removing pause(1) from the mandatory critical path for plotting.
+
+diff -r 2d1fd5fdd1d5 -r bc8cd93feec5 scripts/plot/util/__gnuplot_drawnow__.m
+--- a/scripts/plot/util/__gnuplot_drawnow__.m	Mon Dec 25 04:57:35 2017 -0600
++++ b/scripts/plot/util/__gnuplot_drawnow__.m	Mon Dec 25 06:06:29 2017 -0600
+@@ -62,7 +62,7 @@
+ 
+     if (should_plot_to_terminal)
+       enhanced = gnuplot_set_term (plot_stream(1), new_stream, h, term);
+-      __gnuplot_draw_figure__ (h, plot_stream(1), enhanced, mono);
++      __gnuplot_draw_figure__ (h, plot_stream(1), enhanced);
+       fflush (plot_stream(1));
+     endif
+ 
+@@ -75,10 +75,15 @@
+     if (should_plot_to_temp_file)
+       tmp_file = tempname ();
+       __gnuplot_draw_to_file__ (h, term, tmp_file);
+-      pause (1);
++      fflush (plot_stream(1));
+ 
+       ## Read the temp file into memory and then delete it
+       fid = fopen (tmp_file, 'r');
++      while (fid < 0)
++        fprintf (stderr, "🛈 Waiting for plot to finish… ⏳\n");
++        pause (0.5);
++        fid = fopen (tmp_file, 'r');
++      endwhile
+       [a, count] = fscanf (fid, '%c', Inf);
+       fclose (fid);
+       unlink (tmp_file);

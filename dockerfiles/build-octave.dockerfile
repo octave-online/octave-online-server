@@ -38,22 +38,30 @@ RUN git clone https://github.com/vote539/json-c.git && \
 # Enlist the correct Octave revision
 RUN hg clone http://www.octave.org/hg/octave
 COPY oo-changesets $DIR/oo-changesets/
+
+### 4.0.1-rc1 ###
+# RUN cd octave && \
+# 	hg update 323e92c4589f && \
+# 	hg import ../oo-changesets/001-d38b7c534496.hg.txt && \
+# 	hg import ../oo-changesets/002-d3de6023e846.hg.txt && \
+# 	hg import ../oo-changesets/003-4d28376c34a8.hg.txt && \
+# 	hg import ../oo-changesets/004-6ff3e34eea77.hg.txt && \
+# 	hg import ../oo-changesets/005-9e73fe0d92d5.hg.txt && \
+# 	hg import ../oo-changesets/006-15d21ceec728.hg.txt && \
+# 	hg import ../oo-changesets/007-4d778d6ebbd0.hg.txt && \
+# 	hg import ../oo-changesets/008-e8ef7f3333bf.hg.txt && \
+# 	hg import ../oo-changesets/009-05f7272c001e.hg.txt && \
+# 	hg import ../oo-changesets/010-4a1afb661c55.hg.txt && \
+# 	hg import ../oo-changesets/011-7327936fa23e.hg.txt && \
+# 	hg import ../oo-changesets/012-84390db50239.hg.txt && \
+# 	hg import ../oo-changesets/013-f4110d638cdb.hg.txt && \
+# 	hg import ../oo-changesets/014-21fd506b7530.hg.txt
+
+### 4.2.1 ###
 RUN cd octave && \
-	hg update 323e92c4589f && \
-	hg import ../oo-changesets/001-d38b7c534496.hg.txt && \
-	hg import ../oo-changesets/002-d3de6023e846.hg.txt && \
-	hg import ../oo-changesets/003-4d28376c34a8.hg.txt && \
-	hg import ../oo-changesets/004-6ff3e34eea77.hg.txt && \
-	hg import ../oo-changesets/005-9e73fe0d92d5.hg.txt && \
-	hg import ../oo-changesets/006-15d21ceec728.hg.txt && \
-	hg import ../oo-changesets/007-4d778d6ebbd0.hg.txt && \
-	hg import ../oo-changesets/008-e8ef7f3333bf.hg.txt && \
-	hg import ../oo-changesets/009-05f7272c001e.hg.txt && \
-	hg import ../oo-changesets/010-4a1afb661c55.hg.txt && \
-	hg import ../oo-changesets/011-7327936fa23e.hg.txt && \
-	hg import ../oo-changesets/012-84390db50239.hg.txt && \
-	hg import ../oo-changesets/013-f4110d638cdb.hg.txt && \
-	hg import ../oo-changesets/014-21fd506b7530.hg.txt
+	hg update b9d482dd90f3 && \
+	hg import ../oo-changesets/100-2d1fd5fdd1d5.hg.txt && \
+	hg import ../oo-changesets/101-bc8cd93feec5.hg.txt
 
 # Configure and Build Octave
 # This is the slowest part of the Dockerfile
