@@ -35,7 +35,7 @@ RUN git clone https://github.com/vote539/json-c.git && \
 	make && \
 	make install
 
-# Enlist the correct Octave revision
+# Enlist and Configure the correct Octave revision
 RUN hg clone http://www.octave.org/hg/octave
 COPY oo-changesets $DIR/oo-changesets/
 
@@ -61,15 +61,23 @@ COPY oo-changesets $DIR/oo-changesets/
 RUN cd octave && \
 	hg update b9d482dd90f3 && \
 	hg import ../oo-changesets/100-2d1fd5fdd1d5.hg.txt && \
-	hg import ../oo-changesets/101-bc8cd93feec5.hg.txt
+	hg import ../oo-changesets/101-bc8cd93feec5.hg.txt && \
+	hg import ../oo-changesets/102-30d8ba0fbc32.hg.txt
 
-# Configure and Build Octave
-# This is the slowest part of the Dockerfile
 RUN cd octave && \
 	./bootstrap && \
-	mkdir build-oo && \
-	cd build-oo && \
-	../configure --disable-readline --disable-gui --disable-docs
+	mkdir build-oo
+
+### 4.0.1-rc1 ###
+# RUN	cd build-oo && \
+# 	../configure --disable-readline --disable-gui --disable-docs
+
+### 4.2.1 ###
+RUN cd build-oo && \
+	../configure --disable-readline --disable-docs --disable-atomic-refcount --without-qt
+
+# Build Octave
+# This is the slowest part of the Dockerfile
 RUN cd octave/build-oo && make
 RUN cd octave/build-oo && make install
 

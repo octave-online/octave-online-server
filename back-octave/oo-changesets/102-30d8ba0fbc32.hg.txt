@@ -1,0 +1,106 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1514234238 21600
+#      Mon Dec 25 14:37:18 2017 -0600
+# Branch oo-4.2.1
+# Node ID 30d8ba0fbc32805a870089c2159fc74cec21d22a
+# Parent  bc8cd93feec50aa5f30d6ad0aa0e85f31693c71f
+In urlread, enable octave_link::request_url only when octave_link is enabled.
+
+diff -r bc8cd93feec5 -r 30d8ba0fbc32 liboctave/util/url-transfer.cc
+--- a/liboctave/util/url-transfer.cc	Mon Dec 25 06:06:29 2017 -0600
++++ b/liboctave/util/url-transfer.cc	Mon Dec 25 14:37:18 2017 -0600
+@@ -219,28 +219,28 @@
+   }
+ 
+ 
+-class oo_url_transfer : public base_url_transfer
++class link_transfer : public base_url_transfer
+ {
+ public:
+ 
+-  oo_url_transfer (void)
++  link_transfer (void)
+       : base_url_transfer () {
+     valid = true;
+   }
+ 
+-  oo_url_transfer (const std::string& host, const std::string& user_arg,
++  link_transfer (const std::string& host, const std::string& user_arg,
+                  const std::string& passwd, std::ostream& os)
+       : base_url_transfer (host, user_arg, passwd, os) {
+     valid = true;
+     // url = "ftp://" + host;
+   }
+ 
+-  oo_url_transfer (const std::string& url_str, std::ostream& os)
++  link_transfer (const std::string& url_str, std::ostream& os)
+       : base_url_transfer (url_str, os) {
+     valid = true;
+   }
+ 
+-  ~oo_url_transfer (void) {}
++  ~link_transfer (void) {}
+ 
+   void http_get (const Array<std::string>& param) {
+     perform (param, "get");
+@@ -276,7 +276,7 @@
+       }
+     } else {
+       ok = false;
+-      errmsg = "octave_link not connected for oo_url_transfer";
++      errmsg = "octave_link not connected for link_transfer";
+     }
+   }
+ 
+@@ -853,24 +853,36 @@
+ 
+ #endif
+ 
+-// #if defined (HAVE_CURL)
+-// #  define REP_CLASS curl_transfer
+-// #else
+-// #  define REP_CLASS base_url_transfer
+-// #endif
+-#define REP_CLASS oo_url_transfer
++#if defined (HAVE_CURL)
++#  define REP_CLASS curl_transfer
++#else
++#  define REP_CLASS base_url_transfer
++#endif
+ 
+-  url_transfer::url_transfer (void) : rep (new REP_CLASS ())
+-  { }
++  url_transfer::url_transfer (void) {
++    if (octave_link::request_input_enabled()) {
++      rep = new link_transfer();
++    } else {
++      rep = new REP_CLASS();
++    }
++  }
+ 
+   url_transfer::url_transfer (const std::string& host, const std::string& user,
+-                              const std::string& passwd, std::ostream& os)
+-    : rep (new REP_CLASS (host, user, passwd, os))
+-  { }
++                              const std::string& passwd, std::ostream& os) {
++    if (octave_link::request_input_enabled()) {
++      rep = new link_transfer(host, user, passwd, os);
++    } else {
++      rep = new REP_CLASS(host, user, passwd, os);
++    }
++  }
+ 
+-  url_transfer::url_transfer (const std::string& url, std::ostream& os)
+-    : rep (new REP_CLASS (url, os))
+-  { }
++  url_transfer::url_transfer (const std::string& url, std::ostream& os) {
++    if (octave_link::request_input_enabled()) {
++      rep = new link_transfer(url, os);
++    } else {
++      rep = new REP_CLASS(url, os);
++    }
++  }
+ 
+ #undef REP_CLASS
+ 
