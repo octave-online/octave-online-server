@@ -221,11 +221,12 @@ popover(_width, _height, _zindex){
 	#cosine-pulse {
 		background-image: inline-image("cosine-pulse.svg")
 		background-repeat: repeat-x
-		background-size: 200px 100%
-		background-position-x: 0px
-		animation: cosine-width 1.8s infinite linear alternate forwards,
-			cosine-position 6s infinite ease-in-out alternate forwards
-		animation-delay: 1s
+		background-size: 2000px 100%
+		// TODO: Change to side-relative values when browser support is better
+		background-position-x: -3000px
+		animation: cosine-width 4s infinite cubic-bezier(.75,0,1,.75) alternate forwards,
+			cosine-position 8s infinite ease-in-out alternate forwards
+		animation-delay: 4s, 0s
 		position: absolute
 		top: 30%
 		left: 0
@@ -235,47 +236,43 @@ popover(_width, _height, _zindex){
 	
 	@keyframes cosine-width {
 		from {
-			background-size: 50px 100%
+			background-size: 2000px 100%
 		}
 		to {
-			background-size: 2000px 100%
+			background-size: 50px 100%
 		}
 	}
 	
 	@keyframes cosine-position {
 		from {
-			background-position-x: 0px
+			background-position-x: -3000px
 		}
 		to {
-			background-position-x: 5000px
+			background-position-x: 4000px
 		}
 	}
-	
-	#site_loading_wrapper {
-		position: absolute
-		top: 50%
-		left: 50%
-		width: 0
-		height: 0
 
-		#site_loading_patience {
-			position: absolute
-			top: 110px
-			left: -180px
-			width: 360px
-			height: 30px
-			padding: 10px
-			text-align: center
-		}
+	#site_loading_patience {
+    position: relative;
+		top: 75%;
+		width: 50%;
+		margin: 0 auto;
+		min-width: 18em;
 
-		#site_loading_more_patience {
-			position: absolute
-			top: 110px
-			left: -180px
-			width: 360px
-			height: 60px
-			padding: 10px
-			text-align: center
-		}
+		text-align: center;
+		font-size: 1.2em;
+		line-height: 1.2em;
+	}
+
+	#site_loading_more_patience {
+    position: relative;
+		top: 75%;
+		width: 50%;
+		margin: 0 auto;
+		min-width: 18em;
+
+		text-align: center;
+		font-size: 1.2em;
+		line-height: 1.2em;
 	}
 }
