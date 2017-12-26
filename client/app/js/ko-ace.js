@@ -22,6 +22,7 @@ define(["knockout", "ace/ace"], function(ko, ace){
 				readOnly: false
 			});
 			editor.setOptions({ enableBasicAutocompletion: true });
+			editor.setBehavioursEnabled(false);
 			editor.focus();
 			setTimeout(editor.resize.bind(editor), 0);
 

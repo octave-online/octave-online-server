@@ -112,7 +112,7 @@
 			<div id="files_toolbar_lower">
 				<span id="files_toolbar_upload" title="Upload file"></span>
 				<span id="files_toolbar_refresh" title="Refresh files"></span>
-				<span id="files_toolbar_info" title="Clone with Git"></span>
+				<span id="files_toolbar_info" title="File version history"></span>
 			</div>
 			<div id="files_list_container">
 				<ul data-bind="foreach: files">
@@ -277,7 +277,7 @@
 			</div>
 		</div>
 		<div id="main_menu" aria-hidden="true">
-			<!-- ko ifnot: currentUser -->
+			<!-- ko if: (!currentUser() && !showUserInHeader()) -->
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
 					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="Sign in with Google" />
 				</svg>
@@ -294,7 +294,7 @@
 					Signed in before but need to change your email address? Click "Feedback" and create a ticket. We will change it for you.
 				</p>
 			<!-- /ko -->
-			<!-- ko if: currentUser -->
+			<!-- ko if: (currentUser() && !showUserInHeader()) -->
 				<div id="userbox">
 					<span data-bind="text: currentUser().name"></span>
 					<a id="logout_icon" href="javascript:void(0)" title="Sign Out" data-bind="click: doLogout">Sign&nbsp;Out</a>
@@ -464,8 +464,7 @@
 <script type="text/javascript">
 require(["js/app"], function(){
 	require(["js/runtime"]);
-//var OctMethods = require("js/client");
-//OctMethods.console.writeError("NOTICE: If your script files are missing,\nplease read the following announcement:\nhttps://octave-online.net/jan7.html\n\n\n\n\n\n\n\n\n\n");
+//var OctMethods = require("js/client"); OctMethods.console.writeError("NOTICE: Announcement Here\n\n\n\n\n\n\n\n\n\n");
 });
 </script>
 </body>

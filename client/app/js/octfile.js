@@ -87,7 +87,7 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 			}
 		};
 		self.deleteit = function(){
-			if(confirm("You are about to PERMANENTLY DELETE "+self.filename())){
+			if(confirm("You are about to delete the following file. After deleting the file, you may still be able to recover it from the file revision history viewer.\n\n"+self.filename())){
 				if(!OctMethods.editor.deleteit(self)){
 					alert("Can't delete file. Did you disconnect from " +
 					"Octave Online?");
