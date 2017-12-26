@@ -213,36 +213,69 @@ popover(_width, _height, _zindex){
 // Main site loading spinner
 #site_loading {
 	position: fixed
-	top: 50%
-	left: 50%
-	width: 0
-	height: 0
 	z-index: 200
-
-	& > img {
+	width: 100%
+	height: 100%
+	pointer-events: none
+	
+	#cosine-pulse {
+		background-image: inline-image("cosine-pulse.svg")
+		background-repeat: repeat-x
+		background-size: 200px 100%
+		background-position-x: 0px
+		animation: cosine-width 1.8s infinite linear alternate forwards,
+			cosine-position 6s infinite ease-in-out alternate forwards
+		animation-delay: 1s
 		position: absolute
-		top: -100px
-		left: -100px
-		width: 200px
-		height: 200px
+		top: 30%
+		left: 0
+		width: 100%
+		height: 40%
 	}
-
-	#site_loading_patience {
-		position: absolute
-		top: 110px
-		left: -180px
-		width: 360px
-		height: 30px
-		padding: 10px
-		text-align: center
+	
+	@keyframes cosine-width {
+		from {
+			background-size: 50px 100%
+		}
+		to {
+			background-size: 2000px 100%
+		}
 	}
-	#site_loading_more_patience {
+	
+	@keyframes cosine-position {
+		from {
+			background-position-x: 0px
+		}
+		to {
+			background-position-x: 5000px
+		}
+	}
+	
+	#site_loading_wrapper {
 		position: absolute
-		top: 110px
-		left: -180px
-		width: 360px
-		height: 60px
-		padding: 10px
-		text-align: center
+		top: 50%
+		left: 50%
+		width: 0
+		height: 0
+
+		#site_loading_patience {
+			position: absolute
+			top: 110px
+			left: -180px
+			width: 360px
+			height: 30px
+			padding: 10px
+			text-align: center
+		}
+
+		#site_loading_more_patience {
+			position: absolute
+			top: 110px
+			left: -180px
+			width: 360px
+			height: 60px
+			padding: 10px
+			text-align: center
+		}
 	}
 }
