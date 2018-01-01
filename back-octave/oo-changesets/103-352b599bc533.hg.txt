@@ -1,0 +1,87 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1514767734 21600
+#      Sun Dec 31 18:48:54 2017 -0600
+# Branch oo-4.2.1
+# Node ID 352b599bc5337bc9c3465092aa36e320811f781a
+# Parent  30d8ba0fbc32805a870089c2159fc74cec21d22a
+Changing octave_kbhit() to use octave_link::request_input, fixing the functions kbhit and pause.
+
+diff -r 30d8ba0fbc32 -r 352b599bc533 libinterp/corefcn/sysdep.cc
+--- a/libinterp/corefcn/sysdep.cc	Mon Dec 25 14:37:18 2017 -0600
++++ b/libinterp/corefcn/sysdep.cc	Sun Dec 31 18:48:54 2017 -0600
+@@ -539,8 +539,8 @@
+ 
+ // Read one character from the terminal.
+ 
+-int
+-octave_kbhit (bool wait)
++static int
++octave_kbhit (const std::string& prompt, bool wait)
+ {
+ #if defined (HAVE__KBHIT) && defined (HAVE__GETCH)
+   // This essentially means we are on a Windows system.
+@@ -563,10 +563,19 @@
+ 
+   octave::set_interrupt_handler (saved_interrupt_handler, false);
+ 
+-  int c = std::cin.get ();
+-
+-  if (std::cin.fail () || std::cin.eof ())
+-    std::cin.clear ();
++  int c;
++  if (octave_link::request_input_enabled ()) {
++    std::string line = octave_link::request_input (prompt);
++    if (line.length() >= 1) {
++      c = line.at(0);
++    } else {
++      c = '\n';
++    }
++  } else {
++    c = std::cin.get ();
++    if (std::cin.fail () || std::cin.eof ())
++      std::cin.clear ();
++  }
+ 
+   // Restore it, enabling system call restarts (if possible).
+   octave::set_interrupt_handler (saved_interrupt_handler, true);
+@@ -577,6 +586,12 @@
+   return c;
+ }
+ 
++int
++octave_kbhit (bool wait)
++{
++  return octave_kbhit("", wait);
++}
++
+ std::string
+ get_P_tmpdir (void)
+ {
+@@ -760,7 +775,7 @@
+     {
+       Fdrawnow ();
+ 
+-      int c = octave_kbhit (args.length () == 0);
++      int c = octave_kbhit ("kbhit>", args.length () == 0);
+ 
+       if (c == -1)
+         c = 0;
+@@ -824,7 +839,7 @@
+           if (octave::math::isinf (dval))
+             {
+               flush_octave_stdout ();
+-              octave_kbhit ();
++              octave_kbhit ("press enter to continue", false);
+             }
+           else
+             octave_sleep (dval);
+@@ -834,7 +849,7 @@
+     {
+       Fdrawnow ();
+       flush_octave_stdout ();
+-      octave_kbhit ();
++      octave_kbhit ("press enter to continue", false);
+     }
+ 
+   return ovl ();
