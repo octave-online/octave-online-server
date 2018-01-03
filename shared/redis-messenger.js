@@ -73,14 +73,15 @@ class RedisMessenger extends EventEmitter {
 		return this;
 	}
 
-	putSessCode(sessCode, user) {
+	putSessCode(sessCode, content) {
 		this._ensureNotSubscribed();
 
 		let time = new Date().valueOf();
 
 		let multi = this._client.multi();
 		multi.zadd(redisUtil.chan.needsOctave, time, sessCode);
-		multi.hset(redisUtil.chan.session(sessCode), "user", JSON.stringify(user));
+		// NOTE: For backwards compatibilty, this field is called "user" instead of "content"
+		multi.hset(redisUtil.chan.session(sessCode), "user", JSON.stringify(content));
 		multi.hset(redisUtil.chan.session(sessCode), "live", "false");
 		multi.set(redisUtil.chan.input(sessCode), time);
 		multi.set(redisUtil.chan.output(sessCode), time);
@@ -92,9 +93,9 @@ class RedisMessenger extends EventEmitter {
 			if (err) this._handleError(err);
 			if (result === -1) return next(null, null, null);
 			try {
-				let user = JSON.parse(result[1]);
+				let content = JSON.parse(result[1]);
 				this.touchOutput(result[0]);
-				next(null, result[0], user);
+				next(null, result[0], content);
 			} catch (err) {
 				next(err, null, null);
 			}

@@ -4,6 +4,7 @@ module.exports = {
 	config: require("./config.json"),
 	JSONStreamSafe: require("./json-stream-safe"),
 	logger: require("./logger"),
+	onceMessage: require("./once-message"),
 	OnlineOffline: require("./online-offline"),
 	Queue: require("./queue"),
 	RedisMessenger: require("./redis-messenger"),

@@ -20,10 +20,15 @@ class FilesController extends EventEmitter {
 		this.workingUtil = new WorkingUtil(workDir, logMemo);
 		this.workDir = workDir;
 		this.user = null;
+		this.bucketId = null;
 
 		this.fakeSocket = new FakeSocket();
 		this.fakeSocket.on("_emit", this._sendMessage.bind(this));
 		this._setupUploader();
+	}
+
+	_isInitialized() {
+		return this.user !== null || this.bucketId !== null;
 	}
 
 	receiveMessage(name, content) {
@@ -32,8 +37,10 @@ class FilesController extends EventEmitter {
 				this.user = content.user;
 				if (this.user) {
 					this._log.info("Received user:", this.user.consoleText);
+					this._legalTime = content.legalTime; // FIXME: For backwards compatibility
 				} else {
 					this._log.info("No user this session");
+					this._sendMessage("files-ready", {});
 					return;
 				}
 
@@ -42,22 +49,53 @@ class FilesController extends EventEmitter {
 						this.gitUtil.initialize(this.user, this.workDir, _next);
 					},
 					(results, _next) => {
+						this._sendMessage("files-ready", {});
+						_next(null);
+					},
+					(_next) => {
 						this.workingUtil.listAll(_next);
 					}
 				], (err, fileData) => {
 					if (err) {
-						if (/unable to write file/.test(err.message)) return this._fail("saved", "warn", `Whoops! You are currently exceeding your space limit of ${config.docker.diskQuotaKiB} KiB.\nPlease open a support ticket and we will help you resolve the\nissue. Sorry for the inconvenience!`);
-						else return this._log.error(err);
+						if (/unable to write file/.test(err.message)) {
+							return this._fail("filelist", "warn", `Whoops! You are currently exceeding your space limit of ${config.docker.diskQuotaKiB} KiB.\nPlease open a support ticket and we will help you resolve the\nissue. Sorry for the inconvenience!`);
+						} else {
+							this._log.error("Git Initialize Error:", err);
+							return this._fail("filelist", "warn", "Unable to load your files from the server: please try again.");
+						}
 					}
 					this._mlog.debug("User successfully initialized");
-					// Sending the user info with this event is deprecated and is for backwards compatibility only.  In the future, the event should be renamed to something like "files" and the user info should be removed.
-					this._sendMessage("user", {
-						name: this.user.displayName,
-						legalTime: this.user.legalTime,
-						email: this.user.email,
-						repo_key: this.user.repo_key,
-						share_key: this.user.share_key,
-						program: this.user.program,
+					this._sendMessage("filelist", {
+						success: true,
+						legalTime: this._legalTime, // FIXME: for backwards compatibility
+						files: fileData,
+						refresh: false
+					});
+				});
+				break;
+
+			case "bucket-info":
+				this.bucketId = content.id;
+				this._legalTime = content.legalTime; // FIXME: For backwards compatibility
+				// If content.readonly is false, this request is for creating the bucket.  If content.readonly is true, this request is for reading from the bucket.
+				this._log.info("Received bucket:", this.bucketId);
+				async.waterfall([
+					(_next) => {
+						this.gitUtil.initializeBucket(this.bucketId, this.workDir, content.readonly, _next);
+					},
+					(results, _next) => {
+						this._sendMessage("files-ready", {});
+						_next(null);
+					},
+					(_next) => {
+						this.workingUtil.listAll(_next);
+					}
+				], (err, fileData) => {
+					if (err) return this._log.error(err);
+					this._mlog.debug("Bucket successfully initialized");
+					this._sendMessage("filelist", {
+						success: true,
+						legalTime: this._legalTime, // FIXME: for backwards compatibility
 						files: fileData,
 						refresh: false
 					});
@@ -65,7 +103,7 @@ class FilesController extends EventEmitter {
 				break;
 
 			case "list":
-				if (!this.user) return this._mlog.debug("Won't perform action on null user repository");
+				if (!this._isInitialized()) return this._mlog.debug("Won't perform action on uninitialized repository");
 				this._mlog.debug("Listing files...");
 				async.waterfall([
 					(_next) => {
@@ -74,14 +112,9 @@ class FilesController extends EventEmitter {
 				], (err, fileData) => {
 					if (err) return this._log.error(err);
 					this._log.debug("Files successfully listed");
-					// Sending the user info with this event is deprecated and is for backwards compatibility only.  In the future, the event should be renamed to something like "files" and the user info should be removed.
-					this._sendMessage("user", {
-						name: this.user.displayName,
-						legalTime: this.user.legalTime,
-						email: this.user.email,
-						repo_key: this.user.repo_key,
-						share_key: this.user.share_key,
-						program: this.user.program,
+					this._sendMessage("filelist", {
+						success: true,
+						legalTime: this._legalTime, // FIXME: for backwards compatibility
 						files: fileData,
 						refresh: false
 					});
@@ -89,7 +122,7 @@ class FilesController extends EventEmitter {
 				break;
 
 			case "refresh":
-				if (!this.user) return this._mlog.debug("Won't perform action on null user repository");
+				if (!this._isInitialized()) return this._mlog.debug("Won't perform action on uninitialized repository");
 				this._mlog.debug("Refreshing files...");
 				async.waterfall([
 					(_next) => {
@@ -101,14 +134,8 @@ class FilesController extends EventEmitter {
 				], (err, fileData) => {
 					if (err) return this._log.error(err);
 					this._log.debug("Files successfully refreshed");
-					// Sending the user info with this event is deprecated and is for backwards compatibility only.  In the future, the event should be renamed to something like "files" and the user info should be removed.
-					this._sendMessage("user", {
-						name: this.user.displayName,
-						legalTime: this.user.legalTime,
-						email: this.user.email,
-						repo_key: this.user.repo_key,
-						share_key: this.user.share_key,
-						program: this.user.program,
+					this._sendMessage("filelist", {
+						success: true,
 						files: fileData,
 						refresh: true
 					});
@@ -116,7 +143,8 @@ class FilesController extends EventEmitter {
 				break;
 
 			case "commit":
-				if (!this.user) return this._fail("committed", "debug", "Won't perform action on null user repository");
+				if (!this._isInitialized()) return this._fail("committed", "debug", "Won't perform action on uninitialized repository");
+				// NOTE: In a readonly repository (buckets), this is a no-op.
 				var comment = content.comment;
 				if (!comment) return this._fail("committed", "warn", "Empty comment:", comment);
 				this._mlog.debug("Committing files...");
@@ -126,7 +154,7 @@ class FilesController extends EventEmitter {
 					}
 				], (err) => {
 					if (err) return this._fail("committed", "warn", err);
-					this._log.debug("Files successfully committed");
+					this._log.debug("Files successfully committed (except for readonly)");
 					return this._sendMessage("committed", { success: true });
 				});
 				break;
@@ -140,13 +168,17 @@ class FilesController extends EventEmitter {
 					(_next) => {
 						this.workingUtil.saveFile(filename, value, _next);
 					}
-				], (err) => {
+				], (err, md5sum) => {
 					if (err) {
 						if (/ENOSPC/.test(err.message)) return this._fail("saved", "warn", `Whoops, you reached your space limit (${config.docker.diskQuotaKiB} KiB).\nYou should free up space to ensure that changes you make get committed.\nRunning the command "system('rm octave-workspace')" might help.`);
 						else return this._fail("saved", "error", err);
 					}
 					this._log.debug("File successfully saved");
-					return this._sendMessage("saved", { filename, success: true });
+					return this._sendMessage("saved", {
+						success: true,
+						filename,
+						md5sum
+					});
 				});
 				break;
 
@@ -180,7 +212,10 @@ class FilesController extends EventEmitter {
 						else return this._fail("deleted", "error", err);
 					}
 					this._log.debug("File successfully deleted");
-					return this._sendMessage("deleted", { filename, success: true });
+					return this._sendMessage("deleted", {
+						success: true,
+						filename
+					});
 				});
 				break;
 
@@ -195,7 +230,12 @@ class FilesController extends EventEmitter {
 				], (err, base64data, mime) => {
 					if (err) return this._fail("binary", "error", err);
 					this._log.debug("File successfully loaded");
-					return this._sendMessage("binary", { filename, base64data, mime, success: true });
+					return this._sendMessage("binary", {
+						success: true,
+						filename,
+						base64data,
+						mime
+					});
 				});
 				break;
 
@@ -214,7 +254,55 @@ class FilesController extends EventEmitter {
 					let base64data = results[0][0];
 					let mime = results[0][1];
 					this._log.debug("File successfully loaded and deleted");
-					return this._sendMessage("deleted-binary", { filename, base64data, mime, success: true });
+					return this._sendMessage("deleted-binary", {
+						success: true,
+						filename,
+						base64data,
+						mime
+					});
+				});
+				break;
+
+			case "multi-binary":
+				var filenames = content.filenames;
+				var responseName = "multi-binary:" + content.id;
+				if (!Array.isArray(filenames)) return this._fail(responseName, "warn", "Invalid filename array:", filenames);
+				this._mlog.debug("Loading multiple files", responseName, filenames);
+				async.map(filenames, (filename, _next) => {
+					async.waterfall([
+						(__next) => {
+							this.workingUtil.readBinary(filename, __next);
+						},
+						(base64data, mime, __next) => {
+							__next(null, base64data);
+						}
+					], _next);
+				}, (err, results) => {
+					if (err) return this._fail(responseName, "error", err);
+					this._mlog.trace("Files finished loading", responseName);
+					return this._sendMessage(responseName, {
+						success: true,
+						results
+					});
+				});
+				break;
+
+			case "save-multi-binary":
+				var filenames = content.filenames;
+				var base64datas = content.base64datas;
+				var responseName = "multi-binary-saved:" + content.id;
+				if (!Array.isArray(filenames) || !Array.isArray(base64datas) || filenames.length !== base64datas.length) return this._fail(responseName, "warn", "Invalid array:", filenames, base64datas);
+				this._mlog.debug("Writing multiple files:", responseName, filenames);
+				async.times(filenames.length, (i, _next) => {
+					var buffer = new Buffer(base64datas[i], "base64");
+					this.workingUtil.saveFile(filenames[i], buffer, _next);
+				}, (err, results) => {
+					if (err) return this._fail(responseName, "error", err);
+					this._mlog.trace("Files finished writing", responseName);
+					return this._sendMessage(responseName, {
+						success: true,
+						results
+					});
 				});
 				break;
 

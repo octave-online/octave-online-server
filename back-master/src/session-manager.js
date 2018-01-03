@@ -83,8 +83,15 @@ class SessionManager extends EventEmitter {
 		}));
 	}
 
-	attach(remoteCode, user, next) {		// Move pool session to online session
+	attach(remoteCode, content, next) {		// Move pool session to online session
 		if (!this.canAcceptNewSessions()) return log.warn("Cannot accept any new sessions right now");
+
+		// FIXME: Backwards compatibility with old front server: the message content can be the user itself; if null, it is a guest user.
+		if (!content) {
+			content = { user: null };
+		} else if (content.parametrized) {
+			content = { user: content };
+		}
 
 		// Pull from the pool
 		const localCode = Object.keys(this._pool)[0];
@@ -95,16 +102,13 @@ class SessionManager extends EventEmitter {
 		// Convenience references
 		const session = this._online[remoteCode].session;
 		const cache = this._online[remoteCode].cache;
+		const user = content.user;
 
 		// Reset the session timeout to leave the user with a full allotment of time
 		session.resetTimeout();
 
-		// Backwards compatibility: if legalTime or payloadLimit is not specified in user object, set it to the user default
-		if (user && !user.legalTime) user.legalTime = config.session.legalTime.user;
-		if (user && !user.payloadLimit) user.payloadLimit = config.session.payloadLimit.user;
-
-		// Send user info upstream
-		session.sendMessage("user-info", { user });
+		// Send payload upstream
+		session.sendMessage("user-info", content);
 
 		// Forward future messages
 		cache.on("enqueue", () => {

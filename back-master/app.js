@@ -103,19 +103,19 @@ async.forever(
 			},
 			(_next) => {
 				if (sessionManager.canAcceptNewSessions())
-					redisScriptHandler.getSessCode((err, sessCode, user) => {
+					redisScriptHandler.getSessCode((err, sessCode, content) => {
 						if (err) log.error("Error getting sessCode:", err);
-						_next(null, sessCode, user);
+						_next(null, sessCode, content);
 					});
 				else
 					process.nextTick(() => {
 						_next(null, null, null);
 					});
 			},
-			(sessCode, user, _next) => {
+			(sessCode, content, _next) => {
 				if (sessCode) {
-					log.info("Received Session:", sessCode);
-					sessionManager.attach(sessCode, user);
+					log.info("Received Session:", sessCode, content);
+					sessionManager.attach(sessCode, content);
 				}
 
 				_next(null);

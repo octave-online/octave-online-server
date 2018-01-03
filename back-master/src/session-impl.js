@@ -15,6 +15,7 @@ const pstree = require("ps-tree");
 const temp = require("temp");
 const OnlineOffline = require("@oo/shared").OnlineOffline;
 const Queue = require("@oo/shared").Queue;
+const onceMessage = require("@oo/shared").onceMessage;
 const FilesController = require("../../back-filesystem/src/controller");
 
 class SessionImpl extends OctaveSession {
@@ -96,13 +97,7 @@ class SessionImpl extends OctaveSession {
 	}
 
 	_onceMessageFromFiles(name, next) {
-		let messageCallback = (name, content) => {
-			if (name === name) {
-				next(content);
-				this._filesSession.removeListener("message", messageCallback);
-			}
-		};
-		this._filesSession.on("message", messageCallback);
+		onceMessage(this._filesSession, name, next);
 	}
 }
 
@@ -248,6 +243,10 @@ class SessionSELinux extends SessionImpl {
 		this._filesSession = new FilesControllerHandler(this.sessCode);
 		this._hostSession = new HostProcessHandler(this.sessCode);
 	}
+
+	_makeNewFileSession(sessCode) {
+		return new FilesControllerHandler(sessCode);
+	}
 }
 
 class HostDockerHandler extends DockerHandler {
@@ -301,6 +300,10 @@ class SessionDocker extends SessionImpl {
 	_makeSessions() {
 		this._filesSession = new FilesDockerHandler(this.sessCode);
 		this._hostSession = new HostDockerHandler(this.sessCode);
+	}
+
+	_makeNewFileSession(sessCode) {
+		return new FilesDockerHandler(sessCode);
 	}
 }
 
