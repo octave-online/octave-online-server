@@ -39,6 +39,10 @@ class BackServerHandler extends EventEmitter2.EventEmitter2 {
 	}
 
 	public dataD(name:string, data:any) {
+		if (this.sessCode === null) {
+			this.emit("data", "alert", "ERROR: Please reconnect! Your action was not performed: " + name);
+			return;
+		}
 		try {
 			let messageString = Attachment.serializeMessage(name, data);
 			pushClient.publish(IRedis.Chan.input(this.sessCode), messageString);

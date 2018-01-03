@@ -10,6 +10,9 @@ import Crypto = require("crypto");
 import Bcrypt = require("bcrypt");
 import Config = require("./config");
 
+// Patch for https://github.com/Automattic/mongoose/issues/4951
+Mongoose.Promise = <any> global.Promise
+
 // Initialize the schema
 var userSchema = new Mongoose.Schema({
 	email: String,
@@ -22,6 +25,8 @@ var userSchema = new Mongoose.Schema({
 	repo_key: String,
 	share_key: String,
 	password_hash: String,
+	legal_time_override: Number,
+	payload_limit_override: Number,
 	program: String,
 	instructor: [String]
 });
@@ -83,6 +88,16 @@ userSchema.virtual("consoleText").get(function () {
 		+ this.parametrized + "]";
 });
 
+// Return the legalTime and payloadLimit for this user, which usually falls back to the default unless a value is explicitly set in the database.  The camel-case name of these fields is for backwards compatibility.
+userSchema.virtual("legalTime").get(function () {
+	if (this.legal_time_override) return this.legal_time_override;
+	return Config.session.legalTime.user;
+});
+userSchema.virtual("payloadLimit").get(function () {
+	if (this.payload_limit_override) return this.payload_limit_override;
+	return Config.session.payloadLimit.user;
+});
+
 function randomAlphaString(length){
 	var str = "";
 	while (str.length < length) {
@@ -129,6 +144,8 @@ userSchema.pre("save", function(next){
 			self.save(next);
 		});
 	} else {
+		// To create a new password manually, run:
+		// $ node -e "require('bcrypt').hash('foo', 10, console.log)"
 		Bcrypt.hash(password, Config.password.salt_rounds, function(err, hash) {
 			self.password_hash = hash;
 			self.save(next);
@@ -156,11 +173,14 @@ userSchema.post("init", function(doc){
 
 // JSON representation: include the virtuals (this object will be transmitted
 // to the actual Octave server)
-// Leave out the password_hash field to avoid leaking it to the front end
+// Leave out the password_hash field to avoid leaking it to the front end.
+// Also leave out the two *_override fields since the information in those fields is available via the corresponding camel-case virtuals.
 userSchema.set('toJSON', {
 	virtuals: true,
 	transform: function(doc, ret, options) {
 		delete ret.password_hash;
+		delete ret.legal_time_override;
+		delete ret.payload_limit_override;
 		return ret;
 	}
 });

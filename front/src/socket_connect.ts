@@ -6,8 +6,10 @@
 ///<reference path='typedefs/idestroyable.d.ts'/>
 ///<reference path='typedefs/iworkspace.ts'/>
 ///<reference path='typedefs/iuser.ts'/>
+///<reference path='typedefs/ibucket.ts'/>
 
 import User = require("./user_model");
+import Bucket = require("./bucket_model");
 import Config = require("./config");
 import BackServerHandler = require("./back_server_handler");
 import NormalWorkspace = require("./workspace_normal");
@@ -29,6 +31,7 @@ class SocketHandler implements IDestroyable {
 	public back:BackServerHandler;
 	public workspace:IWorkspace;
 	public user:IUser = null;
+	public bucketId:string = null;
 	public sessCode:string;
 	public destroyed:boolean = false;
 
@@ -76,8 +79,9 @@ class SocketHandler implements IDestroyable {
 
 				self.user = user;
 
-				// Fork to load instructor data
+				// Fork to load instructor data and buckets
 				this.loadInstructor();
+				this.loadUserBuckets();
 
 				// Process the user's requested action
 				var action = init && init.action;
@@ -97,6 +101,12 @@ class SocketHandler implements IDestroyable {
 						this.workspace = new SharedWorkspace("student", info);
 						break;
 
+					case "bucket":
+						if (!info) return;
+						this.log("Attaching to a bucket:", info);
+						this.workspace = new NormalWorkspace(null, user, <string> info);
+						break;
+
 					case "session":
 					default:
 						if (user && user.share_key) {
@@ -104,13 +114,18 @@ class SocketHandler implements IDestroyable {
 							this.workspace = new SharedWorkspace("host", user);
 						} else {
 							this.log("Attaching to default workspace with sessCode", info);
-							this.workspace = new NormalWorkspace(info, user);
+							this.workspace = new NormalWorkspace(<string> info, user, null);
 						}
 						break;
 				}
 
 				this.listen();
-				this.workspace.beginOctaveRequest();
+				if (action === "bucket") {
+					this.bucketId = <string> info;
+					this.loadBucket();
+				} else {
+					this.workspace.beginOctaveRequest();
+				}
 
 				// Continue down the chain (does not do anything currently)
 				next(null, null);
@@ -168,10 +183,7 @@ class SocketHandler implements IDestroyable {
 
 	// Convenience function to post a message in the client's console window
 	private sendMessage = (message:string):void => {
-		this.socket.emit("data", {
-			type: "stdout",
-			data: message+"\n"
-		});
+		this.socket.emit("alert", message);
 	};
 
 	//// MAIN LISTENER FUNCTIONS ////
@@ -198,30 +210,36 @@ class SocketHandler implements IDestroyable {
 
 		// Check for name matches
 		switch(name){
+			case "init":
+				return;
 			case "enroll":
 				this.onEnroll(data);
-				break;
+				return;
 			case "update_students":
 				this.onUpdateStudents(data);
-				break;
+				return;
 			case "oo.unenroll_student":
 				this.onUnenrollStudent(data);
-				break;
+				return;
 			case "oo.reenroll_student":
 				this.onReenrollStudent(data);
-				break;
+				return;
 			case "oo.ping":
 				this.onPing(data);
-				break;
+				return;
 			case "oo.toggle_sharing":
 				this.onToggleSharing(data);
-				break;
+				return;
 			case "oo.reconnect":
 				this.onOoReconnect();
-				break;
+				return;
 			case "oo.set_password":
 				this.onSetPassword(data);
-				break;
+				return;
+			case "oo.delete_bucket":
+				this.onDeleteBucket(data);
+				return;
+
 			default:
 				break;
 		}
@@ -231,7 +249,7 @@ class SocketHandler implements IDestroyable {
 			case "ot.":
 			case "ws.":
 				if (this.workspace) this.workspace.dataD(name, data);
-				break;
+				return;
 		}
 
 		// Intercept some commands and fork them into the workspace
@@ -246,6 +264,13 @@ class SocketHandler implements IDestroyable {
 	// Let everything continue downstream to the client
 	private onDataU = (name, data) => {
 		if (this.workspace) this.workspace.dataU(name, data);
+
+		switch(name){
+			case "bucket-repo-created":
+				this.onBucketCreated(data);
+				return;
+		}
+
 		this.socket.emit(name, data);
 	};
 
@@ -277,6 +302,38 @@ class SocketHandler implements IDestroyable {
 		});
 	}
 
+	private loadUserBuckets = ():void => {
+		if (!this.user) return;
+		Bucket.find({ user_id: this.user._id }, (err, buckets) => {
+			if (err) {
+				this.log("LOAD USER BUCKETS ERROR", err);
+				return;
+			}
+			this.log("Loaded", buckets.length, "buckets for user", this.user.consoleText);
+			this.socket.emit("all-buckets", { buckets });
+		});
+	}
+
+	private loadBucket = ():void => {
+		if (!this.bucketId) return;
+		Bucket.findOne({ bucket_id: this.bucketId }, (err, bucket) => {
+			if (err) {
+				this.log("LOAD BUCKET ERROR", err);
+				this.sendMessage("Encountered error while initializing bucket.");
+				return;
+			}
+			if (!bucket) {
+				this.sendMessage("Unable to find bucket: " + this.bucketId);
+				this.socket.emit("destroy-u", "Unknown Bucket");
+				this.workspace = null;
+				return;
+			}
+			this.log("Bucket loaded:", bucket.bucket_id);
+			this.socket.emit("bucket-info", bucket);
+			this.workspace.beginOctaveRequest();
+		});
+	}
+
 	private onSetPassword = (obj)=> {
 		if (!obj) return;
 		if (!this.user) return;
@@ -286,8 +343,65 @@ class SocketHandler implements IDestroyable {
 		});
 	}
 
+	private onBucketCreated = (obj) => {
+		if (!obj) return;
+		if (!obj.bucket_id) return;
+		if (!this.user) {
+			this.log("ERROR: No user but got bucket-created message!", obj.bucket_id);
+			return;
+		}
+
+		var bucket = new Bucket();
+		this.log("Creating bucket:", obj.bucket_id, this.user.consoleText);
+		bucket.bucket_id = obj.bucket_id;
+		bucket.user_id = this.user._id;
+		bucket.main = obj.main;
+		bucket.save((err) => {
+			if (err) return this.log("ERROR creating bucket:", err);
+			this.socket.emit("bucket-created", { bucket });
+		});
+	}
+
+	private onDeleteBucket = (obj) => {
+		if (!obj) return;
+		if (!obj.bucket_id) return;
+		if (!this.user) return;
+		this.log("Deleting bucket:", obj.bucket_id);
+		// NOTE: This deletes the bucket from mongo, but not from the file server.  A batch job can be run to delete bucket repos that are not in sync with mongo.
+		Bucket.findOne({ bucket_id: obj.bucket_id }, (err, bucket) => {
+			if (err) {
+				this.log("LOAD BUCKET ERROR", err);
+				this.sendMessage("Encountered error while finding bucket.");
+				return;
+			}
+			if (!bucket) {
+				this.sendMessage("Unable to find bucket; did you already delete it?");
+				return;
+			}
+			if (!this.user._id.equals(bucket.user_id)) {
+				this.log("ERROR: Bad owner:", bucket.user_id, this.user.consoleText);
+				this.sendMessage("You are not the owner of that bucket");
+				return;
+			}
+			bucket.remove((err, bucket) => {
+				if (err) {
+					this.log("REMOVE BUCKET ERROR", err);
+					this.sendMessage("Encountered error while removing bucket.");
+					return;
+				}
+				this.socket.emit("bucket-deleted", {
+					bucket_id: obj.bucket_id
+				});
+			});
+		});
+	}
+
 	private onOoReconnect = ():void => {
-		if (this.workspace) this.workspace.beginOctaveRequest();
+		if (this.workspace) {
+			this.workspace.beginOctaveRequest();
+		} else {
+			this.socket.emit("destroy-u", "Invalid Session");
+		}
 	};
 
 	private setSessCode = (sessCode: string): void => {
@@ -329,10 +443,11 @@ class SocketHandler implements IDestroyable {
 		User.findById(obj.userId, (err, student)=> {
 			if (err) return this.log("MONGO ERROR", err);
 			if (this.user.instructor.indexOf(student.program) === -1) return this.log("Warning: illegal call to unenroll student");
+			this.log("Un-enrolling", this.user.consoleText, "from program", student.program);
 			student.program = "default";
 			student.save((err1) =>{
 				if (err1) return this.log("MONGO ERROR", err1);
-				this.sendMessage("Student successfully unenrolled");
+				this.sendMessage("Student successfully unenrolled: " + student.displayName);
 			});
 		});
 	}
@@ -341,14 +456,18 @@ class SocketHandler implements IDestroyable {
 		if (!obj) return;
 		if (!obj.userId) return;
 		if (!obj.program) return;
-		if (this.user.instructor.indexOf(obj.program) === -1) return this.log("Warning: illegal call to reenroll student");
+		if (this.user.instructor.indexOf(obj.program) === -1) {
+			this.sendMessage("Student not re-enrolled: Cannot use the course code " + obj.program);
+			return this.log("Warning: illegal call to re-enroll student");
+		}
 		User.findById(obj.userId, (err, student)=> {
 			if (err) return this.log("ERROR ON UNENROLL STUDENT", err);
 			if (this.user.instructor.indexOf(student.program) === -1) return this.log("Warning: illegal call to reenroll student");
+			this.log("Re-enrolling", this.user.consoleText, "from program", student.program, "to program", obj.program);
 			student.program = obj.program;
 			student.save((err1) =>{
 				if (err1) return this.log("MONGO ERROR", err1);
-				this.sendMessage("Student successfully re-enrolled");
+				this.sendMessage("Student successfully re-enrolled: " + student.displayName);
 			});
 		});
 	}
@@ -364,7 +483,9 @@ class SocketHandler implements IDestroyable {
 		if (!this.user || !obj) return;
 		var enabled = obj.enabled;
 
-		if (enabled) {
+		if (!enabled && this.user.program && this.user.program !== "default") {
+			this.sendMessage("You must unenroll before disabling sharing.\nTo unenroll, run the command \"enroll('default')\".");
+		} else if (enabled) {
 			this.user.createShareKey((err)=> {
 				if (err) this.log("MONGO ERROR", err);
 				this.socket.emit("reload", {});

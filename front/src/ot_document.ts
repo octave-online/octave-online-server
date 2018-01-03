@@ -22,7 +22,9 @@ var otSetSha1 = Crypto.createHash("sha1").update(otSetScript).digest("hex");
 var otOperationClient = IRedis.createClient();
 var otListenClient = IRedis.createClient();
 otListenClient.psubscribe(IRedis.Chan.otSub("*"));
-otListenClient.setMaxListeners(30);
+
+// A single workspace could account for 50 or more listeners, because each document listens on the same connection.
+otListenClient.setMaxListeners(200);
 
 class OtDocument extends EventEmitter2.EventEmitter2{
 	private id:string;

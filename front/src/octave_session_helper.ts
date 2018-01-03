@@ -44,11 +44,12 @@ class OctaveSessionHelper extends EventEmitter2.EventEmitter2 {
 		}
 	}
 
-	public askForOctave(sessCode:string, user:IUser, next:(err:Error)=>void) {
+	public askForOctave(sessCode:string, content:any, next:(err:Error)=>void) {
 		var time = new Date().valueOf();
 		var multi = infoClient.multi();
 		multi.zadd(IRedis.Chan.needsOctave, time, sessCode);
-		multi.hset(IRedis.Chan.session(sessCode), "user", JSON.stringify(user));
+		// NOTE: For backwards compatibilty, this field is called "user" instead of "content"
+		multi.hset(IRedis.Chan.session(sessCode), "user", JSON.stringify(content));
 		multi.hset(IRedis.Chan.session(sessCode), "live", "false");
 		multi.set(IRedis.Chan.input(sessCode), time);
 		multi.set(IRedis.Chan.output(sessCode), time);

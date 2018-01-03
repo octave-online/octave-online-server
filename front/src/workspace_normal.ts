@@ -17,11 +17,13 @@ implements IWorkspace, IDestroyable {
 	public sessCode:string;
 	public destroyed:boolean = false;
 	private user:IUser;
+	private bucketId:string;
 
-	constructor(sessCode:any, user:IUser){
+	constructor(sessCode:string, user:IUser, bucketId:string){
 		super();
-		this.sessCode = <string> sessCode;
+		this.sessCode = sessCode;
 		this.user = user;
+		this.bucketId = bucketId;
 
 		process.nextTick(()=>{
 			this.emit("data", "userinfo", user);
@@ -57,7 +59,10 @@ implements IWorkspace, IDestroyable {
 				// Ask for an Octave session if we need one.
 				// Otherwise, inform the client.
 				if (state === IRedis.SessionState.Needed)
-					OctaveHelper.askForOctave(sessCode, this.user, next);
+					OctaveHelper.askForOctave(sessCode, {
+						user: this.user,
+						bucketId: this.bucketId
+					}, next);
 				else {
 					this.emit("sesscode", sessCode);
 					this.emit("data", "prompt", {});

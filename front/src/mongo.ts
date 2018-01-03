@@ -11,7 +11,10 @@ module Mongo {
 
 		console.log("Connecting to Mongo...");
 
-		Mongoose.connect(url, next);
+		// Cast to <any> below because mongoose.d.ts is not up-to-date
+		Mongoose.connect(url, <any> {
+			useMongoClient: true
+		}, next);
 	}
 
 	export var connection = Mongoose.connection;

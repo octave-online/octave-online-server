@@ -54,6 +54,16 @@ interface IAppConfig {
 			timeout: number;
 		}
 	}
+	session: {
+		legalTime: {
+			guest: number;
+			user: number;
+		}
+		payloadLimit: {
+			guest: number;
+			user: number;
+		}
+	}
 }
 
 var appConfig:IAppConfig = require("../config/app.json");

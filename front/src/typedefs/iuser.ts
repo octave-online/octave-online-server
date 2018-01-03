@@ -1,3 +1,4 @@
+///<reference path="../boris-typedefs/mongodb/mongodb.d.ts"/>
 ///<reference path="../boris-typedefs/mongoose/mongoose.d.ts"/>
 
 // I've spent too much time fighting with TypeScript to be able to make IUser
@@ -5,7 +6,10 @@
 // go right ahead and submit a pull request.  I'm really questioning whether
 // TypeScript was the right decision for this project...
 
+const mongodb = require("mongodb");
+
 interface IUser /* extends require("mongoose").Document */ {
+	_id: typeof mongodb.ObjectID
 	email: string
 	parametrized: string
 	profile: any

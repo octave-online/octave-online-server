@@ -10,7 +10,7 @@ import Uuid = require("uuid");
 export function serializeMessage(name: string, content: any): string {
 	// Protect against name length
 	if (name.length > Config.redis.maxPayload)
-		throw new Error("Name length exceeds max redis payload length!");
+		throw new Error("ERROR: Name length exceeds max redis payload length!");
 
 	// If data is too long, save it as an "attachment"
 	let contentString = JSON.stringify(content);

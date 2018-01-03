@@ -17,6 +17,11 @@ module ExpressApp {
 	export function init(){
 		app = Express()
 			.use(Compression())
+			.get(/\/[a-z]+~\w+$/, function(req, res, next) {
+				// Internally rewrite the path to index.html
+				req.url = "/index.html";
+				next("route");
+			})
 			.use(ServeStatic(Config.static.path))
 			.use(SessionMiddleware.middleware)
 			.use(BodyParser.urlencoded({ extended: true }))
