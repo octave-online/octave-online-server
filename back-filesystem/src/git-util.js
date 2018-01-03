@@ -14,14 +14,40 @@ class GitUtil {
 		this._log = logger(`git-util:${logMemo}`);
 		this._mlog = logger(`git-util:${logMemo}:minor`);
 		this.execOptions = { cwd: gitDir };
+		this.readonly = false;
 	}
 
 	initialize(user, workDir, next) {
 		const remote = this._userToRemote(user);
 		async.series([
 			(_next) => {
-				this._createOnRemote(user, _next);
+				this._createUserOnRemote(user, _next);
 			},
+			(_next) => {
+				this._initialize(remote, workDir, _next);
+			}
+		], next);
+	}
+
+	initializeBucket(bucketId, workDir, readonly, next) {
+		this.readonly = readonly;
+		const remote = this._bucketToRemote(bucketId);
+		async.series([
+			(_next) => {
+				if (!readonly) {
+					this._createBucketOnRemote(bucketId, _next);
+				} else {
+					_next(null);
+				}
+			},
+			(_next) => {
+				this._initialize(remote, workDir, _next);
+			}
+		], next);
+	}
+
+	_initialize(remote, workDir, next) {
+		async.series([
 			(_next) => {
 				this._mlog.trace("Running git init...");
 				child_process.execFile("git", ["--git-dir=.", `--work-tree=${workDir}`, "init"], this.execOptions, _next);
@@ -37,6 +63,14 @@ class GitUtil {
 	}
 
 	pullPush(message, next) {
+		if (this.readonly) {
+			return this._pull(next);
+		} else {
+			return this._pullPush(message, next);
+		}
+	}
+
+	_pullPush(message, next) {
 		async.series([
 			(_next) => {
 				this._mlog.debug("Preparing to pull-push...");
@@ -70,6 +104,27 @@ class GitUtil {
 		], next);
 	}
 
+	_pull(next) {
+		async.series([
+			(_next) => {
+				this._mlog.debug("READONLY: Preparing to pull...");
+				_next();
+			},
+			(_next) => {
+				// Perform a shallow clone to avoid wasting time and resources downloading old refs from the server
+				// This command can fail silently for the case when the remote repo is empty
+				child_process.execFile("git", ["fetch", "--depth=1"], this.execOptions, silent(/no matching remote head/, _next));
+			},
+			(_next) => {
+				child_process.execFile("git", ["merge", "origin/master"], this.execOptions, silent(/not something we can merge/, silent(/.*/, _next)));
+			},
+			(_next) => {
+				this._mlog.debug("READONLY: Finished pull");
+				_next();
+			}
+		], next);
+	}
+
 	_commit(message, next) {
 		async.series([
 			(_next) => {
@@ -88,7 +143,7 @@ class GitUtil {
 		], next);
 	}
 
-	_createOnRemote(user, next) {
+	_createUserOnRemote(user, next) {
 		async.series([
 			(_next) => {
 				this._mlog.debug("Preparing remote repo...");
@@ -101,8 +156,25 @@ class GitUtil {
 		], next);
 	}
 
+	_createBucketOnRemote(bucketId, next) {
+		async.series([
+			(_next) => {
+				this._mlog.debug("Preparing remote bucket...");
+				_next();
+			},
+			(_next) => {
+				// In this case, the command failing is desirable behavior, right?
+				child_process.execFile(GIT_SSH_FILE, [`${config.git.helperUser}@${config.git.hostname}`, `./create_bucket.sh '${bucketId}'`], this.execOptions, _next);
+			}
+		], next);
+	}
+
 	_userToRemote(user) {
 		return `git@${config.git.hostname}:repos/${user.parametrized}.git`;
+	}
+
+	_bucketToRemote(bucketId) {
+		return `git@${config.git.hostname}:buckets/${bucketId}.git`;
 	}
 }
 

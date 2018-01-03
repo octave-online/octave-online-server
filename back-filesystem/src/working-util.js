@@ -9,6 +9,7 @@ const Iconv = require("iconv").Iconv;
 const logger = require("@oo/shared").logger;
 const config = require("@oo/shared").config;
 const mkdirp = require("mkdirp");
+const crypto = require("crypto");
 
 // Load extra MIME types
 mime.load(path.join(__dirname, "mime.types"));
@@ -56,7 +57,11 @@ class WorkingUtil {
 				async.map(files, (filename, __next) => {
 					let pathname = path.join(directory, filename);
 					let relname = path.relative(this.cwd, pathname);
-					if (pathname === path.join(this.cwd, ".git")) return;
+					// TODO: Can the following be removed?
+					if (pathname === path.join(this.cwd, ".git")) {
+						this._mlog.debug("Skipping .git in _recursiveReaddir");
+						return;
+					}
 					async.waterfall([
 						(___next) => {
 							// lstat to prevent following symlinks
@@ -195,6 +200,9 @@ class WorkingUtil {
 						_next(null);
 					});
 				}
+			},
+			(_next) => {
+				return _next(null, crypto.createHash("md5").update(value).digest("hex"));
 			}
 		], next);
 	}

@@ -15,6 +15,10 @@ const https = require("https");
 const querystring = require("querystring");
 const uuid = require("uuid");
 const Queue = require("@oo/shared").Queue;
+const base58 = require("base-x")("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz");
+const temp = require("temp");
+const onceMessage = require("@oo/shared").onceMessage;
+const child_process = require("child_process");
 
 class OctaveSession extends OnlineOffline {
 	constructor(sessCode) {
@@ -308,6 +312,100 @@ class OctaveSession extends OnlineOffline {
 		}
 	}
 
+	// BUCKET METHODS: Create (and destroy) buckets with snapshots of static files that can be published.
+	_createBucket(bucketInfo) {
+		let filenames = bucketInfo.filenames;
+		if (!Array.isArray(filenames)) return;
+
+		// Create the bucket ID.
+		const bucketIdBuffer = new Buffer(16);
+		uuid.v4({}, bucketIdBuffer, 0);
+		const bucketId = base58.encode(bucketIdBuffer);
+		bucketInfo.bucket_id = bucketId;
+
+		this._log.debug("Creating new bucket:", bucketId, filenames);
+		async.auto({
+			"read_files": (_next) => {
+				// Load the bucket files into memory.
+				this._mlog.trace("Reading files for bucket");
+				let jobId = uuid.v4();
+				this._onceMessageFromFiles("multi-binary:" + jobId, (err, data) => {
+					if (!data.success) return _next(new Error("Unsuccessful call to multi-binary"));
+					_next(null, data.results);
+				}, _next);
+				this._sendMessageToFiles("multi-binary", {
+					id: jobId,
+					filenames: filenames
+				});
+			},
+			"tmpdir": (_next) => {
+				// We need to create a working directory for the bucket git
+				this._mlog.trace("Creating tmpdir for bucket");
+				temp.mkdir("oo-", _next);
+			},
+			"session": (_next) => {
+				// Create a Git session for the new bucket.
+				const session = this._makeNewFileSession("create-bucket:" + bucketId);
+				session.on("message", (name, content) => {
+					this._mlog.trace("Bucket file session message:", name);
+				});
+				session.on("error", (err) => {
+					this._log.error("Bucket file session error:", err);
+				});
+				_next(null, session);
+			},
+			// NOTE: In Async 1.5.x, the version used here, the argument order is (_next, results), but in Async 2.x, the argument order changed to (results, _next).
+			"session_create": ["tmpdir", "session", (_next, results) => {
+				this._mlog.trace("Creating session for bucket");
+				results.session.create(_next, results.tmpdir);
+			}],
+			"session_init": ["session_create", (_next, results) => {
+				this._mlog.trace("Initializing session for bucket");
+				onceMessage(results.session, "filelist", _next);
+				results.session.sendMessage("bucket-info", {
+					id: bucketId,
+					readonly: false
+				});
+			}],
+			"write_files": ["read_files", "session_init", (_next, results) => {
+				this._mlog.trace("Writing files for bucket");
+				let jobId = uuid.v4();
+				onceMessage(results.session, "multi-binary-saved:" + jobId, (err, data) => {
+					if (!data.success) return _next(new Error("Unsuccessful call to save-multi-binary"));
+					_next(null);
+				});
+				results.session.sendMessage("save-multi-binary", {
+					id: jobId,
+					filenames: filenames,
+					base64datas: results.read_files
+				});
+			}],
+			"commit": ["write_files", (_next, results) => {
+				this._mlog.trace("Committing files for bucket");
+				onceMessage(results.session, "committed", _next);
+				results.session.sendMessage("commit", {
+					comment: "Scripted bucket creation: " + bucketId
+				});
+			}],
+			"destroy_session": ["commit", (_next, results) => {
+				this._mlog.trace("Destroying session for bucket");
+				results.session.destroy(_next);
+			}],
+			"destroy_tmpdir": ["destroy_session", (_next, results) => {
+				this._mlog.trace("Destroying working dir bucket");
+				child_process.exec(`rm -rf ${results.tmpdir}`, _next);
+			}]
+		}, (err) => {
+			if (err) {
+				this._log.error("Error creating bucket:", err);
+				this.emit("message", "err", "Encountered an error creating the bucket.\n")
+			} else {
+				this._log.info("Finished creating new bucket:", bucketId);
+				this.emit("message", "bucket-repo-created", bucketInfo);
+			}
+		});
+	}
+
 	// Use a queue to handle incoming messages to ensure that messages are processed in order.  The loading of data via attachments is asynchronous and may cause messages to change order.
 	enqueueMessage(name, getData) {
 		let message = { name, ready: false };
@@ -377,11 +475,21 @@ class OctaveSession extends OnlineOffline {
 					if (content.user.legalTime) this._legalTime = content.user.legalTime;
 					if (content.user.payloadLimit) this._payloadLimit = content.user.payloadLimit;
 				}
-				this._sendMessageToFiles(name, content);
+				if (content.bucketId) {
+					this._sendMessageToFiles("bucket-info", {
+						id: content.bucketId,
+						readonly: true
+					});
+				} else {
+					this._sendMessageToFiles(name, content);
+				}
+				break;
+
+			case "oo.create_bucket":
+				this._createBucket(content);
 				break;
 
 			// Messages to forward to the file manager
-			case "user-info":
 			case "list":
 			case "refresh":
 			case "save":
@@ -411,7 +519,7 @@ class OctaveSession extends OnlineOffline {
 
 			// Unknown messages
 			default:
-				this._log.warn("Unknown message:", name);
+				this._log.debug("Message ignored:", name);
 				break;
 		}
 	}
@@ -445,8 +553,9 @@ class OctaveSession extends OnlineOffline {
 			default:
 				break;
 		}
+		if (/^multi-binary:[\w\-]+$/.test(name)) return;
 
-		// Forward events downstream
+		// Forward remaining events downstream
 		this.emit("message", name, content);
 		this.emit(`msg:${name}`, content);
 

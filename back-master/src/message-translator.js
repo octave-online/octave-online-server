@@ -136,6 +136,10 @@ class MessageTranslator extends EventEmitter {
 					break;
 				}
 
+			// File list event (change name from "filelist" to "user")
+			case "filelist":
+				this._forDownstream(sessCode, "user", content);
+
 			// MESSAGES THAT CAN BE IGNORED:
 			case "ack":
 			case "set-history":
