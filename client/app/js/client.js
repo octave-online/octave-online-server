@@ -2,13 +2,13 @@
 
 define(
 	["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_highlight",
-		"js/anal", "base64-toblob", "ismobile", "exports", "js/octfile",
-		"js/vars", "ko-takeArray", "require", "js/onboarding", "js/ws-shared",
+		"js/anal", "base64-toblob", "ismobile", "exports", "js/octfile", "js/bucket",
+		"js/vars", "ko-takeArray", "require", "js/onboarding", "js/ws-shared", "js/utils",
 		"blob", "jquery.md5", "jquery.purl", "ace/theme/crimson_editor",
 		"ace/theme/merbivore_soft", "js/ko-ace"],
 function($, ko, canvg, Base64, download, aceStaticHighlight,
-         anal, b64ToBlob, isMobile, exports, OctFile,
-         Var, koTakeArray, require, onboarding, WsShared){
+         anal, b64ToBlob, isMobile, exports, OctFile, Bucket,
+         Var, koTakeArray, require, onboarding, WsShared, utils){
 
 	/* * * * START KNOCKOUT SETUP * * * */
 
@@ -27,7 +27,8 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 	var availableSkins = [
 		new Skin("fire", "crimson_editor", "black"),
 		new Skin("lava", "merbivore_soft", "white"),
-		new Skin("ice", "crimson_editor", "black")
+		new Skin("ice", "crimson_editor", "black"),
+		new Skin("sun", "crimson_editor", "black"),
 	];
 
 	// Plot MVVM class
@@ -96,6 +97,8 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 
 	// Initialize MVVM variables
 	var allOctFiles = ko.observableArray([]);
+	var selectedSkin = ko.observable(availableSkins[0]);
+	var purpose = ko.observable("default");
 	var vars = ko.observableArray([]);
 	var plotHistory = ko.observableArray([]);
 	var currentPlotIdx = ko.observable(-1);
@@ -105,12 +108,25 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 		close: function(){
 			OctMethods.editor.close();
 		},
-		selectedSkin: ko.observable(availableSkins[0]),
+		selectedSkin: selectedSkin,
+		purpose: purpose,
 		vars: vars,
 		plots: plotHistory,
 		currentPlotIdx: currentPlotIdx,
 		inlinePlots: ko.observable(true),
 		instructorPrograms: ko.observableArray(),
+		allBuckets: ko.observableArray(),
+		newBucket: ko.observable(),
+
+		// More for UI
+		logoSrc: ko.computed(function() {
+			var color = selectedSkin().iconColor;
+			if (purpose() === "bucket") {
+				return "images/logo-bucket-" + color + ".svg";
+			} else {
+				return "images/logo-" + color + ".svg";
+			}
+		}),
 
 		// More for plots
 		currentPlot: ko.computed(function(){
@@ -124,7 +140,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			var idx = currentPlotIdx();
 			var len = plotHistory().length;
 			if (len === 0) {
-				alert("This button shows and hides the plot window.  Enter an expression that generates a plot.");
+				utils.alert("This button shows and hides the plot window.  Enter an expression that generates a plot.");
 			} else if (idx < 0) {
 				currentPlotIdx(len-1);
 			} else {
@@ -172,26 +188,27 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			for (var i=0; i<programs.length; i++) {
 				if (programs[i].program === newProgram) {
 					OctMethods.socket.reenrollStudent(user, newProgram);
-					alert("The following student is being re-enrolled.  Reload the page to see the update.\n\nName: " + user.displayName + "\nNew Course: " + newProgram);
+					utils.alert("The following student is being re-enrolled.  Reload the page to see the update.\n\nName: " + user.displayName + "\nNew Course: " + newProgram);
 					return;
 				}
 			}
-			alert("Error: Could not find the program " + newProgram);
+			utils.alert("Error: Could not find the program " + newProgram);
 		},
 
 		toggleSharing: function(){
 			var shareKey = viewModel.currentUser().share_key;
 			var program = viewModel.currentUser().program;
 			if (program && program !== "default") {
-				alert("You cannot disable sharing as a student enrolled in an Octave Online program.  You need to remove yourself from \"" + program + "\" by running \"enroll('default')\" at the command prompt.");
+				utils.alert("You cannot disable sharing as a student enrolled in an Octave Online program.  You need to remove yourself from \"" + program + "\" by running \"enroll('default')\" at the command prompt.");
 			} else {
 				OctMethods.socket.toggleSharing(!shareKey);
 			}
 		},
 
 		getOctFileFromName: function(filename){
-			return ko.utils.arrayFirst(allOctFiles(), function(item){
-				return item.filename() === filename;
+			// Since allOctFiles is always sorted, we can do binary search.
+			return utils.binarySearch(allOctFiles(), filename, function(octfile) {
+				return octfile.filename();
 			});
 		},
 		fileNameExists: function(filename){
@@ -209,19 +226,21 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			OctMethods.prompt.addTime();
 		},
 
+		clearBucket: function() {
+			viewModel.newBucket(null);
+		},
+
 		flex: {
 			sizes: ko.observableArray([100, 400, 75, 325]),
 			shown: ko.observable(false)
 		}
 	};
 	viewModel.showUserInHeader = ko.computed(function(){
-		return (viewModel.currentUser()
-			&& viewModel.selectedSkin() === availableSkins[2]);
+		return (viewModel.currentUser() && viewModel.purpose() === "student");
 	});
 	viewModel.shareLink = ko.computed(function(){
 		if (!viewModel.currentUser()) return "";
-		return window.location.origin + window.location.pathname
-			+ "?s=" + viewModel.currentUser().share_key;
+		return window.location.origin + "/workspace~" + viewModel.currentUser().share_key;
 	});
 	viewModel.flex.outputCss = ko.computed(function(){
 		return "flex-basis:" + (viewModel.flex.sizes()[2] + viewModel.flex.sizes()[3]) + "px";
@@ -379,11 +398,10 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 		// Prompt Methods
 		prompt: {
 			instance: null,
-			currentLine: null,
-			prevLine: null,
+			currentLine: 0,
 			history: [""],
 			index: 0,
-			legalTime: 5000,
+			legalTime: 5000,  // config.session.legalTime.guest
 			extraTime: 0,
 			countdownInterval: null,
 			countdownTime: 0,
@@ -404,14 +422,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				$("#prompt_sign").hideSafe();
 				OctMethods.prompt.enabled = false;
 			},
-			clear: function(skipLine){
-				if(!skipLine){
-					if(OctMethods.prompt.currentLine > 0){
-						OctMethods.prompt.prevLine = OctMethods.prompt.currentLine;
-					}
-					OctMethods.prompt.currentLine = null;
-				}
-
+			clear: function(){
 				OctMethods.prompt.instance.setValue("");
 			},
 			focus: function(){
@@ -453,7 +464,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			},
 			askForEnroll: function(program){
 				if(!OctMethods.editor.initialized){
-					alert("You need to sign in to enroll in a course.");
+					utils.alert("You need to sign in to enroll in a course.");
 					return;
 				}
 
@@ -487,17 +498,17 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				if(enrollRegex.test(cmd)){
 					var program = cmd.match(enrollRegex)[1];
 					OctMethods.prompt.askForEnroll(program);
-					OctMethods.prompt.clear(true);
+					OctMethods.prompt.clear();
 				}else if(updateStudentsRegex.test(cmd)){
 					var program = cmd.match(updateStudentsRegex)[1];
 					OctMethods.socket.updateStudents(program);
-					OctMethods.prompt.clear(true);
+					OctMethods.prompt.clear();
 				}else if(pingRegex.test(cmd)) {
 					OctMethods.socket.ping();
-					OctMethods.prompt.clear(true);
+					OctMethods.prompt.clear();
 				}else{
 					OctMethods.console.command(cmd);
-					OctMethods.prompt.clear(false);
+					OctMethods.prompt.clear();
 				}
 
 				anal.command(cmd);
@@ -615,6 +626,19 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 					new_pwd: password
 				});
 			},
+			createBucket: function(bucket) {
+				return OctMethods.socket.emit("oo.create_bucket", {
+					filenames: ko.utils.arrayMap(bucket.files(), function(octfile){
+						return octfile.filename();
+					}),
+					main: bucket.mainFilename()
+				});
+			},
+			deleteBucket: function(bucket) {
+				return OctMethods.socket.emit("oo.delete_bucket", {
+					bucket_id: bucket.id()
+				});
+			},
 			emit: function(message, data){
 				if (!OctMethods.socket.instance
 					|| !OctMethods.socket.instance.connected) {
@@ -649,14 +673,14 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 						console.log("unknown data type: " + data.type);
 				}
 			},
+			alert: function(message) {
+				utils.alert(message);
+			},
 			prompt: function(data){
 				var lineNumber = data.line_number || 0;
 
 				// Turn on the input prompt and set the current line number
-				if (OctMethods.prompt.currentLine === null
-					|| OctMethods.prompt.currentLine < 0){
-					OctMethods.prompt.currentLine = lineNumber;
-				}
+				OctMethods.prompt.currentLine = lineNumber;
 				OctMethods.prompt.enable();
 
 				// Perform other cleanup logic
@@ -675,11 +699,14 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				}else if(!isMobile){
 					OctMethods.prompt.focus();
 				}
-
-				// hide the coverall loading div if necessary
-				OctMethods.load.callback();
 			},
 			saved: function(data){
+				if (!data.success) return;
+				var octfile = viewModel.getOctFileFromName(data.filename);
+				if (!octfile) return;
+				if (octfile.md5() === data.md5sum) {
+					octfile.savedContent(octfile.content());
+				}
 			},
 			renamed: function(data){
 				var oldname = data.oldname, newname = data.newname;
@@ -712,12 +739,15 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 					OctMethods.editor.initialized = true;
 
 					// Set up the UI
-					$("#open_container").showSafe();
 					onboarding.hideScriptPromo();
+					onboarding.hideBucketPromo();
 
 					// Trigger Knockout
 					data.name = data.name || data.displayName;
 					viewModel.currentUser(data);
+
+					// Legal runtime
+					OctMethods.prompt.legalTime = data.legalTime;
 
 					// Analytics
 					anal.signedin();
@@ -725,6 +755,10 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			},
 			dir: function(data){
 				// Load files
+				if (!data.success) {
+					OctMethods.load.callback();
+					return utils.alert(data.message);
+				}
 				if (allOctFiles().length === 0) {
 					$.each(data.files, function(filename, filedata){
 						if(filedata.isText){
@@ -735,8 +769,11 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 					});
 
 					// Set up the UI
+					$("#open_container").showSafe();
 					$("#files_container").showSafe();
-					onboarding.showSyncPromo();
+					if (!OctMethods.vars.bucketId) {
+						onboarding.showSyncPromo();
+					}
 
 					// Fire a window "resize" event to make sure everything adjusts,
 					// like the ACE editor in the prompt
@@ -744,9 +781,28 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 					evt.initUIEvent("resize", true, false, window, 0);
 					window.dispatchEvent(evt);
 
-					// Legal runtime
-					OctMethods.prompt.legalTime = data.legalTime;
+					// If we are in a bucket, auto-open the main file.
+					if (OctMethods.vars.bucketInfo && OctMethods.vars.bucketInfo.main) {
+						var filename = OctMethods.vars.bucketInfo.main;
+						var octfile = viewModel.getOctFileFromName(filename);
+						if (octfile) {
+							octfile.open();
+						}
+					}
+
+				} else {
+					// If the files were already loaded, update the saved content. This will make files show as unsaved if they are out-of-sync with the server.  Don't do anything more drastic, like requesting a file save, because the user might not want a file save in the case of a filelist event being emitted when someone joins a shared workspace session.  Also note that this could have a race condition if a save was performed after the files were read from the server; simply marking the file as unsaved is harmless and won't cause conflicts.
+					$.each(data.files, function(filename, filedata){
+						if (!filedata.isText) return;
+						var octfile = viewModel.getOctFileFromName(filename);
+						if (octfile) {
+							octfile.savedContent(Base64.decode(filedata.content));
+						}
+					});
 				}
+
+				// Normally the coverall loading div gets hidden by the "files-ready" message, but that message might not get sent if joining a shared workspace.
+				OctMethods.load.callback();
 			},
 			fileadd: function(data){
 				if(data.isText){
@@ -759,7 +815,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			},
 			plotd: function(data){
 				// plot data transmission
-				var plot = getOrMakePlotById(data.id, OctMethods.prompt.prevLine);
+				var plot = getOrMakePlotById(data.id, OctMethods.prompt.currentLine);
 				plot.addData(data.content);
 				console.log("Received data for plot ID "+data.id);
 			},
@@ -806,6 +862,37 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				});
 				viewModel.instructorPrograms.push(data);
 			},
+			bucketInfo: function(data){
+				OctMethods.vars.bucketInfo = data;
+			},
+			bucketCreated: function(data) {
+				var bucket = Bucket.fromBucketInfo(data.bucket);
+				// To stay on this page, the following lines should be run, but since we are always redirecting, they are not necessary and cause the screen to flash.
+				// viewModel.allBuckets.push(bucket);
+				// viewModel.newBucket(null);
+				window.location.href = bucket.url();
+			},
+			bucketDeleted: function(data) {
+				var bucket = ko.utils.arrayFirst(viewModel.allBuckets(), function(bucket) {
+					return bucket.id() === data.bucket_id;
+				}, null);
+				viewModel.allBuckets.remove(bucket);
+			},
+			allBuckets: function(data) {
+				// N-squared loop, but it should be small enough not to be an issue
+				$.each(data.buckets, function(i, bucketInfo) {
+					var found = false;
+					$.each(viewModel.allBuckets(), function(j, bucket){
+						if (bucket.id() === bucketInfo.bucket_id) {
+							found = true;
+							return false; // break
+						}
+					});
+					if (!found) {
+						viewModel.allBuckets.push(Bucket.fromBucketInfo(bucketInfo));
+					}
+				});
+			},
 			pong: function(data) {
 				var startTime = parseInt(data.startTime);
 				var endTime = new Date().valueOf();
@@ -825,19 +912,17 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 						info: OctMethods.vars.wsId
 					});
 
-					// Use the "ice" theme to visually differentiate shared sessions
-					viewModel.selectedSkin(availableSkins[2]);
-					$("#change-skin").hide();
-
 				}else if(OctMethods.vars.studentId){
 					OctMethods.socket.emit("init", {
 						action: "student",
 						info: OctMethods.vars.studentId
 					});
 
-					// Use the "ice" theme to visually differentiate shared sessions
-					viewModel.selectedSkin(availableSkins[2]);
-					$("#change-skin").hide();
+				}else if (OctMethods.vars.bucketId){
+					OctMethods.socket.emit("init", {
+						action: "bucket",
+						info: OctMethods.vars.bucketId
+					});
 
 				}else{
 					OctMethods.socket.emit("init", {
@@ -845,6 +930,10 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 						info: OctMethods.socket.sessCode
 					});
 				}
+			},
+			filesReady: function() {
+				// hide the coverall loading div if necessary
+				OctMethods.load.callback();
 			},
 			destroyu: function(message){
 				OctMethods.console.writeError("Octave Exited. Message: "+message+"\n");
@@ -872,11 +961,13 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			defaultContent: 'disp("Hello World");\n',
 			running: false,
 			initialized: false,
+			bucketWarned: false,
 			save: function(octfile){
-				if(OctMethods.socket.save(octfile)){
-					var md5hash = $.md5(octfile.content);
-					return true;
-				} else return false;
+				if (viewModel.purpose() === "bucket" && !OctMethods.editor.bucketWarned) {
+					utils.alert("Note: This is a read-only bucket. Changes you make will not be persisted after you close your browser window.");
+					OctMethods.editor.bucketWarned = true;
+				}
+				return OctMethods.socket.save(octfile);
 			},
 			add: function(filename, content){
 				var octfile = new OctFile(filename, content, true);
@@ -924,7 +1015,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				var newName = prompt("Enter a new filename:", oldName);
 				if (!newName || oldName === newName) return false;
 				if (viewModel.fileNameExists(newName)){
-					alert("The specified filename already exists.");
+					utils.alert("The specified filename already exists.");
 					return false;
 				}
 				return OctMethods.socket.rename(octfile, newName);
@@ -997,6 +1088,13 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			reset: function(){
 				viewModel.openFile(null);
 				allOctFiles.removeAll();
+			},
+			startNewBucket: function(octfile){
+				var bucket = new Bucket();
+				bucket.files.push(octfile);
+				bucket.main(octfile);
+				viewModel.newBucket(bucket);
+				$("#create_bucket").showSafe();
 			}
 		},
 
@@ -1055,6 +1153,11 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 						console.log(e);
 					}
 
+					// Initial bucket command
+					if (!initCmd && OctMethods.vars.bucketInfo && OctMethods.vars.bucketInfo.main) {
+						initCmd = "source(\"" + OctMethods.vars.bucketInfo.main + "\");";
+					}
+
 					if(initCmd){
 						OctMethods.console.command(initCmd);
 					}
@@ -1098,7 +1201,9 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 		},
 		vars: {
 			wsId: null,
-			studentId: null
+			studentId: null,
+			bucketId: null,
+			bucketInfo: null
 		}
 	};
 

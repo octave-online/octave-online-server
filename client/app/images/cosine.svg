@@ -1,13 +1,3 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 -3 200 106" preserveAspectRatio="none">
 	<path stroke="#FF4B33" fill="none" stroke-width="6" d="M0,100 C37,100,63,0,100,0 C137,0,163,100,200,100" vector-effect="non-scaling-stroke" />
-	<!-- 
-	<style type="text/css">
-		@keyframes loading-dash{
-			to{
-				stroke-dashoffset:3510;
-			}
-		}
-	</style>
-	stroke-dasharray="200 30 100 21" style="animation: loading-dash 10s infinite alternate ease-in-out;"
-	-->
 </svg>

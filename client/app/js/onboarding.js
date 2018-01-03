@@ -6,6 +6,7 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 		$instructorPromo = $("#instructor-promo"),
 		$syncPromo = $("#sync-promo"),
 		$sharePromo = $("#share-promo"),
+		$bucketPromo = $("#bucket-promo"),
 		MIN_TIME = 1000;
 
 	// Check for the cookie now
@@ -78,6 +79,18 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 		hideScriptPromo: function(){
 			$scriptPromo.hideSafe();
 			$sharePromo.hideSafe();
-		}
+		},
+		showBucketPromo: function() {
+			$scriptPromo.hideSafe();
+			$bucketPromo.showSafe();
+			$bucketPromo.find("[data-purpose='close']").click(function(){
+				// Don't persist the dismissal of this one.
+				anal.dismiss("Sign in for Buckets");
+				$bucketPromo.fadeOutSafe(500);
+			});
+		},
+		hideBucketPromo: function() {
+			$bucketPromo.hideSafe();
+		},
 	};
 });

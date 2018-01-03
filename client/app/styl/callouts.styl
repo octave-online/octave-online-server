@@ -102,7 +102,7 @@ callout(shadowoffset, direction="up"){
 	}
 }
 
-#login-promo{
+#login-promo, #bucket-promo {
 	callout(4px, up)
 	display: block
 	top: header_height + 15px
@@ -120,7 +120,7 @@ callout(shadowoffset, direction="up"){
 	}
 
 	// Text Flow
-	& > span {
+	&#login-promo > span {
 		display: block
 		line-height: 1em
 		&.l1{
@@ -140,7 +140,21 @@ callout(shadowoffset, direction="up"){
 			text-decoration: underline
 		}
 	}
-	
+
+	&#bucket-promo > span {
+		display: block
+		line-height: 1em
+		&.l1{
+			font-size: 1.25em
+		}
+		&.l2{
+			font-size: 1em
+			margin-top: 10px
+			cursor: pointer
+			text-decoration: underline
+		}
+	}
+
 	@media (max-width: responsive_width_one) {
 		display: none
 	}

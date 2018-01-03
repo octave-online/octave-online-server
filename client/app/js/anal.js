@@ -63,6 +63,9 @@ define(function(){
 		},
 		extraTime: function(){
 			_ga("send", "event", "extra-time", "from-prompt", numExtraTime++);
+		},
+		alert: function(message){
+			_ga("send", "event", "alert", "alert", message.substr(0,50), message.length);
 		}
 	};
 });

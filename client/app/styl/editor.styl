@@ -56,6 +56,10 @@ top-right-control() {
 		overflow: auto
 		-ms-overflow-style: -ms-autohiding-scrollbar
 
+		&.is_bucket {
+			top: toolbar_height
+		}
+
 		ul {
 			list-style-type: none
 			margin: 0
@@ -138,6 +142,9 @@ top-right-control() {
 		}
 		#editor_delete {
 			flaticon-button(trash, toolbar_height - 6px)
+		}
+		#editor_share {
+			flaticon-button(share, toolbar_height - 6px)
 		}
 		#wrap_checkbox {
 			flaticon-button(wrap, toolbar_height - 6px)

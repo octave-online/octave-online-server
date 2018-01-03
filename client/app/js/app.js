@@ -26,6 +26,7 @@ define(
 		// Make Socket Connection and Add Listeners:
 		var socket = io();
 		socket.on("data", OctMethods.socketListeners.data);
+		socket.on("alert", OctMethods.socketListeners.alert);
 		socket.on("prompt", OctMethods.socketListeners.prompt);
 		socket.on("saved", OctMethods.socketListeners.saved);
 		socket.on("renamed", OctMethods.socketListeners.renamed);
@@ -42,10 +43,15 @@ define(
 		socket.on("workspace", OctMethods.socketListeners.vars);
 		socket.on("sesscode", OctMethods.socketListeners.sesscode);
 		socket.on("init", OctMethods.socketListeners.init);
+		socket.on("files-ready", OctMethods.socketListeners.filesReady);
 		socket.on("destroy-u", OctMethods.socketListeners.destroyu);
 		socket.on("disconnect", OctMethods.socketListeners.disconnect);
 		socket.on("reload", OctMethods.socketListeners.reload);
 		socket.on("instructor", OctMethods.socketListeners.instructor);
+		socket.on("bucket-info", OctMethods.socketListeners.bucketInfo);
+		socket.on("bucket-created", OctMethods.socketListeners.bucketCreated);
+		socket.on("bucket-deleted", OctMethods.socketListeners.bucketDeleted);
+		socket.on("all-buckets", OctMethods.socketListeners.allBuckets);
 		socket.on("oo.pong", OctMethods.socketListeners.pong);
 		socket.on("restart-countdown", OctMethods.socketListeners.restartCountdown);
 		socket.on("change-directory", OctMethods.socketListeners.changeDirectory);
@@ -168,11 +174,36 @@ define(
 
 		// Shared workspace setup
 		var wsId = $.url().param("w");
-		if (wsId) OctMethods.vars.wsId = wsId;
+		if (wsId) {
+			OctMethods.vars.wsId = wsId;
+			viewModel.purpose("shared");
+			viewModel.selectedSkin(OctMethods.ko.availableSkins[2]);
+		}
 
 		// Student workspace setup
 		var studentId = $.url().param("s");
-		if (studentId) OctMethods.vars.studentId = studentId;
+		if (!studentId) {
+			var match = $.url().attr("path").match(/^\/workspace~(\w+)$/);
+			if (match) studentId = match[1];
+		}
+		if (studentId) {
+			OctMethods.vars.studentId = studentId;
+			viewModel.purpose("student");
+			viewModel.selectedSkin(OctMethods.ko.availableSkins[2]);
+		}
+
+		// Bucket setup
+		var bucketId = $.url().param("b");
+		if (!bucketId) {
+			var match = $.url().attr("path").match(/^\/bucket~(\w+)$/);
+			if (match) bucketId = match[1];
+		}
+		if (bucketId) {
+			OctMethods.vars.bucketId = bucketId;
+			viewModel.purpose("bucket");
+			viewModel.selectedSkin(OctMethods.ko.availableSkins[3]);
+			onboarding.showBucketPromo();
+		}
 
 		// Global key bindings:
 		$(window).keydown(function (e) {
@@ -213,6 +244,7 @@ define(
 			var opened = $("#main_menu").toggleSafe();
 			$("#hamburger").toggleClass("is-active", opened);
 			onboarding.hideScriptPromo();
+			onboarding.hideBucketPromo();
 			anal.sitecontrol("hamburger");
 		});
 		$("#sign_in_with_google").click(function () {
@@ -246,11 +278,22 @@ define(
 		updateTheme(viewModel.selectedSkin());
 		viewModel.selectedSkin.subscribe(updateTheme);
 		$("#change-skin").click(function () {
-			if (viewModel.selectedSkin() === OctMethods.ko.availableSkins[0]) {
-				viewModel.selectedSkin(OctMethods.ko.availableSkins[1]);
-			} else {
-				viewModel.selectedSkin(OctMethods.ko.availableSkins[0]);
+			var newSkin;
+			if (viewModel.selectedSkin() !== OctMethods.ko.availableSkins[1]) {
+				newSkin = OctMethods.ko.availableSkins[1];
+			} else switch(viewModel.purpose()) {
+				case "student":
+					newSkin = OctMethods.ko.availableSkins[2];
+					break;
+				case "bucket":
+					newSkin = OctMethods.ko.availableSkins[3];
+					break;
+				case "default":
+				default:
+					newSkin = OctMethods.ko.availableSkins[0];
+					break;
 			}
+			viewModel.selectedSkin(newSkin);
 			OctMethods.prompt.focus();
 			anal.sitecontrol("theme");
 		});
