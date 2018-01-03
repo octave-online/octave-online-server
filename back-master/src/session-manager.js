@@ -85,10 +85,11 @@ class SessionManager extends EventEmitter {
 
 	attach(remoteCode, content, next) {		// Move pool session to online session
 		if (!this.canAcceptNewSessions()) return log.warn("Cannot accept any new sessions right now");
-		if (!content) return log.error("No content from redis");
 
-		// Backwards compatibility: the message content can be the user itself
-		if (content.parametrized) {
+		// FIXME: Backwards compatibility with old front server: the message content can be the user itself; if null, it is a guest user.
+		if (!content) {
+			content = { user: null };
+		} else if (content.parametrized) {
 			content = { user: content };
 		}
 

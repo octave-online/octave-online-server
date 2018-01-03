@@ -37,6 +37,7 @@ class FilesController extends EventEmitter {
 				this.user = content.user;
 				if (this.user) {
 					this._log.info("Received user:", this.user.consoleText);
+					this._legalTime = content.legalTime; // FIXME: For backwards compatibility
 				} else {
 					this._log.info("No user this session");
 					this._sendMessage("files-ready", {});
@@ -66,6 +67,7 @@ class FilesController extends EventEmitter {
 					this._mlog.debug("User successfully initialized");
 					this._sendMessage("filelist", {
 						success: true,
+						legalTime: this._legalTime, // FIXME: for backwards compatibility
 						files: fileData,
 						refresh: false
 					});
@@ -74,6 +76,7 @@ class FilesController extends EventEmitter {
 
 			case "bucket-info":
 				this.bucketId = content.id;
+				this._legalTime = content.legalTime; // FIXME: For backwards compatibility
 				// If content.readonly is false, this request is for creating the bucket.  If content.readonly is true, this request is for reading from the bucket.
 				this._log.info("Received bucket:", this.bucketId);
 				async.waterfall([
@@ -92,6 +95,7 @@ class FilesController extends EventEmitter {
 					this._mlog.debug("Bucket successfully initialized");
 					this._sendMessage("filelist", {
 						success: true,
+						legalTime: this._legalTime, // FIXME: for backwards compatibility
 						files: fileData,
 						refresh: false
 					});
@@ -110,6 +114,7 @@ class FilesController extends EventEmitter {
 					this._log.debug("Files successfully listed");
 					this._sendMessage("filelist", {
 						success: true,
+						legalTime: this._legalTime, // FIXME: for backwards compatibility
 						files: fileData,
 						refresh: false
 					});

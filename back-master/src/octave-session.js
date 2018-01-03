@@ -472,12 +472,21 @@ class OctaveSession extends OnlineOffline {
 			case "user-info":
 				if (content && content.user) {
 					this._startAutoCommitLoop();
-					if (content.user.legalTime) this._legalTime = content.user.legalTime;
-					if (content.user.payloadLimit) this._payloadLimit = content.user.payloadLimit;
+					this._legalTime = content.user.legalTime;
+					this._payloadLimit = content.user.payloadLimit;
+
+					// FIXME: For backwards compatibility with old front server:
+					if (!content.user.legalTime) {
+						this._log.debug("Consuming fallback legalTime/payloadLimit");
+						this._legalTime = config.session.legalTime.user;
+						this._payloadLimit = config.session.payloadLimit.user;
+						content.legalTime = this._legalTime; // For sending to files controller
+					}
 				}
 				if (content.bucketId) {
 					this._sendMessageToFiles("bucket-info", {
 						id: content.bucketId,
+						legalTime: this._legalTime, // FIXME: For backwards compatibility
 						readonly: true
 					});
 				} else {
