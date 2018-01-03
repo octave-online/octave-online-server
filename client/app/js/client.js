@@ -715,6 +715,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 
 				// Rename the file throughout the schema
 				octfile.filename(data.newname);
+				allOctFiles.sort(OctFile.sorter);
 			},
 			deleted: function(data){
 				var octfile = viewModel.getOctFileFromName(data.filename);
