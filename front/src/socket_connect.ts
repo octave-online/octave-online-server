@@ -183,6 +183,12 @@ class SocketHandler implements IDestroyable {
 
 	// Convenience function to post a message in the client's console window
 	private sendMessage = (message:string):void => {
+		// Log to console for backwards compatibility with older clients.
+		// TODO: Remove this and send the alert box only
+		this.socket.emit("data", {
+			type: "stdout",
+			data: message+"\n"
+		});
 		this.socket.emit("alert", message);
 	};
 
