@@ -4,7 +4,6 @@ bundle/
 node_modules/
 vendor/
 tmp/
-back-octave/placeholders/
 
 # File extensions that should not be tracked
 *.bak

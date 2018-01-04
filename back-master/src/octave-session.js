@@ -558,7 +558,6 @@ class OctaveSession extends OnlineOffline {
 				if (/error: unable to open .+macros\.texi/.test(content)) return;
 				if (/^\/tmp\/octave-help-/.test(content)) return;
 				if (/built-in-docstrings' not found/.test(content)) return;
-				if (/warning: function .* shadows a core library function/.test(content) && config.forge.placeholders.indexOf(content.match(/\/([^\.\/]+)\.m/)[1]) !== -1) return;
 				break;
 
 			case "show-static-plot":
