@@ -1,0 +1,25 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1515059962 21600
+#      Thu Jan 04 03:59:22 2018 -0600
+# Branch oo-4.2.1
+# Node ID 91cb270ffac07018236b9e394378051df7b612c5
+# Parent  ccbef5c9b050b55218de6bdfb7d241fc90e0d032
+Changing package_metadata.mat load to use absolute path.
+
+diff -r ccbef5c9b050 -r 91cb270ffac0 scripts/help/__unimplemented__.m
+--- a/scripts/help/__unimplemented__.m	Thu Jan 04 03:31:44 2018 -0600
++++ b/scripts/help/__unimplemented__.m	Thu Jan 04 03:59:22 2018 -0600
+@@ -41,10 +41,10 @@
+   is_matlab_function = true;
+ 
+   ## First look at the package metadata
+-  # To generate package_metadata.mat, run: packages={}; for p=pkg('list'); packages={packages{:} pkg('describe', '-verbose', p{1}.name){:}}; endfor; save('package_metadata.mat', 'packages');
++  # To generate package_metadata.mat, run: packages={}; for p=pkg('list'); packages={packages{:} pkg('describe', '-verbose', p{1}.name){:}}; endfor; save('/usr/local/share/octave/site/m/package_metadata.mat', 'packages');
+   found_in_package_metadata = false;
+   try
+-    vars = load("package_metadata.mat");
++    vars = load("/usr/local/share/octave/site/m/package_metadata.mat");
+     for lvl1 = vars.packages
+       for lvl2 = lvl1{1}.provides
+         for lvl3 = lvl2{1}.functions

@@ -65,7 +65,8 @@ RUN cd octave && \
 	hg import ../oo-changesets/102-30d8ba0fbc32.hg.txt && \
 	hg import ../oo-changesets/103-352b599bc533.hg.txt && \
 	hg import ../oo-changesets/104-9475120a3110.hg.txt && \
-	hg import ../oo-changesets/105-ccbef5c9b050.hg.txt
+	hg import ../oo-changesets/105-ccbef5c9b050.hg.txt && \
+	hg import ../oo-changesets/106-91cb270ffac0.hg.txt
 
 RUN cd octave && \
 	./bootstrap && \
