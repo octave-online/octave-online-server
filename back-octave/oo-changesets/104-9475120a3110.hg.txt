@@ -1,0 +1,69 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1515058277 21600
+#      Thu Jan 04 03:31:17 2018 -0600
+# Branch oo-4.2.1
+# Node ID 9475120a3110c6932c85fd16ea40dc51137ce78e
+# Parent  352b599bc5337bc9c3465092aa36e320811f781a
+Checking unknown functions against all available functions in installed packages.
+
+diff -r 352b599bc533 -r 9475120a3110 scripts/help/__unimplemented__.m
+--- a/scripts/help/__unimplemented__.m	Sun Dec 31 18:48:54 2017 -0600
++++ b/scripts/help/__unimplemented__.m	Thu Jan 04 03:31:17 2018 -0600
+@@ -40,7 +40,30 @@
+ 
+   is_matlab_function = true;
+ 
++  ## First look at the package metadata
++  # To generate package_metadata.mat, run: packages={}; for p=pkg('list'); packages={packages{:} pkg('describe', '-verbose', p{1}.name){:}}; endfor; save('package_metadata.mat', 'packages');
++  found_in_package_metadata = false;
++  try
++    vars = load("package_metadata.mat");
++    for lvl1 = vars.packages
++      for lvl2 = lvl1{1}.provides
++        for lvl3 = lvl2{1}.functions
++          if strcmp(fcn, lvl3{1})
++            txt = check_package(fcn, lvl1{1}.name);
++            found_in_package_metadata = true;
++            break;
++          endif
++        endfor
++        if found_in_package_metadata, break; endif
++      endfor
++      if found_in_package_metadata, break; endif
++    endfor
++  catch err
++    warning(err)
++  end_try_catch
++
+   ## Some smarter cases, add more as needed.
++  if !found_in_package_metadata
+   switch (fcn)
+     case {"avifile", "aviinfo", "aviread"}
+       txt = ["Basic video file support is provided in the video package.  ", ...
+@@ -511,6 +534,7 @@
+         txt = "";
+       endif
+   endswitch
++  endif
+ 
+   if (is_matlab_function)
+     txt = [txt, "\n\n@noindent\nPlease read ", ...
+@@ -553,13 +577,13 @@
+       endfor
+       txt = sprintf ("%s but has not yet been implemented.", txt);
+     case "not loaded",
+-      txt = sprintf (["%s which you have installed but not loaded.  To ", ...
+-                      "load the package, run `pkg load %s' from the ", ...
+-                      "Octave prompt."], txt, name);
++      txt = sprintf (["%s, which you have installed but not loaded.\n\n", ...
++                      "Run `pkg load %s' to use `%s'."], ...
++                     txt, name, fcn);
+     otherwise
+       ## this includes "not installed" and anything else if pkg changes
+       ## the output of describe
+-      txt = sprintf ("%s which seems to not be installed in your system.", txt);
++      txt = sprintf ("%s, which seems to not be installed in your system.", txt);
+   endswitch
+ 
+ endfunction

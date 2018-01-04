@@ -63,7 +63,9 @@ RUN cd octave && \
 	hg import ../oo-changesets/100-2d1fd5fdd1d5.hg.txt && \
 	hg import ../oo-changesets/101-bc8cd93feec5.hg.txt && \
 	hg import ../oo-changesets/102-30d8ba0fbc32.hg.txt && \
-	hg import ../oo-changesets/103-352b599bc533.hg.txt
+	hg import ../oo-changesets/103-352b599bc533.hg.txt && \
+	hg import ../oo-changesets/104-9475120a3110.hg.txt && \
+	hg import ../oo-changesets/105-ccbef5c9b050.hg.txt
 
 RUN cd octave && \
 	./bootstrap && \
@@ -92,44 +94,60 @@ ENV LD_LIBRARY_PATH /usr/local/lib
 # Install some popular Octave Forge packages.
 # Note that installing sympy involves installing numpy as well, which is rather large, but it is required for the symbolic package, which is one of the most popular packages in Octave Online.
 # Install 5 at a time so it's easier to recover from build errors.  If a package fails to install, try building the image again and it might work the second time.
-# The packages with -noauto have functions that shadow core library functions, or are packages that are slow to load.
+# Most packages are auto-loaded via octaverc (since version 4.2.1) except for the following packages that shadow core library functions or are slow to load: tsa, stk, ltfat, and nan.
+# Note: The package list gets written to /usr/local/share/octave/octave_packages
 RUN yum install -y \
 	units \
 	mpfr-devel \
 	portaudio-devel \
 	sympy \
 	patch
-RUN octave -q --eval "\
-	pkg install -forge -auto control; \
-	pkg install -forge -auto signal; \
-	pkg install -forge -auto struct; \
-	pkg install -forge -auto optim; \
-	pkg install -forge -auto io; "
-RUN octave -q --eval "\
-	pkg install -forge -auto image; \
-	pkg install -forge -auto symbolic; \
-	pkg install -forge -auto statistics; \
-	pkg install -forge -auto general; \
-	pkg install -forge -auto odepkg; "
-RUN octave -q --eval "\
-	pkg install -forge -auto linear-algebra; \
-	pkg install -forge -auto communications; \
-	pkg install -forge -auto geometry; \
-	pkg install -forge -auto data-smoothing; \
-	pkg install -forge -noauto tsa; "
-RUN octave -q --eval "\
-	pkg install -forge -auto financial; \
-	pkg install -forge -auto miscellaneous; \
-	pkg install -forge -auto interval; \
-	pkg install -forge -noauto stk; \
-	pkg install -forge -noauto ltfat; "
-RUN octave -q --eval "\
-	pkg install -forge -auto fuzzy-logic-toolkit; \
-	pkg install -forge -auto mechanics; \
-	pkg install -forge -noauto nan; "
+RUN /usr/local/bin/octave -q --eval "\
+	pkg install -forge control; \
+	pkg install -forge signal; \
+	pkg install -forge struct; \
+	pkg install -forge optim; \
+	pkg install -forge io; "
+RUN /usr/local/bin/octave -q --eval "\
+	pkg install -forge image; \
+	pkg install -forge symbolic; \
+	pkg install -forge statistics; \
+	pkg install -forge general; "
+RUN /usr/local/bin/octave -q --eval "\
+	pkg install -forge linear-algebra; \
+	pkg install -forge geometry; \
+	pkg install -forge data-smoothing; \
+	pkg install -forge nan; \
+	pkg install -forge tsa; "
+RUN /usr/local/bin/octave -q --eval "\
+	pkg install -forge financial; \
+	pkg install -forge miscellaneous; \
+	pkg install -forge interval; \
+	pkg install -forge stk; \
+	pkg install -forge ltfat; "
+RUN /usr/local/bin/octave -q --eval "\
+	pkg install -forge fuzzy-logic-toolkit; \
+	pkg install -forge mechanics; "
 
-# Copy placeholders
-COPY placeholders /usr/local/share/octave/site/m/placeholders/
+# Some packages do not install correctly from Octave-Forge!
+# odepkg - http://wiki.octave.org/Odepkg
+RUN /usr/local/bin/octave -q --eval "\
+	[fname, success] = urlwrite ('https://bitbucket.org/odepkg/odepkg/get/default.tar.gz', [P_tmpdir '/odepkg.tar.gz']); \
+	assert(success)
+	pkg ("install", fname) "
+# communications - https://savannah.gnu.org/bugs/?47267
+RUN /usr/local/bin/octave -q --eval "\
+	[fname, success] = urlwrite ('https://bitbucket.org/vote539/octave-communications/get/default.tar.gz', [P_tmpdir '/communications.tar.gz']); \
+	assert(success)
+	pkg ("install", fname) "
+
+# Generate package metadata, used for warning messages
+RUN cd /usr/local/share/octave/site/m && /usr/local/bin/octave -q --eval "\
+	packages = {}; \
+	for p=pkg('list'); \
+		packages = {packages{:} pkg('describe', '-verbose', p{1}.name){:}}; \
+	endfor; \
+	save('package_metadata.mat', 'packages'); "
 
 # Copy and compile host.c
 RUN mkdir $DIR/host

@@ -1,16 +1,3 @@
-function o = xlsopen(name)
-% XLS files are not currently supported in Octave Online.
-% Try saving your spreadsheet in the CSV format.
-
-  disp("XLS files are not currently supported in Octave Online.");
-  disp("Try saving your spreadsheet in the CSV format.");
-endfunction
-
-function o = fork()
-% error: fork: command not available
-  fprintf(stderr, "error: fork: command not available\n");
-endfunction
-
 # Clear Vars Patch from wiki.octave.org
 function clear (varargin)
   args = sprintf (', "%s"', varargin{:});
@@ -37,3 +24,20 @@ function clear (varargin)
     pkg ("load", loadedpkg{:});
   endif
 endfunction
+
+% Auto-load packages (no more pkg-auto since 4.2.1)
+% Packages that are installed but not auto-loaded have a reason, such as shadows.
+pkg load control;
+pkg load signal;
+pkg load struct;
+pkg load optim;
+pkg load io;
+pkg load image;
+pkg load symbolic;
+pkg load general;
+pkg load odepkg;
+pkg load geometry;
+pkg load data-smoothing;
+pkg load financial;
+pkg load interval;
+pkg load fuzzy-logic-toolkit;

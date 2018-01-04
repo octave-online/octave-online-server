@@ -1,0 +1,45 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1515058304 21600
+#      Thu Jan 04 03:31:44 2018 -0600
+# Branch oo-4.2.1
+# Node ID ccbef5c9b050b55218de6bdfb7d241fc90e0d032
+# Parent  9475120a3110c6932c85fd16ea40dc51137ce78e
+Adding Octave binding for current_command_number variable.
+
+diff -r 9475120a3110 -r ccbef5c9b050 libinterp/corefcn/input.cc
+--- a/libinterp/corefcn/input.cc	Thu Jan 04 03:31:17 2018 -0600
++++ b/libinterp/corefcn/input.cc	Thu Jan 04 03:31:44 2018 -0600
+@@ -1591,3 +1591,32 @@
+ 
+   return retval;
+ }
++
++DEFUN (current_command_number, args, ,
++       doc: /* -*- texinfo -*-
++@deftypefn  {} {@var{val} =} current_command_number ()
++@deftypefnx {} {@var{old_val} =} current_command_number (@var{new_val})
++Sets the current command number, which appears in the prompt string.
++For example, if the prompt says "octave:1>", then the current command
++number is 1.
++
++This is a custom function in Octave Online.
++
++@example
++current_command_number(1)
++@end example
++@end deftypefn */)
++{
++  int nargin = args.length ();
++  if (nargin == 0) {
++    int n = octave::command_editor::current_command_number();
++    return ovl(n);
++  } else if (nargin > 1) {
++    print_usage ();
++    return ovl();
++  } else {
++    int n = args(0).int_value ();
++    octave::command_editor::reset_current_command_number(n);
++    return ovl(n);
++  }
++}
