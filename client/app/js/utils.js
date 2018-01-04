@@ -1,6 +1,6 @@
 // Assorted utility functions and polyfills
 
-define(["jquery", "knockout"], function($, ko){
+define(["jquery", "knockout", "js/anal"], function($, ko, anal){
 	// Safe Show/Hide Functions that retain display properties like flex.
 	$.fn.hideSafe = function(){
 		$(this).attr("aria-hidden", "true");
@@ -101,4 +101,57 @@ define(["jquery", "knockout"], function($, ko){
 			window.localStorage[key] = window.btoa(JSON.stringify(value));
 		});
 	};
+
+	// Additional utility functions
+	return {
+		binarySearch: function(arr, value, getter) {
+			var lo = 0;
+			var hi = arr.length;
+			while (lo + 1 < hi) {
+				var mid = Math.floor((hi+lo)/2);
+				var candidate = getter(arr[mid]);
+				if (value === candidate) {
+					lo = mid;
+					break;
+				} else if (value < candidate) {
+					hi = mid;
+				} else {
+					lo = mid;
+				}
+			}
+			if (value === getter(arr[lo])) {
+				return arr[lo];
+			}
+			return null;
+		},
+		// Returns all elements of "universe" that are not in "remove".
+		// Both arrays must be sorted.
+		sortedFilter: function(universe, remove, getter) {
+			var i1 = 0;
+			var i2 = 0;
+			var result = [];
+			while (i1 < universe.length && i2 < remove.length) {
+				var v1 = getter(universe[i1]);
+				var v2 = getter(remove[i2]);
+				if (v1 < v2) {
+					result.push(universe[i1]);
+					i1++;
+				} else if (v1 === v2) {
+					i1++;
+					i2++;
+				} else {
+					i2++;
+				}
+			}
+			for (var i = i1; i < universe.length; i++) {
+				result.push(universe[i]);
+			}
+			return result;
+		},
+		// Shows an alert box, and logs it to Google Analytics.
+		alert: function(message) {
+			anal.alert(message);
+			window.alert(message);
+		}
+	}
 });

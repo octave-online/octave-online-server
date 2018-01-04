@@ -27,6 +27,18 @@ popover(_width, _height, _zindex){
 			padding: 20px
 			background-color: colorbkg
 
+			h2.popover-title-bar {
+				position: relative
+				margin: 0
+				height: 30px
+				background-color: color2
+
+				font-size: 20px
+				line-height: @height
+				vertical-align: middle
+				text-align: center
+			}
+
 			.closebtn {
 				flaticon-button(cross)
 				display: block
@@ -113,6 +125,99 @@ popover(_width, _height, _zindex){
 	
 	p {
 		margin: 0 auto 1em
+	}
+}
+
+// Create Bucket
+#create_bucket {
+	popover(80%, 80%, 310)
+	bucket_bar_height = 40px
+	
+	#create-bucket-content {
+		position: absolute
+		top: 0
+		left: 0
+		right: 0
+		bottom: bucket_bar_height
+		overflow: auto
+
+		p {
+			font-size: 1.1em
+			margin: 10px
+		}
+
+		h3 {
+			font-size: 1.4em
+			border-bottom: 2px solid color2
+			margin: 10px
+			clear: both
+		}
+
+		.bucket-files-fieldset {
+			width: 40%
+			margin: 0 2% 15px
+			padding: 1%
+			height: 150px
+
+			legend {
+				font-weight: bold
+			}
+
+			select {
+				display: block
+				width: 100%
+				height: 130px
+			}
+
+			&.left {
+				float: left
+			}
+			&.right {
+				float: right
+			}
+		}
+
+		.bucket-file-move-btns {
+			margin-top: 80px
+			text-align: center
+		}
+
+		.last {
+			margin-top: 15px
+			border-top: 2px solid color2
+			padding-top: 5px
+		}
+	}
+
+	#create-bucket-bar {
+		position: absolute
+		bottom: 0
+		left: 0
+		right: 0
+		height: bucket_bar_height
+		background-color: color1
+		text-align: right
+		border-bottom: 5px solid colorbtn
+
+		#create-bucket-btn {
+			background-color: transparent
+			font-size: 28px
+			padding-top: 4px
+			margin-right: 4px
+			border: none
+			cursor: pointer
+			color: colorbtn
+		}
+	}
+
+	#create-bucket-spinner {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		height: auto;
+		width: 20%;
+		margin-left: -10%;
+		margin-top: -10%;
 	}
 }
 
@@ -213,36 +318,66 @@ popover(_width, _height, _zindex){
 // Main site loading spinner
 #site_loading {
 	position: fixed
-	top: 50%
-	left: 50%
-	width: 0
-	height: 0
 	z-index: 200
-
-	& > img {
+	width: 100%
+	height: 100%
+	pointer-events: none
+	
+	#cosine-pulse {
+		background-image: inline-image("cosine.svg")
+		background-repeat: repeat-x
+		background-size: 2000px 100%
+		// TODO: Change to side-relative values when browser support is better
+		background-position-x: -3000px
+		animation: cosine-width 4s infinite cubic-bezier(.75,0,1,.75) alternate forwards,
+			cosine-position 8s infinite ease-in-out alternate forwards
+		animation-delay: 4s, 0s
 		position: absolute
-		top: -100px
-		left: -100px
-		width: 200px
-		height: 200px
+		top: 30%
+		left: 0
+		width: 100%
+		height: 40%
+	}
+	
+	@keyframes cosine-width {
+		from {
+			background-size: 2000px 100%
+		}
+		to {
+			background-size: 50px 100%
+		}
+	}
+	
+	@keyframes cosine-position {
+		from {
+			background-position-x: -3000px
+		}
+		to {
+			background-position-x: 4000px
+		}
 	}
 
 	#site_loading_patience {
-		position: absolute
-		top: 110px
-		left: -180px
-		width: 360px
-		height: 30px
-		padding: 10px
-		text-align: center
+    position: relative;
+		top: 75%;
+		width: 50%;
+		margin: 0 auto;
+		min-width: 18em;
+
+		text-align: center;
+		font-size: 1.2em;
+		line-height: 1.2em;
 	}
+
 	#site_loading_more_patience {
-		position: absolute
-		top: 110px
-		left: -180px
-		width: 360px
-		height: 60px
-		padding: 10px
-		text-align: center
+    position: relative;
+		top: 75%;
+		width: 50%;
+		margin: 0 auto;
+		min-width: 18em;
+
+		text-align: center;
+		font-size: 1.2em;
+		line-height: 1.2em;
 	}
 }

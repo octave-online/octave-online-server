@@ -1,4 +1,7 @@
-define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
+define([
+	"knockout", "require", "js/ws-shared",
+	"jquery.md5"],
+	function(ko, require, WsShared){
 
 	var OctMethods = require("js/client");
 
@@ -96,11 +99,12 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 		};
 		self.savedContent = ko.observable(content);
 		self.save = function(){
-			if(OctMethods.editor.save(self)){
-				self.savedContent(self.content());
-			}else{
+			if(!OctMethods.editor.save(self)){
 				alert("Can't save file. Did you disconnect from Octave Online?");
 			}
+		};
+		self.md5 = function(){
+			return $.md5(self.content());
 		};
 		self.print = function(){
 			OctMethods.editor.print(self);
@@ -111,6 +115,12 @@ define(["knockout", "require", "js/ws-shared"], function(ko, require, WsShared){
 		self.download = function(){
 			OctMethods.editor.download(self);
 		};
+		self.share = function(){
+			OctMethods.editor.startNewBucket(self);
+		};
+		self.isActive = ko.computed(function(){
+			return self === OctMethods.ko.viewModel.openFile();
+		});
 		self.isModified = ko.computed(function(){
 			return self.content() !== self.savedContent();
 		});

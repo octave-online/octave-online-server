@@ -3,27 +3,24 @@
 
 header {
 	background-color: color1
-	font-size: header_height
-	line-height: header_height
+	height: header_height
+	position: relative
 
 	#hamburger {
-		// hamburger-button(colorfgd)
-		float: right
+		position: absolute
 		cursor: pointer
-		display: inline-block
-		// width: 30px
-		// height: header_height - 12px
-		margin: 11px 5px 0 0
-		padding: 0
+		display: block
+		top: 11px
+		right: 9px
 		
 		.hamburger-memo {
 			display: inline-block
 			position: absolute
-			top: 5px
+			top: 1px
 			right: 44px
 			font-family: narrow_font_family
 			font-weight: bold
-			font-size: .5em
+			font-size: 20px
 			line-height: @font-size
 	
 			@media (max-width: responsive_width_one) {
@@ -33,24 +30,21 @@ header {
 	}
 
 	h1 {
-		font-size: inherit
-		line-height: inherit
-		font-family: heading_font_family
-		display: inline-block
-		margin: 2px 0 0 3px
-
-		svg {
-			display: inline-block
+		img {
+			position: absolute
+			top: 2px
+			left: 3px
+			height: 36px
 		}
 	}
 	
 	small {
-		font-size: (header_height/2)
-		line-height: inherit
+		position: absolute
+		top: 16px
+		left: 245px
+
+		font-size: 20px
 		font-family: narrow_font_family
-		vertical-align: middle
-		display: inline-block
-		margin: 0 10px
 	}
 }
 
@@ -154,6 +148,42 @@ header {
 		}
 		&:active{
 			background-color: color3
+		}
+	}
+
+	.all-buckets {
+		strong {
+			display: block
+			margin-top: 8px
+			border-bottom: 2px solid color2
+			padding-left: 4px
+			font-size: 1.2em
+		}
+
+		ul {
+			margin: 3px 0
+			padding-left: 0
+			list-style-type: none
+		}
+		
+		li {
+			clear: both
+			border-bottom: 1px solid color2
+		}
+
+		.bucket-name {
+			color: color1
+		}
+		
+		.bucket-time {
+			font-family: narrow_font_family
+		}
+		
+		.bucket-delete {
+			float: right
+			margin-top: 0.5em
+			margin-right: 3px
+			cursor: pointer
 		}
 	}
 	

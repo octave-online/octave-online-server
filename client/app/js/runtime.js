@@ -61,13 +61,14 @@ require.css = function(url){
 }
 
 // Load from Google Fonts
-require(["webfont"], function(WebFont){
-	WebFont.load({
-		google: {
-			families: ["Rambla", "Bangers"]
-		}
-	});
-});
+// NOTE: There are no fonts from Google Fonts currently in use.
+// require(["webfont"], function(WebFont){
+// 	WebFont.load({
+// 		google: {
+// 			families: ["Rambla", "Bangers"]
+// 		}
+// 	});
+// });
 
 // Load Google Analytics
 require(["js/anal"], function(anal){

@@ -85,12 +85,7 @@
 <div id="flexbox">
 	<header>
 		<h1>
-			<svg width="32" height="32">
-				<image xlink:href="images/logo-32-fire.svg" src="images/logo-32-fire.png" width="32" height="32" class="oo-icon" data-theme="fire" />
-				<image xlink:href="images/logo-32-fire.svg" src="images/logo-32-fire.png" width="32" height="32" class="oo-icon" data-theme="ice" aria-hidden="true" />
-				<image xlink:href="images/logo-32-lava.svg" src="images/logo-32-lava.png" width="32" height="32" class="oo-icon" data-theme="lava" aria-hidden="true" />
-			</svg>
-			Octave Online
+			<img alt="Octave Online" src="images/logo-black.svg" data-bind="attr: { src: logoSrc }" />
 		</h1>
 		<!-- ko if: showUserInHeader -->
 		<small>
@@ -108,16 +103,20 @@
 		<div id="files_container" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 0 }">
 			<div id="files_toolbar" class="theme-header">
 				Files
+				<!-- ko if: purpose() !== "bucket" -->
 				<span id="files_toolbar_create" title="Create empty file"></span>
+				<!-- /ko -->
 			</div>
+			<!-- ko if: purpose() !== "bucket" -->
 			<div id="files_toolbar_lower">
 				<span id="files_toolbar_upload" title="Upload file"></span>
 				<span id="files_toolbar_refresh" title="Refresh files"></span>
 				<span id="files_toolbar_info" title="File version history"></span>
 			</div>
-			<div id="files_list_container">
+			<!-- /ko -->
+			<div id="files_list_container" data-bind="css: { 'is_bucket': purpose() === 'bucket' }">
 				<ul data-bind="foreach: files">
-					<li data-bind="click: open, css: { 'file_active': $data==$root.openFile(), 'modified': isModified }">
+					<li data-bind="click: open, css: { 'file_active': isActive, 'modified': isModified }">
 					  <!-- The ko if statements are for backwards compatibility between an old main.js and a new index.html -->
 					  <!-- ko if: dirpart -->
 					  <span class="dirpart" data-bind="text: dirpart, visible: !!dirpart"></span>
@@ -128,9 +127,11 @@
 					  <!-- /ko -->
 					</li>
 				</ul>
+				<!-- ko if: purpose() !== "bucket" -->
 				<span id="files_drop_notification">
 					Drop Files Here to Upload
 				</span>
+				<!-- /ko -->
 			</div>
 		</div>
 		<div id="open_container" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 1 }">
@@ -139,17 +140,22 @@
 					<span id="editor_hamburger" data-bind="click: buttonsShown.toggle()" title="Show Toolbar"></span>
 					<span id="editor_filename" data-bind="text: filename, css: { 'modified': isModified }"></span>
 					<!-- ko if: runnable -->
-						<span id="editor_runit" title="Run Script" data-bind="click: runit">RUN &#x25b6;</span>
+					<span id="editor_runit" title="Run Script" data-bind="click: runit">RUN &#x25b6;</span>
 					<!-- /ko -->
 				</div>
 				<div id="editor_btn_container" data-bind="vizSafe: buttonsShown" aria-hidden="true">
-					<span id="editor_rename" title="Rename File" data-bind="click: rename"></span>
 					<span id="editor_download" title="Download File" data-bind="click: download"></span>
+					<!-- ko if: $root.purpose() !== "bucket" -->
+					<span id="editor_rename" title="Rename File" data-bind="click: rename"></span>
 					<span id="editor_delete" title="DELETE File" data-bind="click: deleteit"></span>
+					<!-- /ko -->
 					<!-- ko if: editable -->
-						<span id="editor_print" title="Print File" data-bind="click: print"></span>
-						<label id="wrap_checkbox" title="Toggle Word Wrap"><input type="checkbox" data-bind="checked: wrap" /></label>
-						<span id="editor_save" title="Save File" data-bind="click: save"></span>
+					<span id="editor_print" title="Print File" data-bind="click: print"></span>
+					<label id="wrap_checkbox" title="Toggle Word Wrap"><input type="checkbox" data-bind="checked: wrap" /></label>
+					<!-- ko if: $root.purpose() !== "bucket" -->
+					<span id="editor_share" title="Share File in new Bucket" data-bind="click: share"></span>
+					<!-- /ko -->
+					<span id="editor_save" title="Save File" data-bind="click: save"></span>
 					<!-- /ko -->
 				</div>
 
@@ -179,9 +185,11 @@
 					<h2>
 						Tips and Tricks
 					</h2>
+					<!-- ko if: purpose() !== "bucket" -->
 					<p>
 						The files you make on Octave Online will be saved for the next time you visit.
 					</p>
+					<!-- /ko -->
 					<p>
 						In the editor, you can use <a href="https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts#default-keyboard-shortcuts" target="_blank">most of these keyboard shortcuts</a>.  You can also use these special keyboard shortcuts:
 					</p>
@@ -358,6 +366,20 @@
 					Render New Plots Inline
 				</label>
 			</div>
+			<!-- ko if: allBuckets().length > 0 -->
+				<div class="all-buckets">
+					<strong>Your Buckets:</strong>
+					<ul data-bind="foreach: allBuckets">
+						<li>
+							<a data-bind="click: deleteit" title="Delete Bucket" class="bucket-delete">&#x232B;</a>
+
+							<a data-bind="attr: { href: url }, text: displayName" target="_blank" class="bucket-name"></a>
+							<br/>
+							<span data-bind="text: createdTimeString" class="bucket-time"></span>
+						</li>
+					</ul>
+				</div>
+			<!-- /ko -->
 			<div id="footnotes">
 				Icons made by <a href="http://www.flaticon.com/authors/bogdan-rosu" title="Bogdan Rosu" target="_blank">Bogdan Rosu</a>, <a href="http://www.flaticon.com/authors/daniel-bruce" title="Daniel Bruce" target="_blank">Daniel Bruce</a>, <a href="http://www.flaticon.com/authors/sarfraz-shoukat" title="Sarfraz Shoukat" target="_blank">Sarfraz Shoukat</a>, <a href="http://www.flaticon.com/authors/icomoon" title="Icomoon" target="_blank">Icomoon</a>, <a href="http://www.flaticon.com/authors/freepik" title="Freepik" target="_blank">Freepik</a>, <a href="http://www.flaticon.com/authors/icon-works" title="Icon Works" target="_blank">Icon Works</a>, <a href="http://www.flaticon.com/authors/plainicon" title="Plainicon" target="_blank">Plainicon</a>, and <a href="http://www.flaticon.com/authors/simpleicon" title="SimpleIcon" target="_blank">SimpleIcon</a> are from <a href="http://www.flaticon.com" title="Flaticon" target="_blank">www.flaticon.com</a> and licensed by <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank" title="Creative Commons BY 3.0">CC BY 3.0</a>.
 			</div>
@@ -375,18 +397,19 @@
 		<figcaption>
 			Type commands in the prompt like you would in your local copy of GNU Octave or MATLAB.
 		</figcaption>
-		<img src="images/demo/fzero-prompt.png" alt="&gt; fzero(@(x) sinh(x) + 1, [-pi pi])"/>
+		<img src="images/demo/fminbnd-prompt.png" alt="fminbnd(@(x) x .* log(x), 0, 1)" style="max-width: 362px;"/>
+		<img src="images/demo/fminbnd-result.png" alt="0.36788" style="max-width: 366px;"/>
 	</figure>
 	<figure>
 		<figcaption>
 			Plot charts and graphs.
 		</figcaption>
-		<img src="images/demo/plot-cmd.png" alt="sombrero()"/>
-		<img src="images/demo/plot.png" alt="sombrero"/>
+		<img src="images/demo/sombrero-prompt.png" alt="sombrero()" style="max-width: 150px;"/>
+		<img src="images/demo/sombrero-result.png" alt="plot showing a sombrero" style="max-width: 531px;"/>
 	</figure>
 	<figure>
 		<figcaption>
-			Sign in for more features: saving script files, real-time collaboration like Google Docs, extended runtime, and more.
+			Sign in for more features: script files, buckets, real-time collaboration like Google Docs, extended runtime, and more.
 		</figcaption>
 		<img src="images/demo/editor.png" alt="cstr_reactor.m"/>
 	</figure>
@@ -432,14 +455,51 @@
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
+<div id="create_bucket" data-purpose="popover" aria-hidden="true"><div><div>
+	<!-- ko with: newBucket -->
+	<div id="create-bucket-content">
+		<h2 class="popover-title-bar">
+			Customize Bucket
+		</h2>
+		<p>A "bucket" is how to publicly share snapshots of Octave Online script or data files.</p>
+		<h3>Optional: Add More Files</h3>
+		<p>Select files and click the right arrow button.</p>
+		<fieldset class="bucket-files-fieldset left">
+			<legend>Files to Add</legend>
+			<select data-bind="options: filesNotIncluded, optionsText: 'filename', selectedOptions: selectedLeft" multiple></select>
+		</fieldset>
+		<fieldset class="bucket-files-fieldset right">
+			<legend>Files in Bucket</legend>
+			<select data-bind="options: files, optionsText: 'filename', selectedOptions: selectedRight" multiple></select>
+		</fieldset>
+		<p class="bucket-file-move-btns">
+			<button data-bind="click: moveRightToLeft">⇦</button>
+			<button data-bind="click: moveLeftToRight">⇨</button>
+		</p>
+		<h3>Optional: Select Main File</h3>
+		<p>The "main" script is automatically run when someone views the bucket.</p>
+		<p><label>
+			<strong>Main File:</strong>
+			<select data-bind="options: textFiles, optionsText: 'filename', optionsCaption: 'none', value: main"></select>
+		</label></p>
+		<p class="last">After clicking below, your browser will refresh into your new bucket.  You can share the URL of the page to which you are redirected.</p>
+	</div>
+	<div id="create-bucket-bar">
+		<button id="create-bucket-btn" data-bind="click: createOnServer, visible: showCreateButton">Create Bucket 🡺</button>
+	</div>
+	<img id="create-bucket-spinner" src="images/spinner.svg" width="40" data-bind="visible: !showCreateButton()" />
+	<!-- /ko -->
+	<span class="closebtn" data-purpose="close" data-bind="click: clearBucket"></span>
+</div></div></div>
+
 <div id="site_loading">
-	<img src="images/spinner.svg" alt="Loading&hellip;"/>
-	<span id="site_loading_patience" class="patience" aria-hidden="true">Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.</span>
-	<span id="site_loading_more_patience" class="patience" aria-hidden="true">Thanks for waiting.  It's not supposed to take this long.  Please double-check your internet connection.  If you are sure that your internet is working, consider contacting support.</a>
+	<div id="cosine-pulse"></div>
+	<div id="site_loading_patience" class="patience" aria-hidden="true">Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.</div>
+	<div id="site_loading_more_patience" class="patience" aria-hidden="true">Thanks for waiting.  It's not supposed to take this long.  Please double-check your internet connection.  If you are sure that your internet is working, consider contacting support.</div>
 </div>
 
 <div id="sync-promo" aria-hidden="true">
-	<span class="l1">Keep your Octave Online scripts <strong>in sync</strong> with your computer!</span>
+	<span class="l1">View historical versions of your Octave Online script files!</span>
 	<span class="l2">Click the icon for more info.</span>
 	<span class="l3" data-purpose="close">dismiss</span>
 </div>
@@ -455,12 +515,26 @@
 	<span class="l3">Sign in to make script files that you can share with colleagues.</span>
 	<span class="l4" data-purpose="close">dismiss</span>
 </div>
+<div id="bucket-promo" aria-hidden="true">
+	<span class="l1">Sign in to create your own buckets and use the rest of Octave Online.</span>
+	<span class="l2" data-purpose="close">dismiss</span>
+</div>
 
 <!-- Begin RequireJS -->
 <script type="text/javascript" src="vendor/requirejs/require.js"></script>
 <script type="text/javascript" src="main.js"></script>
+<script type="text/javascript">
+	var __oo_app_path__ = "js/app";
+	var __oo_runtime_path__ = "js/runtime";
+</script>
 <!-- End RequireJS -->
 <script type="text/javascript">
+require.config({
+	paths: {
+		"js/app": [__oo_app_path__],
+		"js/runtime": [__oo_runtime_path__]
+	}
+});
 require(["js/app"], function(){
 	require(["js/runtime"]);
 //var OctMethods = require("js/client"); OctMethods.console.writeError("NOTICE: Announcement Here\n\n\n\n\n\n\n\n\n\n");

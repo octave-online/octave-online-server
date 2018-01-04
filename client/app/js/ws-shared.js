@@ -26,6 +26,11 @@ define(["js/client", "js/ot-handler", "js/polyfill"],
 			console.log("OT SCRIPT:", obj.docId, obj.filename);
 
 			var octFile = OctMethods.ko.viewModel.getOctFileFromName(obj.filename);
+			if (!octFile) {
+				// TODO: What to do in this case?
+				console.log("Could not find OctFile:", obj.filename);
+				return;
+			}
 			var otClient = OtHandler.create(obj.docId, octFile.content);
 			documentClients[obj.filename] = otClient;
 		},
