@@ -59,7 +59,7 @@
 	<meta name="mobile-web-app-capable" content="yes"/>
 
 	<!-- Stylesheets -->
-	<link href="css/themes/fire.css?reload3" rel="stylesheet" type="text/css" id="theme"/>
+	<link href="css/themes/fire.css?{!css-timestamp!}" rel="stylesheet" type="text/css" id="theme"/>
 	<style type="text/css">
 	[aria-hidden="true"] { display: none !important; }
 	</style>
@@ -523,17 +523,10 @@
 <!-- Begin RequireJS -->
 <script type="text/javascript" src="vendor/requirejs/require.js"></script>
 <script type="text/javascript" src="main.js"></script>
-<script type="text/javascript">
-	var __oo_app_path__ = "js/app";
-	var __oo_runtime_path__ = "js/runtime";
-</script>
-<!-- End RequireJS -->
+//<!-- End RequireJS -->
 <script type="text/javascript">
 require.config({
-	paths: {
-		"js/app": [__oo_app_path__],
-		"js/runtime": [__oo_runtime_path__]
-	}
+	urlArgs: "{!js-timestamp!}"
 });
 require(["js/app"], function(){
 	require(["js/runtime"]);

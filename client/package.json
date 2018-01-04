@@ -17,6 +17,7 @@
     "grunt-contrib-watch": "^0.6.1",
     "grunt-postcss": "^0.5.4",
     "grunt-regex-replace": "^0.2.6",
+    "grunt-sync": "^0.7.0",
     "kouto-swiss": "^1.0.0"
   },
   "dependencies": {
