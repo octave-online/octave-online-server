@@ -41,3 +41,5 @@ pkg load data-smoothing;
 pkg load financial;
 pkg load interval;
 pkg load fuzzy-logic-toolkit;
+pkg load divand;
+pkg load mapping;

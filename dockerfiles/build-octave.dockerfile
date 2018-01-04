@@ -129,7 +129,9 @@ RUN /usr/local/bin/octave -q --eval "\
 	pkg install -forge ltfat; "
 RUN /usr/local/bin/octave -q --eval "\
 	pkg install -forge fuzzy-logic-toolkit; \
-	pkg install -forge mechanics; "
+	pkg install -forge mechanics; \
+	pkg install -forge divand; \
+	pkg install -forge mapping; "
 
 # Some packages do not install correctly from Octave-Forge!
 # odepkg - http://wiki.octave.org/Odepkg
