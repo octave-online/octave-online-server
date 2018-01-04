@@ -185,7 +185,11 @@ class OctaveSession extends OnlineOffline {
 
 		// Enqueue the images for loading
 		let id = uuid.v4();
-		let svgObj = { content: content.content, waitCount: 0 };
+		let svgObj = {
+			content: content.content,
+			command_number: (content.command_number || -1),
+			waitCount: 0
+		};
 		imageNames.forEach((name) => {
 			let filename = name + ".png";
 			if (filename in this._plotPngStore) {
@@ -228,7 +232,10 @@ class OctaveSession extends OnlineOffline {
 		svgObj.waitCount--;
 		if (svgObj.waitCount === 0) {
 			this._log.debug("Loaded all images for plot", id);
-			this.emit("message", "show-static-plot", { content: svgObj.content });
+			this.emit("message", "show-static-plot", {
+				content: svgObj.content,
+				command_number: svgObj.command_number
+			});
 			delete this._plotSvgStore[id];
 		}
 	}

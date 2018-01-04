@@ -114,7 +114,7 @@ async.forever(
 			},
 			(sessCode, content, _next) => {
 				if (sessCode) {
-					log.info("Received Session:", sessCode, content);
+					log.info("Received Session:", sessCode);
 					sessionManager.attach(sessCode, content);
 				}
 

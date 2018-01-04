@@ -1,0 +1,32 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1515065941 21600
+#      Thu Jan 04 05:39:01 2018 -0600
+# Branch oo-4.2.1
+# Node ID 80081f9d8ff7179f1d5d82293f4c83030b8e0357
+# Parent  91cb270ffac07018236b9e394378051df7b612c5
+Sending current command number along with show-static-plot octave_link message.
+
+diff -r 91cb270ffac0 -r 80081f9d8ff7 libinterp/corefcn/octave-json-link.cc
+--- a/libinterp/corefcn/octave-json-link.cc	Thu Jan 04 03:59:22 2018 -0600
++++ b/libinterp/corefcn/octave-json-link.cc	Thu Jan 04 05:39:01 2018 -0600
+@@ -27,6 +27,7 @@
+ #include <iostream>
+ #include "octave-json-link.h"
+ #include "workspace-element.h"
++#include "cmd-edit.h"
+ #include "json-main.h"
+ #include "json-util.h"
+ 
+@@ -304,9 +305,11 @@
+ 
+ void octave_json_link::do_show_static_plot(const std::string& term, const std::string& content) {
+ 	// Triggered on all plot commands with setenv("GNUTERM","svg")
++	int command_number = octave::command_editor::current_command_number();
+ 	JSON_MAP_T m;
+ 	JSON_MAP_SET(m, term, string);
+ 	JSON_MAP_SET(m, content, string);
++	JSON_MAP_SET(m, command_number, int);
+ 	_publish_message("show-static-plot", json_util::from_map(m));
+ }
+ 

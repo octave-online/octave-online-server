@@ -62,7 +62,8 @@ class MessageTranslator extends EventEmitter {
 				});
 				this._forDownstream(sessCode, "plote", {
 					id: id,
-					md5: crypto.createHash("md5").update(content.content).digest("hex")
+					md5: crypto.createHash("md5").update(content.content).digest("hex"),
+					command_number: content.command_number
 				});
 				break;
 
