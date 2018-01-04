@@ -1,3 +1,5 @@
+"use strict";
+
 module.exports = function (grunt) {
 	grunt.loadNpmTasks("grunt-contrib-requirejs");
 	grunt.loadNpmTasks("grunt-contrib-stylus");
@@ -6,6 +8,15 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks("grunt-regex-replace");
 	grunt.loadNpmTasks("grunt-contrib-uglify");
 
+	const timestamp = new Date().valueOf();
+	const __oo_app_path__ = "js/app_" + timestamp;
+	const __oo_runtime_path__ = "js/runtime_" + timestamp;
+	var uglifyFiles = {
+		"dist/js/require.js": ["app/vendor/requirejs/require.js"],
+		"dist/js/modernizr-201406b.js": ["app/js/modernizr-201406b.js"]
+	};
+	uglifyFiles[`dist/${__oo_runtime_path__}.js`] = "app/js/runtime.js";
+
 	grunt.initConfig({
 		pkg: grunt.file.readJSON("package.json"),
 		requirejs: {
@@ -13,7 +24,7 @@ module.exports = function (grunt) {
 				options: {
 					baseUrl: "app",
 					mainConfigFile: "app/main.js",
-					out: "dist/js/app.js",
+					out: `dist/${__oo_app_path__}.js`,
 					name: "js/app",
 					optimize: "uglify2"
 				}
@@ -65,11 +76,7 @@ module.exports = function (grunt) {
 		},
 		uglify: {
 			requirejs: {
-				files: {
-					"dist/js/require.js": ["app/vendor/requirejs/require.js"],
-					"dist/js/runtime.js": ["app/js/runtime.js"],
-					"dist/js/modernizr-201406b.js": ["app/js/modernizr-201406b.js"]
-				}
+				files: uglifyFiles
 			}
 		},
 		copy: {
@@ -97,7 +104,11 @@ module.exports = function (grunt) {
 						name: "requirejs",
 						search: "<!-- Begin RequireJS -->"
 							+ "[\\s\\S]+?<!-- End RequireJS -->",
-						replace: "<script src=\"js/require.js\"></script>\n",
+						replace: `<script src="js/require.js"></script>
+<script type="text/javascript">
+	var __oo_app_path__ = "${__oo_app_path__}";
+	var __oo_runtime_path__ = "${__oo_runtime_path__}";
+</script>`,
 						flags: "g"
 					}
 				]
@@ -119,6 +130,6 @@ module.exports = function (grunt) {
 		"regex-replace"
 	]);
 
-	grunt.registerTask("index", ["copy", "regex-replace"]);
+	//grunt.registerTask("index", ["copy", "regex-replace"]);
 
 };

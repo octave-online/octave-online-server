@@ -522,8 +522,18 @@
 <!-- Begin RequireJS -->
 <script type="text/javascript" src="vendor/requirejs/require.js"></script>
 <script type="text/javascript" src="main.js"></script>
+<script type="text/javascript">
+	var __oo_app_path__ = "js/app";
+	var __oo_runtime_path__ = "js/runtime";
+</script>
 <!-- End RequireJS -->
 <script type="text/javascript">
+require.config({
+	paths: {
+		"js/app": [__oo_app_path__],
+		"js/runtime": [__oo_runtime_path__]
+	}
+});
 require(["js/app"], function(){
 	require(["js/runtime"]);
 //var OctMethods = require("js/client"); OctMethods.console.writeError("NOTICE: Announcement Here\n\n\n\n\n\n\n\n\n\n");
