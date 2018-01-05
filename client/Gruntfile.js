@@ -1,5 +1,15 @@
 "use strict";
 
+const fs = require("fs");
+
+function getCssTimestamp() {
+	return fs.statSync("dist/css/themes/fire.css").mtime.valueOf();
+}
+
+function getJsTimestamp() {
+	return fs.statSync("dist/js/app.js").mtime.valueOf();
+}
+
 module.exports = function (grunt) {
 	grunt.loadNpmTasks("grunt-contrib-requirejs");
 	grunt.loadNpmTasks("grunt-contrib-stylus");
@@ -7,15 +17,7 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks("grunt-contrib-copy");
 	grunt.loadNpmTasks("grunt-regex-replace");
 	grunt.loadNpmTasks("grunt-contrib-uglify");
-
-	const timestamp = new Date().valueOf();
-	const __oo_app_path__ = "js/app_" + timestamp;
-	const __oo_runtime_path__ = "js/runtime_" + timestamp;
-	var uglifyFiles = {
-		"dist/js/require.js": ["app/vendor/requirejs/require.js"],
-		"dist/js/modernizr-201406b.js": ["app/js/modernizr-201406b.js"]
-	};
-	uglifyFiles[`dist/${__oo_runtime_path__}.js`] = "app/js/runtime.js";
+	grunt.loadNpmTasks("grunt-sync");
 
 	grunt.initConfig({
 		pkg: grunt.file.readJSON("package.json"),
@@ -24,7 +26,7 @@ module.exports = function (grunt) {
 				options: {
 					baseUrl: "app",
 					mainConfigFile: "app/main.js",
-					out: `dist/${__oo_app_path__}.js`,
+					out: "dist/js/app.js",
 					name: "js/app",
 					optimize: "uglify2"
 				}
@@ -76,39 +78,64 @@ module.exports = function (grunt) {
 		},
 		uglify: {
 			requirejs: {
-				files: uglifyFiles
+				files: {
+					"dist/js/require.js": ["app/vendor/requirejs/require.js"],
+					"dist/js/runtime.js": ["app/js/runtime.js"],
+					"dist/js/modernizr-201406b.js": ["app/js/modernizr-201406b.js"]
+				}
 			}
 		},
-		copy: {
+		sync: {
 			dist: {
-				cwd: "app",
-				src: [
-					"index.html",
-					"favicon.ico",
-					"privacy.txt",
-					"compatibility.html",
-					"images/**",
-					"errors/**",
-					"fonts/**",
-					"js/gnuplot/**"
-				],
-				dest: "dist",
-				expand: true
+				files: [{
+					cwd: "app",
+					src: [
+						"index.html",
+						"favicon.ico",
+						"privacy.txt",
+						"compatibility.html",
+						"images/**",
+						"errors/**",
+						"fonts/**",
+						"js/gnuplot/**"
+					],
+					dest: "dist"
+				}],
+				verbose: true,
+				compareUsing: "md5"
 			}
 		},
 		"regex-replace": {
+			appcss: {
+				src: ["dist/js/app.js"],
+				actions: [
+					{
+						name: "css-timestamp",
+						search: "\\{!css-timestamp!\\}",
+						replace: getCssTimestamp,
+						flags: "g"
+					}
+				]
+			},
 			html: {
 				src: ["dist/index.html"],
 				actions: [
 					{
 						name: "requirejs",
-						search: "<!-- Begin RequireJS -->"
-							+ "[\\s\\S]+?<!-- End RequireJS -->",
-						replace: `<script src="js/require.js"></script>
-<script type="text/javascript">
-	var __oo_app_path__ = "${__oo_app_path__}";
-	var __oo_runtime_path__ = "${__oo_runtime_path__}";
-</script>`,
+						search: "<!-- Begin RequireJS -->[\\s\\S]+?<!-- End RequireJS -->",
+						replace: "<script src=\"js/require.js\"></script>",
+						flags: "g"
+					},
+					{
+						name: "js-timestamp",
+						search: "\\{!js-timestamp!\\}",
+						replace: getJsTimestamp,
+						flags: "g"
+					},
+					{
+						name: "css-timestamp",
+						search: "\\{!css-timestamp!\\}",
+						replace: getCssTimestamp,
 						flags: "g"
 					}
 				]
@@ -125,11 +152,12 @@ module.exports = function (grunt) {
 	grunt.registerTask("default", [
 		"requirejs",
 		"stylus:dist",
+		"regex-replace:appcss",
 		"uglify",
-		"copy",
-		"regex-replace"
+		"sync",
+		"regex-replace:html"
 	]);
 
-	//grunt.registerTask("index", ["copy", "regex-replace"]);
+	grunt.registerTask("index", ["sync", "regex-replace:html"]);
 
 };
