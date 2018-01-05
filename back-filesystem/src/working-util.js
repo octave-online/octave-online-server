@@ -202,7 +202,7 @@ class WorkingUtil {
 				}
 			},
 			(_next) => {
-				return _next(null, crypto.createHash("md5").update(value).digest("hex"));
+				return _next(null, crypto.createHash("md5").update(value, "utf-8").digest("hex"));
 			}
 		], next);
 	}

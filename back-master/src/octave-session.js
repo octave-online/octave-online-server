@@ -168,7 +168,7 @@ class OctaveSession extends OnlineOffline {
 	_appendToSessionLog(type, content) {
 		if (!this._sessionLogStream) return this._log.warn("Cannot log before created", { type, content });
 		if (this._sessionLogStream.closed) return this._log.warn("Cannot log to a closed stream:", { type, content });
-		this._sessionLogStream.write(type + ": " + content.replace("\n", "\n" + type + ": ") + "\n");
+		this._sessionLogStream.write(type + ": " + content.replace(/\n/g, "\n" + type + ": ") + "\n");
 	}
 
 	// PLOTTED PNG IMAGE METHODS: Convert image links to base-64 data URIs
