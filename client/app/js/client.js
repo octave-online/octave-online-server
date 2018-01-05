@@ -706,6 +706,8 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				if (!octfile) return;
 				if (octfile.md5() === data.md5sum) {
 					octfile.savedContent(octfile.content());
+				} else {
+					console.log("Mismatched MD5! Local:", octfile.md5(), "Server:", data.md5sum);
 				}
 			},
 			renamed: function(data){
