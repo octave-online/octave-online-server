@@ -32,12 +32,12 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 	];
 
 	// Plot MVVM class
-	function PlotObject(id, lineNumber){
+	function PlotObject(id){
 		var self = this;
 
 		// Main Bindings
 		self.id = id;
-		self.lineNumber = lineNumber;
+		self.lineNumber = ko.observable(null);
 		self.data = ""; // not an observable for performance reasons
 		self.complete = ko.observable(false);
 
@@ -55,7 +55,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 		}
 		self.downloadPng = function(){
 			var plotCanvas = document.getElementById("plot_canvas");
-			var filename = "octave-online-line-" + self.lineNumber + ".png";
+			var filename = "octave-online-line-" + self.lineNumber() + ".png";
 
 			var renderCallback = function(){
 				plotCanvas.toBlob(function(blob){
@@ -70,7 +70,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 		}
 		self.downloadSvg = function(){
 			var blob = new Blob([self.data], { type: "image/svg+xml" });
-			var filename = "octave-online-line-" + self.lineNumber + ".svg";
+			var filename = "octave-online-line-" + self.lineNumber() + ".svg";
 
 			download(blob, filename);
 		}
@@ -264,14 +264,14 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 		OctMethods.load.stopPatience();
 	}
 
-	function getOrMakePlotById(id, lineNumber){
+	function getOrMakePlotById(id){
 		var arr = plotHistory();
 		for (var i = arr.length - 1; i >= 0; i--) {
 			if (arr[i].id === id) return arr[i];
 		};
 
 		// Make a new plot object
-		var obj = new PlotObject(id, lineNumber);
+		var obj = new PlotObject(id);
 		plotHistory.push(obj);
 
 		// Display it, either inline or in the plot window
@@ -816,13 +816,14 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			},
 			plotd: function(data){
 				// plot data transmission
-				var plot = getOrMakePlotById(data.id, OctMethods.prompt.currentLine);
+				var plot = getOrMakePlotById(data.id);
 				plot.addData(data.content);
 				console.log("Received data for plot ID "+data.id);
 			},
 			plote: function(data){
 				// plot data complete
 				var plot = getOrMakePlotById(data.id);
+				plot.lineNumber(data.command_number - 1);
 				plot.complete(true);
 
 				if(data.md5 !== plot.md5()){
@@ -904,6 +905,20 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			},
 			changeDirectory: function(data) {
 				viewModel.cwd(data.dir);
+			},
+			editFile: function(data) {
+				if (!data || !data.file) return;
+				var match = data.file.match(/^\/home\/[^\/]+\/(.*)$/);
+				if (!match) return;
+				var filename = match[1];
+				var octfile = viewModel.getOctFileFromName(filename);
+				if (!octfile) {
+					// New file
+					octfile = OctMethods.editor.create(filename);
+				}
+				if (octfile) {
+					octfile.open();
+				}
 			},
 			init: function(){
 				// Regular session or shared session?
