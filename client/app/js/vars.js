@@ -28,16 +28,21 @@ define(["knockout", "require"], function(ko, require){
 			var isChar = (self.class_name() === "char");
 			var isCell = (self.class_name() === "cell");
 			var isFn = (self.class_name() === "function_handle");
+			var isLogicl = (self.class_name() === "logical");
 			var isNumeric = (self.class_name() === "double");
+			var isStruct = (self.class_name() === "struct");
 			var isSym = (self.class_name() === "sym");
 			var isTF = (self.class_name() === "tf");
 			var isImg = (self.class_name() === "uint8");
-			
+
 			if ( isChar                ) return "(abc)";
 			if ( isSym                 ) return "$";
-			if ( isTF                  ) return "\u2112";
-			if ( isImg    &&  isComplex) return "\u276C"+self.dimension()+"\u276D*";
-			if ( isImg    && !isComplex) return "\u276C"+self.dimension()+"\u276D";
+			if ( isTF                  ) return "ℒ";
+			if ( isStruct              ) return "⊡";
+			if ( isLogicl &&  isScalar ) return "¬";
+			if ( isLogicl              ) return "["+self.dimension()+"]¬";
+			if ( isImg    &&  isComplex) return "❬"+self.dimension()+"❭*";
+			if ( isImg    && !isComplex) return "❬"+self.dimension()+"❭";
 			if ( isCell   &&  isComplex) return "{"+self.dimension()+"}*";
 			if ( isCell   && !isComplex) return "{"+self.dimension()+"}";
 			if ( isFn     &&  isComplex) return "@*";
@@ -56,7 +61,9 @@ define(["knockout", "require"], function(ko, require){
 			var isChar = (self.class_name() === "char");
 			var isCell = (self.class_name() === "cell");
 			var isFn = (self.class_name() === "function_handle");
+			var isLogicl = (self.class_name() === "logical");
 			var isNumeric = (self.class_name() === "double");
+			var isStruct = (self.class_name() === "struct");
 			var isSym = (self.class_name() === "sym");
 			var isTF = (self.class_name() === "tf");
 			var isImg = (self.class_name() === "uint8");
@@ -64,12 +71,14 @@ define(["knockout", "require"], function(ko, require){
 			if ( isChar                ) return "characters";
 			if ( isSym                 ) return "symbolic";
 			if ( isTF                  ) return "transfer function";
+			if ( isStruct              ) return "struct";
+			if ( isLogicl              ) return "logical (boolean)";
 			if ( isImg                 ) return "uint8 data (images)";
 			if ( isCell   &&  isComplex) return "complex cell array";
 			if ( isCell   && !isComplex) return "cell array";
 			if ( isFn     &&  isComplex) return "complex function handle";
 			if ( isFn     && !isComplex) return "function handle";
-			if (!isNumeric             ) return "unknown data type";
+			if (!isNumeric             ) return self.class_name();
 			if ( isScalar &&  isComplex) return "complex scalar";
 			if ( isScalar && !isComplex) return "scalar";
 			if (              isComplex) return "complex matrix";
