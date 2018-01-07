@@ -45,10 +45,11 @@ class OctaveSession extends OnlineOffline {
 	}
 
 	_doCreate(next) {
-		var c0 = this.sessCode[0];
-		var c1 = this.sessCode[1];
-		var c2 = this.sessCode[2];
-		var sessionLogPath = path.join(config.worker.logDir, "sessions3", c0, c1, c2, `${this.sessCode}.log`);
+		let subdir = path.join(config.worker.logDir, config.worker.sessionLogs.subdir);
+		for (let i=0; i<config.worker.sessionLogs.depth; i++) {
+			subdir = path.join(subdir, this.sessCode[i]);
+		}
+		let sessionLogPath = path.join(subdir, `${this.sessCode}.log`);
 		this._mlog.trace("Storing session log in:", sessionLogPath);
 		this._sessionLogStream = fs.createWriteStream(sessionLogPath);
 		this._doCreateImpl(next);

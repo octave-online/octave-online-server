@@ -43,7 +43,7 @@ try {
 	exit = require(exitFile);
 	console.log("Will use exit routine from exit.js");
 } catch(err) {
-	if (/Cannot find module/.text(err.message)) {
+	if (/Cannot find module/.test(err.message)) {
 		// If exit.js is not provided, set a no-op.
 		exit = function(){ process.exit(0); }
 		console.log("Will use no-op exit routine");
@@ -51,18 +51,37 @@ try {
 }
 
 // Make log directories
-try {
-	fs.mkdirSync(path.join(config.worker.logDir, "monitor"), "0740");
-	fs.mkdirSync(path.join(config.worker.logDir, "sessions"), "0740");
-} catch(err) {
-	if (/EEXIST/.test(err.message)) {
-		console.log("Using pre-existing log directories.");
-	} else throw err;
+function mkdirSyncNoError(path) {
+	try {
+		fs.mkdirSync(path, "0740");
+	} catch(err) {
+		if (!/EEXIST/.test(err.message)) {
+			throw err;
+		}
+	}
 }
+const monitorLogPath = path.join(config.worker.logDir, config.worker.monitorLogs.subdir);
+const sessionLogPath = path.join(config.worker.logDir, config.worker.sessionLogs.subdir);
+mkdirSyncNoError(monitorLogPath);
+mkdirSyncNoError(sessionLogPath);
+
+// Create nested session log dirs (the goal of nesting is to reduce the number of files in each directory)
+function makeSessionLogDirsRecursive(prefix, depth) {
+	if (depth === config.worker.sessionLogs.depth) {
+		return;
+	}
+	for (let i=0; i<16; i++) {
+		let letter = "0123456789abcdef"[i];
+		let currpath = path.join(prefix, letter);
+		mkdirSyncNoError(currpath);
+		makeSessionLogDirsRecursive(currpath, depth + 1);
+	}
+}
+makeSessionLogDirsRecursive(sessionLogPath, 0);
 
 // Create log stream
 let dateStr = new Date().toISOString().replace(/:/g,"-").replace(".","-").replace("T","_").replace("Z","");
-let logPath = path.join(config.worker.logDir, "monitor", config.worker.token+"_"+dateStr+".log");
+let logPath = path.join(monitorLogPath, config.worker.token+"_"+dateStr+".log");
 let logFd = fs.openSync(logPath, "a", "0640");
 let logStream = fs.createWriteStream(null, { fd: logFd });
 console.log("Logging to:", logPath);
