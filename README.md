@@ -38,7 +38,7 @@ If you use SSH to connect to the Git server containing people's saved files, you
 
 You need to create a file called *config.json* at *shared/config.json*.  Here is an example *config.json*.
 
-    {
+	{
 		"worker": {
 			"token": "local",
 			"clockInterval": {
@@ -47,13 +47,22 @@ You need to create a file called *config.json* at *shared/config.json*.  Here is
 			},
 			"maxSessions": 12,
 			"uid": 1000,
-			"logDir": "/srv/logs"
+			"logDir": "/srv/logs",
+			"monitorLogs": {
+				"subdir": "monitor"
+			},
+			"sessionLogs": {
+				"subdir": "sessions_2018",
+				"depth": 3
+			}
 		},
 		"session": {
 			"legalTime": {
 				"guest": 5000,
 				"user": 10000
 			},
+			"countdownExtraTime": 15000,
+			"countdownRequestTime": 5000,
 			"timewarnTime": 90000,
 			"timeoutTime": 120000,
 			"timewarnMessage": "NOTICE: Due to inactivity, your session will expire in five minutes.",
@@ -79,6 +88,7 @@ You need to create a file called *config.json* at *shared/config.json*.  Here is
 				"name": "Local User",
 				"email": "localhost@localhost"
 			},
+			"helperUser": "git",
 			"commitTimeLimit": 30000,
 			"autoCommitInterval": 300000
 		},
@@ -111,6 +121,11 @@ You need to create a file called *config.json* at *shared/config.json*.  Here is
 				"timeout": 16000
 			},
 			"maxPayload": 10000
+		},
+		"mongo": {
+			"hostname": "localhost",
+			"port": 27019,
+			"db": "oo"
 		},
 		"cgroup": {
 			"name": "oo/octave",
