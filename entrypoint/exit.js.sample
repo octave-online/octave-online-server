@@ -1,0 +1,12 @@
+// Example exit.js that performs a reboot upon process exit.
+
+const child_process = require("child_process");
+
+module.exports = function exit() {
+	console.log("Spawning reboot and exiting");
+	child_process.spawn("sudo", ["reboot"], {
+		detached: true,
+		stdio: "ignore"
+	});
+	process.exit(0);
+}

@@ -15,6 +15,7 @@ console.log("Date:", new Date().toISOString());
 // What files will we be loading?
 const prefix = (__dirname === "/usr/local/bin") ? "/usr/local/share/oo" : path.join(__dirname, "..");
 const configFile = path.join(prefix, "shared/config.json");
+const exitFile = path.join(prefix, "entrypoint/exit.js");
 const gitSshFile = path.join(prefix, "back-filesystem/git/git_ssh.sh");
 const spawnDirectory = path.join(prefix, "back-master");
 const spawnFile = path.join(prefix, "back-master/app.js");
@@ -35,6 +36,19 @@ while (true) {
 
 // Load config file dependency
 const config = require(configFile);
+
+// Load exit routine
+var exit;
+try {
+	exit = require(exitFile);
+	console.log("Will use exit routine from exit.js");
+} catch(err) {
+	if (/Cannot find module/.text(err.message)) {
+		// If exit.js is not provided, set a no-op.
+		exit = function(){ process.exit(0); }
+		console.log("Will use no-op exit routine");
+	} else throw err;
+}
 
 // Make log directories
 try {
@@ -101,7 +115,7 @@ function runOnce() {
 		if (code !== 0) {
 			setTimeout(runOnce, 500);
 		} else {
-			child_process.execSync("sudo reboot");
+			exit();
 		}
 	});
 }

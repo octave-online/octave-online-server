@@ -17,3 +17,4 @@ tmp/
 shared/config.json
 back-octave/octave-host
 back-octave/bin/cwd/
+entrypoint/exit.js
