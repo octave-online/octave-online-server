@@ -45,7 +45,7 @@ try {
 } catch(err) {
 	if (/Cannot find module/.test(err.message)) {
 		// If exit.js is not provided, set a no-op.
-		exit = function(){ process.exit(0); }
+		exit = function(){}
 		console.log("Will use no-op exit routine");
 	} else throw err;
 }
@@ -134,10 +134,11 @@ function runOnce() {
 		if (code !== 0) {
 			setTimeout(runOnce, 500);
 		} else {
+			logStream.close(); // also closes the logFd file descriptor
 			exit();
 		}
 	});
 }
 
 // Run it!
-runOnce(logStream);
+runOnce();

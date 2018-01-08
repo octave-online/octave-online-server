@@ -4,9 +4,8 @@ const child_process = require("child_process");
 
 module.exports = function exit() {
 	console.log("Spawning reboot and exiting");
-	child_process.spawn("sudo", ["reboot"], {
-		detached: true,
-		stdio: "ignore"
+	// This needs to be execFileSync (as opposed to execFile) to stop the parent process from exiting and restarting before the child process has had a chance to finish.
+	child_process.execFileSync("sudo", ["reboot"], {
+		stdio: "inherit"
 	});
-	process.exit(0);
 }

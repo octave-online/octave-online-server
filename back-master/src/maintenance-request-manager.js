@@ -47,12 +47,14 @@ class MaintenanceReuestManager extends EventEmitter {
 		log.trace("Sent maintenance request:", id, this._priority);
 
 		setTimeout(() => {
-			// Count the number of yeses and nos.  If there are more yeses than nos, return a success.
+			// Count the number of yeses and nos.
 			let numYes = this._responses[id].reduce((s,v) => {
 				return s + (v ? 1 : 0);
 			}, 0);
 			let numNo = this._responses[id].length - numYes;
-			let success = numNo < config.maintenance.maxNodesInMaintenance && numYes > 0;
+
+			// Policy: Guarantee at least minNodesInCluster online nodes and no more than maxNodesInMaintenance maintenance nodes.
+			let success = numNo < config.maintenance.maxNodesInMaintenance && numYes >= config.maintenance.minNodesInCluster;
 
 			// Were we successful?
 			if (success) {
