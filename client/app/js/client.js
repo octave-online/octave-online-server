@@ -254,7 +254,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 
 	// Listener for showing and hiding the create-bucket promo
 	viewModel.openFile.subscribe(function(octfile) {
-		onboarding.toggleCreateBucketPromo(octfile && octfile.editable);
+		onboarding.toggleCreateBucketPromo(octfile && octfile.editable && viewModel.purpose() === "default");
 	});
 
 	/* * * * END KNOCKOUT, START EDITOR/CONSOLE/PROMPT * * * */
