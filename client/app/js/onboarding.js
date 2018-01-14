@@ -6,6 +6,7 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 		$instructorPromo = $("#instructor-promo"),
 		$syncPromo = $("#sync-promo"),
 		$sharePromo = $("#share-promo"),
+		$createBucketPromo = $("#create-bucket-promo"),
 		$bucketPromo = $("#bucket-promo"),
 		MIN_TIME = 1000;
 
@@ -45,8 +46,19 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 		});
 	}
 
+	// Set the listener for create-bucket
+	var createBucketPromoShown = false;
+	$createBucketPromo.find("[data-purpose='close']").click(function(){
+		$.cookie("oo_create_bucket_promo_dismissed", "true", {
+			expires: MIN_TIME
+		});
+		anal.dismiss("Create Bucket");
+		$createBucketPromo.fadeOutSafe(500);
+		createBucketPromoShown = false;
+	});
+
 	// Expose an API
-	return {
+	const onboarding = {
 		reset: function(){
 			// Delete the cookie
 			$.cookie("oo_onboarding_complete", null);
@@ -76,6 +88,17 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 				});
 			}
 		},
+		toggleCreateBucketPromo: function(show) {
+			if (!show && createBucketPromoShown) {
+				$createBucketPromo.hideSafe();
+				createBucketPromoShown = false;
+			} else if (show && !createBucketPromoShown && !$.cookie("oo_create_bucket_promo_dismissed")) {
+				$createBucketPromo.fadeInSafe(500);
+				createBucketPromoShown = true;
+				// Hack: we need to wait until the editor is shown before repositioning
+				setTimeout(onboarding.reposition, 0);
+			}
+		},
 		hideScriptPromo: function(){
 			$scriptPromo.hideSafe();
 			$sharePromo.hideSafe();
@@ -92,5 +115,16 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 		hideBucketPromo: function() {
 			$bucketPromo.hideSafe();
 		},
+		reposition: function() {
+			var $syncButton = $("#files_toolbar_info");
+			var $cbucketButton = $("#editor_share");
+			if ($syncButton.length) {
+				$syncPromo.css("left", ($syncButton.offset().left-2) + "px");
+			}
+			if ($cbucketButton.length) {
+				$createBucketPromo.css("left", ($cbucketButton.offset().left-2) + "px");
+			}
+		}
 	};
+	return onboarding;
 });

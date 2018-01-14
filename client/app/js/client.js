@@ -252,6 +252,11 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 		setTimeout(OctMethods.console.scroll, 0);
 	});
 
+	// Listener for showing and hiding the create-bucket promo
+	viewModel.openFile.subscribe(function(octfile) {
+		onboarding.toggleCreateBucketPromo(octfile && octfile.editable);
+	});
+
 	/* * * * END KNOCKOUT, START EDITOR/CONSOLE/PROMPT * * * */
 
 	// Helper functions

@@ -299,6 +299,11 @@ define(
 			anal.sitecontrol("theme");
 		});
 
+		// Callouts positioned relative to non-top-level elements
+		window.addEventListener("resize", function() {
+			onboarding.reposition();
+		}, false);
+
 		// Other GUI Initialization
 		OctMethods.prompt.disable();
 		$("#twitter-follow-holder").click(function () {

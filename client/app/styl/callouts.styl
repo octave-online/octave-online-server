@@ -110,7 +110,7 @@ callout(shadowoffset, direction="up"){
 	width: 200px
 	height: auto
 	text-align: center
-	z-index: 100
+	z-index: 204
 	padding: 10px 10px
 
 	// Arrow
@@ -168,7 +168,7 @@ callout(shadowoffset, direction="up"){
 	width: 220px
 	height: auto
 	text-align: center
-	z-index: 202
+	z-index: 204
 	padding: 10px 10px
 
 	// Arrow
@@ -204,11 +204,47 @@ callout(shadowoffset, direction="up"){
 #sync-promo{
 	callout(4px, left)
 	top: header_height + toolbar_height*2 + 20px
-	left: 60px
-	width: 270px
+	left: 60px	// left position is set via JavaScript; this is a default
+	width: 130px
 	height: auto
 	text-align: center
-	z-index: 201
+	z-index: 203
+	padding: 10px 10px
+
+	// Arrow
+	&::before {
+		left: 10px
+		top: -20px
+	}
+
+	// Text Flow
+	& > span {
+		display: block
+		line-height: 1em
+		&.l1{
+			font-size: 1.3em
+		}
+		&.l2{
+			font-size: 1.1em
+			margin-top: 10px
+		}
+		&.l3{
+			font-size: 1em
+			margin-top: 10px
+			cursor: pointer
+			text-decoration: underline
+		}
+	}
+}
+
+#create-bucket-promo{
+	callout(4px, left)
+	top: header_height + toolbar_height*2 + 20px
+	left: 150px	// left position is set via JavaScript; this is a default
+	width: 160px
+	height: auto
+	text-align: center
+	z-index: 202
 	padding: 10px 10px
 
 	// Arrow
