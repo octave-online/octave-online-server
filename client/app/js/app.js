@@ -56,6 +56,7 @@ define(
 		socket.on("restart-countdown", OctMethods.socketListeners.restartCountdown);
 		socket.on("change-directory", OctMethods.socketListeners.changeDirectory);
 		socket.on("edit-file", OctMethods.socketListeners.editFile);
+		socket.on("payload-paused", OctMethods.socketListeners.payloadPaused);
 		socket.on("ot.doc", OtHandler.listeners.doc);
 		socket.on("ot.broadcast", OtHandler.listeners.broadcast);
 		socket.on("ot.ack", OtHandler.listeners.ack);

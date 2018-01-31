@@ -225,6 +225,9 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 		addTime: function() {
 			OctMethods.prompt.addTime();
 		},
+		acknowledgePayload: function() {
+			OctMethods.prompt.acknowledgePayload();
+		},
 
 		clearBucket: function() {
 			viewModel.newBucket(null);
@@ -409,6 +412,8 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			legalTime: 5000,  // config.session.legalTime.guest
 			extraTime: 0,
 			countdownInterval: null,
+			payloadTimerInterval: null,
+			payloadDelay: -1,
 			countdownTime: 0,
 			countdownDelay: 20,
 			enabled: true,
@@ -434,6 +439,8 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				OctMethods.prompt.instance.focus();
 			},
 			startCountdown: function(){
+				$("#add_time_container").hideSafe();
+				$("#payload_acknowledge_container").hideSafe();
 				$("#runtime_controls_container").showSafe();
 				OctMethods.prompt.countdownTime = new Date().valueOf();
 				OctMethods.prompt.extraTime = 0;
@@ -461,11 +468,37 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			},
 			endCountdown: function(){
 				clearInterval(OctMethods.prompt.countdownInterval);
+				clearInterval(OctMethods.prompt.payloadTimerInterval);
 				$("#runtime_controls_container").hideSafe();
 				$("#seconds_remaining").text("0");
 
 				if (OctMethods.prompt.countdownTime > 0)
 					anal.duration(new Date().valueOf() - OctMethods.prompt.countdownTime);
+			},
+			startPayloadTimer: function(payloadDelay){
+				// Similar, but not identical, to startCountdown()
+				$("#add_time_container").hideSafe();
+				$("#payload_acknowledge_container").showSafe();
+				$("#runtime_controls_container").showSafe();
+				OctMethods.prompt.countdownTime = new Date().valueOf(); // no need to create another countdownTime variable; can use the same one as regular countdown
+				OctMethods.prompt.payloadDelay = payloadDelay;
+
+				OctMethods.prompt.payloadTimerTick();
+				clearInterval(OctMethods.prompt.payloadTimerInterval);
+				OctMethods.prompt.payloadTimerInterval = setInterval(
+					OctMethods.prompt.payloadTimerTick, OctMethods.prompt.countdownDelay
+				);
+			},
+			payloadTimerTick: function(){
+				// Similar, but not identical, to countdownTick()
+				var elapsed = new Date().valueOf() - OctMethods.prompt.countdownTime;
+				var remaining = (OctMethods.prompt.payloadDelay - elapsed);
+				if(remaining<=0) {
+					clearInterval(OctMethods.prompt.countdownInterval);
+					$("#seconds_remaining").text("---");
+				}else{
+					$("#seconds_remaining").text((remaining/1000).toFixed(2));
+				}
 			},
 			askForEnroll: function(program){
 				if(!OctMethods.editor.initialized){
@@ -487,6 +520,13 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				OctMethods.prompt.extraTime += 15000;
 				OctMethods.socket.addTime();
 				anal.extraTime();
+			},
+			acknowledgePayload: function() {
+				// Acknowledging the payload resets the countdown on the server.
+				OctMethods.prompt.endCountdown();
+				OctMethods.prompt.startCountdown();
+				OctMethods.socket.acknowledgePayload();
+				anal.acknowledgePayload();
 			}
 		},
 
@@ -625,6 +665,9 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			},
 			addTime: function() {
 				return OctMethods.socket.emit("oo.add_time", {});
+			},
+			acknowledgePayload: function() {
+				return OctMethods.socket.emit("oo.acknowledge_payload", {});
 			},
 			setPassword: function(password) {
 				return OctMethods.socket.emit("oo.set_password", {
@@ -908,6 +951,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				OctMethods.console.write("Ping time: " + (endTime-startTime) + "ms\n");
 			},
 			restartCountdown: function(){
+				// TODO: Is this method dead?
 				OctMethods.prompt.startCountdown();
 			},
 			changeDirectory: function(data) {
@@ -926,6 +970,16 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				if (octfile) {
 					octfile.open();
 				}
+			},
+			payloadPaused: function(data){
+				OctMethods.prompt.endCountdown();
+				OctMethods.prompt.startPayloadTimer(data.delay);
+
+				// Show the notification message after a small delay in order to let the output buffers flush first.
+				// TODO: Sync the delay with config.session.payloadMessageDelay
+				setTimeout(function(){
+					OctMethods.console.writeError("\nNOTICE: Execution paused due to large payload\n");
+				}, 100);
 			},
 			init: function(){
 				// Regular session or shared session?
