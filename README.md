@@ -71,6 +71,7 @@ You need to create a file called *config.json* at *shared/config.json*.  Here is
 				"user": 10000
 			},
 			"payloadMessageDelay": 100,
+			"payloadAcknowledgeDelay": 5000,
 			"urlreadPatterns": ["^example\\.com$", "^(.*\\.)?stanford\\.edu$", "^(.*\\.)?coursera\\.org$"],
 			"textFileSizeLimit": 50000,
 			"jsonMaxMessageLength": 1000000,
@@ -153,8 +154,6 @@ Go to the *back-octave* directory and run `DEBUG=* node app.js` to start the bac
 ## To-do list
 
 - Update /usr/bin/sandbox according to https://github.com/SELinuxProject/selinux/commit/0f4620d6111838ce78bf5a591bb80c99c9d88730
-- Resolve binary output created by the Octave process fails (generates JSON parse error)
-- Disable fork in the core Octave code (syscalls.cc) instead of in the octaverc.m
 - If using RHEL, the line "Defaults requiretty" must be commented out.
 
 ## License

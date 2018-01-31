@@ -63,11 +63,11 @@ class ProcessHandler extends StdioMessenger {
 		this._signal("SIGTERM");
 	}
 
-	interrupt() {
+	signal(name) {
 		if (!this._spwn) return this._log.warn("Tried to signal child process, but it does not exist");
 		if (this._spwn.exitCode !== null || this._spwn.signalCode !== null) return this._log.warn("Tried to signal child process, but it is exited");
-		this._signal("SIGINT");
-		this._log.debug("Sent SIGINT to child process");
+		this._signal(name);
+		this._log.debug("Sent " + name + " to child process");
 	}
 
 	_signal(name) {

@@ -63,6 +63,7 @@ class OctaveSession extends OnlineOffline {
 				if (this._timewarnTimer) clearTimeout(this._timewarnTimer);
 				if (this._timeoutTimer) clearTimeout(this._timeoutTimer);
 				if (this._autoCommitTimer) clearInterval(this._autoCommitTimer);
+				if (this._payloadInterruptTimer) clearTimeout(this._payloadInterruptTimer);
 				_next(null);
 			},
 			(_next) => {
@@ -76,7 +77,7 @@ class OctaveSession extends OnlineOffline {
 	}
 
 	interrupt() {
-		this._interrupt();
+		this._signal("SIGINT");
 	}
 
 	// COUNTDOWN METHODS: For interrupting the Octave kernel after a fixed number of seconds to ensure a fair distribution of CPU time.
@@ -135,15 +136,42 @@ class OctaveSession extends OnlineOffline {
 		this._payloadSize += content.length;
 		if (this._payloadSize > this._payloadLimit && !this._payloadInterrupted) {
 			this._payloadInterrupted = true;
-			this.interrupt();
-			// Send the error message after a small delay in order to let the output buffers flush first
-			setTimeout(() => {
-				this.emit("message", "err", "!!! PAYLOAD TOO LARGE !!!\n");
 
-				// Octave sometimes gets confused with the interrupt signal, so send an empty command to reset things.
-				this._sendMessageToHost("cmd", "");
-			}, config.session.payloadMessageDelay);
+			// End the countdown, and instead give the user a specified amount of time to allow the process to continue from where it left off.
+			this._signal("SIGSTOP");
+			this._endCountdown();
+			let payloadDelay = config.session.payloadAcknowledgeDelay;
+			this._payloadInterruptTimer = setTimeout(() => {
+				this._signal("SIGCONT");
+				this._signal("SIGINT");
+
+				// Send the error message after a small delay in order to let the output buffers flush first
+				setTimeout(() => {
+					this.emit("message", "err", "!!! PAYLOAD TOO LARGE !!!\n");
+
+					// Octave sometimes gets confused with the interrupt signal, so send an empty command to reset things.
+					this._sendMessageToHost("cmd", "");
+				}, config.session.payloadMessageDelay);
+			}, payloadDelay);
+
+			// Tell the user how much time they have.
+			this.emit("message", "payload-paused", {
+				delay: payloadDelay
+			});
 		}
+	}
+	_acknowledgePayload() {
+		if (!this._payloadInterrupted) return this._log.warn("Attempting to acknowledge payload, but process is not currently paused");
+		this._log.trace("User manually acknowledged payload");
+		this._continueIfPaused();
+		this._resetPayload();
+	}
+	_continueIfPaused() {
+		if (!this._payloadInterrupted) return;
+		this._log.trace("Continuing execution");
+		clearTimeout(this._payloadInterruptTimer);
+		this._signal("SIGCONT");
+		this._startCountdown();
 	}
 
 	// AUTO-COMMIT METHODS: For auto-committing the user's files on a fixed interval.
@@ -463,11 +491,18 @@ class OctaveSession extends OnlineOffline {
 		switch (name) {
 			// Messages requiring special handling
 			case "interrupt":
-				this._interrupt();
+				this._continueIfPaused();
+				this.interrupt();
 				break;
 
 			case "oo.add_time":
 				this._addTime();
+				this.resetTimeout();
+				break;
+
+			case "oo.acknowledge_payload":
+				this._acknowledgePayload();
+				this.resetTimeout();
 				break;
 
 			case "cmd":

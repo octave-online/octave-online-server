@@ -61,12 +61,12 @@ class DockerHandler extends StdioMessenger {
 		});
 	}
 
-	interrupt() {
+	signal(name) {
 		if (this._state !== "ONLINE") return this._log.warn("Will not send SIGINT to child process: process not online");
 
 		// Although the child process is actually the docker client and not the daemon, the client will forward simple signals like SIGINT to the actual octave host process.
-		this._spwn.kill("SIGINT");
-		this._log.debug("Sent SIGINT to child process");
+		this._spwn.kill(name);
+		this._log.debug("Sent " + name + " to child process");
 	}
 
 	_handleLog(data) {

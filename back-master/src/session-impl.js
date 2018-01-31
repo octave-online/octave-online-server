@@ -84,8 +84,8 @@ class SessionImpl extends OctaveSession {
 		});
 	}
 
-	_interrupt() {
-		this._hostSession.interrupt();
+	_signal(name) {
+		this._hostSession.signal(name);
 	}
 
 	_sendMessageToFiles(name, content) {
