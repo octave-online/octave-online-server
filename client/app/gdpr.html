@@ -1,71 +1,106 @@
 <!DOCTYPE html>
 
 <head>
-  <title>Octave Online</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style type="text/css">
+	<title>Octave Online</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<style type="text/css">
 	body {
-	width: 75%;
-	background-color: #FF5C4A; /* OO Fire Red */
-	margin: 0 auto;
-	padding: 0;
-	font-family: sans-serif;
+		width: 75%;
+		background-color: #FF4B33; /* 2017 OO Fire Red */
+		margin: 0 auto;
+		padding: 0;
+		font-family: "Trebuchet MS", sans-serif;
+		font-size: 1.3em;
 	}
 	@media (max-width: 480px) {
-	body {
-	width: 100%;
-	}
+		body {
+			width: 100%;
+		}
 	}
 	#main {
-	background-color: #fff;
-	margin: 0;
-	padding: 10px;
-	text-align: center;
+		background-color: #fff;
+		margin: 0;
+		padding: 10px;
+		text-align: center;
 	}
-.policy {
-text-align: left;
-white-space: pre-wrap;
-padding: 1em;
-border: 2px solid #FF5C4A;
-background-color: #FFE1DE;
-}
-	</style>
+	h1 {
+		margin: 0;
+	}
+	h1 > svg {
+		max-width: 500px;
+	}
+	.max-width {
+		max-width: 550px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	strong {
+		color: #FF4B33;
+	}
+	ul {
+		list-style-type: none;
+		padding: 0;
+	}
+	li {
+		margin: 0.5em 0;
+	}
+	button {
+		background: #FF4B33;
+		background-image: -webkit-linear-gradient(top, #FF4B33, #e83c25);
+		background-image: -moz-linear-gradient(top, #FF4B33, #e83c25);
+		background-image: -ms-linear-gradient(top, #FF4B33, #e83c25);
+		background-image: -o-linear-gradient(top, #FF4B33, #e83c25);
+		background-image: linear-gradient(to bottom, #FF4B33, #e83c25);
+		-webkit-border-radius: 28;
+		-moz-border-radius: 28;
+		border-radius: 28px;
+		font-family: Arial;
+		color: #ffffff;
+		font-size: 20px;
+		padding: 10px 20px 10px 20px;
+		text-decoration: none;
+		cursor: pointer;
+	}
+	.btn:hover {
+		text-decoration: none;
+	}
+	hr {
+		border: 2px solid #FF4B33;
+	}
+	h3 {
+		text-align: center;
+		margin: 0.5em auto;
+	}
+	.policy {
+		text-align: left;
+		white-space: pre-wrap;
+		padding: 1em;
+		border: 2px solid #FF4B33;
+		background-color: #FFE1DE;
+	}
+</style>
 </head>
 
 <body>
-  <div id="main">
-    <h1>Before you can use Octave Online&hellip;</h1>
-    <p>Octave Online is a web UI for GNU Octave, the open-source alternative to MATLAB.  Thousands of students, educators, and researchers fr\
-om around the world use Octave Online each day for studying machine learning, control systems, numerical methods, and more.</p>
-    <p>You are in control of your personal data. Please read our Privacy Policy below and provide your explicit consent.</p>
-    <blockquote class="policy">
-Octave Online LLC values the privacy of our users.  In order to provide excellent software, we collect and save the following information:
+	<div id="main">
+		<h1 class="header-svg"><!-- Logo SVG --></h1>
+		<p class="max-width"><strong>GDPR Compliance:</strong>  We value your privacy.  Before using <span class="notranslate">Octave Online</span>, please consent to our privacy policy:</p>
+		<ul class="max-width">
+			<li>&#x25BA; Your commands, script files, and other site activity are processed and stored by us and by Google Analytics.</li>
+			<li>&#x25BA; We store cookies on your computer.</li>
+			<li>&#x25BA; You can read the full policy below and can open a support ticket for any inquiries.</li>
+		</ul>
+		<div id="google_translate_element"></div>
+		<p><button>I consent! Continue to <span class="notranslate">Octave Online</span></button></p>
+		<hr/>
+		<p><span class="notranslate">Octave Online</span> is a web UI for <span class="notranslate">GNU Octave</span>, the open-source alternative to <span class="notranslate">MATLAB</span>.  Thousands of students, educators, and researchers from around the world use <span class="notranslate">Octave Online</span> each day for studying machine learning, control systems, numerical methods, and more.</p>
 
-- Scripts and other files you upload to or edit in Octave Online.
-- Historical transcripts of Octave commands and output, which may be associated with your account or IP address.
-- When using Email Sign In: your email address.
-- When using Google+ Sign In: your email address, name, and basic Google account information, including gender and locale.
-
-The above information is stored primarily in Chicago, Illinois, USA on a server provided by Rackspace, Inc.  Additional copies of the data may be stored as backups in other physical locations and not necesarilly in the Rackspace network.  The information may be stored indefinitely.
-
-Deleting a file from your account on your own may not constitute full deletion from our servers.  If you are concerned about full deletion of a certain piece of data, you may open a support request.
-
-Your activity in Octave Online is recorded by Google Analytics.  Google Analytics may use Google AdSense cookies in your browser to record demographics about the users of Octave Online, including, but not limited to, age and gender.  Note that this information is NOT personally identifiable.  You may opt out from Google Analytics by following the instructions on the following URL.
-
-https://tools.google.com/dlpage/gaoptout/
-
-Unless required by law, we do not give or sell personally identifiable information to third parties.
-
-If you lose your email address, you may open a support ticket asking to restore access to your account. We will ask you questions about your old account to verify your identity. It is your responsibility to protect information about the files in your account so that no one can wrongfully gain access.
-
-Octave Online LLC reserves the right to send you email announcements about Octave Online.  Such announcements will be released only for major updates and reports.
-
-Octave Online LLC may also save cookies to your computer.  These cookies help us keep you logged in during a session and between sessions.  Disabling cookies will limit the features we are able to provide.
-
-If you have any questions about Octave Online's privacy policy, please contact us at: webmaster@octave-online.net
-</blockquote>
-	<p>
-	  <img src="/images/touch-icons/120.png" />
-	</p>
-  </div>
+		<blockquote class="policy"><h3>Full Privacy Policy</h3><!-- Privacy TXT --></blockquote>
+	</div>
+	<script type="text/javascript">
+		function googleTranslateElementInit() {
+			new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL, autoDisplay: true}, 'google_translate_element');
+		}
+	</script>
+	<script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

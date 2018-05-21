@@ -10,6 +10,12 @@ function getJsTimestamp() {
 	return fs.statSync("dist/js/app.js").mtime.valueOf();
 }
 
+function getFileUtf8(filepath) {
+	return function() {
+		return fs.readFileSync(filepath).toString("utf-8");
+	}
+}
+
 module.exports = function (grunt) {
 	grunt.loadNpmTasks("grunt-contrib-requirejs");
 	grunt.loadNpmTasks("grunt-contrib-stylus");
@@ -119,7 +125,7 @@ module.exports = function (grunt) {
 				]
 			},
 			html: {
-				src: ["dist/index.html"],
+				src: ["dist/index.html", "dist/gdpr.html", "dist/privacy.txt"],
 				actions: [
 					{
 						name: "requirejs",
@@ -138,7 +144,25 @@ module.exports = function (grunt) {
 						search: "\\{!css-timestamp!\\}",
 						replace: getCssTimestamp,
 						flags: "g"
-					}
+					},
+					{
+						name: "logo-svg",
+						search: "<!-- Logo SVG -->",
+						replace: getFileUtf8("app/images/logo-black.svg"),
+						flags: "g"
+					},
+					{
+						name: "privacy-txt",
+						search: "<!-- Privacy TXT -->",
+						replace: getFileUtf8("app/privacy_standalone.txt"),
+						flags: "g"
+					},
+					{
+						name: "eula-txt",
+						search: "<!-- EULA TXT -->",
+						replace: getFileUtf8("app/eula.txt"),
+						flags: "g"
+					},
 				]
 			}
 		},
