@@ -119,7 +119,7 @@ define(["jquery", "knockout", "js/anal"], function($, ko, anal){
 					lo = mid;
 				}
 			}
-			if (value === getter(arr[lo])) {
+			if (lo < arr.length && value === getter(arr[lo])) {
 				return arr[lo];
 			}
 			return null;

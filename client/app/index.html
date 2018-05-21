@@ -2,11 +2,11 @@
 <html>
 <head>
 
-	<title>Octave Online: Free Interface compatible with MATLAB</title>
+	<title>Octave Online · Cloud IDE compatible with MATLAB</title>
 
 	<!-- Standard Meta Tags -->
 	<meta name="description"
-	content="Free and easy computational engine in your browser. Interactive editor and prompt. iPad and mobile touch compatible. Powered by GNU Octave."/>
+	content="Free interactive development environment for scientific computing. Use Octave on Chromebook, iPad, tablet, or smartphone. Cloud IDE for GNU Octave."/>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
 	<link rel="icon" href="favicon.ico" type="image/x-icon"/>
@@ -257,7 +257,9 @@
 						<div id="type_here" aria-hidden="true">
 							<span class="l1">Octave Command Prompt</span>
 							<span class="l2">Type expressions here and press enter.</span>
+							<!-- ko ifnot: currentUser() -->
 							<span class="l3">Tip: <a href="javascript:void(0)" id="sign_in_shortcut">Sign in</a> to run script files.</span>
+							<!-- /ko -->
 						</div>
 						<span id="plot_opener" title="Expand Plot Window" data-bind="click: togglePlot"></span>
 					</div>
@@ -516,7 +518,7 @@
 <div id="login-promo" aria-hidden="true">
 	<span class="l1">Want to use</span>
 	<span class="l2">scripts?</span>
-	<span class="l3">Sign in to make script files that you can share with colleagues.</span>
+	<span class="l3">Sign in to create and share script files.</span>
 	<span class="l4" data-purpose="close">dismiss</span>
 </div>
 <div id="bucket-promo" aria-hidden="true">

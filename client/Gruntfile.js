@@ -94,6 +94,7 @@ module.exports = function (grunt) {
 						"favicon.ico",
 						"privacy.txt",
 						"compatibility.html",
+						"gdpr.html",
 						"images/**",
 						"errors/**",
 						"fonts/**",
