@@ -223,7 +223,7 @@ define(
 		/* * * * END EDITOR/CONSOLE/PROMPT, START GUI * * * */
 
 		// Privacy Policy
-		$.get("privacy.txt", function (data) {
+		$.get("privacy.txt?{!privacy-timestamp!}", function (data) {
 			$("#privacy").find("article").text(data);
 		});
 		$("#privacy").find("[data-purpose='close']").click(function () {
