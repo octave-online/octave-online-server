@@ -78,8 +78,52 @@
 		border: 2px solid #FF4B33;
 		background-color: #FFE1DE;
 	}
+	#overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 100;
+		background-color: #FF715E;
+	}
+	#overlay > div {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 100%;
+		height: 100%;
+	}
+	#overlay > div > div {
+		position: absolute;
+		top: -120px;
+		left: -200px;
+		width: 400px;
+		height: 240px;
+		overflow: hidden;
+		box-sizing: border-box;
+		padding: 10px 20px;
+		background-color: white;
+		text-align: center;
+	}
+	#overlay h2 {
+		margin: 0 0 15px;
+		padding: 0;
+	}
+	#overlay p {
+		margin: 0 0 15px;
+	}
+	.highlight {
+		color: #FF4B33;
+	}
 </style>
 </head>
+
+<script>
+	function moreInfo() {
+		document.getElementById("overlay").style.display = "none";
+	}
+</script>
 
 <body>
 	<div id="main">
@@ -97,6 +141,20 @@
 
 		<blockquote class="policy"><h3>Full Privacy Policy</h3><!-- Privacy TXT --></blockquote>
 	</div>
+	<div id="overlay"><div><div>
+		<p>
+			<h2 class="highlight">GDPR Compliance</h2>
+		</p>
+		<p>
+			We use <span class="highlight">cookies</span> and may record your <span class="highlight">IP address</span> with site activity.
+		</p>
+		<p>
+			<button onclick="consent()">I agree; continue</button>
+		</p>
+		<p>
+			<a href="javascript:moreInfo()">More Info</a>
+		</p>
+	</div></div></div>
 	<script type="text/javascript">
 		function googleTranslateElementInit() {
 			new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL, autoDisplay: true}, 'google_translate_element');
