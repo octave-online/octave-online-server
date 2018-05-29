@@ -9,8 +9,8 @@ function silent(messageRegex, _next) {
 		if (err && !messageRegex.test(err.message)) {
 			return _next.apply(this, arguments);
 		} else if (err) {
-			mlog.trace(err.message.split("\n")[0], "(regex: " + messageRegex + ")");
-			// mlog.warn(arguments);
+			// May 2018: The message could contain email-based identifiers. Do not log the full message.
+			mlog.trace("Message suppressed (regex: " + messageRegex + ")");
 		}
 		var args = Array.prototype.slice.call(arguments, 1);
 		args.unshift(null);

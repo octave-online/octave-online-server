@@ -53,7 +53,10 @@ class GitUtil {
 				child_process.execFile("git", ["--git-dir=.", `--work-tree=${workDir}`, "init"], this.execOptions, _next);
 			},
 			(_next) => {
-				this._mlog.info("Setting origin:", remote);
+				// May 2018: Do not log email-based Git URL
+				const idx = remote.indexOf("_");
+				const safeOrigin = (idx === -1) ? remote : remote.substr(0, idx) + "_…";
+				this._mlog.info("Setting origin:", safeOrigin);
 				child_process.execFile("git", ["remote", "add", "origin", remote], this.execOptions, _next);
 			},
 			(_next) => {
