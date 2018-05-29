@@ -14,6 +14,7 @@ import Local = require("passport-local");
 import Mailgun = require("mailgun-js");
 import Persona = require("passport-persona");
 import User = require("./user_model");
+import Utils = require("./utils");
 
 var baseUrl = Config.url.protocol + "://" + Config.url.hostname
 	+ ":" + Config.url.port + "/";
@@ -85,15 +86,16 @@ var googleStrategy = new (GoogleOAuth.OAuth2Strategy)({
 		clientSecret: Config.google.oauth_secret
 	},
 	function (accessToken, refreshToken, profile, done) {
-		console.log("Google Login", profile.emails[0].value);
-		findOrCreateUser(profile.emails[0].value, profile._json, done);
+		const email = profile.emails[0].value;
+		console.log("Google Login", Utils.emailHash(email));
+		findOrCreateUser(email, profile._json, done);
 	});	
 
 var personaStrategy = new (Persona.Strategy)({
 		audience: baseUrl
 	},
 	function (email, done) {
-		console.log("Persona Callback", email);
+		console.log("Persona Callback", Utils.emailHash(email));
 		findOrCreateUser(email, { method: "persona" }, done);
 	});
 
@@ -120,13 +122,13 @@ var easyStrategy = new (EasyNoPassword.Strategy)({
 			if (err) {
 				console.error("Failed sending email:", email, info);
 			} else {
-				console.log("Sent token email:", email);
+				console.log("Sent token email:", Utils.emailHash(email));
 			}
 			done(null);
 		});
 	},
 	function (email, done) {
-		console.log("Easy Callback", email);
+		console.log("Easy Callback", Utils.emailHash(email));
 		findOrCreateUser(email, { method: "easy" }, done);
 	});
 
@@ -137,10 +139,11 @@ var passwordStrategy = new (Local.Strategy)({
 	function(username, password, done) {
 		findWithPassword(username, password, function(err, status, user) {
 			if (err) return done(err);
-			console.log("Password Callback", status, username);
 			if (status === PasswordStatus.UNKNOWN || status == PasswordStatus.INCORRECT) {
+				console.log("Password Callback Failure", status);
 				return done(null, false);
 			} else {
+				console.log("Password Callback Success", status, user.consoleText);
 				return done(null, user);
 			}
 		});

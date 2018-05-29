@@ -62,7 +62,9 @@ implements IWorkspace {
 
 	private log(..._args:any[]):void {
 		var args = Array.prototype.slice.apply(arguments);
-		args.unshift("<" + this.wsId + ">");
+		// May 2018: remove email-based IDs from log
+		const safeWsId = this.wsId && this.wsId.substr(0, 8);
+		args.unshift("<" + safeWsId + ">");
 		this.emit("log", args);
 	}
 
@@ -274,7 +276,7 @@ implements IWorkspace {
 				this.user = user;
 				if (user) {
 					this.setWsId(user.parametrized);
-					this.log("Connecting to student:", user.parametrized);
+					this.log("Connecting to student:", user.consoleText);
 					this.emit("data", "userinfo", user);
 				} else if (!this.wsId) {
 					this.log("WARNING: Could not find student with share key", this.shareKey);

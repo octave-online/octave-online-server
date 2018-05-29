@@ -9,6 +9,7 @@ import Mongoose = require("mongoose");
 import Crypto = require("crypto");
 import Bcrypt = require("bcrypt");
 import Config = require("./config");
+import Utils = require("./utils");
 
 // Patch for https://github.com/Automattic/mongoose/issues/4951
 Mongoose.Promise = <any> global.Promise
@@ -82,10 +83,11 @@ userSchema.virtual("displayName").get(function () {
 });
 
 // Returns a string containing information about this user
+// May 2018: Do not log email in consoleText
 userSchema.virtual("consoleText").get(function () {
-	return "[User " + this.id + ": "
-		+ this.displayName + ", "
-		+ this.parametrized + "]";
+	const safeEmail = Utils.emailHash(this.email);
+	const safeParameterized = this.parametrized && this.parametrized.substr(0, 8);
+	return "[User " + this.id + "; " + safeEmail + "; param:" + safeParameterized + "_…]";
 });
 
 // Return the legalTime and payloadLimit for this user, which usually falls back to the default unless a value is explicitly set in the database.  The camel-case name of these fields is for backwards compatibility.
@@ -125,19 +127,19 @@ userSchema.pre("save", function(next){
 // Instance methods for shared workspace keys
 (<any>userSchema).methods.createShareKey = function(next){
 	this.share_key = randomAlphaString(48);
-	console.log("Creating share key for user", this.parametrized, this.share_key);
+	console.log("Creating share key for user", this.consoleText, this.share_key);
 	this.save(next);
 };
 (<any>userSchema).methods.removeShareKey = function(next){
 	this.share_key = null;
-	console.log("Removing share key from user", this.parametrized);
+	console.log("Removing share key from user", this.consoleText);
 	this.save(next);
 };
 
 // Instance methods for password hashes
 (<any>userSchema).methods.setPassword = function(password, next){
 	var self = this;
-	console.log("Setting password for user", this.parametrized);
+	console.log("Setting password for user", this.consoleText);
 	if (!password) {
 		process.nextTick(function() {
 			self.password_hash = "";
@@ -153,7 +155,7 @@ userSchema.pre("save", function(next){
 	}
 };
 (<any>userSchema).methods.checkPassword = function(password, next){
-	console.log("Checking password for user", this.parametrized);
+	console.log("Checking password for user", this.consoleText);
 	if (!this.password_hash || !password) {
 		// Fail if no password is set on user
 		process.nextTick(function() {
