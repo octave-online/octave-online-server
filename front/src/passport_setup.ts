@@ -117,7 +117,7 @@ var easyStrategy = new (EasyNoPassword.Strategy)({
 			from: "Octave Online <webmaster@octave-online.net>",
 			to: email,
 			subject: "Octave Online Login",
-			text: `Thanks for using Octave Online.  Your login token is: ${token}\n\nYou can also click the following link.\n\n${url}\n\nMore Info: When you want to sign in to Octave Online, you will receive an email with your token.  This eliminates the need for you to create and remember a password for Octave Online.`
+			text: `Your login token for Octave Online is: ${token}\n\nYou can also click the following link.\n\n${url}\n\nOnce you have signed into your account, you may optionally set a password to speed up the sign-in process.  To do this, open the menu and click Change Password.`
 		}, (err, info) => {
 			if (err) {
 				console.error("Failed sending email:", email, info);
