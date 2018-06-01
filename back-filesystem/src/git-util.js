@@ -15,9 +15,15 @@ class GitUtil {
 		this._mlog = logger(`git-util:${logMemo}:minor`);
 		this.execOptions = { cwd: gitDir };
 		this.readonly = false;
+		this._initialized = false;
+		// TODO: Prevent multiple git operations from taking place simultaneously.
 	}
 
 	initialize(user, workDir, next) {
+		if (this._initialized) {
+			this._log.error("Initializing a repository for a user that was already initialized");
+			return;
+		}
 		const remote = this._userToRemote(user);
 		async.series([
 			(_next) => {
@@ -30,6 +36,10 @@ class GitUtil {
 	}
 
 	initializeBucket(bucketId, workDir, readonly, next) {
+		if (this._initialized) {
+			this._log.error("Initializing a repository for a bucket that was already initialized");
+			return;
+		}
 		this.readonly = readonly;
 		const remote = this._bucketToRemote(bucketId);
 		async.series([
@@ -60,12 +70,20 @@ class GitUtil {
 				child_process.execFile("git", ["remote", "add", "origin", remote], this.execOptions, _next);
 			},
 			(_next) => {
-				this.pullPush("Scripted initialize repository", _next);
+				this._pull(_next);
+			},
+			(_next) => {
+				this._initialized = true;
+				_next(null);
 			}
 		], next);
 	}
 
 	pullPush(message, next) {
+		if (!this._initialized) {
+			// Trying to sync the repo before it has been initialized; do not attempt to push, because no local changes are possible.
+			return next(null);
+		}
 		if (this.readonly) {
 			return this._pull(next);
 		} else {
@@ -102,7 +120,7 @@ class GitUtil {
 			},
 			(_next) => {
 				this._mlog.debug("Finished pull-push");
-				_next();
+				_next(null);
 			}
 		], next);
 	}
@@ -110,7 +128,7 @@ class GitUtil {
 	_pull(next) {
 		async.series([
 			(_next) => {
-				this._mlog.debug("READONLY: Preparing to pull...");
+				this._mlog.debug("Preparing to pull...");
 				_next();
 			},
 			(_next) => {
@@ -122,7 +140,7 @@ class GitUtil {
 				child_process.execFile("git", ["merge", "origin/master"], this.execOptions, silent(/not something we can merge/, silent(/.*/, _next)));
 			},
 			(_next) => {
-				this._mlog.debug("READONLY: Finished pull");
+				this._mlog.debug("Finished pull");
 				_next();
 			}
 		], next);
