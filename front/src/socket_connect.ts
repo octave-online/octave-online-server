@@ -82,6 +82,7 @@ class SocketHandler implements IDestroyable {
 				// Fork to load instructor data and buckets
 				this.loadInstructor();
 				this.loadUserBuckets();
+				this.touchUser();
 
 				// Process the user's requested action
 				var action = init && init.action;
@@ -317,6 +318,16 @@ class SocketHandler implements IDestroyable {
 			}
 			this.log("Loaded", buckets.length, "buckets for user", this.user.consoleText);
 			this.socket.emit("all-buckets", { buckets });
+		});
+	}
+
+	private touchUser = ():void => {
+		if (!this.user) return;
+		this.user.touchLastActivity((err) => {
+			if (err) {
+				this.log("TOUCH ACTIVITY ERROR", err);
+				return;
+			}
 		});
 	}
 

@@ -28,6 +28,10 @@ var userSchema = new Mongoose.Schema({
 	password_hash: String,
 	legal_time_override: Number,
 	payload_limit_override: Number,
+	last_activity: {
+		type: Date,
+		default: Date.now
+	},
 	program: String,
 	instructor: [String]
 });
@@ -164,6 +168,13 @@ userSchema.pre("save", function(next){
 	} else {
 		Bcrypt.compare(password, this.password_hash, next);
 	}
+};
+
+// Other instance methods
+(<any>userSchema).methods.touchLastActivity = function(next){
+	console.log("Touching last activity", this.consoleText);
+	this.last_activity = new Date();
+	this.save(next);
 };
 
 // Make sure the fields are initialized
