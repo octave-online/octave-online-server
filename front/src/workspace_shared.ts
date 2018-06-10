@@ -212,13 +212,13 @@ implements IWorkspace {
 		var oldDocId = "doc." + this.wsId + "." + oldhash;
 		var newDocId = "doc." + this.wsId + "." + newhash;
 
+		// May 2018: do not log email-based identifiers
 		if (!this.docs[oldDocId]) {
-			this.log("WARNING: Attempted to resolve file rename, but couldn't find old file in shared workspace:", oldname, newname, oldDocId, newDocId);
+			this.log("WARNING: Attempted to resolve file rename, but couldn't find old file in shared workspace:", oldname, newname, this.wsId.substr(0, 8));
 			return;
 		}
-
 		if (this.docs[newDocId]) {
-			this.log("WARNING: Attempted to resolve file rename, but the new name already exists in the workspace:", oldname, newname, oldDocId, newDocId);
+			this.log("WARNING: Attempted to resolve file rename, but the new name already exists in the workspace:", oldname, newname, this.wsId.substr(0, 8));
 			return;
 		}
 
@@ -242,8 +242,9 @@ implements IWorkspace {
 		var hash = Crypto.createHash("md5").update(filename).digest("hex");
 		var docId = "doc." + this.wsId + "." + hash;
 
+		// May 2018: do not log email-based identifiers
 		if (!this.docs[docId]) {
-			this.log("WARNING: Attempted to resolve file delete, but couldn't find file in shared workspace:", filename, docId);
+			this.log("WARNING: Attempted to resolve file delete, but couldn't find file in shared workspace:", filename, this.wsId.substr(0, 8));
 			return;
 		}
 
