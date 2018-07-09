@@ -21,6 +21,8 @@ Note:
 **npm** is used to manage the build system dependencies.
 **Bower** is a front-end dependency manager.
 
+Finally, you need to create a file *config.json* in this directory.  Use the same format as in the Octave Online Server: Back Server project.  If both projects are running on the same host, you can use a symlink.
+
 ## Building
 
 To build the distribution version of Octave Online Client, simply run Grunt:

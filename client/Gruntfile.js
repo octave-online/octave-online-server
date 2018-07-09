@@ -21,6 +21,7 @@
 "use strict";
 
 const fs = require("fs");
+const config = require("./config.json");
 
 function getCssTimestamp() {
 	return fs.statSync("dist/css/themes/fire.css").mtime.valueOf();
@@ -150,6 +151,12 @@ module.exports = function (grunt) {
 						name: "privacy-timestamp",
 						search: "\\{!privacy-timestamp!\\}",
 						replace: getPrivacyTimestamp,
+						flags: "g"
+					},
+					{
+						name: "privacy-timestamp",
+						search: "parseInt\\(\"\\d+!config.session.payloadMessageDelay\"\\)",
+						replace: "" + config.session.payloadMessageDelay,
 						flags: "g"
 					}
 				]

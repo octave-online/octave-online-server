@@ -996,10 +996,9 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				OctMethods.prompt.startPayloadTimer(data.delay);
 
 				// Show the notification message after a small delay in order to let the output buffers flush first.
-				// TODO: Sync the delay with config.session.payloadMessageDelay
 				setTimeout(function(){
 					OctMethods.console.writeError("\nNOTICE: Execution paused due to large payload\n");
-				}, 100);
+				}, parseInt("105!config.session.payloadMessageDelay"));
 			},
 			init: function(){
 				// Regular session or shared session?
