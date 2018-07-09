@@ -1,7 +1,15 @@
-/**
- * This code is from Stack Overflow:
+/*
+ * Copyright © 2013 Jeremy (@jeremy.ca)
  *
- *   http://stackoverflow.com/a/16245768/1407170
+ * This work is licensed under the Creative Commons Attribution-ShareAlike 3.0
+ * Unported License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to Creative
+ * Commons, PO Box 1866, Mountain View, CA 94042, USA.
+ *
+ * This code is from Stack Overflow, retrieved from
+ * <http://stackoverflow.com/a/16245768/1407170>.
+ *
+ * More details: <https://stackoverflow.com/help/licensing>.
  */
 
 define("base64-toblob", ["base64", "blob"], function(Base64){

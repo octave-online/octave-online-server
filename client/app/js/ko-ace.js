@@ -1,3 +1,5 @@
+// Much of this file originates from https://github.com/probonogeek/knockout-ace/blob/master/knockout-ace.js
+
 define(["knockout", "ace/ace"], function(ko, ace){
 
 	ko.bindingHandlers.ace = {
