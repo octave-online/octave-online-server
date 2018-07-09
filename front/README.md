@@ -1,5 +1,5 @@
-Octave Online Front
-===================
+Octave Online Server: Front Server
+==================================
 
 This repository contains the code for the Socket.IO server.
 
