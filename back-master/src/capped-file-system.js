@@ -65,6 +65,7 @@ class CappedFileSystem extends OnlineOffline {
 				this._mlog.trace("Allocating space for filesystem...");
 				const imgFileName = path.join(this._tmpdir, IMG_FILE_NAME);
 				child_process.execFile("dd", ["if=/dev/zero", `of=${imgFileName}`, "bs=1k", `count=${this._size}`], (err, stdout, stderr) => {
+					if (stderr) err = new Error(stderr);
 					if (!err) this._cleanups.unshift((__next) => {
 						this._mlog.trace("Removing file system...");
 						fs.unlink(imgFileName, __next);

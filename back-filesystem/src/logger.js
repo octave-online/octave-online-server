@@ -35,12 +35,9 @@ logger.debug.formatArgs = function formatArgs() {
 	if (useColors) {
 		var c = this.color;
 
-		args[0] = '  \u001b[3' + c + ';1m' + name + ' '
-			+ '\u001b[0m'
-			+ args[0] + '\u001b[3' + c + 'm'
-			+ ' +' + logger.debug.humanize(this.diff) + '\u001b[0m';
+		args[0] = "  \u001b[3" + c + ";1m" + name + " "	+ "\u001b[0m"	+ args[0] + "\u001b[3" + c + "m" + " +" + logger.debug.humanize(this.diff) + "\u001b[0m";
 	} else {
 		args[0] = name + " " + args[0];
 	}
 	return args;
-}
+};

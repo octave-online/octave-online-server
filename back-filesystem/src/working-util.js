@@ -138,7 +138,7 @@ class WorkingUtil {
 				}]);
 			} else {
 				fs.readFile(pathname, (err, buf) => {
-					if (err) return ___next(err);
+					if (err) return next(err);
 					buf = this._convertCharset(buf);
 					next(null, [{
 						filename: relname,

@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "description": "Reads and writes to an Octave session working directory",
   "main": "app.js",
-  "scripts": {},
+  "scripts": {
+    "lint": "eslint **/*.js"
+  },
   "author": "Shane F. Carr",
   "license": "AGPL-3.0",
   "private": true,
@@ -16,5 +18,8 @@
     "node-icu-charset-detector": "^0.1.4",
     "socketio-file-upload": "^0.4.4",
     "sprintf-js": "^1.0.3"
+  },
+  "devDependencies": {
+    "eslint": "^5.1.0"
   }
 }

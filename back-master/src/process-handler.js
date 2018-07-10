@@ -21,10 +21,8 @@
 "use strict";
 
 const async = require("async");
-const child_process = require("child_process");
 const logger = require("@oo/shared").logger;
 const StdioMessenger = require("@oo/shared").StdioMessenger;
-const config = require("@oo/shared").config;
 
 class ProcessHandler extends StdioMessenger {
 	constructor(sessCode) {
@@ -41,10 +39,10 @@ class ProcessHandler extends StdioMessenger {
 				this._spwn = fn.apply(this, Array.prototype.slice.call(arguments, 2));
 
 				// Create all unexpected error listeners
-				this._spwn.on("error", (err) => { this._log.error("spwn:", err) });
-				this._spwn.stdin.on("error", (err) => { this._log.error("stdin:", err) });
-				this._spwn.stdout.on("error", (err) => { this._log.error("stdout:", err) });
-				this._spwn.stderr.on("error", (err) => { this._log.error("stderr:", err) });
+				this._spwn.on("error", (err) => { this._log.error("spwn:", err); });
+				this._spwn.stdin.on("error", (err) => { this._log.error("stdin:", err); });
+				this._spwn.stdout.on("error", (err) => { this._log.error("stdout:", err); });
+				this._spwn.stderr.on("error", (err) => { this._log.error("stderr:", err); });
 
 				// Create stderr listener
 				this._spwn.stderr.on("data", this._handleLog.bind(this));
@@ -57,7 +55,7 @@ class ProcessHandler extends StdioMessenger {
 
 				// Wait until we get an acknowledgement before continuing.  Two conditions: receipt of the acknowledgement message, and premature exit.
 				var ack = false;
-				this.once("message", (name, content) => {
+				this.once("message", (name /*, content */) => {
 					if (ack) return;
 					ack = true;
 
@@ -76,7 +74,7 @@ class ProcessHandler extends StdioMessenger {
 		});
 	}
 
-	_doDestroy(next) {
+	_doDestroy(/* next */) {
 		// This method wont't be called unless the process state is ONLINE, so we don't need to check.
 		// We can ignore the "next" callback because it will be implicitly called by _handleExit()
 		this._log.trace("Sending SIGTERM");

@@ -42,7 +42,7 @@ class StdioMessenger extends OnlineOffline {
 		// TODO: Will the JSONStreamSafe ever be garbage collected?  The underlying stream will be closed when the session dies; is that sufficient?  Is it dangerous that the callback references "this"?
 		this._readStream = new JSONStreamSafe(stream);
 		this._readStream.on("data", this._handleData.bind(this));
-		this._readStream.on("error", (err) => { this.emit("error", err) });
+		this._readStream.on("error", (err) => { this.emit("error", err); });
 	}
 
 	setWriteStream(stream) {

@@ -28,9 +28,7 @@ const config = require("@oo/shared").config;
 const async = require("async");
 const silent = require("@oo/shared").silent;
 const child_process = require("child_process");
-const path = require("path");
 const logger = require("@oo/shared").logger;
-const mkdirp = require("mkdirp");
 const pstree = require("ps-tree");
 const temp = require("temp");
 const OnlineOffline = require("@oo/shared").OnlineOffline;
@@ -152,7 +150,7 @@ class HostProcessHandler extends ProcessHandler {
 				// We need to get the octave-cli PID for signalling, because sandbox handles signals strangely.
 				this.octavePID = null;
 				async.whilst(
-					() => { return !this.octavePID && this._state !== "DESTROYED" },
+					() => { return !this.octavePID && this._state !== "DESTROYED"; },
 					(__next) => {
 						async.waterfall([
 							(___next) => {
@@ -163,7 +161,7 @@ class HostProcessHandler extends ProcessHandler {
 								pstree(this._spwn.pid, ___next);
 							},
 							(children, ___next) => {
-								let child = children.find((_child) => { return /octave-cli/.test(_child.COMMAND) });
+								let child = children.find((_child) => { return /octave-cli/.test(_child.COMMAND); });
 								if (child) {
 									this.octavePID = child.PID;
 									this._mlog.debug("Got Octave PID:", this.octavePID);

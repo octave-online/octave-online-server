@@ -39,6 +39,6 @@ function timeLimit(milliseconds, defaults, callback) {
 	return function() {
 		normalCallbackRef.apply(null, arguments);
 	};
-};
+}
 
 module.exports = timeLimit;

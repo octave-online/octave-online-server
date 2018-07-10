@@ -31,7 +31,11 @@ const fs = require("fs");
 
 //const PORT = 5123;
 const SOCKET_PATH = "/var/run/oosocks/auth.sock";
-try { fs.unlinkSync(SOCKET_PATH); } catch(err) {}
+try {
+	fs.unlinkSync(SOCKET_PATH);
+} catch(err) {
+	// ignored; socket file might not exist
+}
 console.log("Listening on UNIX socket " + SOCKET_PATH);
 
 mongoose.connect("mongodb://127.0.0.1: " + config.mongo.port + "/" + config.mongo.db);
@@ -113,6 +117,5 @@ function prompt(res, message) {
 }
 
 setInterval(() => {
-	console.log("Mongo: " + benchmarkMongoAvg + " (" + benchmarkMongoCnt + " reqs); "
-	           +"Bcrypt: "+ benchmarkBcryptAvg+ " (" + benchmarkBcryptCnt+ " reqs)");
+	console.log("Mongo: " + benchmarkMongoAvg + " (" + benchmarkMongoCnt + " reqs); " + "Bcrypt: "+ benchmarkBcryptAvg+ " (" + benchmarkBcryptCnt+ " reqs)");
 }, 86400000);

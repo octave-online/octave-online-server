@@ -21,8 +21,8 @@
 "use strict";
 
 const EventEmitter = require("events");
-const log = require("./logger")("online-offline");
 const Queue = require("./queue");
+// const log = require("./logger")("online-offline");
 
 /**
  * This is a class that handles safely creating and destroying something asynchronously.
@@ -43,13 +43,14 @@ class OnlineOffline extends EventEmitter {
 	create(next) {
 		next = next || function(){};
 		switch (this._state) {
-			case "INIT":
+			case "INIT": {
 				this._state = "CREATING";
 				this._createCBs.enqueue(next);
 				let args = Array.prototype.slice.call(arguments, 1);
 				args.unshift(this._afterCreate.bind(this));
 				this._doCreate.apply(this, args);
 				break;
+			}
 
 			case "CREATING":
 			case "PENDING-DESTROY":
@@ -123,13 +124,14 @@ class OnlineOffline extends EventEmitter {
 	destroy(next) {
 		next = next || function(){};
 		switch (this._state) {
-			case "ONLINE":
+			case "ONLINE": {
 				this._state = "DESTROYING";
 				this._destroyCBs.enqueue(next);
 				let args = Array.prototype.slice.call(arguments, 1);
 				args.unshift(this._afterDestroy.bind(this));
 				this._doDestroy.apply(this, args);
 				break;
+			}
 
 			case "CREATING":
 			case "PENDING-DESTROY":

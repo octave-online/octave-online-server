@@ -32,4 +32,4 @@ module.exports = {
 	silent: require("./silent"),
 	StdioMessenger: require("./stdio-messenger"),
 	timeLimit: require("./time-limit"),
-}
+};

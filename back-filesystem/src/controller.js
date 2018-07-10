@@ -53,7 +53,7 @@ class FilesController extends EventEmitter {
 
 	receiveMessage(name, content) {
 		switch (name) {
-			case "user-info":
+			case "user-info": {
 				this.user = content.user;
 				if (this.user) {
 					this._log.info("Received user:", this.user.consoleText);
@@ -93,8 +93,9 @@ class FilesController extends EventEmitter {
 					});
 				});
 				break;
+			}
 
-			case "bucket-info":
+			case "bucket-info": {
 				this.bucketId = content.id;
 				this._legalTime = content.legalTime; // FIXME: For backwards compatibility
 				// If content.readonly is false, this request is for creating the bucket.  If content.readonly is true, this request is for reading from the bucket.
@@ -121,8 +122,9 @@ class FilesController extends EventEmitter {
 					});
 				});
 				break;
+			}
 
-			case "list":
+			case "list": {
 				if (!this._isInitialized()) return this._mlog.debug("Won't perform action on uninitialized repository");
 				this._mlog.debug("Listing files...");
 				async.waterfall([
@@ -140,8 +142,9 @@ class FilesController extends EventEmitter {
 					});
 				});
 				break;
+			}
 
-			case "refresh":
+			case "refresh": {
 				if (!this._isInitialized()) return this._mlog.debug("Won't perform action on uninitialized repository");
 				this._mlog.debug("Refreshing files...");
 				async.waterfall([
@@ -161,11 +164,12 @@ class FilesController extends EventEmitter {
 					});
 				});
 				break;
+			}
 
-			case "commit":
+			case "commit": {
 				if (!this._isInitialized()) return this._fail("committed", "debug", "Won't perform action on uninitialized repository");
 				// NOTE: In a readonly repository (buckets), this is a no-op.
-				var comment = content.comment;
+				const comment = content.comment;
 				if (!comment) return this._fail("committed", "warn", "Empty comment:", comment);
 				this._mlog.debug("Committing files...");
 				async.waterfall([
@@ -178,10 +182,11 @@ class FilesController extends EventEmitter {
 					return this._sendMessage("committed", { success: true });
 				});
 				break;
+			}
 
-			case "save":
-				var filename = content.filename;
-				var value = content.content;
+			case "save": {
+				const filename = content.filename;
+				const value = content.content;
 				this._mlog.debug("Saving file:", filename);
 				if (!filename) return this._fail("saved", "warn", "Empty file name:", filename, value);
 				async.waterfall([
@@ -201,10 +206,11 @@ class FilesController extends EventEmitter {
 					});
 				});
 				break;
+			}
 
-			case "rename":
-				var oldname = content.filename;
-				var newname = content.newname;
+			case "rename": {
+				const oldname = content.filename;
+				const newname = content.newname;
 				if (!oldname || !newname) return this._fail("renamed", "warn", "Empty file name or new name:", oldname, newname);
 				this._mlog.debug("Renaming file:", oldname, newname);
 				async.waterfall([
@@ -217,9 +223,10 @@ class FilesController extends EventEmitter {
 					return this._sendMessage("renamed", { oldname, newname, success: true });
 				});
 				break;
+			}
 
-			case "delete":
-				var filename = content.filename;
+			case "delete": {
+				const filename = content.filename;
 				if (!filename) return this._fail("deleted", "warn", "Empty file name:", filename);
 				this._mlog.debug("Deleting file:", filename);
 				async.waterfall([
@@ -238,9 +245,10 @@ class FilesController extends EventEmitter {
 					});
 				});
 				break;
+			}
 
-			case "binary":
-				var filename = content.filename;
+			case "binary": {
+				const filename = content.filename;
 				if (!filename) return this._fail("binary", "warn", "Empty file name:", filename);
 				this._mlog.debug("Loading binary file:", filename);
 				async.waterfall([
@@ -258,9 +266,10 @@ class FilesController extends EventEmitter {
 					});
 				});
 				break;
+			}
 
-			case "read-delete-binary":
-				var filename = content.filename;
+			case "read-delete-binary": {
+				const filename = content.filename;
 				if (!filename) return this._fail("deleted-binary", "warn", "Empty file name:", filename);
 				this._mlog.debug("Loading and deleting binary file:", filename);
 				async.series([
@@ -271,8 +280,8 @@ class FilesController extends EventEmitter {
 					}
 				], (err, results) => {
 					if (err) return this._fail("deleted-binary", "error", err);
-					let base64data = results[0][0];
-					let mime = results[0][1];
+					const base64data = results[0][0];
+					const mime = results[0][1];
 					this._log.debug("File successfully loaded and deleted");
 					return this._sendMessage("deleted-binary", {
 						success: true,
@@ -282,10 +291,11 @@ class FilesController extends EventEmitter {
 					});
 				});
 				break;
+			}
 
-			case "multi-binary":
-				var filenames = content.filenames;
-				var responseName = "multi-binary:" + content.id;
+			case "multi-binary": {
+				const filenames = content.filenames;
+				const responseName = "multi-binary:" + content.id;
 				if (!Array.isArray(filenames)) return this._fail(responseName, "warn", "Invalid filename array:", filenames);
 				this._mlog.debug("Loading multiple files", responseName, filenames);
 				async.map(filenames, (filename, _next) => {
@@ -306,15 +316,16 @@ class FilesController extends EventEmitter {
 					});
 				});
 				break;
+			}
 
-			case "save-multi-binary":
-				var filenames = content.filenames;
-				var base64datas = content.base64datas;
-				var responseName = "multi-binary-saved:" + content.id;
+			case "save-multi-binary": {
+				const filenames = content.filenames;
+				const base64datas = content.base64datas;
+				const responseName = "multi-binary-saved:" + content.id;
 				if (!Array.isArray(filenames) || !Array.isArray(base64datas) || filenames.length !== base64datas.length) return this._fail(responseName, "warn", "Invalid array:", filenames, base64datas);
 				this._mlog.debug("Writing multiple files:", responseName, filenames);
 				async.times(filenames.length, (i, _next) => {
-					var buffer = new Buffer(base64datas[i], "base64");
+					const buffer = new Buffer(base64datas[i], "base64");
 					this.workingUtil.saveFile(filenames[i], buffer, _next);
 				}, (err, results) => {
 					if (err) return this._fail(responseName, "error", err);
@@ -325,11 +336,13 @@ class FilesController extends EventEmitter {
 					});
 				});
 				break;
+			}
 
 			// Send remaining messages to the fakeSocket
-			default:
+			default: {
 				this.fakeSocket.trigger(name, content);
 				break;
+			}
 		}
 	}
 

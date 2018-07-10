@@ -36,7 +36,7 @@ class MessageTranslator extends EventEmitter {
 			// MESSAGES NEEDING TRANSLATION:
 
 			// "request-input" is the newer version of "prompt", which provided a line number as an integer.  The line number needs to be extracted via regex for backwards compatibility.
-			case "request-input":
+			case "request-input": {
 				let match = content.match(/^octave:(\d+)>\s+$/);
 				let line_number = -1;
 				if (match) {
@@ -49,32 +49,36 @@ class MessageTranslator extends EventEmitter {
 				}
 				this._forDownstream(sessCode, "prompt", { line_number, prompt: content });
 				break;
+			}
 
 			// "out" and "err" need to be translated to "data" events
-			case "out":
+			case "out": {
 				this._forDownstream(sessCode, "data", {
 					type: "stdout",
 					data: content
 				});
 				break;
+			}
 
-			case "err":
+			case "err": {
 				// Send the error text doenstream
 				this._forDownstream(sessCode, "data", {
 					type: "stderr",
 					data: content
 				});
 				break;
+			}
 
 			// We need only the "ws" part of the "set-workspace" message
-			case "set-workspace":
+			case "set-workspace": {
 				this._forDownstream(sessCode, "workspace", {
 					vars: content.ws
 				});
 				break;
+			}
 
 			// The new "show-static-plot" needs to be broken into "plotd" (plot data) and "plote" (plot finished)
-			case "show-static-plot":
+			case "show-static-plot": {
 				let id = uuid.v4();
 				this._forDownstream(sessCode, "plotd", {
 					id: id,
@@ -86,23 +90,26 @@ class MessageTranslator extends EventEmitter {
 					command_number: content.command_number
 				});
 				break;
+			}
 
 			// "clc" control command:
-			case "clear-screen":
+			case "clear-screen": {
 				this._forDownstream(sessCode, "ctrl", {
 					command: "clc"
 				});
 				break;
+			}
 
 			// "doc" control command:
-			case "show-doc":
+			case "show-doc": {
 				this._forDownstream(sessCode, "ctrl", {
 					command: `url=http://octave.sourceforge.net/octave/function/${content}.html`
 				});
 				break;
+			}
 
 			// When come other command was suppressed due to length:
-			case "message-too-long":
+			case "message-too-long": {
 				if (content.name === "show-static-plot") {
 					log.trace("Plot message too long:", content);
 					this._forDownstream(sessCode, "data", {
@@ -113,38 +120,43 @@ class MessageTranslator extends EventEmitter {
 					log.warn("Unknown message too long:", content);
 				}
 				break;
+			}
 
 			// The "exit" event from octave_link:
-			case "exit":
+			case "exit": {
 				this._forDownstream(sessCode, "data", {
 					type: "exit",
 					code: content
 				});
 				break;
+			}
 
 			// The "exit" event from the child process:
 			case "docker-exit":
-			case "process-exit":
+			case "process-exit": {
 				this.emit("destroy", sessCode, "Shell Exited");
 				break;
+			}
 
 			// The event for when the Octave process is killed:
-			case "octave-killed":
+			case "octave-killed": {
 				this._forDownstream(sessCode, "data", {
 					type: "stderr",
 					data: "Error: Octave process killed.\nYou may have been using too much memory.\nYour memory cap is: " + config.docker.memoryShares + "\n"
 				});
 				break;
+			}
 
 			// Turn "destroy" into "destroy" on this instance
-			case "destroy":
+			case "destroy": {
 				this.emit("destroy", sessCode, content);
 				break;
+			}
 
 			// Filesystem events: if any of them fail, do not let the events bubble up, but show their error messages on stderr
 			case "saved":
 			case "renamed":
-			case "deleted":
+			case "deleted": {
 				// FIXME: The rendering of error messages should occur on the client side, not here.
 				if (content && !content.success) {
 					this._forDownstream(sessCode, "data", {
@@ -156,20 +168,25 @@ class MessageTranslator extends EventEmitter {
 					this._forDownstream(sessCode, name, content);
 					break;
 				}
+			}
 
 			// File list event (change name from "filelist" to "user")
-			case "filelist":
+			case "filelist": {
 				this._forDownstream(sessCode, "user", content);
+				break;
+			}
 
 			// MESSAGES THAT CAN BE IGNORED:
 			case "ack":
-			case "set-history":
+			case "set-history": {
 				break;
+			}
 
 			// REMAINING MESSAGES:
-			default:
+			default: {
 				this._forDownstream(sessCode, name, content);
 				break;
+			}
 		}
 	}
 

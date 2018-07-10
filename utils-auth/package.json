@@ -4,7 +4,7 @@
   "description": "Authenticates users accessing git repos on the back server",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint **/*.js"
   },
   "author": "Shane F. Carr",
   "license": "AGPL-3.0",
@@ -13,5 +13,8 @@
     "basic-auth": "^1.1.0",
     "bcrypt": "^1.0.1",
     "mongoose": "^4.0.6"
+  },
+  "devDependencies": {
+    "eslint": "^5.1.0"
   }
 }

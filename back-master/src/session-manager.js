@@ -26,7 +26,6 @@ const EventEmitter = require("events");
 const impls = require("./session-impl");
 const uuid = require("uuid");
 const Queue = require("@oo/shared").Queue;
-const async = require("async");
 const config = require("@oo/shared").config;
 const timeLimit = require("@oo/shared").timeLimit;
 
@@ -103,7 +102,7 @@ class SessionManager extends EventEmitter {
 		}));
 	}
 
-	attach(remoteCode, content, next) {		// Move pool session to online session
+	attach(remoteCode, content) {		// Move pool session to online session
 		if (!this.canAcceptNewSessions()) return log.warn("Cannot accept any new sessions right now");
 
 		// FIXME: Backwards compatibility with old front server: the message content can be the user itself; if null, it is a guest user.
@@ -225,9 +224,9 @@ class SessionManager extends EventEmitter {
 			if (Object.keys(this._pool).length < config.sessionManager.poolSize) {
 				this._create(_poolCb);
 			} else {
-				setTimeout(_poolCb, config.sessionManager.poolInterval)
+				setTimeout(_poolCb, config.sessionManager.poolInterval);
 			}
-		}
+		};
 		process.nextTick(_poolCb);
 	}
 

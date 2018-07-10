@@ -20,8 +20,6 @@
 
 "use strict";
 
-const async = require("async");
-const redis = require("redis");
 const EventEmitter = require("events");
 const logger = require("./logger");
 const redisUtil = require("./redis-util");
@@ -386,4 +384,4 @@ class RedisMessenger extends EventEmitter {
 	}
 }
 
-module.exports = RedisMessenger
+module.exports = RedisMessenger;

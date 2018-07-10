@@ -21,9 +21,9 @@
 "use strict";
 
 const redis = require("redis");
-const log = require("./logger")("redis-util");
 const mlog = require("./logger")("redis-util:minor");
 const config = require("./config.json");
+// const log = require("./logger")("redis-util");
 
 const PORT = config.redis.port;
 const HOSTNAME = config.redis.hostname;
@@ -32,7 +32,7 @@ const OPTIONS = config.redis.options;
 module.exports = {
 	createClient: () => {
 		mlog.debug("Connecting to Redis");
-		return redis.createClient(PORT, HOSTNAME, OPTIONS)
+		return redis.createClient(PORT, HOSTNAME, OPTIONS);
 	},
 
 	chan: {
@@ -59,4 +59,4 @@ module.exports = {
 		if (!match) throw new Error("Can't extract sessCode from channel name");
 		return match[2];
 	}
-}
+};

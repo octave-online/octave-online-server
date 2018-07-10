@@ -36,6 +36,6 @@ function silent(messageRegex, _next) {
 		args.unshift(null);
 		_next.apply(this, args);
 	};
-};
+}
 
 module.exports = silent;

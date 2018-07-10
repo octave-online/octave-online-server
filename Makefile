@@ -119,5 +119,11 @@ install-site-m:
 
 docker: docker-octave docker-files
 
+lint:
+	cd back-filesystem && npm run lint
+	cd back-master && npm run lint
+	cd shared && npm run lint
+	cd utils-auth && npm run lint
+
 clean:
 	if [[ -e bundle ]]; then rm -rf bundle; fi

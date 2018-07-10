@@ -102,7 +102,7 @@ class OctaveSession extends OnlineOffline {
 
 	// COUNTDOWN METHODS: For interrupting the Octave kernel after a fixed number of seconds to ensure a fair distribution of CPU time.
 	// Use an interval to signal Octave once after the first timeout and then repeatedly after that, until the kernel sends us a "request-input" event to signal that it is done processing commands.
-	_startCountdown(command) {
+	_startCountdown() {
 		if (this._countdownTimer) return;
 		if (this._state !== "ONLINE") return;
 
@@ -207,7 +207,7 @@ class OctaveSession extends OnlineOffline {
 		let _next = timeLimit(config.git.commitTimeLimit, [new Error("Out of time")], next);
 
 		// Call the callback when a "committed" message is received
-		this._onceMessageFromFiles("committed", () => { _next(null); })
+		this._onceMessageFromFiles("committed", () => { _next(null); });
 
 		// Request the commit
 		this._sendMessageToFiles("commit", { comment });
@@ -227,7 +227,7 @@ class OctaveSession extends OnlineOffline {
 		let imageNames = [];
 		let regex = /xlink:href='(\w+).png'/g;
 		let match;
-		while (match = regex.exec(content.content)) {
+		while ((match = regex.exec(content.content))) {
 			imageNames.push(match[1]);
 		}
 		if (imageNames.length === 0) return false;
@@ -296,7 +296,7 @@ class OctaveSession extends OnlineOffline {
 
 			// Check if the hostname is legal
 			if (urlObj.hostname === null) {
-				this._sendMessageToHost("request-url-answer", [false, `You must specify a URL of the form http://example.com/`]);
+				this._sendMessageToHost("request-url-answer", [false, "You must specify a URL of the form http://example.com/"]);
 				return;
 			}
 			let isLegal = false;
@@ -407,7 +407,7 @@ class OctaveSession extends OnlineOffline {
 			"session": (_next) => {
 				// Create a Git session for the new bucket.
 				const session = this._makeNewFileSession("create-bucket:" + bucketId);
-				session.on("message", (name, content) => {
+				session.on("message", (name /*, content */) => {
 					this._mlog.trace("Bucket file session message:", name);
 				});
 				session.on("error", (err) => {
@@ -459,7 +459,7 @@ class OctaveSession extends OnlineOffline {
 		}, (err) => {
 			if (err) {
 				this._log.error("Error creating bucket:", err);
-				this.emit("message", "err", "Encountered an error creating the bucket.\n")
+				this.emit("message", "err", "Encountered an error creating the bucket.\n");
 			} else {
 				this._log.info("Finished creating new bucket:", bucketId);
 				this.emit("message", "bucket-repo-created", bucketInfo);
@@ -528,7 +528,7 @@ class OctaveSession extends OnlineOffline {
 			case "cmd":
 				// FIXME: The following translation (from content to content.data) should be performed in message-translator.js, but we're unable to do so because the data isn't downloaded from Redis until after message-translator is run.  Is there a more elegant place to put this?  Maybe all message translation should happen here in octave-session.js instead?
 				content = content.data || "";
-				this._startCountdown(content);
+				this._startCountdown();
 				this.resetTimeout();
 				this._appendToSessionLog(name, content);
 				// Split the command into individual lines and send them to Octave one-by-one.
@@ -629,7 +629,7 @@ class OctaveSession extends OnlineOffline {
 			default:
 				break;
 		}
-		if (/^multi-binary:[\w\-]+$/.test(name)) return;
+		if (/^multi-binary:[\w-]+$/.test(name)) return;
 
 		// Forward remaining events downstream
 		this.emit("message", name, content);

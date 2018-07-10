@@ -24,7 +24,6 @@ const async = require("async");
 const child_process = require("child_process");
 const logger = require("@oo/shared").logger;
 const StdioMessenger = require("@oo/shared").StdioMessenger;
-const config = require("@oo/shared").config;
 
 class DockerHandler extends StdioMessenger {
 	constructor(sessCode, dockerImage) {
@@ -52,7 +51,7 @@ class DockerHandler extends StdioMessenger {
 
 				// Wait until we get an acknowledgement before continuing.  Two conditions: receipt of the acknowledgement message, and premature exit.
 				var ack = false;
-				this.once("message", (name, content) => {
+				this.once("message", (name /*,  content */) => {
 					if (ack) return;
 					ack = true;
 
@@ -75,7 +74,7 @@ class DockerHandler extends StdioMessenger {
 		// Since the child process is actually the docker client and not the daemon, the SIGKILL will never get forwarded to the actual octave host process.  We need to delegate the task to docker.
 		child_process.execFile("docker", ["stop", "-t", 0, this._dockerName], (err, stdout, stderr) => {
 		// child_process.execFile("docker", ["rm", "-f", this._dockerName], (err, stdout, stderr) => {
-			if (err) this._log.warn(err);
+			if (err) this._log.warn(err, stderr);
 			this._log.debug("Finished destroying");
 			return next(null);
 		});
