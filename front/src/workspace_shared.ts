@@ -339,6 +339,7 @@ implements IWorkspace {
 				} else if (state === IRedis.SessionState.Live) {
 					this.emit("sesscode", sessCode);
 					this.emit("data", "prompt", {});
+					this.emit("data", "files-ready", {});
 					this.emit("back", "list", {});
 
 				// No action necessary
