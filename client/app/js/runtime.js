@@ -78,7 +78,7 @@ require.css = function(url){
 	link.rel = "stylesheet";
 	link.href = url;
 	document.getElementsByTagName("head")[0].appendChild(link);
-}
+};
 
 // Load from Google Fonts
 // NOTE: There are no fonts from Google Fonts currently in use.

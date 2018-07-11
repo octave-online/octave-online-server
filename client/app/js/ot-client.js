@@ -18,8 +18,7 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-define(["js/ace-adapter", "ot", "js/polyfill"],
-	function(AceAdapter, ot){
+define(["js/ace-adapter", "ot", "js/polyfill"], function(AceAdapter, ot){
 	function OTClientWrapper(docId, observable){
 		this.id = docId;
 		this.observable = observable || null;
@@ -39,9 +38,9 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 
 		// TODO: Use these other methods to remember where people's cursors are,
 		// so they can be set as soon as the document is actually opened in ACE.
-		this.getCursor = function(){}
-		this.setOtherCursor = function(){}
-		this.detach = function(){}
+		this.getCursor = function(){};
+		this.setOtherCursor = function(){};
+		this.detach = function(){};
 	}
 
 	OTClientWrapper.prototype.applyContent = function(){
@@ -53,7 +52,7 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 		op["delete"](currentContent.length);
 		op.insert(this.content);
 		this.adapter.applyOperation(op);
-	}
+	};
 
 	OTClientWrapper.prototype.initWith = function(rev, content){
 		this.otClient = new ot.Client(rev);
@@ -62,7 +61,7 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 
 		this.content = content;
 		this.applyContent();
-	}
+	};
 
 	OTClientWrapper.prototype.attachEditor = function(editor){
 		if (this.adapter) {
@@ -92,43 +91,43 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 		}
 
 		this.applyContent();
-	}
+	};
 
 	OTClientWrapper.prototype.changeDocId = function(newDocId){
 		this.id = newDocId;
-	}
+	};
 
 	OTClientWrapper.prototype.destroy = function(){
 		this.attachEditor(null);
 		delete this.adapter;
 		delete this.observable;
 		this.callbacks = {};
-	}
+	};
 
 	// SERVER -> OT
 	OTClientWrapper.prototype.applyServer = function(operation){
 		if (this.otClient) this.otClient.applyServer(operation);
-	}
+	};
 	OTClientWrapper.prototype.serverAck = function(){
 		this.otClient.serverAck();
-	}
+	};
 
 	// ACE -> OT
-	OTClientWrapper.prototype._onChange = function(operation, inverse){
+	OTClientWrapper.prototype._onChange = function(operation /*, inverse */){
 		this.otClient.applyClient(operation);
 		this.content = operation.apply(this.content);
-	}
+	};
 
 	// OT -> SERVER
 	OTClientWrapper.prototype._sendOperation = function(revision, operation){
 		this.dispatchEvent("send", revision, operation);
-	}
+	};
 
 	// OT -> ACE
 	OTClientWrapper.prototype._applyOperation = function(operation){
 		if (this.adapter) this.adapter.applyOperation(operation);
 		this.content = operation.apply(this.content);
-	}
+	};
 
 	// CURSORS
 	OTClientWrapper.prototype._onCursor = function(){
@@ -138,13 +137,13 @@ define(["js/ace-adapter", "ot", "js/polyfill"],
 			this.cursor = cursor;
 			this.dispatchEvent("cursor", cursor);
 		}
-	}
+	};
 	OTClientWrapper.prototype._onFocusBlur = function(){
-	}
+	};
 	OTClientWrapper.prototype.setOtherCursor = function(){
 		if (!this.adapter) return;
 		this.adapter.setOtherCursor.apply(this.adapter, arguments);
-	}
+	};
 
 	// Begin EventTarget Implementation
 	OTClientWrapper.prototype.addEventListener = function(event, cb){

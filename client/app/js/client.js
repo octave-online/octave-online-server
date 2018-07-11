@@ -20,15 +20,7 @@
 
 // Client-Side JavaScript for Octave Online
 
-define(
-	["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_highlight",
-		"js/anal", "base64-toblob", "ismobile", "exports", "js/octfile", "js/bucket",
-		"js/vars", "ko-takeArray", "require", "js/onboarding", "js/ws-shared", "js/utils",
-		"blob", "jquery.md5", "jquery.purl", "ace/theme/crimson_editor",
-		"ace/theme/merbivore_soft", "js/ko-ace"],
-function($, ko, canvg, Base64, download, aceStaticHighlight,
-         anal, b64ToBlob, isMobile, exports, OctFile, Bucket,
-         Var, koTakeArray, require, onboarding, WsShared, utils){
+define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_highlight", "js/anal", "base64-toblob", "ismobile", "exports", "js/octfile", "js/bucket", "js/vars", "ko-takeArray", "require", "js/onboarding", "js/ws-shared", "js/utils", "blob", "jquery.md5", "jquery.purl", "ace/theme/crimson_editor", "ace/theme/merbivore_soft", "js/ko-ace"], function($, ko, canvg, Base64, download, aceStaticHighlight, anal, b64ToBlob, isMobile, exports, OctFile, Bucket, Var, koTakeArray, require, onboarding, WsShared, utils){
 
 	/* * * * START KNOCKOUT SETUP * * * */
 
@@ -64,7 +56,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 		// Functions
 		self.addData = function(data){
 			self.data += data;
-		}
+		};
 		self.setCurrent = function(){
 			var arr = plotHistory();
 			for (var i = arr.length - 1; i >= 0; i--) {
@@ -72,7 +64,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 					currentPlotIdx(i);
 				}
 			}
-		}
+		};
 		self.downloadPng = function(){
 			var plotCanvas = document.getElementById("plot_canvas");
 			var filename = "octave-online-line-" + self.lineNumber() + ".png";
@@ -87,16 +79,16 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				renderCallback: renderCallback,
 				ignoreMouse: true
 			});
-		}
+		};
 		self.downloadSvg = function(){
 			var blob = new Blob([self.data], { type: "image/svg+xml" });
 			var filename = "octave-online-line-" + self.lineNumber() + ".svg";
 
 			download(blob, filename);
-		}
+		};
 		self.zoom = function(){
 			$("#plot_figure_container").toggleClass("fullscreen");
-		}
+		};
 		self.completeData = ko.computed(function(){
 			if (self.complete()) {
 				return self.data;
@@ -282,21 +274,11 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 
 	/* * * * END KNOCKOUT, START EDITOR/CONSOLE/PROMPT * * * */
 
-	// Helper functions
-	function doSessionClose(){
-		OctMethods.prompt.disable();
-		OctMethods.prompt.endCountdown();
-		OctMethods.socket.disconnect();
-		// hide the coverall loading div if necessary
-		OctMethods.load.hideLoader();
-		OctMethods.load.stopPatience();
-	}
-
 	function getOrMakePlotById(id){
 		var arr = plotHistory();
 		for (var i = arr.length - 1; i >= 0; i--) {
 			if (arr[i].id === id) return arr[i];
-		};
+		}
 
 		// Make a new plot object
 		var obj = new PlotObject(id);
@@ -382,7 +364,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			writePlot: function(){
 				var el = $("<div></div>");
 				el.attr("class", "inline-plot");
-				loading = $("<div></div>");
+				var loading = $("<div></div>");
 				loading.attr("class", "inline-plot-loading");
 				el.append(loading);
 				$("#console").append(el);
@@ -552,7 +534,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 
 		// Prompt Callback Funcions
 		promptListeners: {
-			command: function(prompt){
+			command: function(){
 				var cmd = OctMethods.prompt.instance.getValue();
 
 				// Check if this command is a front-end command
@@ -560,12 +542,13 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				var updateStudentsRegex = /^update_students\s*\(['"](\w+)['"]\).*$/;
 				var pingRegex = /^ping$/;
 
+				var program;
 				if(enrollRegex.test(cmd)){
-					var program = cmd.match(enrollRegex)[1];
+					program = cmd.match(enrollRegex)[1];
 					OctMethods.prompt.askForEnroll(program);
 					OctMethods.prompt.clear();
 				}else if(updateStudentsRegex.test(cmd)){
-					var program = cmd.match(updateStudentsRegex)[1];
+					program = cmd.match(updateStudentsRegex)[1];
 					OctMethods.socket.updateStudents(program);
 					OctMethods.prompt.clear();
 				}else if(pingRegex.test(cmd)) {
@@ -578,14 +561,14 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 
 				anal.command(cmd);
 			},
-			signal: function(event){
+			signal: function(){
 				// Trigger both a signal and an empty command upstream.  The empty command will sometimes help if, for any reason, the "prompt" message was lost in transit.
 				// This could be slightly improved by adding the empty command elsewhere in the stack, to reduce the number of packets that need to be sent.
 				OctMethods.socket.signal();
 				OctMethods.socket.command("");
 				anal.sigint();
 			},
-			historyUp: function(prompt){
+			historyUp: function(){
 				var history = OctMethods.prompt.history;
 				if (OctMethods.prompt.index == history.length-1){
 					history[history.length-1] = prompt.getValue();
@@ -596,7 +579,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 					prompt.getSelection().clearSelection();
 				}
 			},
-			historyDown: function(prompt){
+			historyDown: function(){
 				var history = OctMethods.prompt.history;
 				if (OctMethods.prompt.index < history.length-1){
 					OctMethods.prompt.index += 1;
@@ -654,7 +637,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 					program: program
 				});
 			},
-			updateStudents: function(program, password){
+			updateStudents: function(program){
 				return OctMethods.socket.emit("update_students", {
 					program: program
 				});
@@ -784,7 +767,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 				if(!octfile) return;
 
 				// Rename the file throughout the schema
-				octfile.filename(data.newname);
+				octfile.filename(newname);
 				allOctFiles.sort(OctFile.sorter);
 			},
 			deleted: function(data){
@@ -871,9 +854,6 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 						}
 					});
 				}
-
-				// Normally the coverall loading div gets hidden by the "files-ready" message, but that message might not get sent if joining a shared workspace.
-				OctMethods.load.callback();
 			},
 			fileadd: function(data){
 				if(data.isText){
@@ -979,7 +959,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			},
 			editFile: function(data) {
 				if (!data || !data.file) return;
-				var match = data.file.match(/^\/home\/[^\/]+\/(.*)$/);
+				var match = data.file.match(/^\/home\/[^/]+\/(.*)$/);
 				if (!match) return;
 				var filename = match[1];
 				var octfile = viewModel.getOctFileFromName(filename);
@@ -1054,7 +1034,7 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 		editor: {
 			instance: null,
 			defaultFilename: "my_script.m",
-			defaultContent: 'disp("Hello World");\n',
+			defaultContent: "disp(\"Hello World\");\n",
 			running: false,
 			initialized: false,
 			bucketWarned: false,
@@ -1196,27 +1176,27 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 
 		// Editor Callback Functions
 		editorListeners: {
-			newCB: function(e){
+			newCB: function(){
 				var filename = OctMethods.editor.defaultFilename;
 				// do..while to protect against duplicate file names
 				do{
 					filename = prompt("Please enter a filename:", filename);
 				} while(filename && !OctMethods.editor.create(filename));
 			},
-			refresh: function(e){
+			refresh: function(){
 				if(confirm("This will reload your files from the server. Any " +
 					"unsaved changes will be lost.")){
 					OctMethods.editor.reset();
 					OctMethods.socket.refresh();
 				}
 			},
-			info: function(e){
+			info: function(){
 				var currentUser = window.viewModel.currentUser();
 				var parametrized = currentUser ? currentUser.parametrized : "unknown";
 				var email = currentUser ? currentUser.email : "";
 				window.open("https://git.octave-online.net/?next=" + parametrized + ".git&user=" + email);
 			},
-			run: function(editor){
+			run: function(){
 				OctMethods.editor.run(viewModel.openFile());
 			},
 			keyRun: function(e){
@@ -1232,7 +1212,6 @@ function($, ko, canvg, Base64, download, aceStaticHighlight,
 			loaderVisible: true,
 			bePatientTimeout: null,
 			callback: function(){
-				// TODO: This doesn't get called when not signed in and the server restarts.
 				if(OctMethods.load.loaderVisible){
 					OctMethods.load.hideLoader();
 				}

@@ -18,7 +18,7 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-define(["knockout", "require"], function(ko, require){
+define(["knockout"], function(ko){
 
 	// MVVM class for variables
 	function Var(){
@@ -111,18 +111,18 @@ define(["knockout", "require"], function(ko, require){
 		};
 
 		// Listen on value change
-		self.value.subscribe(function(){})
+		self.value.subscribe(function(){});
 
 		// toString method
 		self.toString = function(){
 			return "[Var:"+self.symbol()+" "+self.value()+"]";
-		}
+		};
 	}
 	Var.sorter = function(a, b){
 		return a.symbol() === b.symbol() ? 0 : (
 			a.symbol() < b.symbol() ? -1 : 1
 		);
-	}
+	};
 
 	// Expose interface
 	return Var;

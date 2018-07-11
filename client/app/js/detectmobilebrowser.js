@@ -1,3 +1,4 @@
+/* eslint-disable */
 // based on http://detectmobilebrowsers.com/
 define(function(){
 	var ua = navigator.userAgent || navigator.vendor || window.opera;

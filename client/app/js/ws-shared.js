@@ -18,8 +18,7 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-define(["js/client", "js/ot-handler", "js/polyfill"],
-	function(OctMethods, OtHandler){
+define(["js/client", "js/ot-handler", "js/polyfill"], function(OctMethods, OtHandler){
 
 	var documentClients = {};
 
@@ -55,8 +54,9 @@ define(["js/client", "js/ot-handler", "js/polyfill"],
 			documentClients[obj.filename] = otClient;
 		},
 		renamed: function(obj){
-			var oldname = obj.oldname, newname = obj.newname;
-			var oldDocId = obj.oldDocId, newDocId = obj.newDocId;
+			var oldname = obj.oldname;
+			var newname = obj.newname;
+			var newDocId = obj.newDocId;
 
 			if (!documentClients[oldname]) return;
 			if (documentClients[newname]) return;

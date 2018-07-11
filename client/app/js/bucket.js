@@ -18,8 +18,7 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-define(["knockout", "require", "js/octfile", "js/utils"],
-	function(ko, require, OctFile, utils){
+define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, OctFile, utils){
 
 	var OctMethods = require("js/client");
 
@@ -70,11 +69,11 @@ define(["knockout", "require", "js/octfile", "js/utils"],
 			self.files.push.apply(self.files, self.selectedLeft());
 			self.selectedLeft.removeAll();
 			self.files.sort(OctFile.sorter);
-		}
+		};
 		self.moveRightToLeft = function() {
 			self.files.removeAll(self.selectedRight());
 			self.selectedRight.removeAll();
-		}
+		};
 
 		self.textFiles = ko.pureComputed(function() {
 			return ko.utils.arrayFilter(self.files(), function(octfile) {
@@ -85,12 +84,12 @@ define(["knockout", "require", "js/octfile", "js/utils"],
 		self.createOnServer = function() {
 			OctMethods.socket.createBucket(self);
 			self.showCreateButton(false);
-		}
+		};
 		self.deleteit = function() {
 			if (confirm("Are you sure you want to delete this bucket?\n\n" + self.displayName())) {
 				OctMethods.socket.deleteBucket(self);
 			}
-		}
+		};
 	}
 
 	Bucket.fromBucketInfo = function(info) {
@@ -99,7 +98,7 @@ define(["knockout", "require", "js/octfile", "js/utils"],
 		bucket.mainFilename(info.main);
 		bucket.createdTime(new Date(info.createdTime));
 		return bucket;
-	}
+	};
 
 	// Expose interface
 	return Bucket;

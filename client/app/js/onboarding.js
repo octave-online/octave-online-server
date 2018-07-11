@@ -78,7 +78,7 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 	});
 
 	// Expose an API
-	const onboarding = {
+	var onboarding = {
 		reset: function(){
 			// Delete the cookie
 			$.cookie("oo_onboarding_complete", null);

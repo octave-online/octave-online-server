@@ -19,15 +19,8 @@
  */
 
 define(
-	["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile",
-		"splittr", "SocketIOFileUpload", "js/anal", "js/onboarding",
-		"js/ot-handler", "js/ws-shared",
-		"js/utils", "jquery.purl", "ko-flash", "ace/mode/octave",
-		"ace/ext/language_tools", "js/ko-ace", "js/flex-resize"],
-
-	function (ko, io, OctMethods, ace, $, isMobile,
-	          splittr, SocketIOFileUpload, anal, onboarding,
-	          OtHandler, WsShared) {
+	["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile", "splittr", "SocketIOFileUpload", "js/anal", "js/onboarding", "js/ot-handler", "js/ws-shared", "js/utils", "jquery.purl", "ko-flash", "ace/mode/octave", "ace/ext/language_tools", "js/ko-ace", "js/flex-resize"],
+	function (ko, io, OctMethods, ace, $, isMobile, splittr, SocketIOFileUpload, anal, onboarding, OtHandler, WsShared) {
 
 		// Set OO version for index.html compatibility
 		window.oo$version = 20161230.1;
@@ -109,7 +102,7 @@ define(
 					return {
 						value: v.symbol(),
 						meta: "var"
-					}
+					};
 				}));
 			}
 		});
@@ -129,33 +122,33 @@ define(
 		prompt.renderer.setScrollMargin(5, 5);
 		prompt.getSession().setUseWrapMode(true);
 		prompt.commands.addCommand({
-			name: 'nullifyLineNumber',
-			bindKey: {mac: 'Command-L', win: 'Ctrl-L'},
+			name: "nullifyLineNumber",
+			bindKey: {mac: "Command-L", win: "Ctrl-L"},
 			exec: function () {
 			},
 			readOnly: true
 		});
 		prompt.commands.addCommand({
-			name: 'previousCommand',
-			bindKey: 'Up',
+			name: "previousCommand",
+			bindKey: "Up",
 			exec: OctMethods.promptListeners.historyUp,
 			readOnly: false
 		});
 		prompt.commands.addCommand({
-			name: 'nextCommand',
-			bindKey: 'Down',
+			name: "nextCommand",
+			bindKey: "Down",
 			exec: OctMethods.promptListeners.historyDown,
 			readOnly: false
 		});
 		prompt.commands.addCommand({
-			name: 'startAutocompleteOnTab',
-			bindKey: 'Tab',
+			name: "startAutocompleteOnTab",
+			bindKey: "Tab",
 			exec: ace.require("ace/autocomplete").Autocomplete.startCommand.exec,
 			readOnly: false
 		});
 		prompt.commands.addCommand({
-			name: 'submitPrompt',
-			bindKey: {win: 'Enter', mac: 'Enter'},
+			name: "submitPrompt",
+			bindKey: {win: "Enter", mac: "Enter"},
 			exec: OctMethods.promptListeners.command,
 			readOnly: false
 		});
@@ -191,7 +184,7 @@ define(
 			$("#files_toolbar_upload").click(siofu.prompt);
 		} catch (e) {
 			// SIOFU not supported in current browser
-			console.log(e);
+			console.error(e);
 		}
 
 		// Shared workspace setup
@@ -204,8 +197,9 @@ define(
 
 		// Student workspace setup
 		var studentId = $.url().param("s");
+		var match;
 		if (!studentId) {
-			var match = $.url().attr("path").match(/^\/workspace~(\w+)$/);
+			match = $.url().attr("path").match(/^\/workspace~(\w+)$/);
 			if (match) studentId = match[1];
 		}
 		if (studentId) {
@@ -217,7 +211,7 @@ define(
 		// Bucket setup
 		var bucketId = $.url().param("b");
 		if (!bucketId) {
-			var match = $.url().attr("path").match(/^\/bucket~(\w+)$/);
+			match = $.url().attr("path").match(/^\/bucket~(\w+)$/);
 			if (match) bucketId = match[1];
 		}
 		if (bucketId) {
@@ -296,7 +290,7 @@ define(
 			$("[data-theme]").hideSafe();
 			$("[data-theme='"+newValue.name+"']").showSafe();
 			OctMethods.prompt.instance.setTheme(newValue.aceTheme);
-		};
+		}
 		updateTheme(viewModel.selectedSkin());
 		viewModel.selectedSkin.subscribe(updateTheme);
 		$("#change-skin").click(function () {

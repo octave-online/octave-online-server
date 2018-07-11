@@ -1,4 +1,5 @@
-﻿/*
+﻿/* eslint-disable */
+/*
 Copyright Vassilis Petroulias [DRDigit]
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +16,7 @@ limitations under the License.
 
 Web Site - http://jsbase64.codeplex.com/
 */
+
 define("base64", function(){
 	var B64 = {
 		alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=',

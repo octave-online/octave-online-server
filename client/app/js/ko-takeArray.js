@@ -66,5 +66,5 @@ define("ko-takeArray", ["knockout"], function(ko){
 			obs.take(dat);
 			obsArr.push(obs);
 		});
-	}
-})
+	};
+});

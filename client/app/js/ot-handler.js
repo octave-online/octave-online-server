@@ -18,8 +18,7 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-define(["js/client", "js/ot-client", "ot", "js/polyfill"],
-	function(OctMethods, OtClient, ot){
+define(["js/client", "js/ot-client", "ot", "js/polyfill"], function(OctMethods, OtClient, ot){
 	var clients = [];
 
 	function findDocWithId(docId){
@@ -86,7 +85,7 @@ define(["js/client", "js/ot-client", "ot", "js/polyfill"],
 		otClient.addEventListener("cursor", clientListeners.cursor.bind(otClient));
 		clients.push(otClient);
 		return otClient;
-	};
+	}
 
 	function destroy(docId) {
 		for (var i = clients.length - 1; i >= 0; i--) {
@@ -95,7 +94,7 @@ define(["js/client", "js/ot-client", "ot", "js/polyfill"],
 				return;
 			}
 		}
-	};
+	}
 
 	return {
 		create: create,

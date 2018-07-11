@@ -4,11 +4,12 @@
   "description": "Web client front end for Octave Online",
   "main": "app/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint **/*.js"
   },
   "author": "Shane Carr",
   "license": "AGPL-3.0",
   "devDependencies": {
+    "eslint": "^5.1.0",
     "grunt": "^0.4.5",
     "grunt-contrib-copy": "^0.7.0",
     "grunt-contrib-requirejs": "^0.4.4",

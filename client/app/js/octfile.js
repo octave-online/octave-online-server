@@ -19,9 +19,8 @@
  */
 
 define([
-	"knockout", "require", "js/ws-shared",
-	"jquery.md5"],
-	function(ko, require, WsShared){
+	"knockout", "require", "js/ws-shared", "jquery",
+	"jquery.md5"], function(ko, require, WsShared, $){
 
 	var OctMethods = require("js/client");
 
@@ -50,7 +49,7 @@ define([
 			var nameMatch = OctFile.regexps.functionname.exec(self.filename());
 			if (!nameMatch || nameMatch.length < 1) return false;
 			return nameMatch[1];
-		})
+		});
 		self.isFunction = ko.computed(function(){
 			return OctFile.regexps.isFunction.test(self.content());
 		});
@@ -79,7 +78,7 @@ define([
 				}
 				return (self.dirpart()?"source(\""+self.filename()+"\"); ":"")+baseName+"("+argumentsStore.join(", ")+")";
 			} else {
-				return 'source("'+self.filename()+'")';
+				return "source(\""+self.filename()+"\")";
 			}
 		};
 		self.runnable = ko.computed(function(){
@@ -165,13 +164,13 @@ define([
 		// toString method
 		self.toString = function(){
 			return "[File:"+self.filename()+" "+self.content()+"]";
-		}
+		};
 	}
 	OctFile.sorter = function(a, b){
 		return a.filename() === b.filename() ? 0 : (
 			a.filename() < b.filename() ? -1 : 1
 		);
-	}
+	};
 	OctFile.regexps = {};
 	OctFile.regexps.isFunction = /^(?:[\t\f ]*(?:[\%\#].*)?\n)*\s*function\s/;
 	OctFile.regexps.matchParameters = /function[^\(]+\(\s*([^\)]*?)\s*\)/;

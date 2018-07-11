@@ -18,8 +18,8 @@ define(["knockout", "ace/ace"], function(ko, ace){
 			editor.setValue(text);
 			editor.gotoLine(0);
 			editor.commands.addCommand({
-				name: 'save',
-				bindKey: { mac: 'Command-S', win: 'Ctrl-S' },
+				name: "save",
+				bindKey: { mac: "Command-S", win: "Ctrl-S" },
 				exec: octfile.save,
 				readOnly: false
 			});
@@ -29,7 +29,7 @@ define(["knockout", "ace/ace"], function(ko, ace){
 			setTimeout(editor.resize.bind(editor), 0);
 
 			// Bind to Knockout changes
-			var onAceChange = function(delta){
+			var onAceChange = function(){
 				var _obj = valueAccessor();
 				if (ko.isWriteableObservable(_obj.text)) {
 					_obj.text(editor.getValue());
@@ -75,5 +75,5 @@ define(["knockout", "ace/ace"], function(ko, ace){
 				editor.getSession().setUseWrapMode(wrap);
 			}
 		}
-	}
-})
+	};
+});

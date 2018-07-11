@@ -50,23 +50,23 @@ define(["jquery", "knockout", "js/anal"], function($, ko, anal){
 		$(this).fadeOut(duration, function(){
 			$(this).hideSafe();
 			$(this).css("display", "");
-		})
-	}
+		});
+	};
 	ko.bindingHandlers.vizSafe = {
-		init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+		init: function(element, valueAccessor /*, allBindings, viewModel, bindingContext */) {
 			$(element).toggleSafe(ko.unwrap(valueAccessor()));
 		},
-		update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+		update: function(element, valueAccessor /*, allBindings, viewModel, bindingContext */) {
 			$(element).toggleSafe(ko.unwrap(valueAccessor()));
 		}
 	};
 
 	// Fade in/out bindings
 	ko.bindingHandlers.fade = {
-		init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+		init: function(element, valueAccessor /*, allBindings, viewModel, bindingContext */) {
 			$(element).toggleSafe(ko.unwrap(valueAccessor()));
 		},
-		update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+		update: function(element, valueAccessor /*, allBindings, viewModel, bindingContext */) {
 			if(ko.unwrap(valueAccessor())){
 				$(element).fadeInSafe(250);
 			}else{
@@ -75,10 +75,10 @@ define(["jquery", "knockout", "js/anal"], function($, ko, anal){
 		}
 	};
 	ko.bindingHandlers.fadeIn = {
-		init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+		init: function(element, valueAccessor /*, allBindings, viewModel, bindingContext */) {
 			$(element).toggleSafe(ko.unwrap(valueAccessor()));
 		},
-		update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+		update: function(element, valueAccessor /*, allBindings, viewModel, bindingContext */) {
 			if(ko.unwrap(valueAccessor())){
 				$(element).fadeInSafe(250);
 			}else{
@@ -87,10 +87,10 @@ define(["jquery", "knockout", "js/anal"], function($, ko, anal){
 		}
 	};
 	ko.bindingHandlers.fadeOut = {
-		init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+		init: function(element, valueAccessor /*, allBindings, viewModel, bindingContext */) {
 			$(element).toggleSafe(ko.unwrap(valueAccessor()));
 		},
-		update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+		update: function(element, valueAccessor /*, allBindings, viewModel, bindingContext */) {
 			if(ko.unwrap(valueAccessor())){
 				$(element).showSafe();
 			}else{
@@ -103,7 +103,7 @@ define(["jquery", "knockout", "js/anal"], function($, ko, anal){
 	ko.observable.fn.toggle = function () {
 		var self = this;
 		return function () {
-			self(!self())
+			self(!self());
 		};
 	};
 
@@ -173,5 +173,5 @@ define(["jquery", "knockout", "js/anal"], function($, ko, anal){
 			anal.alert(message);
 			window.alert(message);
 		}
-	}
+	};
 });

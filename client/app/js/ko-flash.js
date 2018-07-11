@@ -20,13 +20,13 @@
 
 define("ko-flash", ["knockout", "jquery"], function(ko, $){
 	ko.bindingHandlers.flash = {
-		init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+		init: function(element /*, valueAccessor, allBindings, viewModel, bindingContext */) {
 			// This will be called when the binding is first applied to an element
 			// Set up any initial state, event handlers, etc. here
 			
 			$(element).addClass("transition-property-bgcolor");
 		},
-		update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+		update: function(element, valueAccessor /*, allBindings, viewModel, bindingContext */) {
 			// This will be called once when the binding is first applied to an element,
 			// and again whenever any observables/computeds that are accessed change
 			// Update the DOM element based on the supplied values here.

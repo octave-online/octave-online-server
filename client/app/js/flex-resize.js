@@ -30,13 +30,14 @@ define(["jquery", "knockout"], function($, ko){
 		// This calculation is an approximation only.  The second section of
 		// this function will fix any errors.
 		var windowWidth = $(window).width();
-		var flexWidth = arr.reduce(function(s,x){ return s+x }, 0);
+		var flexWidth = arr.reduce(function(s,x){ return s+x; }, 0);
 		var dist = e.pageX - $(element).offset().left - xRef;
 		var jump = Math.round(windowWidth/flexWidth*dist);
+		var m;
 		if(jump > 0){
 			// Move Right
 			for(i=index; jump>0 && i<arr.length; i++){
-				var m = Math.min(jump, arr[i]);
+				m = Math.min(jump, arr[i]);
 				arr[index-1] += m;
 				arr[i] -= m;
 				jump -= m;
@@ -44,7 +45,7 @@ define(["jquery", "knockout"], function($, ko){
 		}else if(jump < 0){
 			// Move Left
 			for(i=index-1; jump<0 && i>-1; i--){
-				var m = Math.min(Math.abs(jump), arr[i]);
+				m = Math.min(Math.abs(jump), arr[i]);
 				arr[i] -= m;
 				arr[index] += m;
 				jump += m;
@@ -56,7 +57,7 @@ define(["jquery", "knockout"], function($, ko){
 		// Limit to 25 iterations to help prevent infinite loops
 		// Move Right
 		for(i=0; e.pageX - $(element).offset().left > xRef && i<25; i++){
-			for(j=index; arr[j]===0 && j<arr.length; j++){}
+			for(j=index; arr[j]===0 && j<arr.length; j++){/* no-op */}
 			if (j===arr.length) break;
 
 			arr[index-1] += 1;
@@ -64,8 +65,8 @@ define(["jquery", "knockout"], function($, ko){
 			obsArr.valueHasMutated();
 		}
 		// Move Left
-		for(var i=0; e.pageX - $(element).offset().left < xRef && i<25; i++){
-			for(j=index-1; arr[j]===0 && j>-1; j--){}
+		for(i=0; e.pageX - $(element).offset().left < xRef && i<25; i++){
+			for(j=index-1; arr[j]===0 && j>-1; j--){/* no-op */}
 			if (j===-1) break;
 
 			arr[j] -= 1;
@@ -75,7 +76,7 @@ define(["jquery", "knockout"], function($, ko){
 
 		// Update the reference point
 		xRef = e.pageX - $(element).offset().left;
-	};
+	}
 	function cbdown(e, _obsArr){
 		active = true;
 		obsArr = _obsArr;
@@ -86,8 +87,8 @@ define(["jquery", "knockout"], function($, ko){
 		$(document).on("touchmove", cbmove);
 		$(document).on("mouseup", cbup);
 		$(document).on("touchend", cbup);
-	};
-	function cbup(e){
+	}
+	function cbup(){
 		active = false;
 		$(document).off("mousemove", cbmove);
 		$(document).off("touchmove", cbmove);
@@ -99,10 +100,10 @@ define(["jquery", "knockout"], function($, ko){
 		var evt = document.createEvent("UIEvents");
 		evt.initUIEvent("resize", true, false, window, 0);
 		window.dispatchEvent(evt);
-	};
+	}
 
 	ko.bindingHandlers.resizeFlex = {
-		init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+		init: function(element, valueAccessor /*, allBindings, viewModel, bindingContext */) {
 			var obj = valueAccessor();
 			var index = ko.utils.unwrapObservable(obj.index);
 			if (index === 0) return;
@@ -121,7 +122,7 @@ define(["jquery", "knockout"], function($, ko){
 			handle.hideSafe();
 			$(element).append(handle);
 		},
-		update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+		update: function(element, valueAccessor /*, allBindings, viewModel, bindingContext */) {
 			var obj = valueAccessor();
 			var sizes = ko.utils.unwrapObservable(obj.group);
 			var index = ko.utils.unwrapObservable(obj.index);

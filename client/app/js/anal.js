@@ -24,8 +24,7 @@ define(function(){
 	var q = [];
 
 	// Wait to load Google Analytics to not slow down the module
-	require(["js/runtime"], function(){
-	require(["analytics"], function(_garef){
+	require(["js/runtime"], function(){ require(["analytics"], function(_garef){
 		// If _garef is null, the user might be blocking Google Analytics.
 		// Suppress console errors by passing a noop function.
 		garef = _garef ? _garef : function(){};
@@ -39,8 +38,7 @@ define(function(){
 		for (var i=0; i<q.length; i++) {
 			garef.apply(this, q[i]);
 		}
-	});
-	});
+	}); });
 
 	// Function to either call ga() or add to the waiting list
 	function _ga() {

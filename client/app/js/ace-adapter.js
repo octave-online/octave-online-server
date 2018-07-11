@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*
 From https://github.com/firebase/firepad/blob/master/lib/ace-adapter.coffee
 
