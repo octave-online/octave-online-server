@@ -78,9 +78,9 @@ module.exports = function (grunt) {
 				files: [
 					{
 						expand: true,
-						cwd: "app/styl",
-						src: ["themes/*.styl"],
-						dest: "app/css/",
+						cwd: "app/styl/themes/" + config.client.css_theme_collection,
+						src: ["*.styl"],
+						dest: "app/css/themes",
 						ext: ".css"
 					}
 				]
@@ -99,9 +99,9 @@ module.exports = function (grunt) {
 				files: [
 					{
 						expand: true,
-						cwd: "app/styl",
-						src: ["themes/*.styl"],
-						dest: "dist/css/",
+						cwd: "app/styl/themes/" + config.client.css_theme_collection,
+						src: ["*.styl"],
+						dest: "dist/css/themes",
 						ext: ".css"
 					}
 				]
