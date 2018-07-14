@@ -18,9 +18,14 @@
 # along with Octave Online Server.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-# Small script to run Stylus in live watch mode.  Useful when editing Stylus files.
-# You must have Stylus and Kouto-Swiss installed: npm install -g stylus kouto-swiss
-# Note that the SVG icons won't work with this method.  You must use "grunt stylus".
+
+#######################################################################################
+# Small script to run Stylus in live watch mode.  Useful when editing Stylus files.   #
+# You must have Stylus and Kouto-Swiss installed: npm install -g stylus kouto-swiss   #
+#                                                                                     #
+# SVG icons and CSS inline-images won't work with this method.  If you need those,    #
+# you can run "grunt watch" instead of this script.                                   #
+#######################################################################################
 
 if [ -z "$1" ]; then
 	echo "Usage: ./stylus_watch.sh <server/official>";

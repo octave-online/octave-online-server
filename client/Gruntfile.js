@@ -72,7 +72,10 @@ module.exports = function (grunt) {
 					],
 					urlfunc: {
 						name: "inline-image",
-						paths: ["app/images"]
+						paths: [
+							"app/images",
+							"app/images/logo_collections/" + config.client.theme_collection
+						]
 					}
 				},
 				files: [
@@ -229,6 +232,18 @@ module.exports = function (grunt) {
 						name: "app-name",
 						search: "\\{!app-name!\\}",
 						replace: config.client.app_name,
+						flags: "g"
+					},
+					{
+						name: "onboarding",
+						search: "<!--ONBOARDING([\\s\\S]+?)ONBOARDING-->",
+						replace: function(full, match) {
+							if (config.client.onboarding) {
+								return match;
+							} else {
+								return "";
+							}
+						},
 						flags: "g"
 					},
 				]

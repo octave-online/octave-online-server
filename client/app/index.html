@@ -150,7 +150,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				<!-- ko ifnot: editable -->
 					<div class="editor_nofile" data-bind="css: { taller: !buttonsShown(), shorter: buttonsShown() }">
 						<h2>
-							Octave Online Interactive Editor
+							{!app-name!} Interactive Editor
 						</h2>
 
 						<p>
@@ -172,7 +172,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					</h2>
 					<!-- ko if: purpose() !== "bucket" -->
 					<p>
-						The files you make on Octave Online will be saved for the next time you visit.
+						The files you make on {!app-name!} will be saved for the next time you visit.
 					</p>
 					<!-- /ko -->
 					<p>
@@ -231,11 +231,13 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				<div id="console_container" data-bind="resizeFlex:{ group: flex.sizes, index: 3 }">
 					<div id="console_output_container">
 						<pre id="console"></pre>
+						<!--ONBOARDING
 						<div id="instructor-promo" aria-hidden="true">
-							<span class="l1">Did you know you can use Octave Online in your class?</span>
+							<span class="l1">Did you know you can use {!app-name!} in your class?</span>
 							<span class="l2">Open a support ticket to inquire about how we can set you up as an instructor.</span>
 							<span class="l3" data-purpose="close">dismiss</span>
 						</div>
+						ONBOARDING-->
 						<!-- ko if: window.oo$version >= 20161218.2 -->
 						<div id="cwd_box" style="display: none" data-bind="visible: !!cwd()">cwd: <span data-bind="text: cwd"></span></div>
 						<!-- /ko -->
@@ -373,6 +375,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	</section>
 </div>
 
+<!--ONBOARDING
 <div id="onboarding" data-purpose="popover"><div><div>
 	<h2>Welcome to Octave Online</h2>
 
@@ -402,6 +405,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<button id="onboarding-start" data-purpose="close">Start Using Octave Online</button>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
+ONBOARDING-->
 
 <div id="privacy" data-purpose="popover" aria-hidden="true"><div><div>
 	<article></article>
@@ -447,7 +451,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		<h2 class="popover-title-bar">
 			Customize Bucket
 		</h2>
-		<p>A "bucket" is how to publicly share snapshots of Octave Online script or data files.</p>
+		<p>A "bucket" is how to publicly share snapshots of {!app-name!} script or data files.</p>
 		<h3>Optional: Add More Files</h3>
 		<p>Select files and click the right arrow button.</p>
 		<fieldset class="bucket-files-fieldset left">
@@ -484,6 +488,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<div id="site_loading_more_patience" class="patience" aria-hidden="true">Thanks for waiting.  It's not supposed to take this long.  Please double-check your internet connection.  If you are sure that your internet is working, consider contacting support.</div>
 </div>
 
+<!--ONBOARDING
 <div id="sync-promo" aria-hidden="true">
 	<span class="l1">View historical versions of your script files!</span>
 	<span class="l2">Click the icon for more info.</span>
@@ -507,9 +512,10 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<span class="l4" data-purpose="close">dismiss</span>
 </div>
 <div id="bucket-promo" aria-hidden="true">
-	<span class="l1">Sign in to create your own buckets and use the rest of Octave Online.</span>
+	<span class="l1">Sign in to create your own buckets and use the rest of {!app-name!}.</span>
 	<span class="l2" data-purpose="close">dismiss</span>
 </div>
+ONBOARDING-->
 
 <!-- Begin RequireJS -->
 <script type="text/javascript" src="vendor/requirejs/require.js"></script>
