@@ -78,7 +78,7 @@ module.exports = function (grunt) {
 				files: [
 					{
 						expand: true,
-						cwd: "app/styl/themes/" + config.client.css_theme_collection,
+						cwd: "app/styl/themes/" + config.client.theme_collection,
 						src: ["*.styl"],
 						dest: "app/css/themes",
 						ext: ".css"
@@ -99,7 +99,7 @@ module.exports = function (grunt) {
 				files: [
 					{
 						expand: true,
-						cwd: "app/styl/themes/" + config.client.css_theme_collection,
+						cwd: "app/styl/themes/" + config.client.theme_collection,
 						src: ["*.styl"],
 						dest: "dist/css/themes",
 						ext: ".css"
@@ -122,16 +122,23 @@ module.exports = function (grunt) {
 					cwd: "app",
 					src: [
 						"index.html",
-						"favicon.ico",
 						"privacy.txt",
 						"compatibility.html",
 						"gdpr.html",
 						"images/**",
+						"!images/logo_collections/**",
+						"!images/logos/**",
+						"!images/flaticons/**",
+						"!images/sanscons/**",
 						"errors/**",
 						"fonts/**",
 						"js/gnuplot/**"
 					],
 					dest: "dist"
+				}, {
+					cwd: "app/images/logo_collections/" + config.client.theme_collection,
+					src: ["**"],
+					dest: "dist/images/logos"
 				}],
 				verbose: true,
 				compareUsing: "md5"
@@ -158,7 +165,7 @@ module.exports = function (grunt) {
 						search: "parseInt\\(\"\\d+!config.session.payloadMessageDelay\"\\)",
 						replace: "" + config.session.payloadMessageDelay,
 						flags: "g"
-					}
+					},
 				]
 			},
 			html: {
@@ -185,7 +192,7 @@ module.exports = function (grunt) {
 					{
 						name: "logo-svg",
 						search: "<!-- Logo SVG -->",
-						replace: getFileUtf8("app/images/logo-black.svg"),
+						replace: getFileUtf8("dist/images/logos/banner-black.svg"),
 						flags: "g"
 					},
 					{
@@ -198,6 +205,30 @@ module.exports = function (grunt) {
 						name: "eula-txt",
 						search: "<!-- EULA TXT -->",
 						replace: getFileUtf8("app/eula.txt"),
+						flags: "g"
+					},
+					{
+						name: "title",
+						search: "\\{!title!\\}",
+						replace: config.client.title,
+						flags: "g"
+					},
+					{
+						name: "description",
+						search: "\\{!description!\\}",
+						replace: config.client.description,
+						flags: "g"
+					},
+					{
+						name: "theme-color",
+						search: "\\{!theme-color!\\}",
+						replace: config.client.theme_color,
+						flags: "g"
+					},
+					{
+						name: "app-name",
+						search: "\\{!app-name!\\}",
+						replace: config.client.app_name,
 						flags: "g"
 					},
 				]

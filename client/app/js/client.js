@@ -134,9 +134,9 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		logoSrc: ko.computed(function() {
 			var color = selectedSkin().iconColor;
 			if (purpose() === "bucket") {
-				return "images/logo-bucket-" + color + ".svg";
+				return "images/logos/banner-" + color + "-bucket.svg";
 			} else {
-				return "images/logo-" + color + ".svg";
+				return "images/logos/banner-" + color + ".svg";
 			}
 		}),
 
