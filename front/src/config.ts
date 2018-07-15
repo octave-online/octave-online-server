@@ -83,5 +83,5 @@ interface IAppConfig {
 	}
 }
 
-var appConfig:IAppConfig = require("../config/app.json");
+var appConfig:IAppConfig = require("@oo/shared").config;
 export = appConfig;
