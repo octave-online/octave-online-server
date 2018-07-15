@@ -184,17 +184,16 @@ docker:
     filesystemSuffix: files
     octaveSuffix: 'octave:prod'
 
-# SELinux implementation settings, part 1
-cgroup:
-  name: oo/octave
-  cpuShares: 128
-  cpuQuota: 800000
-  uid: oo
-  gid: oo
-
-# SELinux implementation settings, part 2
-prlimit:
-  addressSpace: 1000000000
+# SELinux implementation settings
+selinux:
+  cgroup:
+    name: oo/octave
+    cpuShares: 128
+    cpuQuota: 800000
+    uid: oo
+    gid: oo
+  prlimit:
+    addressSpace: 1000000000
 
 # # # # # # # # # # # # # # # #
 # Front Server configurations #
@@ -259,4 +258,10 @@ client:
   app_name: Octave Online Server
   # Whether to show the splash screen and other onboarding bubbles to help new users learn how to use the software.
   onboarding: false
+
+  # OTHER CLIENT OPTIONS
+  # Application identifier for Google Analytics
+  gacode: xxxxxxxxx
+  # Application identifier for UserVoice
+  uservoice: xxxxxxxxx
 

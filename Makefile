@@ -27,11 +27,11 @@ WORK_DIR      = $(call get_config,docker.cwd)
 OCTAVE_SUFFIX = $(call get_config,docker.images.octaveSuffix)
 FILES_SUFFIX  = $(call get_config,docker.images.filesystemSuffix)
 JSON_MAX_LEN  = $(call get_config,session.jsonMaxMessageLength)
-CGROUP_NAME   = $(call get_config,cgroup.name)
-CPU_SHARES    = $(call get_config,cgroup.cpuShares)
-CPU_QUOTA     = $(call get_config,cgroup.cpuQuota)
-CGROUP_UID    = $(call get_config,cgroup.uid)
-CGROUP_GID    = $(call get_config,cgroup.gid)
+CGROUP_NAME   = $(call get_config,selinux.cgroup.name)
+CPU_SHARES    = $(call get_config,selinux.cgroup.cpuShares)
+CPU_QUOTA     = $(call get_config,selinux.cgroup.cpuQuota)
+CGROUP_UID    = $(call get_config,selinux.cgroup.uid)
+CGROUP_GID    = $(call get_config,selinux.cgroup.gid)
 
 
 docker-octave:
