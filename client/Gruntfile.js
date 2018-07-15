@@ -21,7 +21,7 @@
 "use strict";
 
 const fs = require("fs");
-const config = require("./config.json");
+const config = require("@oo/shared").config;
 
 function getCssTimestamp() {
 	return fs.statSync("dist/css/themes/fire.css").mtime.valueOf();
