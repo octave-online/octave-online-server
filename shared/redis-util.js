@@ -22,7 +22,7 @@
 
 const redis = require("redis");
 const mlog = require("./logger")("redis-util:minor");
-const config = require("./config.json");
+const config = require("./config");
 // const log = require("./logger")("redis-util");
 
 const PORT = config.redis.port;

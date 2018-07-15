@@ -26,7 +26,7 @@ const redisUtil = require("./redis-util");
 const Scripto = require("redis-scripto");
 const path = require("path");
 const uuid = require("uuid");
-const config = require("./config.json");
+const config = require("./config");
 
 class RedisMessenger extends EventEmitter {
 	constructor() {

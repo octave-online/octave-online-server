@@ -34,7 +34,7 @@ console.log("Date:", new Date().toISOString());
 
 // What files will we be loading?
 const prefix = (__dirname === "/usr/local/bin") ? "/usr/local/share/oo" : path.join(__dirname, "..");
-const configFile = path.join(prefix, "shared/config.json");
+const configFile = path.join(prefix, "config.json");
 const exitFile = path.join(prefix, "entrypoint/exit.js");
 const gitSshFile = path.join(prefix, "back-filesystem/git/git_ssh.sh");
 const spawnDirectory = path.join(prefix, "back-master");

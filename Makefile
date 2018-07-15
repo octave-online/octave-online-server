@@ -19,17 +19,17 @@
 SHELL := /bin/bash
 
 # Read options from config.json
-GIT_HOST = $(shell jq -r ".git.hostname" shared/config.json)
-GIT_DIR = $(shell jq -r ".docker.gitdir" shared/config.json)
-WORK_DIR = $(shell jq -r ".docker.cwd" shared/config.json)
-OCTAVE_SUFFIX = $(shell jq -r ".docker.images.octaveSuffix" shared/config.json)
-FILES_SUFFIX = $(shell jq -r ".docker.images.filesystemSuffix" shared/config.json)
-JSON_MAX_LEN = $(shell jq -r ".session.jsonMaxMessageLength" shared/config.json)
-CGROUP_NAME = $(shell jq -r ".cgroup.name" shared/config.json)
-CPU_SHARES = $(shell jq -r ".cgroup.cpuShares" shared/config.json)
-CPU_QUOTA = $(shell jq -r ".cgroup.cpuQuota" shared/config.json)
-CGROUP_UID = $(shell jq -r ".cgroup.uid" shared/config.json)
-CGROUP_GID = $(shell jq -r ".cgroup.gid" shared/config.json)
+GIT_HOST = $(shell jq -r ".git.hostname" config.json)
+GIT_DIR = $(shell jq -r ".docker.gitdir" config.json)
+WORK_DIR = $(shell jq -r ".docker.cwd" config.json)
+OCTAVE_SUFFIX = $(shell jq -r ".docker.images.octaveSuffix" config.json)
+FILES_SUFFIX = $(shell jq -r ".docker.images.filesystemSuffix" config.json)
+JSON_MAX_LEN = $(shell jq -r ".session.jsonMaxMessageLength" config.json)
+CGROUP_NAME = $(shell jq -r ".cgroup.name" config.json)
+CPU_SHARES = $(shell jq -r ".cgroup.cpuShares" config.json)
+CPU_QUOTA = $(shell jq -r ".cgroup.cpuQuota" config.json)
+CGROUP_UID = $(shell jq -r ".cgroup.uid" config.json)
+CGROUP_GID = $(shell jq -r ".cgroup.gid" config.json)
 
 docker-octave:
 	if [[ -e bundle ]]; then rm -rf bundle; fi

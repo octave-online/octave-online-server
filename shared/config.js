@@ -20,16 +20,23 @@
 
 "use strict";
 
-module.exports = {
-	config: require("./config"),
-	JSONStreamSafe: require("./json-stream-safe"),
-	logger: require("./logger"),
-	onceMessage: require("./once-message"),
-	OnlineOffline: require("./online-offline"),
-	Queue: require("./queue"),
-	RedisMessenger: require("./redis-messenger"),
-	redisUtil: require("./redis-util"),
-	silent: require("./silent"),
-	StdioMessenger: require("./stdio-messenger"),
-	timeLimit: require("./time-limit"),
-};
+const fs = require("fs");
+const path = require("path");
+
+try {
+	var configString = fs.readFileSync(path.join(__dirname, "..", "config.json"));
+} catch(e) {
+	console.error("Could not read config.json. Please create this file in the project directory; use config.sample.json as a template.");
+	console.error(e);
+	process.exit(1);
+}
+
+try {
+	var config = JSON.parse(configString.toString("utf-8"));
+} catch(e) {
+	console.error("Possible syntax error in config file!");
+	console.error(e);
+	process.exit(1);
+}
+
+module.exports = config;
