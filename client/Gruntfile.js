@@ -149,7 +149,7 @@ module.exports = function (grunt) {
 		},
 		"regex-replace": {
 			appcss: {
-				src: ["dist/js/app.js"],
+				src: ["dist/js/app.js", "dist/js/runtime.js"],
 				actions: [
 					{
 						name: "css-timestamp",
@@ -167,6 +167,18 @@ module.exports = function (grunt) {
 						name: "privacy-timestamp",
 						search: "parseInt\\(\"\\d+!config.session.payloadMessageDelay\"\\)",
 						replace: "" + config.session.payloadMessageDelay,
+						flags: "g"
+					},
+					{
+						name: "gacode",
+						search: "\\{!gacode!\\}",
+						replace: config.client.gacode,
+						flags: "g"
+					},
+					{
+						name: "uservoice",
+						search: "\\{!uservoice!\\}",
+						replace: config.client.uservoice,
 						flags: "g"
 					},
 				]

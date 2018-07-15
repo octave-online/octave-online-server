@@ -35,8 +35,8 @@ require.config({
 			"/js-default/addthis"
 		],
 		"uservoice": [
-			"https://widget.uservoice.com/5fPlQ3CsHcjp8LVE8dAeA",
-			"http://widget.uservoice.com/5fPlQ3CsHcjp8LVE8dAeA",
+			"https://widget.uservoice.com/{!uservoice!}",
+			"http://widget.uservoice.com/{!uservoice!}",
 			"/js-default/uservoice"
 		],
 		"analytics": [

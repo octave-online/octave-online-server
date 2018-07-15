@@ -31,7 +31,7 @@ define(function(){
 
 		// Set up Analytics
 		window.GoogleAnalyticsObject = "ga";
-		garef("create", "UA-55015548-1", "auto");
+		garef("create", "{!gacode!}", "auto");
 		garef("set", "anonymizeIp", true);
 
 		// Send queued-up messages to GA
