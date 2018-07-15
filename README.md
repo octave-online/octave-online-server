@@ -19,7 +19,11 @@ Ensure that you are running on CentOS or another distribution of Linux that supp
 
 Make and build Octave from source.  Follow a procedure similar to the one put forth in *dockerfiles/build-octave.dockerfile*.
 
-Run `sudo yum install -y selinux-policy-devel policycoreutils-sandbox selinux-policy-sandbox libcgroup-tools jq`
+Run `sudo yum install -y selinux-policy-devel policycoreutils-sandbox selinux-policy-sandbox libcgroup-tools`
+
+Ensure that Node.js is installed and the dependencies are downloaded for the shared project:
+
+	$ (cd shared && npm install)
 
 Run all of the following make commands from the projects directory.
 
@@ -36,124 +40,29 @@ If you use SSH to connect to the Git server containing people's saved files, you
 
 ### Config File
 
-You need to create a file called *config.json* at *shared/config.json*.  Here is an example *config.json*.
+You should create a file called *config.yaml* in this directory.  Your *config.yaml* should override any settings from *config_defaults.yaml* that you wish to change.
 
-	{
-		"worker": {
-			"token": "local",
-			"clockInterval": {
-				"min": 1500,
-				"max": 2500
-			},
-			"maxSessions": 12,
-			"uid": 1000,
-			"logDir": "/srv/logs",
-			"monitorLogs": {
-				"subdir": "monitor"
-			},
-			"sessionLogs": {
-				"subdir": "sessions_2018",
-				"depth": 3
-			}
-		},
-		"session": {
-			"legalTime": {
-				"guest": 5000,
-				"user": 10000
-			},
-			"countdownExtraTime": 15000,
-			"countdownRequestTime": 5000,
-			"timewarnTime": 90000,
-			"timeoutTime": 120000,
-			"timewarnMessage": "NOTICE: Due to inactivity, your session will expire in five minutes.",
-			"payloadLimit": {
-				"guest": 5000,
-				"user": 10000
-			},
-			"payloadMessageDelay": 100,
-			"payloadAcknowledgeDelay": 5000,
-			"urlreadPatterns": ["^example\\.com$", "^(.*\\.)?stanford\\.edu$", "^(.*\\.)?coursera\\.org$"],
-			"textFileSizeLimit": 50000,
-			"jsonMaxMessageLength": 1000000,
-			"implementation": "docker"
-		},
-		"sessionManager": {
-			"logInterval": 60000,
-			"poolSize": 2,
-			"poolInterval": 5000,
-			"startupTimeLimit": 30000
-		},
-		"git": {
-			"hostname": "localhost",
-			"author": {
-				"name": "Local User",
-				"email": "localhost@localhost"
-			},
-			"helperUser": "git",
-			"commitTimeLimit": 30000,
-			"autoCommitInterval": 300000
-		},
-		"docker": {
-			"cwd": "/home/oo",
-			"gitdir": "/srv/git",
-			"cpuShares": 512,
-			"memoryShares": "256m",
-			"diskQuotaKiB": 20480,
-			"images": {
-				"filesystemSuffix": "files",
-				"octaveSuffix": "octave:prod"
-			}
-		},
-		"maintenance": {
-			"interval": 1800000,
-			"requestInterval": 5000,
-			"responseWaitTime": 3000,
-			"pauseDuration": 15000,
-			"maxNodesInMaintenance": 1
-		},
-		"redis": {
-			"hostname": "localhost",
-			"port": 6379,
-			"options": {
-				"auth_pass": "xyzxyzxyzxyzxyz"
-			},
-			"expire": {
-				"interval": 5000,
-				"timeout": 16000
-			},
-			"maxPayload": 10000
-		},
-		"mongo": {
-			"hostname": "localhost",
-			"port": 27019,
-			"db": "oo"
-		},
-		"cgroup": {
-			"name": "oo/octave",
-			"cpuShares": 128,
-			"cpuQuota": 800000,
-			"uid": "oo",
-			"gid": "oo"
-		},
-		"prlimit": {
-			"addressSpace": 1000000000
-		},
-		"client": {
-			"theme_collection": "server",
-			"title": "Octave Online Server",
-			"description": "The power of Octave Online run on custom hardware. Used under the AGPL license.",
-			"theme_color": "AD928E",
-			"app_name": "Octave Online Server",
-			"onboarding": false
-		}
-	}
-
-A few settings to notice:
+A few settings in particular that you may want to customize:
 
 1. `.worker.logDir` needs to exist and be writable by the Octave Online process.
 2. `.session.implementation` needs to be either "docker" or "selinux" depending on which version you decided to configure.
 3. The settings in `.git` need to correspond to a working Git server.
 4. The settings in `.redis` need to correspond to a working Redis server.
+5. `.front.cookie.secret`, and other fields with default value "xxxxxxxxx", should be custom secret tokens known only to you.
+6. `.front.static_path` should point to the *app* or *dist* directory of your checkout of the `oo-client` project.
+
+Example *config.yaml* with a few basic overrides:
+
+	worker:
+	  logDir: /tmp/oo_logs
+
+	session:
+	  implementation: selinux
+
+	front:
+	  static_path: /home/admin/oo-client/dist
+	  cookie:
+	    secret: helloworld
 
 ## Running the Back Server
 

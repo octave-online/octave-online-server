@@ -17,19 +17,22 @@
 # <https://www.gnu.org/licenses/>.
 
 SHELL := /bin/bash
+NODE = node
 
-# Read options from config.json
-GIT_HOST = $(shell jq -r ".git.hostname" config.json)
-GIT_DIR = $(shell jq -r ".docker.gitdir" config.json)
-WORK_DIR = $(shell jq -r ".docker.cwd" config.json)
-OCTAVE_SUFFIX = $(shell jq -r ".docker.images.octaveSuffix" config.json)
-FILES_SUFFIX = $(shell jq -r ".docker.images.filesystemSuffix" config.json)
-JSON_MAX_LEN = $(shell jq -r ".session.jsonMaxMessageLength" config.json)
-CGROUP_NAME = $(shell jq -r ".cgroup.name" config.json)
-CPU_SHARES = $(shell jq -r ".cgroup.cpuShares" config.json)
-CPU_QUOTA = $(shell jq -r ".cgroup.cpuQuota" config.json)
-CGROUP_UID = $(shell jq -r ".cgroup.uid" config.json)
-CGROUP_GID = $(shell jq -r ".cgroup.gid" config.json)
+# Read options from config file
+get_config = ${shell $(NODE) -e "console.log(require('./shared').config.$(1))"}
+GIT_HOST      = $(call get_config,git.hostname)
+GIT_DIR       = $(call get_config,docker.gitdir)
+WORK_DIR      = $(call get_config,docker.cwd)
+OCTAVE_SUFFIX = $(call get_config,docker.images.octaveSuffix)
+FILES_SUFFIX  = $(call get_config,docker.images.filesystemSuffix)
+JSON_MAX_LEN  = $(call get_config,session.jsonMaxMessageLength)
+CGROUP_NAME   = $(call get_config,cgroup.name)
+CPU_SHARES    = $(call get_config,cgroup.cpuShares)
+CPU_QUOTA     = $(call get_config,cgroup.cpuQuota)
+CGROUP_UID    = $(call get_config,cgroup.uid)
+CGROUP_GID    = $(call get_config,cgroup.gid)
+
 
 docker-octave:
 	if [[ -e bundle ]]; then rm -rf bundle; fi

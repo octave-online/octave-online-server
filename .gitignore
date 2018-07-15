@@ -32,7 +32,7 @@ tmp/
 *.pp
 
 # Specific files to omit
-config.json
+config.yaml
 back-octave/octave-host
 back-octave/bin/cwd/
 entrypoint/exit.js

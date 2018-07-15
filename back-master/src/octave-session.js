@@ -115,8 +115,7 @@ class OctaveSession extends OnlineOffline {
 		}
 	}
 	_onCountdownEnd() {
-		// Note: it is a good idea to make countdownRequestTime slightly larger than the delay on the frontend to account for time lag.
-		if (new Date().valueOf() - this._extraTime < config.session.countdownRequestTime) {
+		if (new Date().valueOf() - this._extraTime < config.session.countdownRequestTime + config.session.countdownRequestTimeBuffer) {
 			// Add 15 seconds and don't send an interrupt signal
 			this._log.trace("Extending countdown with extra time");
 			this._countdownTimer = setTimeout(this._onCountdownEnd.bind(this), config.session.countdownExtraTime);
