@@ -42,7 +42,7 @@ module ExpressApp {
 				req.url = "/index.html";
 				next("route");
 			})
-			.use(ServeStatic(Config.static.path))
+			.use(ServeStatic(Config.front.static_path))
 			.use(SessionMiddleware.middleware)
 			.use(BodyParser.urlencoded({ extended: true }))
 			.use(Passport.initialize())
@@ -97,9 +97,9 @@ module ExpressApp {
 			})
 			.get("*", function(req, res){
 				res.sendStatus(404);
-			}).listen(Config.url.listen_port);
+			}).listen(Config.front.listen_port);
 
-		console.log("Initialized Express Server on port ", Config.url.listen_port);
+		console.log("Initialized Express Server on port ", Config.front.listen_port);
 	}
 
 	export var app:Http.Server;

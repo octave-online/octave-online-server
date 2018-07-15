@@ -26,8 +26,8 @@ import Config = require("./config");
 
 module Mongo {
 	export function connect(next:(err:Error)=>void) {
-		var url = "mongodb://" + Config.mongodb.hostname
-			+ "/" + Config.mongodb.db;
+		var url = "mongodb://" + Config.mongo.hostname
+			+ "/" + Config.mongo.db;
 
 		console.log("Connecting to Mongo...");
 

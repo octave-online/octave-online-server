@@ -42,10 +42,10 @@ module M {
 
 		// Make the middleware instance
 		middleware = ExpressSession({
-			name: Config.cookie.name,
-			secret: Config.cookie.secret,
+			name: Config.front.cookie.name,
+			secret: Config.front.cookie.secret,
 			cookie: {
-				maxAge: Config.cookie.max_age
+				maxAge: Config.front.cookie.max_age
 			},
 			store: store
 		});

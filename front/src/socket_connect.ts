@@ -38,7 +38,7 @@ import ChildProcess = require("child_process");
 import Ot = require("ot");
 import Async = require("async");
 
-const enp = require("easy-no-password")(Config.easy.secret);
+const enp = require("easy-no-password")(Config.auth.easy.secret);
 
 interface ISocketCustom extends SocketIO.Socket {
 	handler: SocketHandler;

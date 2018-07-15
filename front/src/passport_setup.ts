@@ -36,8 +36,8 @@ import Persona = require("passport-persona");
 import User = require("./user_model");
 import Utils = require("./utils");
 
-var baseUrl = Config.url.protocol + "://" + Config.url.hostname
-	+ ":" + Config.url.port + "/";
+var baseUrl = Config.front.protocol + "://" + Config.front.hostname
+	+ ":" + Config.front.port + "/";
 var googCallbackUrl = baseUrl + "auth/google/callback";
 
 var mailgun = Mailgun({
@@ -102,8 +102,8 @@ function findWithPassword(email:string, password:string,
 
 var googleStrategy = new (GoogleOAuth.OAuth2Strategy)({
 		callbackURL: googCallbackUrl,
-		clientID: Config.google.oauth_key,
-		clientSecret: Config.google.oauth_secret
+		clientID: Config.auth.google.oauth_key,
+		clientSecret: Config.auth.google.oauth_secret
 	},
 	function (accessToken, refreshToken, profile, done) {
 		const email = profile.emails[0].value;
@@ -120,7 +120,7 @@ var personaStrategy = new (Persona.Strategy)({
 	});
 
 var easyStrategy = new (EasyNoPassword.Strategy)({
-		secret: Config.easy.secret
+		secret: Config.auth.easy.secret
 	},
 	function (req) {
 		if (req.body && req.body.s) {

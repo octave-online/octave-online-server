@@ -21,40 +21,37 @@
 ///<reference path='boris-typedefs/node/node.d.ts'/>
 
 interface IAppConfig {
-	static: {
-		path: string;
-	}
-	mongodb: {
-		hostname: string;
-		db: string;
-	}
-	git: {
-		path: string;
-	}
-	url: {
+	front: {
 		protocol: string;
 		hostname: string;
 		port: number;
 		listen_port: number;
+		static_path: string;
+		cookie: {
+			name: string;
+			secret: string;
+			max_age: number;
+		}
 	}
-	google: {
-		oauth_key: string;
-		oauth_secret: string;
-	}
-	easy: {
-		secret: string;
-	}
-	password: {
-		salt_rounds: number;
+	auth: {
+		google: {
+			oauth_key: string;
+			oauth_secret: string;
+		}
+		easy: {
+			secret: string;
+		}
+		password: {
+			salt_rounds: number;
+		}
 	}
 	mailgun: {
 		api_key: string;
 		domain: string;
 	}
-	cookie: {
-		name: string;
-		secret: string;
-		max_age: number;
+	mongo: {
+		hostname: string;
+		db: string;
 	}
 	redis: {
 		hostname: string;
@@ -63,7 +60,7 @@ interface IAppConfig {
 		expire: {
 			interval: number;
 			timeout: number;
-		},
+		}
 		maxPayload: number;
 	}
 	ot: {

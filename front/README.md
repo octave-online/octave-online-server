@@ -30,30 +30,25 @@ You will need to make a JSON configuration file at the following location: *conf
 This file contains the configuration options for your local install of Octave Online.  The specification for the configuration file can be found in *src/config.ts*.  Here is an example *app.json*.
 
 	{
-		"static": {
-			"path": "../oo-client/app"
+		"front": {
+			"protocol": "http",
+			"hostname": "localhost",
+			"port": 8080,
+			"listen_port": 8080,
+			"static_path": "../oo-client/app",
+			"cookie": {
+				"name": "oo.sid",
+				"secret": "xxxxxxxx",
+				"max_age": 7889231400
+			}
 		},
 		"mongodb": {
 			"hostname": "localhost",
 			"db": "oo"
 		},
-		"git": {
-			"path": "/absolute/path/to/repos"
-		},
-		"url": {
-			"protocol": "http",
-			"hostname": "localhost",
-			"port": 8080,
-			"listen_port": 8080
-		},
 		"google": {
 			"oauth_key": "xxxxxxxxx.apps.googleusercontent.com",
 			"oauth_secret": "xxxxxxxx"
-		},
-		"cookie": {
-			"name": "oo.sid",
-			"secret": "xxxxxxxx",
-			"max_age": 7889231400
 		},
 		"redis": {
 			"hostname": "localhost",

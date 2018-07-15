@@ -172,7 +172,7 @@ userSchema.pre("save", function(next){
 	} else {
 		// To create a new password manually, run:
 		// $ node -e "require('bcrypt').hash('foo', 10, console.log)"
-		Bcrypt.hash(password, Config.password.salt_rounds, function(err, hash) {
+		Bcrypt.hash(password, Config.auth.password.salt_rounds, function(err, hash) {
 			self.password_hash = hash;
 			self.save(next);
 		});
