@@ -137,6 +137,14 @@ You need to create a file called *config.json* at *shared/config.json*.  Here is
 		},
 		"prlimit": {
 			"addressSpace": 1000000000
+		},
+		"client": {
+			"theme_collection": "server",
+			"title": "Octave Online Server",
+			"description": "The power of Octave Online run on custom hardware. Used under the AGPL license.",
+			"theme_color": "AD928E",
+			"app_name": "Octave Online Server",
+			"onboarding": false
 		}
 	}
 
