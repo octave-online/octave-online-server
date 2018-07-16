@@ -1,0 +1,224 @@
+/*
+ * Copyright © 2018, Octave Online LLC
+ *
+ * This file is part of Octave Online Server.
+ *
+ * Octave Online Server is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ *
+ * Octave Online Server is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Octave Online Server.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ */
+
+@require("mixins.styl")
+@require("hamburger.styl")
+
+header {
+	background-color: color1
+	height: header_height
+	position: relative
+
+	#hamburger {
+		position: absolute
+		cursor: pointer
+		display: block
+		top: 11px
+		right: 9px
+		
+		.hamburger-memo {
+			display: inline-block
+			position: absolute
+			top: 1px
+			right: 44px
+			font-family: narrow_font_family
+			font-weight: bold
+			font-size: 20px
+			line-height: @font-size
+	
+			@media (max-width: responsive_width_one) {
+				display: none
+			}
+		}
+	}
+
+	h1 {
+		margin: 0
+		float: left
+
+		img {
+			display: inline-block
+			padding-top: 2px
+			padding-left: 3px
+			height: 36px
+		}
+	}
+	
+	small {
+		display: inline
+		line-height: header_height
+		vertical-align: middle
+		padding-left: 5px
+
+		font-size: 20px
+		font-family: narrow_font_family
+	}
+}
+
+#main_menu {
+	padding: 5px
+	overflow: auto
+	-ms-overflow-style: -ms-autohiding-scrollbar
+	
+	.login_btn{
+		cursor: pointer
+		display: block
+		margin: 5px auto
+		width: 200px
+		height: 40px
+	}
+	
+	.login_bottom{
+		font-size: 0.8em
+		line-height: 1.1em
+		font-style: italic
+	}
+	
+	#userbox {
+		flaticon(user)
+		height: 50px
+		padding-left: 60px
+		padding-top: 10px
+		font-size: 1.2em
+		background-repeat: no-repeat
+		background-position: left center
+		
+		a {
+			color: inherit
+		}
+	}
+	
+	.share-url-box {
+		text-align: center
+		
+		& > * {
+			display: block
+		}
+		
+		input {
+			width: 90%
+			margin: 1ex auto
+		}
+	}
+	
+	.instructor-programs {
+		margin-bottom: 1ex
+		border-bottom: 1px solid color3
+		
+		ul {
+			padding-left: 1em
+			text-indent: -1em
+			list-style-type: none
+		}
+		
+		a {
+			color: color1
+			text-decoration: underline
+			cursor: pointer
+		}
+	}
+	
+	#show-plots-inline-item {
+		text-align: center
+		font-size: 1.0em
+		margin: 1ex auto
+		label {
+			cursor: pointer
+		}
+	}
+	
+	.site-control-item{
+		position: relative
+		display: block
+		width: 190px
+		font-size: 1.2em
+		margin: 5px auto
+		padding: 1ex
+		text-align: center
+		border-radius: 5px
+		background-color: color1
+
+		& > * {
+			text-decoration: underline
+			color: inherit
+		}
+		
+		& > a {
+			display: block
+			cursor: pointer
+			width: 100%
+			height: 100%
+		}
+		
+		&:hover{
+			background-color: color2
+		}
+		&:active{
+			background-color: color3
+		}
+	}
+
+	.all-buckets {
+		strong {
+			display: block
+			margin-top: 8px
+			border-bottom: 2px solid color2
+			padding-left: 4px
+			font-size: 1.2em
+		}
+
+		ul {
+			margin: 3px 0
+			padding-left: 0
+			list-style-type: none
+		}
+		
+		li {
+			clear: both
+			border-bottom: 1px solid color2
+		}
+
+		.bucket-name {
+			color: color1
+		}
+		
+		.bucket-time {
+			font-family: narrow_font_family
+		}
+		
+		.bucket-delete {
+			float: right
+			margin-top: 0.5em
+			margin-right: 3px
+			cursor: pointer
+		}
+	}
+	
+	#footnotes {
+		margin-top: 20px
+		font-size: 0.8em
+		font-style: italic
+		color: color2
+
+		& > * {
+			color: inherit
+		}
+	}
+}

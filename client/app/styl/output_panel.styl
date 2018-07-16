@@ -1,0 +1,281 @@
+/*
+ * Copyright © 2018, Octave Online LLC
+ *
+ * This file is part of Octave Online Server.
+ *
+ * Octave Online Server is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ *
+ * Octave Online Server is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Octave Online Server.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ */
+
+// Contains styles for the output panel, console window, prompt, plot,
+// and variables.
+
+@require("mixins.styl")
+
+plot-svg-styles()
+	image {
+		-ms-interpolation-mode: nearest-neighbor
+		image-rendering: -webkit-optimize-contrast
+		image-rendering: -moz-crisp-edges
+		image-rendering: crisp-edges
+		image-rendering: pixelated
+	}
+
+#console_output_container {
+
+	pre#console {
+		position: absolute
+		top: 0
+		right: 0
+		bottom: 0
+		left: 0
+		background-color: colorbkg
+
+		text-align: left
+		overflow: auto
+		-ms-overflow-style: -ms-autohiding-scrollbar
+		font-size: console_font_size
+		line-height: 1.3em
+		font-family: code_font_family
+		padding: 1ex
+		margin: 0
+
+		span.prompt_row{
+			font-weight: bold;
+			color: color1;
+		}
+		span.prompt_error{
+			color: colorerr
+			font-style: italic;
+		}
+		a{
+			color: color3
+		}
+
+		div.inline-plot{
+			display: block
+			position: relative
+			margin: 5px 0
+
+			@media (max-width: responsive_width_two) {
+				// Hacky way to get an absolute aspect ratio
+				width: calc("100% - 2ex", 95%)
+				height: 0
+				padding-top: 73%
+			}
+
+			@media (min-width: responsive_width_two) {
+				width: 560px
+				height: 420px
+			}
+			
+			svg, .inline-plot-loading {
+				display: block
+				position: absolute
+				top: 0
+				left: 0
+				width: 100%
+				height: 100%
+			}
+			
+			svg {
+				plot-svg-styles()
+			}
+			
+			.inline-plot-loading {
+				background-image: url("../../images/spinner.svg")
+				background-position: center center
+				background-repeat: no-repeat
+				background-size: 30% 30%
+			}
+		}
+	}
+	
+	#cwd_box {
+		display: inline-block
+		position: absolute
+		top: 0
+		left: 0
+		padding: 3px
+		background-color: alpha(color3, 0.5)
+		color: colorfgd
+		font-style: italic
+	}
+
+}
+
+#console_prompt_container {
+
+	div#runtime_controls_container{
+		height: prompt_height
+		background-color: colorbkg
+
+		#signal{
+			flaticon-button(cross, 12px)
+			position: relative
+			top: 5px
+			left: 5px
+		}
+		#seconds_remaining_container{
+			position: absolute
+			top: 5px
+			left: 25px
+			
+			#seconds_remaining{
+				font-family: code_font_family
+			}
+		}
+		#add_time_container, #payload_acknowledge_container {
+			position: absolute
+			top: 5px
+			left: 200px
+		}
+	}
+
+	div#prompt_sign {
+		float: left
+		font-size: prompt_font_size
+		margin-top: 6px
+		color: colorbkg
+		margin-right: -5px
+		font-family: unicode_font_family
+	}
+
+	div#prompt {
+		font-size: prompt_font_size
+		line-height: prompt_font_size
+	}
+}
+
+#plot_opener {
+	flaticon(chart)
+	cursor: pointer
+	position: absolute
+	width: 40px
+	height: 40px
+	top: 5px
+	right: 5px
+	background-color: colorbkg
+	background-repeat: no-repeat
+	background-position: left center
+}
+		
+#plot_container {
+	position: relative
+
+	#plot_figure_container{
+		position: relative
+
+		#plot_svg_container, svg {
+			absolute-full-size()
+		}
+		
+		svg {
+			plot-svg-styles()
+		}
+
+		#plot_loading {
+			position: absolute
+			top: 50%
+			left: 50%
+			width: 0
+			height: 0
+
+			& > img {
+				position: absolute
+				top: -50px
+				left: -50px
+				width: 100px
+				height: 100px
+			}
+		}
+
+		&.fullscreen {
+			position: fixed
+			top: header_height + gutter_size
+			right: 0
+			bottom: 0
+			left: 0
+			margin: 0 !important
+			z-index: 900
+		}
+
+		// for rendering downloadable bitmaps
+		#plot_canvas_container {
+			position: absolute
+			width: 0
+			height: 0
+			overflow: hidden
+		}
+	}
+	
+	#plot_controls_container {
+		text-align: center
+		
+		.plot-nav-btn {
+			font-size: 3em
+			cursor: pointer
+
+			&.disabled {
+				visibility: hidden
+			}
+		}
+		
+		#plot_png_download_btn {
+			flaticon-button(download-png, 40px)
+		}
+		#plot_svg_download_btn {
+			flaticon-button(download-svg, 40px)
+		}
+	}
+}
+
+// Push down the content of the console to the bottom of the screen
+#console::before {
+	content: "\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A\000A";
+}
+
+#vars_panel {
+	.theme-header {
+		text-align: center
+	}
+
+	#vars_content {
+		font-size: 1.2em
+		line-height: 1.2em
+		overflow: auto
+		-ms-overflow-style: -ms-autohiding-scrollbar
+
+		ul {
+			list-style-type: none
+			padding-left: 0
+			margin: 0
+
+			li {
+				cursor: pointer
+				padding: 0.1em
+				white-space: nowrap
+				overflow: hidden
+				border: none
+
+				.vars_type {
+					color: color3
+				}
+				&.ko-flash {
+					background-color: color2lt
+				}
+			}
+		}
+	}
+}

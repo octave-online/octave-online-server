@@ -1,0 +1,28 @@
+{
+  "name": "octave-online-client",
+  "version": "1.0.0",
+  "description": "Web client front end for Octave Online",
+  "main": "app/main.js",
+  "scripts": {
+    "lint": "eslint **/*.js"
+  },
+  "author": "Shane Carr",
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "eslint": "^5.1.0",
+    "grunt": "^0.4.5",
+    "grunt-contrib-copy": "^0.7.0",
+    "grunt-contrib-requirejs": "^0.4.4",
+    "grunt-contrib-stylus": "^1.2.0",
+    "grunt-contrib-uglify": "^0.7.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-postcss": "^0.5.4",
+    "grunt-regex-replace": "^0.2.6",
+    "grunt-sync": "^0.7.0",
+    "kouto-swiss": "^1.0.0"
+  },
+  "dependencies": {
+    "socket.io-client": "^1.2.1",
+    "socketio-file-upload": "^0.4"
+  }
+}

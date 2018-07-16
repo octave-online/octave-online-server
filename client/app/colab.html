@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<!--
+Copyright © 2018, Octave Online LLC
+
+This file is part of Octave Online Server.
+
+Octave Online Server is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.
+
+Octave Online Server is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License
+for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<html>
+<head>
+<title>Octave Online Colaboration Demo</title>
+
+<!-- Pre-Load Spinner Image -->
+<script>
+new Image().src = "images/spinner.svg";
+</script>
+
+<style type="text/css">
+#editor{
+	display: inline-block;
+	width: 300px;
+	height: 100px;
+}
+</style>
+
+</head>
+<body>
+
+<div id="editor"></div>
+
+<script type="text/javascript" src="vendor/requirejs/require.js"></script>
+<script type="text/javascript" src="main.js"></script>
+<script type="text/javascript">
+
+var docId = "test";
+
+require(["ace/ace", "js/ot-client", "socket.io"], function(ace, Client, io){
+	var socket = io();
+	socket.emit("init", {
+		action: "workspace",
+		wsId: "test"
+	});
+	socket.on("init", function(){
+		setTimeout(function(){
+			socket.emit("ot.subscribe", {
+				docId: docId
+			});
+		}, 1000);
+	});
+	socket.on("ot.doc", function(obj){
+		console.log("ot.doc", obj);
+
+		var editor = ace.edit("editor");
+		editor.setValue(obj.content);
+		otClient = new Client(obj.rev);
+		otClient.attachEditor(editor);
+		otClient.addEventListener("send", function(revision, operation){
+			console.log("client send", arguments);
+			socket.emit("ot.change", {
+				docId: docId,
+				rev: revision,
+				op: operation
+			});
+		});
+		otClient.addEventListener("cursor", function(cursor){
+			console.log("client cursor", arguments);
+			socket.emit("ot.cursor", cursor);
+		});
+
+		var socket = window.socket = io();
+		socket.on("ot.broadcast", function(obj){
+			var op = ot.TextOperation.fromJSON(obj.ops);
+			otClient.applyServer(op);
+		});
+		socket.on("ot.ack", function(obj){
+			otClient.serverAck();
+		});
+		socket.on("ot.cursor", function(cursor){
+			otClient.adapter.setOtherCursor(cursor, "#F00", "foo");
+		});
+
+	});
+});
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,71 @@
+/*
+ * Copyright © 2018, Octave Online LLC
+ *
+ * This file is part of Octave Online Server.
+ *
+ * Octave Online Server is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ *
+ * Octave Online Server is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Octave Online Server.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ */
+
+@require("kouto-swiss")
+@require("mixins.styl")
+
+normalize()
+
+body {
+	// debug-backgrounds()
+	font: 400 14px/1.2em body_font_family
+	color: colorfgd
+	background-color: colorbkg
+}
+h1, h2, h3, h4, h5, h6 {
+	font-family: heading_font_family
+}
+kbd {
+	white-space: nowrap
+}
+.modified {
+	font-style: italic
+	text-decoration: underline
+}
+.divide {
+	display: inline-block
+	width: 0.6em
+}
+a img {
+	border: none
+}
+.theme-header {
+	background-color: color1
+	height: toolbar_height
+	line-height: toolbar_height
+	vertical-align: middle
+	border: none
+	font-size: 1.1em
+	padding: 0 1ex
+	white-space: nowrap
+	overflow: hidden
+}
+.clickable {
+	text-decoration: underline
+	cursor: pointer
+}
+
+@require("flexbox.styl")
+@require("header.styl")
+@require("output_panel.styl")
+@require("editor.styl")
+@require("callouts.styl")
+@require("modals.styl")
+@require("print.styl")

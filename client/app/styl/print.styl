@@ -1,0 +1,73 @@
+/*
+ * Copyright © 2018, Octave Online LLC
+ *
+ * This file is part of Octave Online Server.
+ *
+ * Octave Online Server is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ *
+ * Octave Online Server is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Octave Online Server.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ */
+
+// Print stylesheet for Octave Online
+
+@media print{
+
+	// Remove all absolute positioning
+	// and hide everything by default
+	* {
+		position: static !important;
+		display: none;
+	}
+
+	// Show the essential container elements
+	html, body, header, #flexbox, #flexbox section {
+		display: block;
+	}
+	
+	// Octave Online title bar
+	h1 {
+		display: block;
+		* {
+			display: inline;
+			position: relative !important;
+		}
+	}
+
+	// Console
+	#flexbox section {
+		background-color: white !important;
+	}
+	#output_panel, #vars_console_container, #console_container, #console_output_container, #console {
+		display: inline !important;
+	}
+	#console {
+		background: none !important;
+	}
+	#console::before {
+		content: "\000A" !important;
+	}
+	#console * {
+		display: inline !important;
+	}
+
+	// Plot
+	#plot_container, #plot_figure_container, #plot_svg_container {
+		display: inline !important;
+	}
+	#plot_container {
+		box-shadow: none !important;
+	}
+	#plot_svg_container * {
+		display: inline !important;
+	}
+}

@@ -1,0 +1,26 @@
+env:
+  browser: true
+  amd: true
+extends: 'eslint:recommended'
+parserOptions:
+  ecmaVersion: 5
+rules:
+  indent:
+    - error
+    - tab
+    - SwitchCase: 1
+  linebreak-style:
+    - error
+    - unix
+  quotes:
+    - error
+    - double
+  semi:
+    - error
+    - always
+  # Allow console.log
+  no-console:
+    - off
+  # Allow extra escapes in regular expressions
+  no-useless-escape:
+    - off

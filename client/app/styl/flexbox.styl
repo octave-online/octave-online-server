@@ -1,0 +1,153 @@
+/*
+ * Copyright © 2018, Octave Online LLC
+ *
+ * This file is part of Octave Online Server.
+ *
+ * Octave Online Server is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ *
+ * Octave Online Server is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Octave Online Server.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ */
+
+@require("mixins.styl")
+
+#flexbox {
+	display: flex
+	flex-flow: column nowrap
+	
+	position: absolute
+	top: 0
+	right: 0
+	bottom: 0
+	left: 0
+	
+	& > header {
+		flex: 0 0 header_height
+	}
+	
+	& > section {
+		flex: 1 1 1px
+		display: flex
+		flex-flow: row nowrap
+		padding-top: gutter_size
+		padding-bottom: gutter_size
+		background-color: color3
+	
+		& > #files_container {
+			flex: 2 4 100px
+			margin-right: gutter_size
+			background-color: colorbkg
+		}
+		
+		& > #open_container {
+			flex: 6 4 400px
+			margin-right: gutter_size
+			background-color: colorbkg
+		}
+		
+		& > #output_panel {
+			flex: 12 4 400px
+			overflow: hidden
+			display: flex
+			flex-flow: column nowrap
+			
+			& > #plot_container {
+				flex: 1 1 300px
+				overflow: hidden
+				margin-bottom: gutter_size
+				display: flex
+				
+				#plot_figure_container{
+					flex: 2 1 80%
+					overflow: hidden
+					margin-right: gutter_size
+					background-color: colorbkg
+				}
+				
+				#plot_controls_container{
+					flex: 1 1 20%
+					overflow: auto
+					-ms-overflow-style: -ms-autohiding-scrollbar
+					background-color: colorbkg
+				}
+			}
+			
+			& > #vars_console_container {
+				flex: 4 1 300px
+				overflow: hidden
+				display: flex
+				flex-flow: row nowrap
+
+				& > #vars_panel {
+					flex: 1 1 75px
+					margin-right: gutter_size
+					background-color: color2
+					position: relative
+
+					@media (max-width: responsive_width_two) {
+						display: none
+					}
+				}
+
+				& > #console_container {
+					flex: 8 1 325px
+					overflow: hidden
+					display: flex
+					flex-flow: column nowrap
+					position: relative
+					
+					& > #console_output_container {
+						flex: 1 1 auto
+						position: relative
+						margin-bottom: 2px
+					}
+					
+					& > #console_prompt_container {
+						flex: 0 0 auto
+						position: relative
+					}
+				}
+			}
+		}
+		
+		& > #main_menu {
+			flex: 0 0 220px
+			margin-left: gutter_size
+			background-color: colorbkg
+		}
+		
+		& > * {
+			position: relative
+		}
+	}
+}
+
+.handle {
+	position: absolute
+	width: 15px
+	height: 20%
+	top: (50% - @height/2)
+	left: 0
+	background-color: color3
+	cursor: col-resize
+	z-index: 150
+	
+	&::after {
+		content: "\3008 \3009"
+		color: colorbkg
+		line-height: 20px
+		position: absolute
+		top: s('calc(%s - %s)', 50%, 10px)
+		left: -8px
+	}
+}
+

@@ -1,0 +1,362 @@
+/*
+ * Copyright © 2018, Octave Online LLC
+ *
+ * This file is part of Octave Online Server.
+ *
+ * Octave Online Server is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ *
+ * Octave Online Server is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Octave Online Server.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ */
+
+// Popover Box
+popover(_width, _height, _zindex){
+	position: fixed
+	top: 0
+	left: 0
+	right: 0
+	bottom: 0
+	z-index: _zindex
+	background: rgba(128, 128, 128, .8)
+
+	& > div {
+		position: absolute
+		top: 50%
+		left: 50%
+		width: 100%
+		height: 100%
+
+		& > div {
+			position: absolute
+			top: (_height/-2)
+			left: (_width/-2)
+			width: _width
+			height: _height
+			overflow: auto
+			-ms-overflow-style: -ms-autohiding-scrollbar
+			box-sizing: border-box
+			padding: 20px
+			background-color: colorbkg
+
+			h2.popover-title-bar {
+				position: relative
+				margin: 0
+				height: 30px
+				background-color: color2
+
+				font-size: 20px
+				line-height: @height
+				vertical-align: middle
+				text-align: center
+			}
+
+			.closebtn {
+				flaticon-button(cross)
+				display: block
+				position: absolute
+				top: 5px
+				right: 5px
+			}
+
+			kbd {
+				background-color: color2
+				border-color: color3
+			}
+		}
+	}
+}
+
+// Privacy Policy
+#privacy {
+	popover(90%, 90%, 310)
+	
+	article {
+		white-space: pre-wrap
+	}
+}
+
+// Email Token
+#email_token {
+	popover(50%, 50%, 320)
+	
+	text-align: center
+	font-size: 1.3em
+	line-height: 1.4em
+	
+	input[type="email"] {
+		font-size: 1.4em
+		display: block
+		width: 95%
+		margin: 10px auto
+
+		// valid/invalid not currently used
+		&.invalid {
+			background-color: #E094A5
+		}
+		&.valid {
+			background-color: #94E0D4
+		}
+	}
+}
+
+// Email Password
+#email_password {
+	popover(50%, 50%, 320)
+	
+	text-align: center
+	font-size: 1.3em
+	line-height: 1.4em
+	
+	input[type="email"], input[type="password"] {
+		font-size: 1.3em
+		display: block
+		width: 95%
+		margin: 10px auto
+	}
+	
+	p {
+		margin: 0 auto 1em
+	}
+}
+
+// Change Password
+#change_password {
+	popover(50%, 50%, 320)
+	
+	text-align: center
+	font-size: 1.3em
+	line-height: 1.4em
+	
+	input[type="password"] {
+		font-size: 1.3em
+		display: block
+		width: 95%
+		margin: 10px auto
+	}
+	
+	p {
+		margin: 0 auto 1em
+	}
+}
+
+// Create Bucket
+#create_bucket {
+	popover(80%, 80%, 310)
+	bucket_bar_height = 40px
+	
+	#create-bucket-content {
+		position: absolute
+		top: 0
+		left: 0
+		right: 0
+		bottom: bucket_bar_height
+		overflow: auto
+
+		p {
+			font-size: 1.1em
+			margin: 10px
+		}
+
+		h3 {
+			font-size: 1.4em
+			border-bottom: 2px solid color2
+			margin: 10px
+			clear: both
+		}
+
+		.bucket-files-fieldset {
+			width: 40%
+			margin: 0 2% 15px
+			padding: 1%
+			height: 150px
+
+			legend {
+				font-weight: bold
+			}
+
+			select {
+				display: block
+				width: 100%
+				height: 130px
+			}
+
+			&.left {
+				float: left
+			}
+			&.right {
+				float: right
+			}
+		}
+
+		.bucket-file-move-btns {
+			margin-top: 80px
+			text-align: center
+		}
+
+		.last {
+			margin-top: 15px
+			border-top: 2px solid color2
+			padding-top: 5px
+		}
+	}
+
+	#create-bucket-bar {
+		position: absolute
+		bottom: 0
+		left: 0
+		right: 0
+		height: bucket_bar_height
+		background-color: color1
+		text-align: right
+		border-bottom: 5px solid colorbtn
+
+		#create-bucket-btn {
+			background-color: transparent
+			font-size: 28px
+			padding-top: 4px
+			margin-right: 4px
+			border: none
+			cursor: pointer
+			color: colorbtn
+		}
+	}
+
+	#create-bucket-spinner {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		height: auto;
+		width: 20%;
+		margin-left: -10%;
+		margin-top: -10%;
+	}
+}
+
+// Onboarding Div
+#onboarding {
+	popover(80%, 80%, 300)
+	
+	font-size: 1.3em
+	line-height: 1.3em
+
+	h2{
+		margin: 0
+		padding: 0
+		font-size: 2em
+		line-height: 1em
+	}
+
+	figure{
+		width: 90%;
+		margin: 10px auto;
+		padding: 5px;
+		border-radius: 10px;
+		border: 1px solid black;
+
+		& > img{
+			display: block;
+			margin: 5px auto;
+			max-width: 100%
+		}
+	}
+
+	#onboarding-start{
+		background-color: color1
+		background-image: linear-gradient(color2, color1, to bottom);
+		background-image: radial-gradient(ellipse at center,
+			color2 0%,
+			color1 100%);
+		display: block;
+		margin: 10px auto;
+		padding: 0.5em;
+		font-size: 1.5em;
+		cursor: pointer;
+		border-radius: 1em;
+		border: none;
+		background-color: blue;
+
+		&:active{
+			background-color: #ffa84c;
+			background-image: linear-gradient(color2, color3, to bottom);
+			background-image: radial-gradient(ellipse at center,
+				color2 0%,
+				color3 100%);
+		}
+	}
+}
+
+// Main site loading spinner
+#site_loading {
+	position: fixed
+	z-index: 200
+	width: 100%
+	height: 100%
+	pointer-events: none
+	
+	#cosine-pulse {
+		background-image: inline-image("cosine.svg")
+		background-repeat: repeat-x
+		background-size: 2000px 100%
+		// TODO: Change to side-relative values when browser support is better
+		background-position-x: -3000px
+		animation: cosine-width 4s infinite cubic-bezier(.75,0,1,.75) alternate forwards,
+			cosine-position 8s infinite ease-in-out alternate forwards
+		animation-delay: 4s, 0s
+		position: absolute
+		top: 30%
+		left: 0
+		width: 100%
+		height: 40%
+	}
+	
+	@keyframes cosine-width {
+		from {
+			background-size: 2000px 100%
+		}
+		to {
+			background-size: 50px 100%
+		}
+	}
+	
+	@keyframes cosine-position {
+		from {
+			background-position-x: -3000px
+		}
+		to {
+			background-position-x: 4000px
+		}
+	}
+
+	#site_loading_patience {
+    position: relative;
+		top: 75%;
+		width: 50%;
+		margin: 0 auto;
+		min-width: 18em;
+
+		text-align: center;
+		font-size: 1.2em;
+		line-height: 1.2em;
+	}
+
+	#site_loading_more_patience {
+    position: relative;
+		top: 75%;
+		width: 50%;
+		margin: 0 auto;
+		min-width: 18em;
+
+		text-align: center;
+		font-size: 1.2em;
+		line-height: 1.2em;
+	}
+}

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<!--
+Copyright © 2018, Octave Online LLC
+
+This file is part of Octave Online Server.
+
+Octave Online Server is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.
+
+Octave Online Server is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License
+for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<html>
+<head>
+
+	<title>{!title!}</title>
+
+	<!-- Standard Meta Tags -->
+	<meta name="description" content="{!description!}"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<link rel="icon" type="image/png" sizes="32x32" href="images/logos/favicon_package/favicon-32x32.png"/>
+	<link rel="icon" type="image/png" sizes="16x16" href="images/logos/favicon_package/favicon-16x16.png"/>
+	<link rel="shortcut icon" href="images/logos/favicon_package/favicon.ico"/>
+	<meta name="viewport" content="width=device-width"/>
+	<meta name="theme-color" content="{!theme-color!}"/>
+
+	<!-- Mobile Config -->
+	<link rel="manifest" href="images/logos/favicon_package/site.webmanifest"/>
+	<link rel="mask-icon" href="images/logos/favicon_package/safari-pinned-tab.svg" color="{!theme-color!}"/>
+	<link rel="apple-touch-icon" sizes="180x180" href="images/logos/favicon_package/apple-touch-icon.png"/>
+	<meta name="mobile-web-app-capable" content="yes"/>
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta name="apple-mobile-web-app-title" content="{!app-name!}"/>
+	<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+	<meta name="application-name" content="{!app-name!}"/>
+	<meta name="msapplication-TileColor" content="#da532c"/>
+	<meta name="msapplication-config" content="images/logos/favicon_package/browserconfig.xml"/>
+
+	<!-- Stylesheets -->
+	<link href="css/themes/fire.css?{!css-timestamp!}" rel="stylesheet" type="text/css" id="theme"/>
+	<style type="text/css">
+	[aria-hidden="true"] { display: none !important; }
+	</style>
+
+	<!-- Browser Compatibility Check -->
+	<script type="text/javascript">
+	var flexSupported = (function(){for(var b=document.createElement("div"),d=["","-webkit-","-moz-","-o-","-ms-"],c=0;5>c;c++)if(b.style.cssText+=d[c]+"flex-basis:1px",b.style.length)return!0;return!1})();
+
+	if (!flexSupported) {
+		// Send to the non-flexbox version of the site for additional tests
+		window.location.href = "v1/";
+	}
+	</script>
+
+	<!-- Pre-Load Spinner Image -->
+	<script>
+	new Image().src = "images/spinner.svg";
+	</script>
+
+</head>
+<body>
+
+<div id="flexbox">
+	<header>
+		<h1>
+			<img alt="{!app-name!}" src="images/logos/banner-black.svg" data-bind="attr: { src: logoSrc }" />
+		</h1>
+		<!-- ko if: showUserInHeader -->
+		<small>
+			<span data-bind="text: currentUser().name"></span>
+		</small>
+		<!-- /ko -->
+		<div class="hamburger" id="hamburger" aria-label="Menu" role="button" aria-controls="navigation">
+			<div class="hamburger-box">
+				<span class="hamburger-memo">MENU</span>
+				<div class="hamburger-inner"></div>
+			</div>
+		</div>
+	</header>
+	<section data-hover="flex">
+		<div id="files_container" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 0 }">
+			<div id="files_toolbar" class="theme-header">
+				Files
+				<!-- ko if: purpose() !== "bucket" -->
+				<span id="files_toolbar_create" title="Create empty file"></span>
+				<!-- /ko -->
+			</div>
+			<!-- ko if: purpose() !== "bucket" -->
+			<div id="files_toolbar_lower">
+				<span id="files_toolbar_upload" title="Upload file"></span>
+				<span id="files_toolbar_refresh" title="Refresh files"></span>
+				<span id="files_toolbar_info" title="File version history"></span>
+			</div>
+			<!-- /ko -->
+			<div id="files_list_container" data-bind="css: { 'is_bucket': purpose() === 'bucket' }">
+				<ul data-bind="foreach: files">
+					<li data-bind="click: open, css: { 'file_active': isActive, 'modified': isModified }">
+						<!-- The ko if statements are for backwards compatibility between an old main.js and a new index.html -->
+						<!-- ko if: dirpart -->
+						<span class="dirpart" data-bind="text: dirpart, visible: !!dirpart"></span>
+						<span class="filepart" data-bind="text: filepart"></span>
+						<!-- /ko -->
+						<!-- ko ifnot: dirpart -->
+						<span data-bind="text: filename"></span>
+						<!-- /ko -->
+					</li>
+				</ul>
+				<!-- ko if: purpose() !== "bucket" -->
+				<span id="files_drop_notification">
+					Drop Files Here to Upload
+				</span>
+				<!-- /ko -->
+			</div>
+		</div>
+		<div id="open_container" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 1 }">
+			<!-- ko with: openFile -->
+				<div id="editor_toolbar" class="theme-header">
+					<span id="editor_hamburger" data-bind="click: buttonsShown.toggle()" title="Show Toolbar"></span>
+					<span id="editor_filename" data-bind="text: filename, css: { 'modified': isModified }"></span>
+					<!-- ko if: runnable -->
+					<span id="editor_runit" title="Run Script" data-bind="click: runit">RUN &#x25b6;</span>
+					<!-- /ko -->
+				</div>
+				<div id="editor_btn_container" data-bind="vizSafe: buttonsShown" aria-hidden="true">
+					<span id="editor_download" title="Download File" data-bind="click: download"></span>
+					<!-- ko if: $root.purpose() !== "bucket" -->
+					<span id="editor_rename" title="Rename File" data-bind="click: rename"></span>
+					<span id="editor_delete" title="DELETE File" data-bind="click: deleteit"></span>
+					<!-- /ko -->
+					<!-- ko if: editable -->
+					<span id="editor_print" title="Print File" data-bind="click: print"></span>
+					<label id="wrap_checkbox" title="Toggle Word Wrap"><input type="checkbox" data-bind="checked: wrap" /></label>
+					<!-- ko if: $root.purpose() !== "bucket" -->
+					<span id="editor_share" title="Share File in new Bucket" data-bind="click: share"></span>
+					<!-- /ko -->
+					<span id="editor_save" title="Save File" data-bind="click: save"></span>
+					<!-- /ko -->
+				</div>
+
+				<!-- ko if: editable -->
+					<div id="editor" data-bind="ace: { text: content, skin: $root.selectedSkin, wrap: wrap, octfile: $data }, css: { taller: !buttonsShown(), shorter: buttonsShown() }"></div>
+				<!-- /ko -->
+				<!-- ko ifnot: editable -->
+					<div class="editor_nofile" data-bind="css: { taller: !buttonsShown(), shorter: buttonsShown() }">
+						<h2>
+							{!app-name!} Interactive Editor
+						</h2>
+
+						<p>
+							The currently selected file can't be edited online. You can still use the toolbar above to rename,
+							download, and delete the file.  Reasons might include:
+						</p>
+						<ol>
+							<li>The file type isn't supported in this editor.</li>
+							<li>The file is in a binary format, like images.</li>
+							<li>The file is too large and can't be loaded into the editor.</li>
+						</ol>
+					</div>
+				<!-- /ko -->
+			<!-- /ko -->
+			<!-- ko ifnot: openFile -->
+				<div class="editor_nofile fullheight">
+					<h2>
+						Tips and Tricks
+					</h2>
+					<!-- ko if: purpose() !== "bucket" -->
+					<p>
+						The files you make on {!app-name!} will be saved for the next time you visit.
+					</p>
+					<!-- /ko -->
+					<p>
+						In the editor, you can use <a href="https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts#default-keyboard-shortcuts" target="_blank">most of these keyboard shortcuts</a>.  You can also use these special keyboard shortcuts:
+					</p>
+					<dl>
+						<dt>Ctrl + Space</dt>
+						<dd>Show the auto-completion menu</dd>
+						<dt>Cmd/Ctrl + S</dt>
+						<dd>Save the file</dd>
+						<dt>Cmd/Ctrl/Win + R</dt>
+						<dd>Run the file</dd>
+						<dt>Cmd/Ctrl/Win + E</dt>
+						<dd>Set focus to the prompt</dd>
+					</dl>
+				</div>
+			<!-- /ko -->
+		</div>
+		<div id="output_panel" data-bind="attr:{ style: flex.outputCss }">
+			<div id="plot_container" aria-hidden="true" data-bind="vizSafe: showPlot, with: currentPlot">
+				<div id="plot_figure_container" title="Click to zoom" data-bind="click: zoom">
+					<div id="plot_svg_container" data-bind="fadeIn: complete, html: completeData"></div>
+					<div id="plot_loading" data-bind="fadeOut: !complete()">
+						<img src="images/spinner.svg" alt="Loading&hellip;"/>
+					</div>
+					<div id="plot_canvas_container">
+						<canvas id="plot_canvas" width="600" height="400"></canvas>
+					</div>
+				</div>
+				<div id="plot_controls_container">
+					<p>
+						<span id="plot_prev_btn" title="Previous Plot" class="plot-nav-btn" data-bind="click: $root.showPrevPlot, css: { disabled: $root.firstPlotShown }">&laquo;</span>
+						<span id="plot_next_btn" title="Next Plot" class="plot-nav-btn" data-bind="click: $root.showNextPlot, css: { disabled: $root.lastPlotShown }">&raquo;</span>
+					</p>
+					<p id="plot_info">
+						Plot: Line&nbsp;<span data-bind="text: lineNumber"></span>
+					</p>
+					<span id="plot_png_download_btn" title="Download Plot as Image" data-bind="click: downloadPng"></span>
+					<span id="plot_svg_download_btn" title="Download Plot as Image" data-bind="click: downloadSvg"></span>
+				</div>
+			</div>
+			<div id="vars_console_container"  data-hover="flex">
+				<div id="vars_panel" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 2 }">
+					<div class="theme-header">
+						Vars
+					</div>
+					<div id="vars_content">
+						<ul data-bind="foreach: vars">
+							<li data-bind="click: showDetails, attr: { title: typeExplanation }, flash: value">
+								<span class="vars_type" data-bind="text: typeString"></span>
+								<span class="vars_symb" data-bind="text: symbol"></span>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div id="console_container" data-bind="resizeFlex:{ group: flex.sizes, index: 3 }">
+					<div id="console_output_container">
+						<pre id="console"></pre>
+						<!--ONBOARDING
+						<div id="instructor-promo" aria-hidden="true">
+							<span class="l1">Did you know you can use {!app-name!} in your class?</span>
+							<span class="l2">Open a support ticket to inquire about how we can set you up as an instructor.</span>
+							<span class="l3" data-purpose="close">dismiss</span>
+						</div>
+						ONBOARDING-->
+						<!-- ko if: window.oo$version >= 20161218.2 -->
+						<div id="cwd_box" style="display: none" data-bind="visible: !!cwd()">cwd: <span data-bind="text: cwd"></span></div>
+						<!-- /ko -->
+						<div id="type_here" aria-hidden="true">
+							<span class="l1">Octave Command Prompt</span>
+							<span class="l2">Type expressions here and press enter.</span>
+							<!-- ko ifnot: currentUser() -->
+							<span class="l3">Tip: <a href="javascript:void(0)" id="sign_in_shortcut">Sign in</a> to run script files.</span>
+							<!-- /ko -->
+						</div>
+						<span id="plot_opener" title="Expand Plot Window" data-bind="click: togglePlot"></span>
+					</div>
+					<div id="console_prompt_container">
+
+						<div id="prompt_sign" aria-hidden="true">&#x300B;</div>
+						<!--
+						NOTE: Removing this inline height style and moving it to CSS
+						will result in a race condition between Ace and the CSS file
+						being loaded.
+						-->
+						<div id="prompt" style="height: 28px" aria-hidden="true"></div>
+
+						<div id="runtime_controls_container" aria-hidden="true">
+							<span id="signal" title="Stop Currently Running Command (send SIGINT)"></span>
+							<span id="seconds_remaining_container">
+								Seconds Remaining:
+								<span id="seconds_remaining">0</span>
+							</span>
+							<span id="add_time_container" class="clickable" data-bind="click: addTime">Add 15 Seconds</span>
+							<span id="payload_acknowledge_container" class="clickable" data-bind="click: acknowledgePayload">Resume Execution</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="main_menu" aria-hidden="true">
+			<!-- ko if: (!currentUser() && !showUserInHeader()) -->
+				<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
+					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="Sign in with Google" />
+				</svg>
+				<svg width="200" height="40" class="login_btn" id="sign_in_with_password">
+					<image xlink:href="images/sign-in-with-password.svg" src="images/sign-in-with-password.png" width="200" height="40" alt="Sign in with Password" />
+				</svg>
+				<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
+					<image xlink:href="images/sign-in-with-email.svg" src="images/sign-in-with-email.png" width="200" height="40" alt="Sign in with Email" />
+				</svg>
+				<p class="login_bottom">
+					Looking for Persona? It was discontinued by Mozilla in 2016. Please sign in using your same email address with one of the other methods.
+				</p>
+				<p class="login_bottom">
+					Signed in before but need to change your email address? Click "Feedback" and create a ticket. We will change it for you.
+				</p>
+			<!-- /ko -->
+			<!-- ko if: (currentUser() && !showUserInHeader()) -->
+				<div id="userbox">
+					<span data-bind="text: currentUser().name"></span>
+					<a id="logout_icon" href="javascript:void(0)" title="Sign Out" data-bind="click: doLogout">Sign&nbsp;Out</a>
+				</div>
+				<div class="share-url-box">
+					<!-- ko if: currentUser().share_key -->
+						<em>Others can use the following link to connect to your workspace.</em>
+						<input data-bind="value: shareLink" onclick="this.select()" readonly="readonly" />
+						<div class="site-control-item" data-bind="click: toggleSharing">
+							<a href="javascript:void(0)">Disable Sharing</a>
+						</div>
+					<!-- /ko -->
+					<!-- ko ifnot: currentUser().share_key -->
+						<em>Sharing is currently disabled.  If you enable it, you get a link that you can use for real-time collaboration with colleagues.</em>
+						<div class="site-control-item" data-bind="click: toggleSharing">
+							<a href="javascript:void(0)">Enable Sharing</a>
+						</div>
+					<!-- /ko -->
+				</div>
+				<!-- ko if: window.oo$version >= 20161230.1 -->
+				<div class="site-control-item" id="create-password-btn" data-bind="click: showChangePassword">
+					<a href="javascript:void(0)">Change Password</a>
+				</div>
+				<!-- /ko -->
+			<!-- /ko -->
+			<!-- ko foreach: instructorPrograms -->
+				<div class="instructor-programs">
+					<strong>Students Enrolled in <span data-bind="text: program"></span>:</strong>
+					<ul data-bind="foreach: users">
+						<li><a data-bind="attr: { href: shareUrl }, text: displayName" target="_blank"></a> (<a data-bind="click: $root.unenrollStudent" title="Unenroll">&#x232B;</a> <a data-bind="click: $root.reenrollStudent" title="Move">&#x2794;</a>)</li>
+					</ul>
+				</div>
+			<!-- /ko -->
+			<div class="site-control-item" id="feedback-btn">
+				<a href="javascript:void(0)"
+				data-uv-lightbox="classic_widget"
+				data-uv-mode="full"
+				data-uv-primary-color="#cc6d00"
+				data-uv-link-color="#007dbf"
+				data-uv-default-mode="feedback"
+				data-uv-forum-id="211888">
+				Feedback and Support
+			</a></div>
+			<div class="site-control-item">
+				<a id="showprivacy">Privacy Policy and EULA</a>
+			</div>
+			<div class="site-control-item" id="change-skin">
+				<a href="javascript:void(0)">Change Theme</a>
+			</div>
+			<div class="site-control-item" id="reset-layout">
+				<a href="javascript:void(0)">Change/Reset Layout</a>
+			</div>
+			<div id="twitter-follow-holder" class="site-control-item">
+				<a href="https://twitter.com/OctaveOnline" class="twitter-follow-button" data-show-count="false"
+				data-lang="en" data-size="large" data-show-screen-name="false" target="_blank">Follow on Twitter</a>
+			</div>
+			<div id="show-plots-inline-item">
+				<label>
+					<input type="checkbox" data-bind="checked: inlinePlots" />
+					Render New Plots Inline
+				</label>
+			</div>
+			<!-- ko if: allBuckets().length > 0 -->
+				<div class="all-buckets">
+					<strong>Your Buckets:</strong>
+					<ul data-bind="foreach: allBuckets">
+						<li>
+							<a data-bind="click: deleteit" title="Delete Bucket" class="bucket-delete">&#x232B;</a>
+
+							<a data-bind="attr: { href: url }, text: displayName" target="_blank" class="bucket-name"></a>
+							<br/>
+							<span data-bind="text: createdTimeString" class="bucket-time"></span>
+						</li>
+					</ul>
+				</div>
+			<!-- /ko -->
+			<div id="footnotes">
+				Icons made by <a href="http://www.flaticon.com/authors/bogdan-rosu" title="Bogdan Rosu" target="_blank">Bogdan Rosu</a>, <a href="http://www.flaticon.com/authors/daniel-bruce" title="Daniel Bruce" target="_blank">Daniel Bruce</a>, <a href="http://www.flaticon.com/authors/sarfraz-shoukat" title="Sarfraz Shoukat" target="_blank">Sarfraz Shoukat</a>, <a href="http://www.flaticon.com/authors/icomoon" title="Icomoon" target="_blank">Icomoon</a>, <a href="http://www.flaticon.com/authors/freepik" title="Freepik" target="_blank">Freepik</a>, <a href="http://www.flaticon.com/authors/icon-works" title="Icon Works" target="_blank">Icon Works</a>, <a href="http://www.flaticon.com/authors/plainicon" title="Plainicon" target="_blank">Plainicon</a>, and <a href="http://www.flaticon.com/authors/simpleicon" title="SimpleIcon" target="_blank">SimpleIcon</a> are from <a href="http://www.flaticon.com" title="Flaticon" target="_blank">www.flaticon.com</a> and licensed by <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank" title="Creative Commons BY 3.0">CC BY 3.0</a>.
+			</div>
+		</div>
+	</section>
+</div>
+
+<!--ONBOARDING
+<div id="onboarding" data-purpose="popover"><div><div>
+	<h2>Welcome to Octave Online</h2>
+
+	<p>
+		Octave Online is a web UI for GNU Octave, the open-source alternative to MATLAB.  Thousands of students, educators, and researchers from around the world use Octave Online each day for studying machine learning, control systems, numerical methods, and more.
+	</p>
+	<figure>
+		<figcaption>
+			Type commands in the prompt like you would in your local copy of GNU Octave or MATLAB.
+		</figcaption>
+		<img src="images/demo/fminbnd-prompt.png" alt="fminbnd(@(x) x .* log(x), 0, 1)" style="max-width: 362px;"/>
+		<img src="images/demo/fminbnd-result.png" alt="0.36788" style="max-width: 366px;"/>
+	</figure>
+	<figure>
+		<figcaption>
+			Plot charts and graphs.
+		</figcaption>
+		<img src="images/demo/sombrero-prompt.png" alt="sombrero()" style="max-width: 150px;"/>
+		<img src="images/demo/sombrero-result.png" alt="plot showing a sombrero" style="max-width: 531px;"/>
+	</figure>
+	<figure>
+		<figcaption>
+			Sign in for more features: script files, buckets, real-time collaboration like Google Docs, extended runtime, and more.
+		</figcaption>
+		<img src="images/demo/editor.png" alt="cstr_reactor.m"/>
+	</figure>
+	<button id="onboarding-start" data-purpose="close">Start Using Octave Online</button>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
+ONBOARDING-->
+
+<div id="privacy" data-purpose="popover" aria-hidden="true"><div><div>
+	<article></article>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
+
+<div id="email_token" data-purpose="popover" aria-hidden="true"><div><div>
+	<label for="emailField">Enter your email address:</label>
+	<form action="./auth/tok" method="post">
+		<input type="email" id="emailField1" name="s" placeholder="email address" />
+		<input type="submit" value="Submit" />
+	</form>
+	<p>You will be emailed an 11-digit code that you will need to enter on the next screen.</p>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
+
+<div id="email_password" data-purpose="popover" aria-hidden="true"><div><div>
+	<p><strong>New user? Forgot your password?</strong>  Use the "email token" sign-in option instead.  Once you are signed in, use the "Change Password" option in the menu to set a new password.</p>
+	<form action="./auth/pwd" method="post">
+		<input type="email" id="emailField2" name="s" placeholder="email address" />
+		<input type="password" name="p" placeholder="password" />
+		<!-- ko if: window.location.protocol === "http:" -->
+		<p><strong>Caution:</strong>  You are using an unsecured connection (http).  People might be able to see what you submit.  <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }">Switch to a secured connection (https)</a></p>
+		<!-- /ko -->
+		<input type="submit" value="Submit" />
+	</form>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
+
+<div id="change_password" data-purpose="popover" aria-hidden="true"><div><div>
+	<p>Enter your new password below.  To remove your password and disable password-based logins, leave the password field blank and click "Save Password".</p>
+	<input type="password" id="new_pwd" placeholder="password" />
+	<!-- ko if: window.location.protocol === "http:" -->
+	<p><strong>Caution:</strong>  You are using an unsecured connection (http).  People might be able to see what you submit.  <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }">Switch to a secured connection (https)</a></p>
+	<!-- /ko -->
+	<button id="save-password-btn">Save Password</button>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
+
+<div id="create_bucket" data-purpose="popover" aria-hidden="true"><div><div>
+	<!-- ko with: newBucket -->
+	<div id="create-bucket-content">
+		<h2 class="popover-title-bar">
+			Customize Bucket
+		</h2>
+		<p>A "bucket" is how to publicly share snapshots of {!app-name!} script or data files.</p>
+		<h3>Optional: Add More Files</h3>
+		<p>Select files and click the right arrow button.</p>
+		<fieldset class="bucket-files-fieldset left">
+			<legend>Files to Add</legend>
+			<select data-bind="options: filesNotIncluded, optionsText: 'filename', selectedOptions: selectedLeft" multiple></select>
+		</fieldset>
+		<fieldset class="bucket-files-fieldset right">
+			<legend>Files in Bucket</legend>
+			<select data-bind="options: files, optionsText: 'filename', selectedOptions: selectedRight" multiple></select>
+		</fieldset>
+		<p class="bucket-file-move-btns">
+			<button data-bind="click: moveRightToLeft">⇦</button>
+			<button data-bind="click: moveLeftToRight">⇨</button>
+		</p>
+		<h3>Optional: Select Main File</h3>
+		<p>The "main" script is automatically run when someone views the bucket.</p>
+		<p><label>
+			<strong>Main File:</strong>
+			<select data-bind="options: textFiles, optionsText: 'filename', optionsCaption: 'none', value: main"></select>
+		</label></p>
+		<p class="last">After clicking below, your browser will refresh into your new bucket.  You can share the URL of the page to which you are redirected.</p>
+	</div>
+	<div id="create-bucket-bar">
+		<button id="create-bucket-btn" data-bind="click: createOnServer, visible: showCreateButton">Create Bucket 🡺</button>
+	</div>
+	<img id="create-bucket-spinner" src="images/spinner.svg" width="40" data-bind="visible: !showCreateButton()" />
+	<!-- /ko -->
+	<span class="closebtn" data-purpose="close" data-bind="click: clearBucket"></span>
+</div></div></div>
+
+<div id="site_loading">
+	<div id="cosine-pulse"></div>
+	<div id="site_loading_patience" class="patience" aria-hidden="true">Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.</div>
+	<div id="site_loading_more_patience" class="patience" aria-hidden="true">Thanks for waiting.  It's not supposed to take this long.  Please double-check your internet connection.  If you are sure that your internet is working, consider contacting support.</div>
+</div>
+
+<!--ONBOARDING
+<div id="sync-promo" aria-hidden="true">
+	<span class="l1">View historical versions of your script files!</span>
+	<span class="l2">Click the icon for more info.</span>
+	<span class="l3" data-purpose="close">dismiss</span>
+</div>
+<div id="create-bucket-promo" aria-hidden="true">
+	<span class="l1">Share snapshots of your script files!</span>
+	<span class="l2">Click the icon to create a new bucket.</span>
+	<span class="l3" data-purpose="close">dismiss</span>
+</div>
+<div id="share-promo" aria-hidden="true">
+	<span class="l0">Tip:</span>
+	<span class="l1">Set up <strong>sharing</strong> so you can collaboratively edit your script files in real time,</span>
+	<span class="l2">like Google Docs.</span>
+	<span class="l3" data-purpose="close">dismiss</span>
+</div>
+<div id="login-promo" aria-hidden="true">
+	<span class="l1">Want to use</span>
+	<span class="l2">scripts?</span>
+	<span class="l3">Sign in to create and share script files.</span>
+	<span class="l4" data-purpose="close">dismiss</span>
+</div>
+<div id="bucket-promo" aria-hidden="true">
+	<span class="l1">Sign in to create your own buckets and use the rest of {!app-name!}.</span>
+	<span class="l2" data-purpose="close">dismiss</span>
+</div>
+ONBOARDING-->
+
+<!-- Begin RequireJS -->
+<script type="text/javascript" src="vendor/requirejs/require.js"></script>
+<script type="text/javascript" src="main.js"></script>
+//<!-- End RequireJS -->
+<script type="text/javascript">
+require.config({
+	urlArgs: "{!js-timestamp!}"
+});
+require(["js/app"], function(){
+	require(["js/runtime"]);
+//var OctMethods = require("js/client"); OctMethods.console.writeError("NOTICE: Announcement Here\n\n\n\n\n\n\n\n\n\n");
+});
+</script>
+</body>
+</html>

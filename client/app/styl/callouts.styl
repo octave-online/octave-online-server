@@ -1,0 +1,294 @@
+/*
+ * Copyright © 2018, Octave Online LLC
+ *
+ * This file is part of Octave Online Server.
+ *
+ * Octave Online Server is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ *
+ * Octave Online Server is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Octave Online Server.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ */
+
+@require("mixins.styl")
+
+callout_color = #369AFF
+callout(shadowoffset, direction="up"){
+	position: absolute
+	background-color: colorbkg
+	border: 3px solid callout_color
+	border-radius: 5px
+	box-shadow: 0px shadowoffset 16px 0px rgba(0, 0, 0, 0.75)
+
+	// Arrow
+	&::before{
+		content: " "
+		position: absolute
+		width: 0
+		height: 0
+		border: 10px solid
+		if direction is "none" {
+			border-color: transparent
+		} else if direction is "up" {
+			border-color: transparent callout_color callout_color transparent
+		} else if direction is "left" {
+			border-color: transparent transparent callout_color callout_color
+		} else {
+			border-color: callout_color transparent transparent callout_color
+		}
+	}
+}
+
+#instructor-promo {
+	callout(0px, none)
+	top: 10px
+	left: 10px
+	width: 260px
+	height: auto
+	padding: 5px
+	text-align: center
+	z-index: 10
+
+	// Text Flow
+	& > span {
+		display: block
+		line-height: 1em
+		&.l1 {
+			font-size: 1.3em
+		}
+		&.l2 {
+			margin-top: 5px
+			font-size: 1em
+		}
+		&.l3 {
+			font-size: 1em
+			margin-top: 10px
+			cursor: pointer
+			text-decoration: underline
+		}
+	}
+	
+	@media (max-width: responsive_width_three) {
+		display: none
+	}
+}
+
+#type_here {
+	callout(0px, down)
+	bottom: 25px
+	left: 10px
+	height: auto
+	width: 330px
+	max-width: 80%
+	padding: 10px
+	z-index: 10
+
+	// Arrow
+	&::before {
+		left: 10px
+		bottom: -20px
+	}
+
+	// Text Flow
+	& > span {
+		display: block
+		line-height: 1em
+		&.l1{
+			font-size: 2em
+		}
+		&.l2{
+			margin-top: 5px
+			font-size: 1.2em
+			kbd {
+				color: green
+			}
+		}
+		&.l3{
+			margin-top: 10px
+			font-size: 1.2em
+			color: #999
+		}
+		a{
+			color: inherit
+		}
+	}
+}
+
+#login-promo, #bucket-promo {
+	callout(4px, up)
+	display: block
+	top: header_height + 15px
+	right: 10px
+	width: 200px
+	height: auto
+	text-align: center
+	z-index: 204
+	padding: 10px 10px
+
+	// Arrow
+	&::before {
+		right: 10px
+		top: -20px
+	}
+
+	// Text Flow
+	&#login-promo > span {
+		display: block
+		line-height: 1em
+		&.l1{
+			font-size: 2em
+		}
+		&.l2{
+			font-size: 3em
+		}
+		&.l3{
+			font-size: 1.3em
+			margin-top: 10px
+		}
+		&.l4{
+			font-size: 1em
+			margin-top: 10px
+			cursor: pointer
+			text-decoration: underline
+		}
+	}
+
+	&#bucket-promo > span {
+		display: block
+		line-height: 1em
+		&.l1{
+			font-size: 1.25em
+		}
+		&.l2{
+			font-size: 1em
+			margin-top: 10px
+			cursor: pointer
+			text-decoration: underline
+		}
+	}
+
+	@media (max-width: responsive_width_one) {
+		display: none
+	}
+}
+
+#share-promo{
+	callout(4px, up)
+	display: block
+	top: header_height + 15px
+	right: 10px
+	width: 220px
+	height: auto
+	text-align: center
+	z-index: 204
+	padding: 10px 10px
+
+	// Arrow
+	&::before {
+		right: 10px
+		top: -20px
+	}
+
+	// Text Flow
+	& > span {
+		display: block
+		line-height: 1em
+		&.l0{
+			font-size: 1.4em
+		}
+		&.l1{
+			font-size: 1.3em
+			margin-top: 4px
+		}
+		&.l2{
+			font-size: 1.4em
+			margin-top: 4px
+		}
+		&.l3{
+			font-size: 1em
+			margin-top: 10px
+			cursor: pointer
+			text-decoration: underline
+		}
+	}
+}
+
+#sync-promo{
+	callout(4px, left)
+	top: header_height + toolbar_height*2 + 20px
+	left: 60px	// left position is set via JavaScript; this is a default
+	width: 130px
+	height: auto
+	text-align: center
+	z-index: 203
+	padding: 10px 10px
+
+	// Arrow
+	&::before {
+		left: 10px
+		top: -20px
+	}
+
+	// Text Flow
+	& > span {
+		display: block
+		line-height: 1em
+		&.l1{
+			font-size: 1.3em
+		}
+		&.l2{
+			font-size: 1.1em
+			margin-top: 10px
+		}
+		&.l3{
+			font-size: 1em
+			margin-top: 10px
+			cursor: pointer
+			text-decoration: underline
+		}
+	}
+}
+
+#create-bucket-promo{
+	callout(4px, left)
+	top: header_height + toolbar_height*2 + 20px
+	left: 150px	// left position is set via JavaScript; this is a default
+	width: 160px
+	height: auto
+	text-align: center
+	z-index: 202
+	padding: 10px 10px
+
+	// Arrow
+	&::before {
+		left: 10px
+		top: -20px
+	}
+
+	// Text Flow
+	& > span {
+		display: block
+		line-height: 1em
+		&.l1{
+			font-size: 1.3em
+		}
+		&.l2{
+			font-size: 1.1em
+			margin-top: 10px
+		}
+		&.l3{
+			font-size: 1em
+			margin-top: 10px
+			cursor: pointer
+			text-decoration: underline
+		}
+	}
+}

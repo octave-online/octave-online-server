@@ -1,0 +1,124 @@
+/*
+ * Copyright © 2018, Octave Online LLC
+ *
+ * This file is part of Octave Online Server.
+ *
+ * Octave Online Server is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ *
+ * Octave Online Server is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Octave Online Server.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ */
+
+// Variables
+header_height = 40px
+gutter_size = 5px
+console_font_size = 14px
+prompt_font_size = 18px
+prompt_height = 28px
+prompt_sign_width = 20px
+toolbar_height = 24px
+
+responsive_width_one = 480px
+responsive_width_two = 700px
+responsive_width_three = 800px
+
+// Fonts
+body_font_family = "Trebuchet MS", "Arial", sans-serif
+code_font_family = "DejaVu Sans Mono", monospace
+unicode_font_family = "Arial Unicode", "Lucida Sans Unicode", "DejaVu Sans", "GNU Unifont", sans-serif
+heading_font_family = "Trebuchet MS", "Impact", sans-serif
+narrow_font_family = "Arial Narrow", "Abadi MT Condensed Light", "Helvetica CY", sans-serif;
+
+// Flaticons
+flaticon(name) {
+	background-image: inline-image("flaticons/"+icon_name+"/"+name+".svg")
+}
+flaticon-button(name, dim=16px) {
+	flaticon(name)
+	
+	background-repeat: no-repeat
+	background-position: center center
+	background-size: dim dim
+	width: dim+2px
+	height: dim+4px
+	display: inline-block
+	cursor: pointer
+}
+
+// Utilities
+absolute-full-size() {
+	position: absolute
+	top: 0
+	bottom: 0
+	width: 100%
+	height: 100%
+}
+debug-backgrounds() {
+	background-color: #FFF !important
+	& > * {
+		background-color: #EEE !important
+		& > * {
+			background-color: #DDD !important
+			& > * {
+				background-color: #CCC !important
+				& > * {
+					background-color: #BBB !important
+					& > * {
+						background-color: #AAA !important
+						& > * {
+							background-color: #999 !important
+							& > * {
+								background-color: #888 !important
+								& > * {
+									background-color: #777 !important
+									& > * {
+										background-color: #666 !important
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+hamburger-button(color){
+	background-image: linear-gradient(to bottom,
+		color 0%,
+		color 20%,
+		transparent 20%,
+		transparent 40%,
+		color 40%,
+		color 60%,
+		transparent 60%,
+		transparent 80%,
+		color 80%,
+		color 100%);
+}
+
+// Transition Delay Setup
+.transition-duration-instant{
+	transition-duration: 0s
+}
+.transition-duration-fast{
+	transition-duration: 0.5s
+}
+.transition-duration-medium{
+	transition-duration: 1s
+}
+.transition-duration-slow{
+	transition-duration: 2s
+}
+.transition-property-bgcolor{
+	transition-property: background-color
+}
