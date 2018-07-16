@@ -24,10 +24,10 @@ declare module 'mailgun-js' {
 	}
 
 	class Mailgun {
-		// this isn't really static but it makes TypeScript happy
-		static messages(): IMessages;
+		messages(): IMessages;
 	}
 
-	export = (options: any) => Mailgun;
+	const _default: (options: any) => Mailgun;
+	export = _default;
 }
 

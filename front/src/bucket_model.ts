@@ -45,5 +45,5 @@ bucketSchema.set("toJSON", {
 });
 
 // See comment in user_model.ts about the casting.
-var Bucket = <Mongoose.Model<IBucket>> (<any> Mongoose.model("Bucket", bucketSchema));
+var Bucket = <any> Mongoose.model("Bucket", bucketSchema);
 export = Bucket;

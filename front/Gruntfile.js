@@ -19,17 +19,18 @@
  */
 
 module.exports = function (grunt) {
-	grunt.loadNpmTasks("grunt-typescript");
+	grunt.loadNpmTasks("grunt-ts");
 	grunt.loadNpmTasks("grunt-contrib-watch");
 
 	grunt.initConfig({
 		pkg: grunt.file.readJSON("package.json"),
-		typescript: {
-			base: {
+		ts: {
+			default: {
 				src: ["src/*.ts"],
-				dest: "build",
+				outDir: "build",
 				options: {
 					module: "commonjs",
+					rootDir: "src",
 					basePath: "src"
 				}
 			}
@@ -43,7 +44,7 @@ module.exports = function (grunt) {
 	});
 
 	grunt.registerTask("default", [
-		"typescript"
+		"ts"
 	]);
 
 };

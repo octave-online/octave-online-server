@@ -22,3 +22,4 @@ config/app.json
 node_modules/
 tmp/
 *.bak
+.tscache/

@@ -222,5 +222,5 @@ userSchema.set('toJSON', {
 // The casting mania in the line below bypasses TypeScript.  If you want to
 // spend another five hours pulling your hair out to make IUser work the way
 // TypeScript wants it to work, go right ahead.
-var User = <Mongoose.Model<IUser>> (<any> Mongoose.model('User', userSchema));
+var User = <any> Mongoose.model('User', userSchema);
 export = User;
