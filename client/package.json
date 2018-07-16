@@ -4,7 +4,9 @@
   "description": "Web client front end for Octave Online",
   "main": "app/main.js",
   "scripts": {
-    "lint": "eslint **/*.js"
+    "lint": "eslint **/*.js",
+    "build": "grunt",
+    "build-index": "grunt index"
   },
   "author": "Shane Carr",
   "license": "AGPL-3.0",

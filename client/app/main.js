@@ -40,7 +40,7 @@ require.config({
 
 		// NPM Libraries
 		"SocketIOFileUpload": "../node_modules/socketio-file-upload/client",
-		"socket.io": "../node_modules/socket.io-client/socket.io",
+		"socket.io": "../node_modules/socket.io-client/dist/socket.io",
 
 		// Local Libraries
 		"ismobile": "js/detectmobilebrowser",
