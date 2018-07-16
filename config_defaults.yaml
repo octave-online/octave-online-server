@@ -231,13 +231,13 @@ front:
     max_age: 7889231400  # (3 months)
 
 # Operational Transformation settings
-# These are timeouts (in seconds) that control the lifecycle of OT operations in Redis, used for shared workspaces.
+# These are timeouts (in ms) that control the lifecycle of OT operations in Redis, used for shared workspaces.
 ot:
-  operation_expire: 120
-  stats_interval: 60
+  operation_expire: 120000
+  stats_interval: 60000
   document_expire:
-    interval: 120
-    timeout: 86400
+    interval: 120000
+    timeout: 86400000
 
 # # # # # # # # # # # # #
 # Client configurations #

@@ -65,7 +65,7 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 
 		otListenClient.on("pmessage", this.otMessageListener);
 		this.touch();
-		this.touchInterval = setInterval(this.touch, Config.ot.document_expire.interval * 1000);
+		this.touchInterval = setInterval(this.touch, Config.ot.document_expire.interval);
 	}
 
 	public unsubscribe() {
@@ -138,8 +138,8 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 
 	private touch() {
 		var multi = otOperationClient.multi();
-		multi.expire(IRedis.Chan.otCnt(this.id), Config.ot.document_expire.timeout);
-		multi.expire(IRedis.Chan.otDoc(this.id), Config.ot.document_expire.timeout);
+		multi.expire(IRedis.Chan.otCnt(this.id), Config.ot.document_expire.timeout/1000);
+		multi.expire(IRedis.Chan.otDoc(this.id), Config.ot.document_expire.timeout/1000);
 		multi.exec((err) => {
 			if (err) console.log("REDIS ERROR", err);
 		});
@@ -221,8 +221,8 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 		this.chgIds.push(chgId);
 		this.runRedisScript(otApplyScript, otApplySha1, [
 			4, ops_key, doc_key, sub_key, cnt_key,
-			rev, JSON.stringify(message), Config.ot.operation_expire,
-			Config.ot.document_expire.timeout
+			rev, JSON.stringify(message), Config.ot.operation_expire/1000,
+			Config.ot.document_expire.timeout/1000
 		]);
 		this.opsReceivedCounter++;
 	}
@@ -244,8 +244,8 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 		// sent to our own client
 		this.runRedisScript(otSetScript, otSetSha1, [
 			4, ops_key, doc_key, sub_key, cnt_key,
-			content, JSON.stringify(message), Config.ot.operation_expire,
-			Config.ot.document_expire.timeout, (overwrite?"overwrite":"retain")
+			content, JSON.stringify(message), Config.ot.operation_expire/1000,
+			Config.ot.document_expire.timeout/1000, (overwrite?"overwrite":"retain")
 		]);
 		this.setContentCounter++;
 	}

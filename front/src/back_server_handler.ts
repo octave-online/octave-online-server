@@ -80,7 +80,7 @@ class BackServerHandler extends EventEmitter2.EventEmitter2 {
 		destroyUClient.on("message", this.destroyUListener);
 		expireClient.on("message", this.expireListener);
 		this.touch();
-		this.touchInterval = setInterval(this.touch, Config.redis.expire.interval * 1000);
+		this.touchInterval = setInterval(this.touch, Config.redis.expire.interval);
 	}
 
 	public unsubscribe() {
@@ -94,8 +94,8 @@ class BackServerHandler extends EventEmitter2.EventEmitter2 {
 		if (!this.depend(["sessCode"])) return;
 
 		var multi = pushClient.multi();
-		multi.expire(IRedis.Chan.input(this.sessCode), Config.redis.expire.timeout);
-		multi.expire(IRedis.Chan.session(this.sessCode), Config.redis.expire.timeout);
+		multi.expire(IRedis.Chan.input(this.sessCode), Config.redis.expire.timeout/1000);
+		multi.expire(IRedis.Chan.session(this.sessCode), Config.redis.expire.timeout/1000);
 		multi.exec((err)=> {
 			if (err) console.log("REDIS ERROR", err);
 		});

@@ -375,8 +375,8 @@ implements IWorkspace {
 
 		wsSessClient.on("pmessage", this.wsMessageListener);
 		this.touch();
-		this.touchInterval = setInterval(this.touch, Config.redis.expire.interval * 1000);
-		this.statsInterval = setInterval(this.recordStats, Config.ot.stats_interval * 1000);
+		this.touchInterval = setInterval(this.touch, Config.redis.expire.interval);
+		this.statsInterval = setInterval(this.recordStats, Config.ot.stats_interval);
 
 		var self = this;
 		this.forEachDoc(function(docId,doc){
@@ -400,7 +400,7 @@ implements IWorkspace {
 	private touch = () => {
 		if (!this.wsId) return;
 		// TODO: These "expire" calls on intervals should be buffered and sent to the server in batches, both here and in back_server_handler.ts
-		wsPushClient.expire(IRedis.Chan.wsSess(this.wsId), Config.redis.expire.timeout, (err)=> {
+		wsPushClient.expire(IRedis.Chan.wsSess(this.wsId), Config.redis.expire.timeout/1000, (err)=> {
 			if (err) console.log("REDIS ERROR", err);
 		});
 	};
