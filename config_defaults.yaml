@@ -108,8 +108,8 @@ session:
   countdownRequestTimeBuffer: 1000
   # timeoutTime is the amount of time a session is allowed to be idle before it is terminated by the server due to inactivity.
   # timewarnTime is when to display the warning message in timewarnMessage that the session will be terminated soon.
-  timeoutTime: 120000
-  timewarnTime: 90000
+  timeoutTime: 1200000
+  timewarnTime: 900000
   timewarnMessage: 'NOTICE: Due to inactivity, your session will expire in five minutes.'
 
   # DATA SIZE LIMITS
@@ -157,6 +157,7 @@ maintenance:
   responseWaitTime: 3000
   pauseDuration: 15000
   maxNodesInMaintenance: 1
+  minNodesInCluster: 2
 
 # Git file server settings
 git:
@@ -227,7 +228,7 @@ front:
   cookie:
     name: oo.sid
     secret: xxxxxxxxx
-    max_age: 7889231400
+    max_age: 7889231400  # (3 months)
 
 # Operational Transformation settings
 # These are timeouts (in seconds) that control the lifecycle of OT operations in Redis, used for shared workspaces.
