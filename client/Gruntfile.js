@@ -96,7 +96,10 @@ module.exports = function (grunt) {
 					],
 					urlfunc: {
 						name: "inline-image",
-						paths: ["app/images"]
+						paths: [
+							"app/images",
+							"app/images/logo_collections/" + config.client.theme_collection
+						]
 					}
 				},
 				files: [

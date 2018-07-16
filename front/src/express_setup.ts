@@ -32,9 +32,13 @@ import Http = require("http");
 import ServeStatic = require("serve-static");
 import Compression = require("compression");
 import BodyParser = require("body-parser");
+import Path = require("path");
 
 module ExpressApp {
 	export function init(){
+		const staticPath = Path.join(__dirname, "..", "..", Config.front.static_path);
+		console.log("Serving static files from:", staticPath);
+
 		app = Express()
 			.use(Compression())
 			.get(/\/[a-z]+~\w+$/, function(req, res, next) {
@@ -42,7 +46,7 @@ module ExpressApp {
 				req.url = "/index.html";
 				next("route");
 			})
-			.use(ServeStatic(Config.front.static_path))
+			.use(ServeStatic(staticPath))
 			.use(SessionMiddleware.middleware)
 			.use(BodyParser.urlencoded({ extended: true }))
 			.use(Passport.initialize())
@@ -99,7 +103,7 @@ module ExpressApp {
 				res.sendStatus(404);
 			}).listen(Config.front.listen_port);
 
-		console.log("Initialized Express Server on port ", Config.front.listen_port);
+		console.log("Initialized Express Server on port:", Config.front.listen_port);
 	}
 
 	export var app:Http.Server;
