@@ -568,7 +568,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				OctMethods.socket.command("");
 				anal.sigint();
 			},
-			historyUp: function(){
+			historyUp: function(prompt){
 				var history = OctMethods.prompt.history;
 				if (OctMethods.prompt.index == history.length-1){
 					history[history.length-1] = prompt.getValue();
@@ -579,7 +579,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					prompt.getSelection().clearSelection();
 				}
 			},
-			historyDown: function(){
+			historyDown: function(prompt){
 				var history = OctMethods.prompt.history;
 				if (OctMethods.prompt.index < history.length-1){
 					OctMethods.prompt.index += 1;
