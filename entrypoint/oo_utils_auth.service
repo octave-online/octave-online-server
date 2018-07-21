@@ -27,5 +27,9 @@ RuntimeDirectory=oosocks
 Environment=NODE_ENV=production
 Restart=always
 
+[Unit]
+After=mongod.service
+Requires=mongod.service
+
 [Install]
 WantedBy=multi-user.target

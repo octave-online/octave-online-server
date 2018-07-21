@@ -111,7 +111,7 @@ server.listen(SOCKET_PATH);
 
 function prompt(res, message) {
 	res.writeHead(401, {
-		"WWW-Authenticate": "Basic realm='"+message+"'"
+		"WWW-Authenticate": "Basic realm=\""+message+"\""
 	});
 	return res.end();
 }

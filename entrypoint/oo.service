@@ -25,6 +25,8 @@ User=1500
 Group=1500
 Environment=NODE_ENV=production
 Restart=always
+KillMode=mixed
+TimeoutStopSec=60
 
 [Install]
 WantedBy=multi-user.target
