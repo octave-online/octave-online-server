@@ -22,21 +22,21 @@
 
 const fs = require("fs");
 const path = require("path");
-const yaml = require("js-yaml");
+const hjson = require("hjson");
 const deepmerge = require("deepmerge");
 
-const defaultConfig = yaml.load(fs.readFileSync(path.join(__dirname, "..", "config_defaults.yaml")).toString("utf-8"));
+const defaultConfig = hjson.parse(fs.readFileSync(path.join(__dirname, "..", "config_defaults.hjson")).toString("utf-8"));
 
 try {
-	var configBuffer = fs.readFileSync(path.join(__dirname, "..", "config.yaml"));
+	var configBuffer = fs.readFileSync(path.join(__dirname, "..", "config.hjson"));
 } catch(e) {
-	console.error("Could not read config.yaml. Please create it in the project directory with desired setting overrides.");
+	console.error("Could not read config.hjson. Please create it in the project directory with desired setting overrides.");
 	console.error(e);
 	process.exit(1);
 }
 
 try {
-	var config = yaml.load(configBuffer.toString("utf-8"));
+	var config = hjson.parse(configBuffer.toString("utf-8"));
 } catch(e) {
 	console.error("Possible syntax error in config file!");
 	console.error(e);

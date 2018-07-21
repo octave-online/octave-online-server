@@ -36,70 +36,80 @@
 # # # # # # # # # # # # #
 
 # Redis connection info
-redis:
+redis: {
   hostname: localhost
   port: 6379
-  options:
+  options: {
     auth_pass: xxxxxxxxx
+  }
 
   # RATE LIMITING
   # Most keys added to Redis will have an expiration and an interval to touch the expiration. Setting these too low may overload Redis with expiration touch requests.
   # maxPayload determines when a message is too big to be sent over the main pub-sub pipe; a special client will be opened to receive the message. This makes that message slightly slower but clears up the pipe for other messages. This is most often used when transmitting large amounts of data like plot images.
-  expire:
+  expire: {
     interval: 5000
     timeout: 16000
+  }
   maxPayload: 10000
+}
 
 # MongoDB connection info
-mongo:
+mongo: {
   hostname: localhost
   port: 27019
   db: oo
+}
 
 # Mailgun connection info
-mailgun:
+mailgun: {
   api_key: xxxxxxxxx
   domain: localhost
+}
 
 # # # # # # # # # # # # # # # #
 # Back Server configurations  #
 # # # # # # # # # # # # # # # #
 
 # Runtime details for the back server worker process
-worker:
+worker: {
 
   # LOGGING
   # The log directory should exist and be writeable by the server process.
   # "token" is the name of the worker written at the top of the log file.
   logDir: /srv/logs
   token: local
-  monitorLogs:
+  monitorLogs: {
     subdir: monitor
-  sessionLogs:
+  }
+  sessionLogs: {
     subdir: sessions
     depth: 3
+  }
 
   # SESSION QUEUE AGGRESSIVENESS
   # How frequently to check the queue for new jobs (ms).
   # When maxSessions is reached, don't get any more from the queue.
-  clockInterval:
+  clockInterval: {
     min: 1500
     max: 2500
+  }
   maxSessions: 12
 
   # PERMISSIONS
   # uid to use for file ownership; set this to the uid of the user running Octave.
   uid: 1000
+}
 
 # Octave session settings
-session:
+session: {
 
   # COMMAND AND SESSION TIMEOUTS
   # All times are in milliseconds.
   # legalTime is the amount of time initially given to commands; different values for guests and signed-in users.
-  legalTime:
+  legalTime: {
     guest: 5000
     user: 10000
+  }
   # countdownExtraTime is how much time to add when the user clicks the "Add __ Seconds" button near the timeout.
   # countdownRequestTime determines when to show the "Add ___ Seconds" button, based on the amount of time left on the clock.
   # countdownRequestTimeBuffer is how much sooner the server should allow extra-time requests; this is in order to prevent race conditions if the client-side and server-side clocks are slightly out of sync.
@@ -115,9 +125,10 @@ session:
   # DATA SIZE LIMITS
   # All data sizes are in bytes.
   # payloadLimit is the number of bytes in command output before the command is paused; this prevents large amounts of data clogging the messaging pipeline and also reduces bandwidth for the user, possibly also preventing their browser from freezing. Different values for guests and signed-in users.
-  payloadLimit:
+  payloadLimit: {
     guest: 5000
     user: 10000
+  }
   # payloadMessageDelay is how much time to wait before allowing the user to restart the process; this is primarily to allow the buffer to flush before displaying the restart message.
   # payloadAcknowledgeDelay is how much time the user is given to restart the process.
   payloadMessageDelay: 100
@@ -129,17 +140,19 @@ session:
 
   # URLREAD DOMAIN WHITELISTING
   # For security, all HTTP requests from Octave processes (e.g., via the function urlread) are blocked by Octave Online Server by default.  This whitelist determines regular expression patterns to match against domain names to allow requests to those domains to pass through.
-  urlreadPatterns:
-    - ^example\.com$
-    - ^(.*\.)?coursera\.org$
+  urlreadPatterns: [
+    ^example\.com$
+    ^(.*\.)?coursera\.org$
+  ]
 
   # OCTAVE SESSION HOST IMPLEMENTATION
   # Choices: "selinux" or "docker".
   # Refer to the README file for more details.
   implementation: docker
+}
 
 # Session pool settings
-sessionManager:
+sessionManager: {
   # How often to log the currently active sessions (ms) and check command lag time.
   logInterval: 60000
   # How many sessions to keep in the pool: sessions without an owner that are pre-allocated so that when a user joins, a session is ready for them.
@@ -148,70 +161,83 @@ sessionManager:
   poolInterval: 5000
   # Maximum time that a session can use to start up (ms); above this, the session will be destroyed before it reaches the pool.
   startupTimeLimit: 30000
+}
 
 # Server auto-maintenance settings
 # Maintenance is designed for when multiple back servers are in a cluster; one of the servers in the cluster can take itself offline and perform maintenance, like cleaning up caches or doing a system reboot.
-maintenance:
+maintenance: {
   interval: 1800000
   requestInterval: 5000
   responseWaitTime: 3000
   pauseDuration: 15000
   maxNodesInMaintenance: 1
   minNodesInCluster: 2
+}
 
 # Git file server settings
-git:
+git: {
   # Hostname for the git file server; the user running the process should have SSH access to the Git repositories.  You may need to do SSH configurations outside of Octave Online Server for this to work.
   hostname: localhost
   # Author as shown in commit messages.
-  author:
+  author: {
     name: Octave Online Server
     email: localhost@localhost
+  }
   # User on the Git server with permissions to create new repositories.
   helperUser: git
   # Time limit for committing to Git; if the time limit is exceeded, the commit is aborted.
   commitTimeLimit: 30000
   # Interval (in ms) for committing without the user having to request; behaves like an "auto-save" where changes to script files are persisted to the Git server.
   autoCommitInterval: 300000
+}
 
 # Docker implementation settings
-docker:
+docker: {
   cwd: /home/oo
   gitdir: /srv/git
   cpuShares: 512
   memoryShares: 256m
   diskQuotaKiB: 20480
-  images:
+  images: {
     filesystemSuffix: files
     octaveSuffix: 'octave:prod'
+  }
+}
 
 # SELinux implementation settings
-selinux:
-  cgroup:
+selinux: {
+  cgroup: {
     name: oo/octave
     cpuShares: 128
     cpuQuota: 800000
     uid: oo
     gid: oo
-  prlimit:
+  }
+  prlimit: {
     addressSpace: 1000000000
+  }
+}
 
 # # # # # # # # # # # # # # # #
 # Front Server configurations #
 # # # # # # # # # # # # # # # #
 
 # Authentication settings
-auth:
-  google:
+auth: {
+  google: {
     oauth_key: xxxxxxxxx.apps.googleusercontent.com
     oauth_secret: xxxxxxxxx
-  easy:
+  }
+  easy: {
     secret: xxxxxxxxx
-  password:
+  }
+  password: {
     salt_rounds: 10
+  }
+}
 
 # Front server settings
-front:
+front: {
   # SERVER HOST SETTINGS
   # protocol, hostname, and port are the *publicly-visible* URLs to be used for links, redirects, etc.
   protocol: http
@@ -226,25 +252,29 @@ front:
   # COOKIE SETTINGS
   # For the primary Octave Online Server session ID; there may be other cookies set on the client side, like those used to dismiss onboarding boxes.
   # Please set a custom cookie secret!
-  cookie:
+  cookie: {
     name: oo.sid
     secret: xxxxxxxxx
     max_age: 7889231400  # (3 months)
+  }
+}
 
 # Operational Transformation settings
 # These are timeouts (in ms) that control the lifecycle of OT operations in Redis, used for shared workspaces.
-ot:
+ot: {
   operation_expire: 120000
   stats_interval: 60000
-  document_expire:
+  document_expire: {
     interval: 120000
     timeout: 86400000
+  }
+}
 
 # # # # # # # # # # # # #
 # Client configurations #
 # # # # # # # # # # # # #
 
-client:
+client: {
   # THEME COLLECTION
   # Choices: "server", "official", or some other theme collection that you create manually.
   # To avoid confusing the end user, do not use the theme collection "official" unless you are running on octave-online.net.
@@ -266,4 +296,5 @@ client:
   gacode: xxxxxxxxx
   # Application identifier for UserVoice
   uservoice: xxxxxxxxx
+}
 
