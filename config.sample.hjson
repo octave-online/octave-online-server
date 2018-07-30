@@ -29,22 +29,22 @@
 # # # # # # # # # # # # #
 
 redis: {
-  hostname: localhost
-  port: 6379
-  options: {
-    auth_pass: xxxxxxxxx
-  }
+	hostname: localhost
+	port: 6379
+	options: {
+		auth_pass: xxxxxxxxx
+	}
 }
 
 mongo: {
-  hostname: localhost
-  port: 27019
-  db: oo
+	hostname: localhost
+	port: 27019
+	db: oo
 }
 
 mailgun: {
-  api_key: xxxxxxxxx
-  domain: localhost
+	api_key: xxxxxxxxx
+	domain: localhost
 }
 
 # # # # # # # # # # # # # # # #
@@ -52,15 +52,15 @@ mailgun: {
 # # # # # # # # # # # # # # # #
 
 worker: {
-  logDir: /tmp/oo_logs
+	logDir: /tmp/oo_logs
 }
 
 session: {
-  implementation: docker
+	implementation: docker
 }
 
 git: {
-  hostname: localhost
+	hostname: localhost
 }
 
 # # # # # # # # # # # # # # # #
@@ -68,20 +68,21 @@ git: {
 # # # # # # # # # # # # # # # #
 
 auth: {
-  google: {
-    oauth_key: xxxxxxxxx.apps.googleusercontent.com
-    oauth_secret: xxxxxxxxx
-  }
-  easy: {
-    secret: xxxxxxxxx  # make up a long random string
-  }
+	google: {
+		oauth_key: xxxxxxxxx.apps.googleusercontent.com
+		oauth_secret: xxxxxxxxx
+	}
+	easy: {
+		### Make up a long random string! ###
+		secret: xxxxxxxxx
+	}
 }
 
 front: {
-  protocol: http
-  hostname: localhost
-  port: 8080
-  listen_port: 8080
+	protocol: http
+	hostname: localhost
+	port: 8080
+	listen_port: 8080
 }
 
 # # # # # # # # # # # # #
@@ -89,5 +90,5 @@ front: {
 # # # # # # # # # # # # #
 
 client: {
-  gacode: xxxxxxxxx
+	gacode: xxxxxxxxx
 }
