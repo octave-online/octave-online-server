@@ -21,6 +21,12 @@ There are three separate components of Octave Online Server:
 
 *Note:* Octave Online Server has a lot of moving parts.  It is recommend that you feel comfortable with basic system administration before attempting an installation.
 
+For more details on operating each of the three components, see the respective README files:
+
+- [back-master/README.md](back-master/README.md) (back server)
+- [front/README.md](front/README.md) (front server)
+- [client/README.md](client/README.md) (client)
+
 ### Prerequisites
 
 [Required] *Operating System:* Octave Online Server is built and tested exclusively on GNU/Linux.  It is recommended that you use CentOS 7, although other modern distributions should work also.
@@ -40,6 +46,8 @@ There are three separate components of Octave Online Server:
 	# Set the value to "Ex"
 
 Although it is possible to use a third-party hosted Redis instance, this is not recommended because Redis latency is amplified due to its central role in the Octave Online Server architecture.
+
+[Recommended] *Git Server:* In order to persist user files between sessions, you need to set up a Git file server.  It boils down to a server, which could be the current server, with a low-privilidged user usually named "git".  For more information, see [Git on the Server](https://git-scm.com/book/en/v1/Git-on-the-Server).  Also see [back-master/README.md](back-master/README.md).
 
 [Recommended] *MongoDB:* Install and run a MongoDB instance.  Unlike Redis, MongoDB is not as central of a piece in the infrastructure, so it is possible to use a remotely hosted MongoDB if you do not want to host it locally.  My experience is that it takes some time to correctly configure a fast and secure MongoDB installation.  Keep in mind that MongoDB will contain personally identifiable information for user accounts.
 
@@ -80,6 +88,10 @@ Finally, build the client and front server projects (the back server runs withou
 	$ (cd client && npm run grunt)
 	$ (cd front && npm run grunt)
 
+### Configuring GNU Octave
+
+Octave Online Server requires a special version of GNU Octave, which needs to be built.  *This is a required step.*  For more information, see [back-master/README.md](back-master/README.md).
+
 ### Running Octave Online Server
 
 To run the code manually, just open up two terminals and run each of the following two commands:
@@ -87,4 +99,16 @@ To run the code manually, just open up two terminals and run each of the followi
 	$ (cd back-master && DEBUG=* node app.js)
 	$ (cd front && node app.js)
 
-To run the code as a service, you can install the systemd service provided in this repository and enable the code to be automatically run at startup.
+To run the code as a service, you can install the systemd service provided in this repository and enable the code to be automatically run at startup; see *entrypoint/oo.service* and `make install-selinux-bin`.
+
+## License
+
+Octave Online Server is licensed under the [GNU Affero General Public License](https://en.wikipedia.org/wiki/Affero_General_Public_License).
+
+> Octave Online Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+>
+> Octave Online Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
+
+A copy of the license can be found in COPYING.
+
+Note: You may contact webmaster@octave-online.net to inquire about other options for licensing Octave Online Server.
