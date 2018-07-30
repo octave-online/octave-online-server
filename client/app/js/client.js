@@ -519,7 +519,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				}
 			},
 			addTime: function() {
-				OctMethods.prompt.extraTime += 15000;
+				OctMethods.prompt.extraTime += parseInt("105!config.session.countdownExtraTime");
 				OctMethods.socket.addTime();
 				anal.extraTime();
 			},

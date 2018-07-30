@@ -4,7 +4,7 @@
   "description": "Front server for Octave Online",
   "main": "app.js",
   "scripts": {
-    "build": "grunt",
+    "grunt": "grunt",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Shane Carr",

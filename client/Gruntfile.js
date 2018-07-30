@@ -167,9 +167,15 @@ module.exports = function (grunt) {
 						flags: "g"
 					},
 					{
-						name: "privacy-timestamp",
+						name: "config-session-payloadMessageDelay",
 						search: "parseInt\\(\"\\d+!config.session.payloadMessageDelay\"\\)",
 						replace: "" + config.session.payloadMessageDelay,
+						flags: "g"
+					},
+					{
+						name: "config-session-countdownExtraTime",
+						search: "parseInt\\(\"\\d+!config.session.countdownExtraTime\"\\)",
+						replace: "" + config.session.countdownExtraTime,
 						flags: "g"
 					},
 					{

@@ -5,8 +5,8 @@
   "main": "app/main.js",
   "scripts": {
     "lint": "eslint **/*.js",
-    "build": "grunt",
-    "build-index": "grunt index"
+    "grunt": "grunt",
+    "bower": "bower"
   },
   "author": "Shane Carr",
   "license": "AGPL-3.0",
@@ -24,6 +24,7 @@
     "kouto-swiss": "^1.0.0"
   },
   "dependencies": {
+    "bower": "^1.8.4",
     "socket.io-client": "^1.2.1",
     "socketio-file-upload": "^0.4"
   }
