@@ -375,6 +375,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				$("#console").scrollTop($("#console")[0].scrollHeight);
 				$("#type_here").hideSafe();
 				$("#agpl_icon").hideSafe();
+				$("#plot_opener").showSafe();
 			},
 			clear: function(){
 				$("#console").empty();
@@ -1221,6 +1222,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 					// UI setup
 					$("#type_here").showSafe();
+					$("#agpl_icon").showSafe();
+					$("#plot_opener").hideSafe();
 					$("#vars_panel").showSafe();
 
 					// Evaluate the query string command (uses purl)
