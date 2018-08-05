@@ -3,6 +3,8 @@ Octave Online Server
 
 This repository contains the full stack of code to run Octave Online Server, the infrastructure that powers [Octave Online](https://octave-online.net).
 
+[![Build Status](https://travis-ci.org/octave-online/octave-online-server.svg?branch=master)](https://travis-ci.org/octave-online/octave-online-server)
+
 ## High-Level Overview
 
 There are three separate components of Octave Online Server:
