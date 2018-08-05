@@ -1,7 +1,9 @@
 Octave Online Server: Front Server
 ==================================
 
-This repository contains the code for the Socket.IO server.
+This repository contains the code for the Octave Online Server front server.
+
+This code should be run on the same host where the *client* project is set up, but not necesarilly the same host as the back server projects.
 
 ## Installation
 

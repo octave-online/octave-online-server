@@ -27,6 +27,8 @@ For more details on operating each of the three components, see the respective R
 - [front/README.md](front/README.md) (front server)
 - [client/README.md](client/README.md) (client)
 
+Every subdirectory of the top-level Octave Online Server directory has a README file that explains what the contents of the directory is for.
+
 ### Prerequisites
 
 [Required] *Operating System:* Octave Online Server is built and tested exclusively on GNU/Linux.  It is recommended that you use CentOS 7, although other modern distributions should work also.

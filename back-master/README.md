@@ -1,11 +1,11 @@
 Octave Online Server: Back Server
 =================================
 
-This directory contains the source code for the Octave Online back server.
+This directory contains the source code for the Octave Online Server back server.  This is the "master" process that communicates with the downstream user via Redis and with the GNU Octave subprocess.  Commands dealing with the filesystem are in the *back-filesystem* directory parallel to this directory.
 
 ## Setup
 
-There are two versions of the back server.  One uses Docker and is easier to set up and configure.  The other uses SELinux and is faster.
+There are two versions of the back server.  One uses Docker and is easier to set up and configure.  The other uses SELinux and is faster, able to handle more concurrent sessions.  The SELinux implementation is the one used on octave-online.net.
 
 ### Option 1: Docker Setup
 

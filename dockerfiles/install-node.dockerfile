@@ -16,5 +16,5 @@
 # along with Octave Online Server.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-RUN curl --silent --location https://rpm.nodesource.com/setup_4.x | bash - && \
+RUN curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - && \
 	yum install -y nodejs
