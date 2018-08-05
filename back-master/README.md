@@ -40,7 +40,13 @@ If you use SSH to connect to the Git server containing people's saved files, you
 
 ## Running the Back Server
 
-Go to the *back-master* directory and run `DEBUG=* node app.js` to start the back server.  The `DEBUG=*` is optional, but it gives you more details and can help with debugging problems.
+### Debugging
+
+Go to the *back-master* directory and run `DEBUG=* node app.js` to start the back server.  The `DEBUG=*` enables debug logging.
+
+### Production
+
+`node app.js` can be run directly, but consider using `oo.service` in the *entrypoint* directory parallel to this directory.
 
 ## To-do list
 
