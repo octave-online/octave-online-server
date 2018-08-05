@@ -374,6 +374,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			scroll: function(){
 				$("#console").scrollTop($("#console")[0].scrollHeight);
 				$("#type_here").hideSafe();
+				$("#agpl_icon").hideSafe();
 			},
 			clear: function(){
 				$("#console").empty();
