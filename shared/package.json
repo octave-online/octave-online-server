@@ -4,9 +4,8 @@
   "description": "Utility routines shared by one or more projects",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint **/*.js"
   },
-  "author": "Shane F. Carr",
+  "author": "Octave Online LLC",
   "license": "AGPL-3.0",
   "private": true,
   "dependencies": {
@@ -18,8 +17,5 @@
     "redis": "^2.5.1",
     "redis-scripto": "^0.1.3",
     "uuid": "^2.0.1"
-  },
-  "devDependencies": {
-    "eslint": "^5.1.0"
   }
 }

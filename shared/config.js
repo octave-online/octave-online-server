@@ -30,7 +30,10 @@ const defaultConfig = hjson.parse(fs.readFileSync(path.join(__dirname, "..", "co
 try {
 	var configBuffer = fs.readFileSync(path.join(__dirname, "..", "config.hjson"));
 } catch(e) {
+	// The process will die here if config.hjson is not found, so console is OK
+	// eslint-disable-next-line no-console
 	console.error("Could not read config.hjson. Please create it in the project directory with desired setting overrides.");
+	// eslint-disable-next-line no-console
 	console.error(e);
 	process.exit(1);
 }
@@ -38,7 +41,10 @@ try {
 try {
 	var config = hjson.parse(configBuffer.toString("utf-8"));
 } catch(e) {
+	// The process will die here if config.hjson is not found, so console is OK
+	// eslint-disable-next-line no-console
 	console.error("Possible syntax error in config file!");
+	// eslint-disable-next-line no-console
 	console.error(e);
 	process.exit(1);
 }

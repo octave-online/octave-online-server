@@ -38,7 +38,7 @@ function getPrivacyTimestamp() {
 function getFileUtf8(filepath) {
 	return function() {
 		return fs.readFileSync(filepath).toString("utf-8");
-	}
+	};
 }
 
 module.exports = function (grunt) {

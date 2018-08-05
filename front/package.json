@@ -1,13 +1,12 @@
 {
-  "name": "octave-online-front",
-  "version": "1.0.0",
+  "name": "@oo/front",
+  "version": "0.0.0",
   "description": "Front server for Octave Online",
   "main": "app.js",
   "scripts": {
-    "grunt": "grunt",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "grunt": "grunt"
   },
-  "author": "Shane Carr",
+  "author": "Octave Online LLC",
   "license": "X11",
   "dependencies": {
     "async": "^1.5.2",

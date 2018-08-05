@@ -1,0 +1,22 @@
+{
+  "name": "octave-online-server",
+  "version": "1.0.0",
+  "description": "Hosted GNU Octave processes served over the World Wide Web. The infrastructure that powers Octave Online.",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:octave-online/octave-online-server.git"
+  },
+  "keywords": [
+    "matlab",
+    "octave",
+    "online"
+  ],
+  "author": "Octave Online LLC",
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "eslint": "^5.3.0"
+  }
+}

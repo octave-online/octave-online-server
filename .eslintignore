@@ -1,0 +1,6 @@
+node_modules/
+vendor/
+dist/
+build/
+client/app/fonts/
+_old/

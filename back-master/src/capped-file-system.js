@@ -64,6 +64,7 @@ class CappedFileSystem extends OnlineOffline {
 				this._mlog.debug("Created temp dir:", this._tmpdir);
 				this._mlog.trace("Allocating space for filesystem...");
 				const imgFileName = path.join(this._tmpdir, IMG_FILE_NAME);
+				// eslint-disable-next-line no-unused-vars
 				child_process.execFile("dd", ["if=/dev/zero", `of=${imgFileName}`, "bs=1k", `count=${this._size}`], (err, stdout, stderr) => {
 					if (!err) this._cleanups.unshift((__next) => {
 						this._mlog.trace("Removing file system...");

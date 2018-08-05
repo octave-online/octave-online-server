@@ -41,6 +41,7 @@ const spawnDirectory = path.join(prefix, "back-master");
 const spawnFile = path.join(prefix, "back-master/app.js");
 
 // Wait until the application code is ready before continuing.  Example: network drives being mounted at startup.
+// eslint-disable-next-line no-constant-condition
 while (true) {
 	try {
 		fs.statSync(configFile);
@@ -65,7 +66,7 @@ try {
 } catch(err) {
 	if (/Cannot find module/.test(err.message)) {
 		// If exit.js is not provided, set a no-op.
-		exit = function(){}
+		exit = function(){};
 		console.log("Will use no-op exit routine");
 	} else throw err;
 }

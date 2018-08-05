@@ -29,7 +29,7 @@ const MaintenanceReuestManager = require("./src/maintenance-request-manager");
 const async = require("async");
 const runMaintenance = require("./src/maintenance");
 const config = require("@oo/shared").config;
-const gcStats = (require('gc-stats'))();
+const gcStats = (require("gc-stats"))();
 const child_process = require("child_process");
 
 process.stdout.write("Process ID: " + process.pid + "\n");
@@ -142,7 +142,7 @@ async.forever(
 			}
 		], next);
 	},
-	() => { log.error("Connection-accepting loop ended") }
+	() => { log.error("Connection-accepting loop ended"); }
 );
 
 // Request maintenance time every 12 hours
@@ -160,8 +160,8 @@ async.forever(
 			(_next) => {
 				sessionManager.disablePool();
 				async.whilst(
-					() => { return sessionManager.numActiveSessions() > 0 },
-					(__next) => { maintenanceTimer = setTimeout(__next, config.maintenance.pauseDuration) },
+					() => { return sessionManager.numActiveSessions() > 0; },
+					(__next) => { maintenanceTimer = setTimeout(__next, config.maintenance.pauseDuration); },
 					_next
 				);
 			},

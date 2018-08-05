@@ -1,17 +1,15 @@
 {
-  "name": "octave-online-client",
-  "version": "1.0.0",
+  "name": "@oo/client",
+  "version": "0.0.0",
   "description": "Web client front end for Octave Online",
   "main": "app/main.js",
   "scripts": {
-    "lint": "eslint **/*.js",
     "grunt": "grunt",
     "bower": "bower"
   },
-  "author": "Shane Carr",
+  "author": "Octave Online LLC",
   "license": "AGPL-3.0",
   "devDependencies": {
-    "eslint": "^5.1.0",
     "grunt": "^0.4.5",
     "grunt-contrib-copy": "^0.7.0",
     "grunt-contrib-requirejs": "^0.4.4",

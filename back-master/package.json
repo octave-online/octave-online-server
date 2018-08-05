@@ -4,9 +4,8 @@
   "description": "Spawns Octave sessions and passes messages",
   "main": "app.js",
   "scripts": {
-    "lint": "eslint **/*.js"
   },
-  "author": "Shane F. Carr",
+  "author": "Octave Online LLC",
   "license": "AGPL-3.0",
   "private": true,
   "dependencies": {
@@ -18,8 +17,5 @@
     "temp": "^0.8.3",
     "tmp": "0.0.28",
     "uuid": "^2.0.1"
-  },
-  "devDependencies": {
-    "eslint": "^5.1.0"
   }
 }

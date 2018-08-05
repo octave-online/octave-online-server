@@ -1,3 +1,8 @@
+# Don't inherit ESLint configs:
+# The JavaScript here runs in the browser environment
+# and is designed to be ES5 compatible!
+root: true
+
 env:
   browser: true
   amd: true
