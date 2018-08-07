@@ -279,10 +279,10 @@ module.exports = function (grunt) {
 	});
 
 	grunt.registerTask("default", [
-		"requirejs",
+		"requirejs", // app.js
+		"uglify", // runtime.js
 		"stylus:dist",
 		"regex-replace:appcss",
-		"uglify",
 		"sync",
 		"regex-replace:html"
 	]);
