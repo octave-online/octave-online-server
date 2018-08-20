@@ -652,6 +652,12 @@ class OctaveSession extends OnlineOffline {
 				this._handleRequestUrl(content);
 				break;
 
+			case "files-ready":
+				// As soon as files are loaded for the first time, execute the .octaverc if it is present
+				// GNU Octave normally does this automatically, but we pre-start the processes against a clean directory, so .octaverc is not present when GNU Octave starts up
+				this._sendMessageToHost("cmd", "if exist(\"~/.octaverc\", \"file\"); source(\"~/.octaverc\"); current_command_number(0); end");
+				break;
+
 			// UNIMPLEMENTED FEATURES REQUIRING RESPONSE:
 			case "confirm-shutdown":
 				this._sendMessageToHost("confirm-shutdown-answer", true);
