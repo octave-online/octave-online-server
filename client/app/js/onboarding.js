@@ -34,7 +34,7 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 	var announcementDisplay = $announcement.data("announcementDisplay");
 	var showAnnouncement = function() {
 		$announcement.fadeInSafe(500);
-	}
+	};
 
 	if ($onboarding.length) {
 		// Check for the onboarding cookie now
