@@ -102,8 +102,9 @@ class MessageTranslator extends EventEmitter {
 
 			// "doc" control command:
 			case "show-doc": {
+				var url = content ? `https://octave.sourceforge.io/list_functions.php?q=${encodeURIComponent(content)}` : "https://octave.sourceforge.io/octave/overview.html";
 				this._forDownstream(sessCode, "ctrl", {
-					command: `url=http://octave.sourceforge.net/octave/function/${content}.html`
+					command: `url=${url}`
 				});
 				break;
 			}
