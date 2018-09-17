@@ -256,6 +256,18 @@ module.exports = function (grunt) {
 						flags: "g"
 					},
 					{
+						name: "announcement-display",
+						search: "\\{!announcement-display!\\}",
+						replace: config.client.announcement_display,
+						flags: "g"
+					},
+					{
+						name: "announcement-html",
+						search: "\\{!announcement-html!\\}",
+						replace: config.client.announcement_html,
+						flags: "g"
+					},
+					{
 						name: "onboarding",
 						search: "<!--ONBOARDING([\\s\\S]+?)ONBOARDING-->",
 						replace: function(full, match) {

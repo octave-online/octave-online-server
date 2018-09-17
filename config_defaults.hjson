@@ -292,6 +292,19 @@ client: {
 	# Whether to show the splash screen and other onboarding bubbles to help new users learn how to use the software.
 	onboarding: false
 
+	# ANNOUNCEMENT MESSAGE
+	# Set announcement_display to enable a dialog that is shown to users when visiting the page.  There are three options:
+	#   - "on" => show the message to all visitors; this could announce expected system downtime, for example
+	#   - "returning" => show the message to returning users only (those who have dismissed the onboarding screen); this could announce new feature to existing users, for example.  This setting only works if onboarding is set to true
+	#   - "off" => disable the announcement screen
+	# Tip: the announcement can be enabled or disabled using the "grunt index" command, which is faster than a full "grunt" and also does not invalidate JS/CSS caching.
+	announcement_display: "off"
+	# Use the following variable to control the HTML shown in the announcement box.
+	announcement_html:
+		'''
+		<p>Example announcement</p>
+		'''
+
 	# OTHER CLIENT OPTIONS
 	# Application identifier for Google Analytics
 	gacode: xxxxxxxxx

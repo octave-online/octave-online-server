@@ -22,6 +22,7 @@
 
 define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 	var $onboarding = $("#onboarding"),
+		$announcement = $("#announcement-box"),
 		$scriptPromo = $("#login-promo"),
 		$instructorPromo = $("#instructor-promo"),
 		$syncPromo = $("#sync-promo"),
@@ -30,18 +31,41 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 		$bucketPromo = $("#bucket-promo"),
 		MIN_TIME = 1000;
 
-	// Check for the cookie now
-	if($.cookie("oo_onboarding_complete") === "true"){
-		$onboarding.fadeOutSafe(500);
+	var announcementDisplay = $announcement.data("announcementDisplay");
+	var showAnnouncement = function() {
+		$announcement.fadeInSafe(500);
 	}
 
-	// Set event listeners for the onboarding div
-	$onboarding.find("[data-purpose='close']").click(function(){
-		$.cookie("oo_onboarding_complete", "true", {
-			expires: MIN_TIME
-		});
-		anal.dismiss("Welcome Message");
-	});
+	if ($onboarding.length) {
+		// Check for the onboarding cookie now
+		if ($.cookie("oo_onboarding_complete") === "true") {
+			// Case 1: Returning user who has completed onboarding
+			// Hide the onboarding dialog and show the announcement if required
+			$onboarding.fadeOutSafe(500);
+			if (announcementDisplay === "on" || announcementDisplay === "returning") {
+				showAnnouncement();
+			}
+		} else {
+			// Case 2: New user who has not completed onboarding
+			// Set event listeners for the onboarding div
+			// Show the announcement after the user dismisses the onboarding
+			$onboarding.find("[data-purpose='close']").click(function(){
+				$.cookie("oo_onboarding_complete", "true", {
+					expires: MIN_TIME
+				});
+				if (announcementDisplay === "on") {
+					showAnnouncement();
+				}
+				anal.dismiss("Welcome Message");
+			});
+		}
+	} else {
+		// Case 3: Onboarding is disabled
+		// Show the announcement if required
+		if (!$onboarding.length && announcementDisplay === "on") {
+			showAnnouncement();
+		}
+	}
 
 	// Set up the script promo onboarding
 	if(!$.cookie("oo_script_promo_dismissed")){
