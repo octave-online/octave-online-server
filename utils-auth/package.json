@@ -10,7 +10,7 @@
   "private": true,
   "dependencies": {
     "basic-auth": "^1.1.0",
-    "bcrypt": "^1.0.1",
+    "bcrypt": "^2.0.1",
     "mongoose": "^4.0.6"
   }
 }
