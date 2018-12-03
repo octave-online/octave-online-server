@@ -195,6 +195,17 @@ Here are some critical user journeys that test a fairly wide cross-section of th
 	1. Open the menu and try disabling sharing; it should deny permission
 	1. Run `enroll("default")` and follow the onscreen instructions
 	1. Open the menu and try disabling sharing again; it should work this time
+1. Network connection and reconnecting to a session
+	1. Open your Octave Online Server as a guest user (not signed in)
+	1. Type `x = 5` and press Enter, followed by `x` and Enter, to ensure that the variable is set correctly
+	1. Terminate (Ctrl-C) your front server process and quickly restart it
+	1. The loading animation should appear on the browser window, and the animation should go away once the front server has finished restarting.  In addition, the phrase "Connection lost.  Attempting to reconnect..." should be printed to the console window.  When the server reconnects, the prompt should activate
+	1. Type `x` and Enter; the variable should still have the value 5
+	1. Type `exit`; it should say "Octave Exited. Message: Shell Exited", and you should get a link that says "Click Here to Reconnect"
+	1. Terminate (Ctrl-C) your front server process and quickly restart it
+	1. The loading animation should appear on the browser window, and the animation should go away once the front server has finished restarting.  However, you should NOT get the "Connection lost" message printed to the console, and you should NOT get an active prompt automatically after the animation goes away
+	1. Press the "Click Here to Reconnect" button; you should now get an active command prompt.  Run a command or two to make sure the session is working normally
+	1. For an exhaustive test, repeate this section as (i) a signed-in user, (ii) a session with sharing enabled, and (iii) a bucket session.
 1. GUI: Flexbox panels and CSS
 	1. Hover over the border between panels; a slider should appear.  Drag the slider around to resize the panels
 	1. Open the menu and click "Change/Reset Layout"; the panel sizes should reset to the defaults

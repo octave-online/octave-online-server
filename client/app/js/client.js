@@ -604,6 +604,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		socket: {
 			instance: null,
 			sessCode: null,
+			isExited: false,
 			signal: function(){
 				return OctMethods.socket.emit("signal", {});
 			},
@@ -704,6 +705,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			reconnect: function(){
 				OctMethods.load.showLoader();
 				OctMethods.load.startPatience();
+				OctMethods.socket.isExited = false;
 
 				return OctMethods.socket.emit("oo.reconnect", {});
 			}
@@ -720,7 +722,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 						OctMethods.console.writeError(data.data);
 						break;
 					case "exit":
-						console.log("exit code: " + data.code);
+						console.log("exit status: " + JSON.stringify(data.code));
 						break;
 					default:
 						console.log("unknown data type: " + data.type);
@@ -903,8 +905,13 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				vars.sort(Var.sorter);
 			},
 			sesscode: function(data){
-				console.log("SESSCODE:", data.sessCode);
-				OctMethods.socket.sessCode = data.sessCode;
+				if (OctMethods.socket.sessCode === data.sessCode) {
+					// Reconnected and matched to our original session.
+					console.log("Restored connection to:", data.sessCode);
+				} else {
+					console.log("SESSCODE:", data.sessCode);
+					OctMethods.socket.sessCode = data.sessCode;
+				}
 			},
 			reload: function(){
 				window.location.reload();
@@ -987,26 +994,36 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				if (OctMethods.vars.wsId) {
 					OctMethods.socket.emit("init", {
 						action: "workspace",
-						info: OctMethods.vars.wsId
+						info: OctMethods.vars.wsId,
+						skipCreate: OctMethods.socket.isExited
 					});
 
 				}else if(OctMethods.vars.studentId){
 					OctMethods.socket.emit("init", {
 						action: "student",
-						info: OctMethods.vars.studentId
+						info: OctMethods.vars.studentId,
+						skipCreate: OctMethods.socket.isExited
 					});
 
 				}else if (OctMethods.vars.bucketId){
 					OctMethods.socket.emit("init", {
 						action: "bucket",
-						info: OctMethods.vars.bucketId
+						info: OctMethods.vars.bucketId,
+						sessCode: OctMethods.socket.sessCode,
+						skipCreate: OctMethods.socket.isExited
 					});
 
 				}else{
 					OctMethods.socket.emit("init", {
 						action: "session",
-						info: OctMethods.socket.sessCode
+						sessCode: OctMethods.socket.sessCode,
+						skipCreate: OctMethods.socket.isExited
 					});
+				}
+
+				// If skipCreate, hide the loader now.  (If a session is being made for us, wait to hide the loader until the session is ready.)
+				if (OctMethods.socket.isExited) {
+					OctMethods.load.hideLoader();
 				}
 			},
 			filesReady: function() {
@@ -1016,6 +1033,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			destroyu: function(message){
 				OctMethods.console.writeError("Octave Exited. Message: "+message+"\n");
 				OctMethods.console.writeRestartBtn();
+				OctMethods.socket.isExited = true;
 
 				// Clean up UI
 				OctMethods.prompt.disable();
@@ -1023,13 +1041,15 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				OctMethods.load.hideLoader();
 			},
 			disconnect: function(){
-				OctMethods.console.writeError("Connection lost.  Attempting to reconnect...\n");
-				
+				if (!OctMethods.socket.isExited) {
+					OctMethods.console.writeError("Connection lost.  Attempting to reconnect...\n");
+				}
+
 				// Clean up UI
 				OctMethods.prompt.disable();
 				OctMethods.prompt.endCountdown();
 				OctMethods.load.showLoader();
-			}
+			},
 		},
 
 		// Editor Methods
@@ -1214,9 +1234,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			loaderVisible: true,
 			bePatientTimeout: null,
 			callback: function(){
-				if(OctMethods.load.loaderVisible){
-					OctMethods.load.hideLoader();
-				}
+				OctMethods.load.hideLoader();
 				if(OctMethods.load.firstConnection){
 					OctMethods.load.firstConnection = false;
 
@@ -1244,10 +1262,12 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				}
 			},
 			showLoader: function(){
+				if (OctMethods.load.loaderVisible) return;
 				OctMethods.load.loaderVisible = true;
 				$("#site_loading").showSafe();
 			},
 			hideLoader: function(){
+				if (!OctMethods.load.loaderVisible) return;
 				OctMethods.load.loaderVisible = false;
 				OctMethods.load.stopPatience();
 				$("#site_loading").fadeOutSafe(500);

@@ -106,7 +106,12 @@ class SocketHandler implements IDestroyable {
 
 				// Process the user's requested action
 				var action = init && init.action;
-				var info = init && (init.sessCode || init.info); // backwards compat.
+				var info = init && init.info;
+				var oldSessCode = init && init.sessCode;
+				var skipCreate = init && init.skipCreate;
+				if (action === "session" && !oldSessCode) {
+					oldSessCode = info; // backwards compat.
+				}
 
 				switch (action) {
 					case "workspace":
@@ -125,7 +130,7 @@ class SocketHandler implements IDestroyable {
 					case "bucket":
 						if (!info) return;
 						this.log("Attaching to a bucket:", info);
-						this.workspace = new NormalWorkspace(null, user, <string> info);
+						this.workspace = new NormalWorkspace(oldSessCode, user, <string> info);
 						break;
 
 					case "session":
@@ -135,7 +140,7 @@ class SocketHandler implements IDestroyable {
 							this.workspace = new SharedWorkspace("host", user);
 						} else {
 							this.log("Attaching to default workspace with sessCode", info);
-							this.workspace = new NormalWorkspace(<string> info, user, null);
+							this.workspace = new NormalWorkspace(oldSessCode, user, null);
 						}
 						break;
 				}
@@ -143,8 +148,8 @@ class SocketHandler implements IDestroyable {
 				this.listen();
 				if (action === "bucket") {
 					this.bucketId = <string> info;
-					this.loadBucket();
-				} else {
+					this.loadBucket(skipCreate);
+				} else if (!skipCreate) {
 					this.workspace.beginOctaveRequest();
 				}
 
@@ -351,7 +356,7 @@ class SocketHandler implements IDestroyable {
 		});
 	}
 
-	private loadBucket = ():void => {
+	private loadBucket = (skipCreate: boolean):void => {
 		if (!this.bucketId) return;
 		Bucket.findOne({ bucket_id: this.bucketId }, (err, bucket) => {
 			if (err) {
@@ -367,7 +372,9 @@ class SocketHandler implements IDestroyable {
 			}
 			this.log("Bucket loaded:", bucket.bucket_id);
 			this.socket.emit("bucket-info", bucket);
-			this.workspace.beginOctaveRequest();
+			if (!skipCreate) {
+				this.workspace.beginOctaveRequest();
+			}
 		});
 	}
 

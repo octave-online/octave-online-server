@@ -78,14 +78,15 @@ implements IWorkspace, IDestroyable {
 
 				// Ask for an Octave session if we need one.
 				// Otherwise, inform the client.
-				if (state === IRedis.SessionState.Needed)
+				if (state === IRedis.SessionState.Needed) {
 					OctaveHelper.askForOctave(sessCode, {
 						user: this.user,
 						bucketId: this.bucketId
 					}, next);
-				else {
+				} else {
 					this.emit("sesscode", sessCode);
 					this.emit("data", "prompt", {});
+					this.emit("data", "files-ready", {});
 				}
 			},
 			(next) => {
