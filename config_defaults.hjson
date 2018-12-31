@@ -208,13 +208,19 @@ docker: {
 # SELinux implementation settings
 selinux: {
 	cgroup: {
+		# Name of the CGroup to create and use for Octave processes
 		name: oo/octave
+		# CPU shares, period, and quota for the processes; these correspond to "cpu.shares", "cpu.cfs_period_us", and "cpu.cfs_quota_us". For more details, see:
+		# https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/resource_management_guide/sec-cpu
 		cpuShares: 128
+		cpuPeriod: 1000000
 		cpuQuota: 800000
+		# The user and group for the task section of cgconfig; these should be the same as the Octave server user.
 		uid: oo
 		gid: oo
 	}
 	prlimit: {
+		# The amount of memory (address space) available to an Octave process. The default is 1GB. Note that the Octave runtime counts against the address space; it consumes in the ballpark of ~250MB, leaving the other 750MB to the user.
 		addressSpace: 1000000000
 	}
 }

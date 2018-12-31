@@ -29,6 +29,7 @@ FILES_SUFFIX  = $(call get_config,docker.images.filesystemSuffix)
 JSON_MAX_LEN  = $(call get_config,session.jsonMaxMessageLength)
 CGROUP_NAME   = $(call get_config,selinux.cgroup.name)
 CPU_SHARES    = $(call get_config,selinux.cgroup.cpuShares)
+CPU_PERIOD    = $(call get_config,selinux.cgroup.cpuPeriod)
 CPU_QUOTA     = $(call get_config,selinux.cgroup.cpuQuota)
 CGROUP_UID    = $(call get_config,selinux.cgroup.uid)
 CGROUP_GID    = $(call get_config,selinux.cgroup.gid)
@@ -88,10 +89,11 @@ install-cgroup:
 	echo "  }" >> /etc/cgconfig.conf
 	echo "  cpu {" >> /etc/cgconfig.conf
 	echo "    cpu.shares = $(CPU_SHARES);" >> /etc/cgconfig.conf
-	echo "    cpu.cfs_period_us = 1000000;" >> /etc/cgconfig.conf
+	echo "    cpu.cfs_period_us = $(CPU_PERIOD);" >> /etc/cgconfig.conf
 	echo "    cpu.cfs_quota_us = $(CPU_QUOTA);" >> /etc/cgconfig.conf
 	echo "  }" >> /etc/cgconfig.conf
 	echo "}" >> /etc/cgconfig.conf
+	systemctl restart cgconfig
 
 install-selinux-policy:
 	# yum install -y selinux-policy-devel policycoreutils-sandbox selinux-policy-sandbox
