@@ -193,9 +193,9 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		</div>
 		<div id="output_panel" data-bind="attr:{ style: flex.outputCss }">
 			<div id="plot_container" aria-hidden="true" data-bind="vizSafe: showPlot, with: currentPlot">
-				<div id="plot_figure_container" title="Click to zoom" data-bind="click: zoom">
-					<div id="plot_svg_container" data-bind="fadeIn: complete, html: completeData"></div>
-					<div id="plot_loading" data-bind="fadeOut: !complete()">
+				<div id="plot_figure_container" title="Click to zoom" data-bind="click: $root.zoomPlot, css: { fullscreen: $root.plotZoomed }">
+					<div id="plot_svg_container" data-bind="visible: complete, html: completeData"></div>
+					<div id="plot_loading" data-bind="visible: !complete()">
 						<img src="images/spinner.svg" alt="Loading&hellip;"/>
 					</div>
 					<div id="plot_canvas_container">

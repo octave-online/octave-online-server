@@ -86,9 +86,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 			download(blob, filename);
 		};
-		self.zoom = function(){
-			$("#plot_figure_container").toggleClass("fullscreen");
-		};
 		self.completeData = ko.computed(function(){
 			if (self.complete()) {
 				return self.data;
@@ -176,6 +173,10 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			var len = plotHistory().length;
 			if (idx+1 >= len) return null;
 			currentPlotIdx(idx + 1);
+		},
+		plotZoomed: ko.observable(false),
+		zoomPlot: function(){
+			viewModel.plotZoomed(!viewModel.plotZoomed());
 		},
 
 		// Sign In / Sign Out
