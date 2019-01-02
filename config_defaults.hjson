@@ -147,7 +147,7 @@ session: {
 	]
 
 	# OCTAVE SESSION HOST IMPLEMENTATION
-	# Choices: "selinux" or "docker".
+	# Choices: "selinux", "docker", and "unsafe".
 	# Refer to the README file for more details.
 	implementation: docker
 }
@@ -223,6 +223,27 @@ selinux: {
 		# The amount of memory (address space) available to an Octave process. The default is 1GB. Note that the Octave runtime counts against the address space; it consumes in the ballpark of ~250MB, leaving the other 750MB to the user.
 		addressSpace: 1000000000
 	}
+}
+
+# Tier settings
+# Tiers allow you to customize a number of different settings for different groups of users.  For example, this could be used to implement a free tier and a paid tier, where the paid tier gets more resources.
+# A default tier, named _default, is always available.
+# The following settings are customizable by tier:
+#  - sessionManager.poolSize
+#  - selinux.cgroup.name
+#  - selinux.prlimit.addressSpace
+tiers: {
+	# Default tier: no settings need to be customized.
+	_default: {}
+
+	# Example custom tier: a tier named "vip" that gets additional memory (4GB)
+	# vip: {
+	# 	selinux: {
+	# 		prlimit: {
+	# 			addressSpace: 4000000000
+	# 		}
+	# 	}
+	# }
 }
 
 # # # # # # # # # # # # # # # #

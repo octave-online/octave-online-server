@@ -37,8 +37,10 @@ const onceMessage = require("@oo/shared").onceMessage;
 const FilesController = require("../../back-filesystem/src/controller");
 
 class SessionImpl extends OctaveSession {
-	constructor(sessCode) {
+	constructor(sessCode, options) {
 		super(sessCode);
+		this.options = options;
+
 		this._makeSessions();
 
 		this._cfs = new CappedFileSystem(this.sessCode, config.docker.diskQuotaKiB);
@@ -120,15 +122,34 @@ class SessionImpl extends OctaveSession {
 }
 
 class HostProcessHandler extends ProcessHandler {
-	constructor(sessCode) {
+	constructor(sessCode, options) {
 		super(sessCode);
+		this.options = options;
 
 		// Override default logger with something that says "host"
 		this._log = logger(`host-handler:${sessCode}`);
 		this._mlog = logger(`host-handler:${sessCode}:minor`);
 	}
 
-	_doCreate(next, dataDir, skipSandbox) {
+	_doCreate(next, dataDir) {
+		const tier = this.options.tier;
+		var x;
+		let cgroupName = config.selinux.cgroup.name;
+		if ((x = config.tiers[tier].selinux) && (x=x.cgroup) && (x=x.name)) {
+			cgroupName = x;
+		}
+		let addressSpace = config.selinux.prlimit.addressSpace;
+		if ((x = config.tiers[tier].selinux) && (x=x.prlimit) && (x=x.addressSpace)) {
+			addressSpace = x;
+		}
+
+		const envVars = [
+			"env", "GNUTERM=svg",
+			"env", "LD_LIBRARY_PATH=/usr/local/lib",
+			"env", "OO_SESSCODE="+this.sessCode,
+			"env", "OO_TIER="+this.options.tier
+		];
+
 		async.series([
 			(_next) => {
 				temp.mkdir("oo-", (err, tmpdir) => {
@@ -138,12 +159,29 @@ class HostProcessHandler extends ProcessHandler {
 				});
 			},
 			(_next) => {
-				// Spawn sandbox process
-				if (skipSandbox) {
-					super._doCreate(_next, child_process.spawn, "env", ["GNUTERM=svg", "env", "LD_LIBRARY_PATH=/usr/local/lib", "/usr/local/bin/octave-host", config.session.jsonMaxMessageLength], { cwd: dataDir });
+				if (config.session.implementation === "unsafe") {
+					// Spawn un-sandboxed process
+					super._doCreate(_next, child_process.spawn, "env", [].concat(envVars.slice(1)).concat(["/usr/local/bin/octave-host", config.session.jsonMaxMessageLength]), {
+						cwd: dataDir
+					});
 				} else {
+					// Spawn sandboxed process
 					// The CWD is set to /tmp in order to make the child process not hold a reference to the mount that the application happens to be running under.
-					super._doCreate(_next, child_process.spawn, "/usr/bin/prlimit", ["--as="+config.selinux.prlimit.addressSpace, "/usr/bin/cgexec", "-g", "cpu:"+config.selinux.cgroup.name, "/usr/bin/sandbox", "-M", "-H", dataDir, "-T", this.tmpdir, "--level", "s0", "env", "GNUTERM=svg", "env", "LD_LIBRARY_PATH=/usr/local/lib", "/usr/local/bin/octave-host", config.session.jsonMaxMessageLength], { cwd: "/tmp" });
+					super._doCreate(_next, child_process.spawn, "/usr/bin/prlimit", [
+						"--as="+addressSpace,
+						"/usr/bin/cgexec",
+						"-g", "cpu:"+cgroupName,
+						"/usr/bin/sandbox",
+						"-M",
+						"-H", dataDir,
+						"-T", this.tmpdir,
+						"--level", "s0"]
+						.concat(envVars)
+						.concat([
+						"/usr/local/bin/octave-host", config.session.jsonMaxMessageLength
+					]), {
+						cwd: "/tmp"
+					});
 				}
 			},
 			(_next) => {
@@ -260,7 +298,7 @@ class FilesControllerHandler extends OnlineOffline {
 class SessionSELinux extends SessionImpl {
 	_makeSessions() {
 		this._filesSession = new FilesControllerHandler(this.sessCode);
-		this._hostSession = new HostProcessHandler(this.sessCode);
+		this._hostSession = new HostProcessHandler(this.sessCode, this.options);
 	}
 
 	_makeNewFileSession(sessCode) {

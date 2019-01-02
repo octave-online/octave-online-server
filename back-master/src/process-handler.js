@@ -36,7 +36,9 @@ class ProcessHandler extends StdioMessenger {
 		async.series([
 			(_next) => {
 				// Spawn the process
-				this._spwn = fn.apply(this, Array.prototype.slice.call(arguments, 2));
+				let args = Array.prototype.slice.call(arguments, 2);
+				this._mlog.trace("Spawning process:", args[0], args[1].join(" "), args[2]);
+				this._spwn = fn.apply(this, args);
 
 				// Create all unexpected error listeners
 				this._spwn.on("error", (err) => { this._log.error("spwn:", err); });

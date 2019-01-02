@@ -33,6 +33,15 @@ class SessionManager extends EventEmitter {
 	constructor() {
 		super();
 		this._pool = {};
+		this._poolSizes = {};
+		Object.keys(config.tiers).forEach((tier) => {
+			this._pool[tier] = {};
+			if (config.tiers[tier].sessionManager && config.tiers[tier].sessionManager.poolSize) {
+				this._poolSizes[tier] = config.tiers[tier].sessionManager.poolSize;
+			} else {
+				this._poolSizes[tier] = config.sessionManager.poolSize;
+			}
+		});
 		this._online = {};
 		this._monitor_session = null;
 		this._setup();
@@ -42,8 +51,10 @@ class SessionManager extends EventEmitter {
 	_setup() {
 		// Log the session index on a fixed interval
 		this._logInterval = setInterval(() => {
-			log.debug("Current Number of Pooled Sessions:", Object.keys(this._pool).length);
-			log.trace(Object.keys(this._pool).join("; "));
+			Object.keys(this._pool).forEach((tier) => {
+				log.debug("Current Number of Pooled Sessions, tier " + tier + ":", Object.keys(this._pool[tier]).length);
+				log.trace(Object.keys(this._pool[tier]).join("; "));
+			});
 			log.debug("Current Number of Online Sessions:", Object.keys(this._online).length);
 			log.trace(Object.keys(this._online).join("; "));
 
@@ -59,8 +70,10 @@ class SessionManager extends EventEmitter {
 
 		// Keep pool sessions alive
 		this._keepAliveInterval = setInterval(() => {
-			Object.keys(this._pool).forEach((localCode) => {
-				this._pool[localCode].session.resetTimeout();
+			Object.keys(this._pool).forEach((tier) => {
+				Object.keys(this._pool[tier]).forEach((localCode) => {
+					this._pool[tier][localCode].session.resetTimeout();
+				});
 			});
 		}, config.session.timewarnTime/2);
 	}
@@ -70,17 +83,28 @@ class SessionManager extends EventEmitter {
 	}
 
 	canAcceptNewSessions() {
-		return this._poolVar.enabled && Object.keys(this._pool).length > 0 && this.numActiveSessions() < config.worker.maxSessions;
+		if (!this._poolVar.enabled) {
+			return false;
+		}
+		if (this.numActiveSessions() >= config.worker.maxSessions) {
+			return false;
+		}
+		for (let tier of Object.keys(this._pool)) {
+			// Require every tier to have at least 1 session in the pool
+			if (Object.keys(this._pool[tier]).length === 0) {
+				return false;
+			}
+		}
+		return true;
 	}
 
-	_create(next) {
+	_create(next, options) {
 		// Get the correct implementation
-		const SessionImpl = impls[config.session.implementation];
-		if (!SessionImpl) return log.error("Please set a valid entry for config.session.implementation.");
+		const SessionImpl = config.session.implementation === "docker" ? impls.docker : impls.selinux;
 
 		// Create the session object
 		const localCode = uuid.v4(null, new Buffer(16)).toString("hex");
-		const session = new SessionImpl(localCode);
+		const session = new SessionImpl(localCode, options);
 
 		// Add messages to a cache when they are created
 		const cache = new Queue();
@@ -98,25 +122,28 @@ class SessionManager extends EventEmitter {
 			}
 
 			// Call the callback
-			next(localCode, session, cache);
+			next(localCode, session, cache, options);
 		}));
 	}
 
 	attach(remoteCode, content) {		// Move pool session to online session
 		if (!this.canAcceptNewSessions()) return log.warn("Cannot accept any new sessions right now");
 
-		// FIXME: Backwards compatibility with old front server: the message content can be the user itself; if null, it is a guest user.
+		// TODO: Backwards compatibility with old front server: the message content can be the user itself; if null, it is a guest user.
 		if (!content) {
 			content = { user: null };
 		} else if (content.parametrized) {
 			content = { user: content };
 		}
 
+		// FIXME: Customize tier based on user
+		const tier = Object.keys(this._pool)[0];
+
 		// Pull from the pool
-		const localCode = Object.keys(this._pool)[0];
-		this._online[remoteCode] = this._pool[localCode];
-		delete this._pool[localCode];
-		log.info("Upgraded pool session", localCode, remoteCode);
+		const localCode = Object.keys(this._pool[tier])[0];
+		this._online[remoteCode] = this._pool[tier][localCode];
+		delete this._pool[tier][localCode];
+		log.info("Upgraded pool session", tier, localCode, remoteCode);
 
 		// Convenience references
 		const session = this._online[remoteCode].session;
@@ -201,7 +228,7 @@ class SessionManager extends EventEmitter {
 		let poolVar = { enabled: true };
 		this._poolVar = poolVar;
 
-		let _poolCb = (localCode, session, cache) => {
+		let _poolCb = (localCode, session, cache, options) => {
 			// If we need to disable the pool...
 			if (!poolVar.enabled) {
 				if (session) session.destroy(null, "Pool Disabled");
@@ -216,16 +243,21 @@ class SessionManager extends EventEmitter {
 					cache.enabled = false;
 					cache.removeAll();
 				} else {
-					this._pool[localCode] = { session, cache };
+					this._pool[options.tier][localCode] = { session, cache };
 				}
 			}
 
 			// If we need to put another session in our pool...
-			if (Object.keys(this._pool).length < config.sessionManager.poolSize) {
-				this._create(_poolCb);
-			} else {
-				setTimeout(_poolCb, config.sessionManager.poolInterval);
+			for (let tier of Object.keys(this._pool)) {
+				if (Object.keys(this._pool[tier]).length < this._poolSizes[tier]) {
+					log.trace("Creating new session in tier", tier);
+					this._create(_poolCb, { tier });
+					return;
+				}
 			}
+
+			// No more sessions were required.
+			setTimeout(_poolCb, config.sessionManager.poolInterval);
 		};
 		process.nextTick(_poolCb);
 	}
@@ -233,12 +265,14 @@ class SessionManager extends EventEmitter {
 	disablePool() {
 		if (!this._poolVar || !this._poolVar.enabled) return;
 		this._poolVar.enabled = false;
-		Object.keys(this._pool).forEach((localCode) => {
-			this._pool[localCode].session.destroy(null, "Pool Disabled");
-			this._pool[localCode].session = null;
-			this._pool[localCode].cache = null;
-			delete this._pool[localCode];
-		});
+		Object.keys(this._pool).forEach((tier) => {
+			Object.keys(this._pool[tier]).forEach((localCode) => {
+				this._pool[tier][localCode].session.destroy(null, "Pool Disabled");
+				this._pool[tier][localCode].session = null;
+				this._pool[tier][localCode].cache = null;
+				delete this._pool[tier][localCode];
+			});
+		})
 	}
 
 	terminate(reason) {

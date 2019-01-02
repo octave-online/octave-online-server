@@ -41,11 +41,11 @@ function runMaintenance(next) {
 			break;
 		}
 
-		case "selinux": {
+		case "selinux":
+		case "unsafe":
 			// Exit this process and let the daemon running it clean up and restart
 			process.exit(0);
 			break;
-		}
 
 		default: {
 			log.error("Please provide a maintenance command for your implementation");
