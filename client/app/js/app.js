@@ -46,9 +46,9 @@ define(
 		socket.on("deleted", OctMethods.socketListeners.deleted);
 		// TODO: Stop this event from operating on everyone in a shared workspace
 		socket.on("binary", OctMethods.socketListeners.binary);
-		// The inconsistent naming convention here ("dir" vs. "user" vs. "userinfo") is for backwards compatibility.  At some point I would like to rename these events all the way through the stack.
-		socket.on("userinfo", OctMethods.socketListeners.user);
-		socket.on("user", OctMethods.socketListeners.dir);
+		socket.on("userinfo", OctMethods.socketListeners.userinfo);
+		// The inconsistent naming convention here ("user" vs. "filelist") is for backwards compatibility.  At some point I would like to rename this and other events all the way through the stack.
+		socket.on("user", OctMethods.socketListeners.filelist);
 		socket.on("fileadd", OctMethods.socketListeners.fileadd);
 		socket.on("plotd", OctMethods.socketListeners.plotd);
 		socket.on("plote", OctMethods.socketListeners.plote);

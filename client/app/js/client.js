@@ -792,7 +792,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				var blob = b64ToBlob(data.base64data, data.mime);
 				return download(blob, octfile.filename());
 			},
-			user: function(data){
+			userinfo: function(data){
 				// One-time methods
 				if (!OctMethods.editor.initialized && data) {
 					OctMethods.editor.initialized = true;
@@ -812,7 +812,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					anal.signedin();
 				}
 			},
-			dir: function(data){
+			filelist: function(data){
 				// Load files
 				if (!data.success) {
 					OctMethods.load.callback();
