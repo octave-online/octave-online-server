@@ -133,14 +133,13 @@ class HostProcessHandler extends ProcessHandler {
 
 	_doCreate(next, dataDir) {
 		const tier = this.options.tier;
-		var x;
-		let cgroupName = config.selinux.cgroup.name;
-		if ((x = config.tiers[tier].selinux) && (x=x.cgroup) && (x=x.name)) {
-			cgroupName = x;
+		let cgroupName = config.tiers[tier]["selinux.cgroup.name"];
+		if (!cgroupName) {
+			cgroupName = config.selinux.cgroup.name;
 		}
-		let addressSpace = config.selinux.prlimit.addressSpace;
-		if ((x = config.tiers[tier].selinux) && (x=x.prlimit) && (x=x.addressSpace)) {
-			addressSpace = x;
+		let addressSpace = config.tiers[tier]["selinux.prlimit.addressSpace"];
+		if (!addressSpace) {
+			addressSpace = config.selinux.prlimit.addressSpace;
 		}
 
 		const envVars = [

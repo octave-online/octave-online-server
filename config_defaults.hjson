@@ -238,11 +238,7 @@ tiers: {
 
 	# Example custom tier: a tier named "vip" that gets additional memory (4GB)
 	# vip: {
-	# 	selinux: {
-	# 		prlimit: {
-	# 			addressSpace: 4000000000
-	# 		}
-	# 	}
+	# 	selinux.prlimit.addressSpace: 4000000000
 	# }
 }
 

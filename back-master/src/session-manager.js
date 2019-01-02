@@ -36,9 +36,8 @@ class SessionManager extends EventEmitter {
 		this._poolSizes = {};
 		Object.keys(config.tiers).forEach((tier) => {
 			this._pool[tier] = {};
-			if (config.tiers[tier].sessionManager && config.tiers[tier].sessionManager.poolSize) {
-				this._poolSizes[tier] = config.tiers[tier].sessionManager.poolSize;
-			} else {
+			this._poolSizes[tier] = config.tiers[tier]["sessionManager.poolSize"];
+			if (!this._poolSizes[tier]) {
 				this._poolSizes[tier] = config.sessionManager.poolSize;
 			}
 		});
