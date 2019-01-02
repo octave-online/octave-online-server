@@ -232,6 +232,8 @@ selinux: {
 #  - sessionManager.poolSize
 #  - selinux.cgroup.name
 #  - selinux.prlimit.addressSpace
+#  - session.legalTime.user
+#  - session.payloadLimit.user
 tiers: {
 	# Default tier: no settings need to be customized.
 	_default: {}

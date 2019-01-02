@@ -78,13 +78,17 @@ class SocketHandler implements IDestroyable {
 		Async.auto({
 
 			// 1. Load user from database
-			user: (next) => {
+			raw_user: (next) => {
 				var sess = self.socket.request.session;
 				var userId = sess && sess.passport && sess.passport.user;
 
 				if (userId) User.findById(userId, next);
 				else next(null, null);
 			},
+			user: ["raw_user", (next, {raw_user}) => {
+				if (!raw_user) return next(null, null);
+				raw_user.loadDependencies(next);
+			}],
 
 			// 2. User requested to connect
 			init: (next) => {

@@ -135,8 +135,10 @@ class SessionManager extends EventEmitter {
 			content = { user: content };
 		}
 
-		// FIXME: Customize tier based on user
-		const tier = Object.keys(this._pool)[0];
+		// Determine which tier to use
+		const user = content.user;
+		const tier = user ? user.tier : Object.keys(this._pool)[0];
+		console.assert(Object.keys(this._pool).includes(tier), tier);
 
 		// Pull from the pool
 		const localCode = Object.keys(this._pool[tier])[0];
@@ -147,7 +149,6 @@ class SessionManager extends EventEmitter {
 		// Convenience references
 		const session = this._online[remoteCode].session;
 		const cache = this._online[remoteCode].cache;
-		const user = content.user;
 
 		// Reset the session timeout to leave the user with a full allotment of time
 		session.resetTimeout();

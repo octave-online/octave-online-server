@@ -81,6 +81,7 @@ interface IAppConfig {
 			user: number;
 		}
 	}
+	tiers: any;
 }
 
 var appConfig:IAppConfig = require("@oo/shared").config;

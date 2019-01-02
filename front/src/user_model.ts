@@ -30,6 +30,7 @@ import Crypto = require("crypto");
 import Bcrypt = require("bcrypt");
 import Config = require("./config");
 import Utils = require("./utils");
+import Program = require("./program_model");
 
 // Patch for https://github.com/Automattic/mongoose/issues/4951
 Mongoose.Promise = <any> global.Promise
@@ -46,6 +47,7 @@ var userSchema = new Mongoose.Schema({
 	repo_key: String,
 	share_key: String,
 	password_hash: String,
+	tier_override: String,
 	legal_time_override: Number,
 	payload_limit_override: Number,
 	last_activity: {
@@ -114,13 +116,50 @@ userSchema.virtual("consoleText").get(function () {
 	return "[User " + this.id + "; " + safeEmail + "; param:" + safeParameterized + "_…]";
 });
 
-// Return the legalTime and payloadLimit for this user, which usually falls back to the default unless a value is explicitly set in the database.  The camel-case name of these fields is for backwards compatibility.
+// Return the tier for this user, including legalTime and payloadLimit.  These items usually fall back to the default unless a value is explicitly set in the database.  The camel-case name of these fields is for backwards compatibility.
+const validTiers = Object.keys(Config.tiers);
+userSchema.virtual("tier").get(function () {
+	let candidate = this.tier_override;
+	if (validTiers.indexOf(candidate) !== -1) {
+		return candidate;
+	}
+	candidate = this._program && this._program.tier_override;
+	if (validTiers.indexOf(candidate) !== -1) {
+		return candidate;
+	}
+	// Default value:
+	return validTiers[0];
+});
 userSchema.virtual("legalTime").get(function () {
-	if (this.legal_time_override) return this.legal_time_override;
+	let candidate = this.legal_time_override;
+	if (candidate) {
+		return candidate;
+	}
+	candidate = this._program && this._program.legal_time_override;
+	if (candidate) {
+		return candidate;
+	}
+	candidate = Config.tiers[this.tier]["session.legalTime.user"];
+	if (candidate) {
+		return candidate;
+	}
+	// Default value:
 	return Config.session.legalTime.user;
 });
 userSchema.virtual("payloadLimit").get(function () {
-	if (this.payload_limit_override) return this.payload_limit_override;
+	let candidate = this.payload_limit_override;
+	if (candidate) {
+		return candidate;
+	}
+	candidate = this._program && this._program.payload_limit_override;
+	if (candidate) {
+		return candidate;
+	}
+	candidate = Config.tiers[this.tier]["session.payloadLimit.user"];
+	if (candidate) {
+		return candidate;
+	}
+	// Default value:
 	return Config.session.payloadLimit.user;
 });
 
@@ -196,6 +235,18 @@ userSchema.pre("save", function(next){
 	this.last_activity = new Date();
 	this.save(next);
 };
+(<any>userSchema).methods.loadDependencies = function(next){
+	if (!this.program) {
+		next(null, this);
+	}
+	Program.findOne({
+		program_name: this.program
+	}, (err, _program) => {
+		if (err) return next(err);
+		this._program = _program;
+		next(null, this);
+	});
+};
 
 // Make sure the fields are initialized
 userSchema.post("init", function(doc){
@@ -207,13 +258,14 @@ userSchema.post("init", function(doc){
 // JSON representation: include the virtuals (this object will be transmitted
 // to the actual Octave server)
 // Leave out the password_hash field to avoid leaking it to the front end.
-// Also leave out the two *_override fields since the information in those fields is available via the corresponding camel-case virtuals.
+// Also leave out the *_override fields since the information in those fields is available via the corresponding camel-case virtuals.
 userSchema.set('toJSON', {
 	virtuals: true,
 	transform: function(doc, ret, options) {
 		delete ret.password_hash;
 		delete ret.legal_time_override;
 		delete ret.payload_limit_override;
+		delete ret.tier_override;
 		return ret;
 	}
 });
