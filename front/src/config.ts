@@ -80,6 +80,8 @@ interface IAppConfig {
 			guest: number;
 			user: number;
 		}
+		countdownExtraTime: number;
+		countdownRequestTime: number;
 	}
 	tiers: any;
 }

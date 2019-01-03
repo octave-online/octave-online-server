@@ -50,6 +50,8 @@ var userSchema = new Mongoose.Schema({
 	tier_override: String,
 	legal_time_override: Number,
 	payload_limit_override: Number,
+	countdown_extra_time_override: Number,
+	countdown_request_time_override: Number,
 	last_activity: {
 		type: Date,
 		default: Date.now
@@ -116,7 +118,7 @@ userSchema.virtual("consoleText").get(function () {
 	return "[User " + this.id + "; " + safeEmail + "; param:" + safeParameterized + "_…]";
 });
 
-// Return the tier for this user, including legalTime and payloadLimit.  These items usually fall back to the default unless a value is explicitly set in the database.  The camel-case name of these fields is for backwards compatibility.
+// Return the tier for this user, including resource-specific overrides.  These items usually fall back to the default unless a value is explicitly set in the database.  The camel-case name of these fields is for backwards compatibility.
 const validTiers = Object.keys(Config.tiers);
 userSchema.virtual("tier").get(function () {
 	let candidate = this.tier_override;
@@ -130,37 +132,49 @@ userSchema.virtual("tier").get(function () {
 	// Default value:
 	return validTiers[0];
 });
-userSchema.virtual("legalTime").get(function () {
-	let candidate = this.legal_time_override;
-	if (candidate) {
-		return candidate;
-	}
-	candidate = this._program && this._program.legal_time_override;
-	if (candidate) {
-		return candidate;
-	}
-	candidate = Config.tiers[this.tier]["session.legalTime.user"];
-	if (candidate) {
-		return candidate;
-	}
-	// Default value:
-	return Config.session.legalTime.user;
-});
-userSchema.virtual("payloadLimit").get(function () {
-	let candidate = this.payload_limit_override;
-	if (candidate) {
-		return candidate;
-	}
-	candidate = this._program && this._program.payload_limit_override;
-	if (candidate) {
-		return candidate;
-	}
-	candidate = Config.tiers[this.tier]["session.payloadLimit.user"];
-	if (candidate) {
-		return candidate;
-	}
-	// Default value:
-	return Config.session.payloadLimit.user;
+
+// Add all of the resource-specific overrides to work in the same way.
+[
+	{
+		field: "legalTime",
+		overrideKey: "legal_time_override",
+		tierKey: "session.legalTime.user",
+		defaultValue: Config.session.legalTime.user
+	},
+	{
+		field: "payloadLimit",
+		overrideKey: "payload_limit_override",
+		tierKey: "session.payloadLimit.user",
+		defaultValue: Config.session.payloadLimit.user
+	},
+	{
+		field: "countdownExtraTime",
+		overrideKey: "countdown_extra_time_override",
+		tierKey: "session.countdownExtraTime",
+		defaultValue: Config.session.countdownExtraTime
+	},
+	{
+		field: "countdownRequestTime",
+		overrideKey: "countdown_request_time_override",
+		tierKey: "session.countdownRequestTime",
+		defaultValue: Config.session.countdownRequestTime
+	},
+].forEach(({field, overrideKey, tierKey, defaultValue})=>{
+	userSchema.virtual(field).get(function () {
+		let candidate = this[overrideKey];
+		if (candidate) {
+			return candidate;
+		}
+		candidate = this._program && this._program[overrideKey];
+		if (candidate) {
+			return candidate;
+		}
+		candidate = Config.tiers[this.tier][tierKey];
+		if (candidate) {
+			return candidate;
+		}
+		return defaultValue;
+	});
 });
 
 function randomAlphaString(length){

@@ -34,7 +34,9 @@ var programSchema = new Mongoose.Schema({
 	program_name: String,
 	tier_override: String,
 	legal_time_override: Number,
-	payload_limit_override: Number
+	payload_limit_override: Number,
+	countdown_extra_time_override: Number,
+	countdown_request_time_override: Number,
 });
 
 programSchema.set("toJSON", {
