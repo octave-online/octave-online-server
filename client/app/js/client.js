@@ -126,6 +126,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		instructorPrograms: ko.observableArray(),
 		allBuckets: ko.observableArray(),
 		newBucket: ko.observable(),
+		countdownExtraTimeSeconds: ko.observable(),
 
 		// More for UI
 		logoSrc: ko.computed(function() {
@@ -414,8 +415,10 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			currentLine: 0,
 			history: [""],
 			index: 0,
-			legalTime: 5000,  // config.session.legalTime.guest
+			legalTime: parseInt("5000!config.session.legalTime.guest"),
 			extraTime: 0,
+			countdownExtraTime: parseInt("15000!config.session.countdownExtraTime"),
+			countdownRequestTime: parseInt("3000!config.session.countdownRequestTime"),
 			countdownInterval: null,
 			payloadTimerInterval: null,
 			payloadDelay: -1,
@@ -465,7 +468,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				}else{
 					$("#seconds_remaining").text((remaining/1000).toFixed(2));
 				}
-				if (remaining <= 3000) {
+				if (remaining <= OctMethods.prompt.countdownRequestTime) {
 					$("#add_time_container").showSafe();
 				} else {
 					$("#add_time_container").hideSafe();
@@ -522,7 +525,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				}
 			},
 			addTime: function() {
-				OctMethods.prompt.extraTime += parseInt("15000!config.session.countdownExtraTime");
+				OctMethods.prompt.extraTime += OctMethods.prompt.countdownExtraTime;
 				OctMethods.socket.addTime();
 				anal.extraTime();
 			},
@@ -805,8 +808,11 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					data.name = data.name || data.displayName;
 					viewModel.currentUser(data);
 
-					// Legal runtime
+					// Legal runtime and other user settings
 					OctMethods.prompt.legalTime = data.legalTime;
+					OctMethods.prompt.countdownExtraTime = data.countdownExtraTime;
+					OctMethods.prompt.countdownRequestTime = data.countdownRequestTime;
+					viewModel.countdownExtraTimeSeconds(data.countdownExtraTime/1000);
 
 					// Analytics
 					anal.signedin();
@@ -1307,6 +1313,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			bucketInfo: null
 		}
 	};
+
+	viewModel.countdownExtraTimeSeconds(OctMethods.prompt.countdownExtraTime/1000);
 
 	// Expose
 	exports.console = OctMethods.console;

@@ -173,9 +173,21 @@ module.exports = function (grunt) {
 						flags: "g"
 					},
 					{
+						name: "config-session-legalTime",
+						search: "parseInt\\(\"\\d+!config.session.legalTime.guest\"\\)",
+						replace: "" + config.session.legalTime.guest,
+						flags: "g"
+					},
+					{
 						name: "config-session-countdownExtraTime",
 						search: "parseInt\\(\"\\d+!config.session.countdownExtraTime\"\\)",
 						replace: "" + config.session.countdownExtraTime,
+						flags: "g"
+					},
+					{
+						name: "config-session-countdownRequestTime",
+						search: "parseInt\\(\"\\d+!config.session.countdownRequestTime\"\\)",
+						replace: "" + config.session.countdownRequestTime,
 						flags: "g"
 					},
 					{

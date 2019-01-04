@@ -277,9 +277,11 @@ userSchema.set('toJSON', {
 	virtuals: true,
 	transform: function(doc, ret, options) {
 		delete ret.password_hash;
+		delete ret.tier_override;
 		delete ret.legal_time_override;
 		delete ret.payload_limit_override;
-		delete ret.tier_override;
+		delete ret.countdown_extra_time_override;
+		delete ret.countdown_request_time_override;
 		return ret;
 	}
 });
