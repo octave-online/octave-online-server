@@ -93,9 +93,9 @@ install-selinux-bin: reinstall-selinux
 	ln -sf $$PWD /usr/local/share/oo
 
 install-utils-auth:
-	cp entrypoint/oo_utils_auth.service /usr/lib/systemd/system/oo_utils_auth.service
+	cp entrypoint/oo-utils-auth.service /etc/systemd/system/oo-utils-auth.service
 	systemctl daemon-reload
-	systemctl enable oo_utils_auth
+	systemctl enable oo-utils-auth
 	ln -sf $$PWD /usr/local/share/oo
 
 install-site-m:

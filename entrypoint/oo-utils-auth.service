@@ -21,15 +21,15 @@ ExecStart=/usr/local/share/oo/utils-auth/app.js
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=oo-utils-auth
-User=nginx
-Group=nginx
+User=www-data
+Group=www-data
 RuntimeDirectory=oosocks
 Environment=NODE_ENV=production
 Restart=always
 
 [Unit]
-After=mongod.service
-Requires=mongod.service
+After=mongodb.service,"mnt-oo\x2dblock2.mount"
+Requires=mongodb.service,"mnt-oo\x2dblock2.mount"
 
 [Install]
 WantedBy=multi-user.target
