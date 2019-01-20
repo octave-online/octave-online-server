@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018, Octave Online LLC
+ * Copyright © 2019, Octave Online LLC
  *
  * This file is part of Octave Online Server.
  *
@@ -18,19 +18,7 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-"use strict";
+const rackapi = require("./rackapi");
 
-module.exports = {
-	asyncCache: require("./async-cache"),
-	config: require("./config"),
-	JSONStreamSafe: require("./json-stream-safe"),
-	logger: require("./logger"),
-	onceMessage: require("./once-message"),
-	OnlineOffline: require("./online-offline"),
-	Queue: require("./queue"),
-	RedisMessenger: require("./redis-messenger"),
-	redisUtil: require("./redis-util"),
-	silent: require("./silent"),
-	StdioMessenger: require("./stdio-messenger"),
-	timeLimit: require("./time-limit"),
-};
+// eslint-disable-next-line no-console
+rackapi.callRackspaceApi("GET", "/servers/detail", {}, console.log);

@@ -67,6 +67,15 @@ mailgun: {
 	domain: localhost
 }
 
+# Rackspace connection info
+rackspace: {
+	username: xxxxxxxxx
+	api_key: xxxxxxxxx
+	identity_base_url: https://identity.api.rackspacecloud.com/v2.0/
+	# Fill in the following with the region as xxx and the tenant ID as yyy
+	servers_base_url: https://xxx.servers.api.rackspacecloud.com/v2/yyy/
+}
+
 # # # # # # # # # # # # # # # #
 # Back Server configurations  #
 # # # # # # # # # # # # # # # #
