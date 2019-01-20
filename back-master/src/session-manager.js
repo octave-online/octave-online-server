@@ -138,6 +138,7 @@ class SessionManager extends EventEmitter {
 		// Determine which tier to use
 		const user = content.user;
 		const tier = user ? user.tier : Object.keys(this._pool)[0];
+		// eslint-disable-next-line no-console
 		console.assert(Object.keys(this._pool).includes(tier), tier);
 
 		// Pull from the pool
@@ -272,7 +273,7 @@ class SessionManager extends EventEmitter {
 				this._pool[tier][localCode].cache = null;
 				delete this._pool[tier][localCode];
 			});
-		})
+		});
 	}
 
 	terminate(reason) {

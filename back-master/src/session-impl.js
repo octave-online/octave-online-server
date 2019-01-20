@@ -177,8 +177,9 @@ class HostProcessHandler extends ProcessHandler {
 						"--level", "s0"]
 						.concat(envVars)
 						.concat([
-						"/usr/local/bin/octave-host", config.session.jsonMaxMessageLength
-					]), {
+							"/usr/local/bin/octave-host", config.session.jsonMaxMessageLength
+						]),
+					{
 						cwd: "/tmp"
 					});
 				}
