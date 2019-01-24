@@ -76,8 +76,10 @@ rackspace: {
 	servers_base_url: https://xxx.servers.api.rackspacecloud.com/v2/yyy/
 	# The image UUID to use when spinning up flavor servers
 	image_uuid: xxxx-xxxx-xxxx
+	# The UUID of the private network to which to add this server
+	network_uuid: xxxx-xxxx-xxxx
 	# The personality filename to send metadata to the instance
-	personality_filename: /etc/personality.txt
+	personality_filename: /etc/personality.json
 }
 
 # # # # # # # # # # # # # # # #

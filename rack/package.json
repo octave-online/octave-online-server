@@ -10,6 +10,7 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "async": "^2.6.1",
-    "got": "^9.6.0"
+    "got": "^9.6.0",
+    "uuid": "^3.3.2"
   }
 }

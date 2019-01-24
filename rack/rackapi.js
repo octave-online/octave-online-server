@@ -30,7 +30,8 @@ const async = require("async");
 
 function getToken(next) {
 	mlog.trace("Requesting new token");
-	// Note: a newer version of 'got' may add JSON auto-conversion, but as of this writing, the feature is in flux.
+	// Note: a newer version of 'got' may add JSON auto-conversion,
+	// but as of this writing, the feature is not stable.
 	got.post("tokens", {
 		baseUrl: config.rackspace.identity_base_url,
 		body: JSON.stringify({
