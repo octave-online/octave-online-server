@@ -74,6 +74,10 @@ rackspace: {
 	identity_base_url: https://identity.api.rackspacecloud.com/v2.0/
 	# Fill in the following with the region as xxx and the tenant ID as yyy
 	servers_base_url: https://xxx.servers.api.rackspacecloud.com/v2/yyy/
+	# The image UUID to use when spinning up flavor servers
+	image_uuid: xxxx-xxxx-xxxx
+	# The personality filename to send metadata to the instance
+	personality_filename: /etc/personality.txt
 }
 
 # # # # # # # # # # # # # # # #
@@ -265,6 +269,15 @@ tiers: {
 	# Example custom tier: a tier named "vip" that gets additional memory (4GB)
 	# vip: {
 	# 	selinux.prlimit.addressSpace: 4000000000
+	# }
+}
+
+# Flavor settings
+# Flavors are different server configurations where an entire custom server spins up to handle a session.  The code currently handles this feature only on the Rackspace cloud.
+flavors: {
+	# Example custom flavor: named "basic" and mapped to the Rackspace flavor "memory1-15"
+	# basic: {
+	# 	rackspaceFlavor: memory1-15
 	# }
 }
 
