@@ -103,7 +103,7 @@ function v2Parametrize(id:Mongoose.Types.ObjectId, email:string) {
 
 // Returns the user's display name
 userSchema.virtual("displayName").get(function () {
-	if (this.profile && this.profile.name) return this.profile.name;
+	if (this.profile && this.profile.displayName) return this.profile.displayName;
 	if (this.openid && this.openid.profile && this.openid.profile.displayName)
 		return this.openid.profile.displayName;
 	if (this.email) return this.email;
