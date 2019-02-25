@@ -348,8 +348,8 @@ class OctaveSession extends OnlineOffline {
 				let fullResult = "";
 				let errmsg = "";
 				res.on("data", (chunk) => {
-					if (chunk.length + fullResult.length > config.session.jsonMaxMessageLength) {
-						errmsg = `Requested URL exceeds maximum of ${config.session.jsonMaxMessageLength} bytes`;
+					if (chunk.length + fullResult.length > config.session.urlreadMaxBytes) {
+						errmsg = `Requested URL exceeds maximum of ${config.session.urlreadMaxBytes} bytes`;
 					} else {
 						fullResult += chunk;
 					}

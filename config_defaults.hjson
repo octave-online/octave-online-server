@@ -154,12 +154,14 @@ session: {
 	# jsonMaxMessageLength is a hard ceiling on the amount of data that the GNU Octave process can send per message to the Octave Online session host process.  This sometimes manifests itself in errors involving plot images that are oversize.
 	jsonMaxMessageLength: 1000000
 
-	# URLREAD DOMAIN WHITELISTING
+	# URLREAD
 	# For security, all HTTP requests from Octave processes (e.g., via the function urlread) are blocked by Octave Online Server by default.  This whitelist determines regular expression patterns to match against domain names to allow requests to those domains to pass through.
 	urlreadPatterns: [
 		^example\.com$
 		^(.*\.)?coursera\.org$
 	]
+	# urlreadMaxBytes is the maximum file size of URLs read from urlread/urlwrite. These bytes have to be piped between Node and Octave, similar to plot images but in the other direction.
+	urlreadMaxBytes: 5000000
 
 	# OCTAVE SESSION HOST IMPLEMENTATION
 	# Choices: "selinux", "docker", and "unsafe".
