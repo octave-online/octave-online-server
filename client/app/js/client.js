@@ -123,6 +123,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		plots: plotHistory,
 		currentPlotIdx: currentPlotIdx,
 		inlinePlots: ko.observable(true),
+		consoleWhiteSpaceWrap: ko.observable(true),
 		instructorPrograms: ko.observableArray(),
 		allBuckets: ko.observableArray(),
 		newBucket: ko.observable(),
@@ -264,6 +265,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 	});
 	viewModel.flex.sizes.extend({ localStorage: "flex:h" });
 	viewModel.inlinePlots.extend({ localStorage: "inline-plots" });
+	viewModel.consoleWhiteSpaceWrap.extend({ localStorage: "console-white-space-wrap" });
 	// Keep the console output visible when the plot window opens
 	viewModel.showPlot.subscribe(function(){
 		setTimeout(OctMethods.console.scroll, 0);

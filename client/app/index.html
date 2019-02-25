@@ -230,7 +230,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				</div>
 				<div id="console_container" data-bind="resizeFlex:{ group: flex.sizes, index: 3 }">
 					<div id="console_output_container">
-						<pre id="console"></pre>
+						<pre id="console" data-bind="css: { 'console-wrap': consoleWhiteSpaceWrap }"></pre>
 						<!--ONBOARDING
 						<div id="instructor-promo" aria-hidden="true">
 							<span class="l1">Did you know you can use {!app-name!} in your class?</span>
@@ -285,9 +285,6 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
 					<image xlink:href="images/sign-in-with-email.svg" src="images/sign-in-with-email.png" width="200" height="40" alt="Sign in with Email" />
 				</svg>
-				<p class="login_bottom">
-					Looking for Persona? It was discontinued by Mozilla in 2016. Please sign in using your same email address with one of the other methods.
-				</p>
 				<p class="login_bottom">
 					Signed in before but need to change your email address? Click "Feedback" and create a ticket. We will change it for you.
 				</p>
@@ -352,10 +349,16 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				<a href="https://twitter.com/OctaveOnline" class="twitter-follow-button" data-show-count="false"
 				data-lang="en" data-size="large" data-show-screen-name="false" target="_blank">Follow on Twitter</a>
 			</div>
-			<div id="show-plots-inline-item">
+			<div class="preference-inline-item">
 				<label>
 					<input type="checkbox" data-bind="checked: inlinePlots" />
 					Render New Plots Inline
+				</label>
+			</div>
+			<div class="preference-inline-item">
+				<label>
+					<input type="checkbox" data-bind="checked: consoleWhiteSpaceWrap" />
+					Wrap Long Lines in Console
 				</label>
 			</div>
 			<!-- ko if: allBuckets().length > 0 -->

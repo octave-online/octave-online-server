@@ -51,6 +51,10 @@ plot-svg-styles()
 		padding: 1ex
 		margin: 0
 
+		&.console-wrap{
+			white-space: pre-wrap
+		}
+
 		span.prompt_row{
 			font-weight: bold;
 			color: color1;
@@ -259,6 +263,12 @@ plot-svg-styles()
 	}
 
 	#vars_content {
+		position: absolute
+		top: toolbar_height
+		right: 0
+		bottom: 0
+		left: 0
+
 		font-size: 1.2em
 		line-height: 1.2em
 		overflow: auto
@@ -273,7 +283,6 @@ plot-svg-styles()
 				cursor: pointer
 				padding: 0.1em
 				white-space: nowrap
-				overflow: hidden
 				border: none
 
 				.vars_type {
