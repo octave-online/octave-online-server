@@ -184,6 +184,9 @@ Here are some critical user journeys that test a fairly wide cross-section of th
 	1. Run `O = urlread("https://example.com")`; it should print the same HTML as the previous line (http vs https)
 	1. Run `O = urlread("http://cnn.com")`; it should print an error saying that the domain is not in the whitelist (unless you added that domain to your custom whitelist)
 	1. Run `ping`; you should see a response like "Ping time: 75ms"
+1. Octave feature coverage
+	1. Run `pkg load communications` and then `help gf`; you should get a help page (skip this if you don't install the communications package)
+	1. Run `audioread("dummy.wav")`; you should get an error that the file does not exist (but you should NOT get an error that says libsndfile was not installed)
 1. Student / instructor features
 	1. Create two accounts if you do not already have two accounts
 	1. In one account, add a string to the `instructor` field in mongodb; for example, `"test-course"`
@@ -245,7 +248,7 @@ Here are some critical user journeys that test a fairly wide cross-section of th
 	1. Run the following command line; it should finish without any errors and produce a busy line plot:
 	```plot(rand(100));```
 	1. Run the following command line; it should produce the error "Warning: Suppressed a large plot", due to hitting the 1 MB limit on message size and therefore plot size:
-	```plot(rand(200));```
+	```plot(rand(300));```
 1. Pushing the limits: Countdown / Time Limit
 	1. Run the following command:
 	```pause(12)```

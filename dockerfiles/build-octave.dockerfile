@@ -28,8 +28,10 @@ RUN yum install -y \
 	traceroute \
 	git \
 	tar \
+	bzip2-devel \
 	lapack64-devel \
 	librsvg2-tools \
+	libsndfile-devel \
 	icoutils \
 	transfig
 
@@ -96,6 +98,7 @@ RUN cd octave && \
 # 	../configure --disable-readline --disable-gui --disable-docs
 
 ### 4.2.1 ###
+# Note: set GNUPLOT=... if you are using a custom gnuplot!
 RUN cd build-oo && \
 	../configure --disable-readline --disable-docs --disable-atomic-refcount --without-qt
 
@@ -106,7 +109,7 @@ RUN cd octave/build-oo && make install
 
 # Monkey-patch bug #42352
 # https://savannah.gnu.org/bugs/?42352
-RUN touch /usr/local/share/octave/4.0.1-rc1/etc/macros.texi
+RUN touch /usr/local/share/octave/4.2.1/etc/macros.texi
 
 # Monkey-patch json-c runtime errors
 ENV LD_LIBRARY_PATH /usr/local/lib
@@ -157,11 +160,12 @@ RUN /usr/local/bin/octave -q --eval "\
 	[fname, success] = urlwrite ('https://bitbucket.org/odepkg/odepkg/get/default.tar.gz', [P_tmpdir '/odepkg.tar.gz']); \
 	assert(success)
 	pkg ("install", fname) "
-# communications - https://savannah.gnu.org/bugs/?47267
-RUN /usr/local/bin/octave -q --eval "\
-	[fname, success] = urlwrite ('https://bitbucket.org/vote539/octave-communications/get/default.tar.gz', [P_tmpdir '/communications.tar.gz']); \
-	assert(success)
-	pkg ("install", fname) "
+# communications - https://savannah.gnu.org/bugs/?46521
+RUN hg clone https://bitbucket.org/octave-online/octave-communications && \
+	cd octave-communications && \
+	hg checkout patch-4.2 && \
+	CXXFLAGS="--std=c++11 -I/usr/local/include" make all && \
+	make install
 
 # Generate package metadata, used for warning messages
 RUN cd /usr/local/share/octave/site/m && /usr/local/bin/octave -q --eval "\
