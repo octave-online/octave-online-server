@@ -25,9 +25,6 @@ const mlog = require("@oo/shared").logger("app:minor");
 const MessageTranslator = require("./src/message-translator");
 const RedisMessenger = require("@oo/shared").RedisMessenger;
 const SessionManager = require("./src/session-manager");
-const MaintenanceReuestManager = require("./src/maintenance-request-manager");
-const async = require("async");
-const runMaintenance = require("./src/maintenance");
 const config = require("@oo/shared").config;
 const gcStats = (require("gc-stats"))();
 const child_process = require("child_process");
@@ -43,11 +40,9 @@ const redisInputHandler = new RedisMessenger().subscribeToInput();
 const redisDestroyDHandler = new RedisMessenger().subscribeToDestroyD();
 const redisExpireHandler = new RedisMessenger().subscribeToExpired();
 const redisScriptHandler = new RedisMessenger().enableScripts();
-const redisMaintenanceHandler = new RedisMessenger().subscribeToRebootRequests();
 const redisMessenger = new RedisMessenger();
 const translator = new MessageTranslator();
 const sessionManager = new SessionManager();
-const maintenanceRequestManager = new MaintenanceReuestManager();
 
 redisInputHandler.on("message", translator.fromDownstream.bind(translator));
 sessionManager.on("message", translator.fromUpstream.bind(translator));
@@ -107,100 +102,27 @@ gcStats.on("stats", (stats) => {
 	mlog.trace(`Garbage Collected (type ${stats.gctype}, ${stats.pause/1e6} ms)`);
 });
 
-redisMaintenanceHandler.on("reboot-request", maintenanceRequestManager.onMessage.bind(maintenanceRequestManager));
-maintenanceRequestManager.on("request-maintenance", redisMessenger.requestReboot.bind(redisMessenger));
-maintenanceRequestManager.on("reply-to-maintenance-request", redisMessenger.replyToRebootRequest.bind(redisMessenger));
+const mainImpl = require("./src/main-pool");
 
-// Connection-accepting loop
-var ACCEPT_CONS = true;
-async.forever(
-	(next) => {
-		if (!ACCEPT_CONS) return;
-		async.waterfall([
-			(_next) => {
-				let delay = Math.floor(config.worker.clockInterval.min + Math.random()*(config.worker.clockInterval.max-config.worker.clockInterval.min));
-				setTimeout(_next, delay);
-			},
-			(_next) => {
-				if (sessionManager.canAcceptNewSessions())
-					redisScriptHandler.getSessCode((err, sessCode, content) => {
-						if (err) log.error("Error getting sessCode:", err);
-						_next(null, sessCode, content);
-					});
-				else
-					process.nextTick(() => {
-						_next(null, null, null);
-					});
-			},
-			(sessCode, content, _next) => {
-				if (sessCode) {
-					log.info("Received Session:", sessCode);
-					sessionManager.attach(sessCode, content);
-				}
-
-				_next(null);
-			}
-		], next);
-	},
-	() => { log.error("Connection-accepting loop ended"); }
-);
-
-// Request maintenance time every 12 hours
-var maintenanceTimer;
-async.forever(
-	(next) => {
-		async.series([
-			(_next) => {
-				maintenanceTimer = setTimeout(_next, config.maintenance.interval);
-			},
-			(_next) => {
-				maintenanceRequestManager.beginRequestingMaintenance();
-				maintenanceRequestManager.once("maintenance-accepted", _next);
-			},
-			(_next) => {
-				sessionManager.disablePool();
-				async.whilst(
-					() => { return sessionManager.numActiveSessions() > 0; },
-					(__next) => { maintenanceTimer = setTimeout(__next, config.maintenance.pauseDuration); },
-					_next
-				);
-			},
-			(_next) => {
-				sessionManager.terminate();
-				maintenanceTimer = setTimeout(_next, config.maintenance.pauseDuration);
-			},
-			(_next) => {
-				runMaintenance(_next);
-			},
-			(_next) => {
-				sessionManager.restart();
-				maintenanceTimer = setTimeout(_next, config.maintenance.pauseDuration);
-			},
-			(_next) => {
-				maintenanceRequestManager.reset();
-				_next();
-			}
-		], () => {
-			next();
-		});
-	},
-	(err) => { log.error("Maintenance loop ended", err); }
-);
+mainImpl.start({
+	sessionManager,
+	redisScriptHandler,
+	redisMessenger
+}, (err) => {
+	log.error("Main-impl ended", err);
+});
 
 function doExit() {
 	log.info("RECEIVED SIGNAL.  Terminating gracefully.");
 
 	sessionManager.terminate("Server Maintenance");
-	clearTimeout(maintenanceTimer);
-	maintenanceRequestManager.stop();
-	ACCEPT_CONS = false;
+	mainImpl.doExit();
 
 	setTimeout(() => {
 		redisInputHandler.close();
 		redisDestroyDHandler.close();
 		redisExpireHandler.close();
 		redisScriptHandler.close();
-		redisMaintenanceHandler.close();
 		redisMessenger.close();
 	}, 5000);
 }
