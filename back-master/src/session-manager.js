@@ -30,17 +30,28 @@ const config = require("@oo/shared").config;
 const timeLimit = require("@oo/shared").timeLimit;
 
 class SessionManager extends EventEmitter {
-	constructor() {
+	constructor(maxOnly) {
 		super();
 		this._pool = {};
 		this._poolSizes = {};
-		Object.keys(config.tiers).forEach((tier) => {
+
+		let tiersEnabled;
+		if (maxOnly) {
+			tiersEnabled = ["_maxima"];
+		} else {
+			tiersEnabled = Object.keys(config.tiers);
+			tiersEnabled.splice(tiersEnabled.indexOf("_maxima"), 1);
+		}
+		log.info("Enabled tiers:", tiersEnabled);
+
+		tiersEnabled.forEach((tier) => {
 			this._pool[tier] = {};
 			this._poolSizes[tier] = config.tiers[tier]["sessionManager.poolSize"];
 			if (!this._poolSizes[tier]) {
 				this._poolSizes[tier] = config.sessionManager.poolSize;
 			}
 		});
+
 		this._online = {};
 		this._monitor_session = null;
 		this._setup();
@@ -137,7 +148,7 @@ class SessionManager extends EventEmitter {
 
 		// Determine which tier to use
 		const user = content.user;
-		const tier = user ? user.tier : Object.keys(this._pool)[0];
+		const tier = content.tier ? content.tier : user ? user.tier : Object.keys(this._pool)[0];
 		// eslint-disable-next-line no-console
 		console.assert(Object.keys(this._pool).includes(tier), tier);
 

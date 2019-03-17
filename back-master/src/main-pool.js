@@ -21,14 +21,15 @@
 // This file contains the main loop for normal pool servers.
 
 const log = require("@oo/shared").logger("main-pool");
+const mlog = require("@oo/shared").logger("main-pool:minor");
 const config = require("@oo/shared").config;
 const RedisMessenger = require("@oo/shared").RedisMessenger;
-const MaintenanceReuestManager = require("./maintenance-request-manager");
+const MaintenanceRequestFlavorManager = require("./maintenance-request-manager");
 const runMaintenance = require("./maintenance");
 const async = require("async");
 
 const redisMaintenanceHandler = new RedisMessenger().subscribeToRebootRequests();
-const maintenanceRequestManager = new MaintenanceReuestManager();
+const maintenanceRequestManager = new MaintenanceRequestFlavorManager();
 
 var ACCEPT_CONS = true;
 var maintenanceTimer;
@@ -56,15 +57,16 @@ function startConnectionAcceptLoop(globals, next) {
 					setTimeout(__next, delay);
 				},
 				(__next) => {
-					if (sessionManager.canAcceptNewSessions())
+					if (sessionManager.canAcceptNewSessions()) {
 						redisScriptHandler.getSessCode((err, sessCode, content) => {
 							if (err) log.error("Error getting sessCode:", err);
 							__next(null, sessCode, content);
 						});
-					else
+					} else {
 						process.nextTick(() => {
 							__next(null, null, null);
 						});
+					}
 				},
 				(sessCode, content, __next) => {
 					if (sessCode) {
@@ -95,7 +97,7 @@ function startMaintenanceLoop(globals, next) {
 					maintenanceTimer = setTimeout(__next, config.maintenance.interval);
 				},
 				(__next) => {
-					maintenanceRequestManager.beginRequestingMaintenance();
+					maintenanceRequestManager.beginRequesting(config.maintenance.requestInterval);
 					maintenanceRequestManager.once("maintenance-accepted", __next);
 				},
 				(__next) => {
@@ -121,8 +123,8 @@ function startMaintenanceLoop(globals, next) {
 					maintenanceRequestManager.reset();
 					__next();
 				}
-			], () => {
-				_next();
+			], (err) => {
+				_next(err);
 			});
 		},
 		(err) => {

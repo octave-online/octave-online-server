@@ -92,12 +92,20 @@ class RedisMessenger extends EventEmitter {
 	}
 
 	putSessCode(sessCode, content) {
+		return _putSessCode(sessCode, redisUtil.chan.needsOctave, content);
+	}
+
+	putSessCodeFlavor(sessCode, flavor, content) {
+		return _putSessCode(sessCode, redisUtil.chan.needsOctaveFlavor(flavor), content);
+	}
+
+	_putSessCode(sessCode, channel, content) {
 		this._ensureNotSubscribed();
 
 		let time = new Date().valueOf();
 
 		let multi = this._client.multi();
-		multi.zadd(redisUtil.chan.needsOctave, time, sessCode);
+		multi.zadd(channel, time, sessCode);
 		// NOTE: For backwards compatibilty, this field is called "user" instead of "content"
 		multi.hset(redisUtil.chan.session(sessCode), "user", JSON.stringify(content));
 		multi.hset(redisUtil.chan.session(sessCode), "live", "false");
@@ -107,7 +115,15 @@ class RedisMessenger extends EventEmitter {
 	}
 
 	getSessCode(next) {
-		this._runScript("get-sesscode", [redisUtil.chan.needsOctave], [config.worker.token], (err, result) => {
+		return this._getSessCode(redisUtil.chan.needsOctave, next);
+	}
+
+	getSessCodeFlavor(flavor, next) {
+		return this._getSessCode(redisUtil.chan.needsOctaveFlavor(flavor), next);
+	}
+
+	_getSessCode(channel, next) {
+		this._runScript("get-sesscode", [channel], [config.worker.token], (err, result) => {
 			if (err) this._handleError(err);
 			if (result === -1) return next(null, null, null);
 			try {
@@ -205,27 +221,49 @@ class RedisMessenger extends EventEmitter {
 	}
 
 	requestReboot(id, priority) {
+		return this._requestReboot(redisUtil.chan.rebootRequest, id, priority);
+	}
+
+	requestFlavorStatus(channel, id, priority) {
+		return this._requestReboot(redisUtil.chan.flavorStatus(flavor), id, priority);
+	}
+
+	_requestReboot(channel, id, priority) {
 		this._ensureNotSubscribed();
 
-		let channel = redisUtil.chan.rebootRequest;
 		let message = { id, isRequest: true, token: config.worker.token,  priority };
 
 		this._client.publish(channel, JSON.stringify(message), this._handleError.bind(this));
 	}
 
 	replyToRebootRequest(id, response) {
+		return this._replyToRebootRequest(redisUtil.chan.rebootRequest, id, response);
+	}
+
+	replyToFlavorStatus(id, response) {
+		return this._replyToRebootRequest(redisUtil.chan.flavorStatus(flavor), id, response);
+	}
+
+	_replyToRebootRequest(channel, id, response) {
 		this._ensureNotSubscribed();
 
-		let channel = redisUtil.chan.rebootRequest;
 		let message = { id, isRequest: false, token: config.worker.token, response };
 
 		this._client.publish(channel, JSON.stringify(message), this._handleError.bind(this));
 	}
 
 	subscribeToRebootRequests() {
-		this._subscribe(redisUtil.chan.rebootRequest);
+		return this._subscribeToRebootRequests(redisUtil.chan.rebootRequest, "reboot-request");
+	}
+
+	subscribeToFlavorStatus(flavor) {
+		return this._subscribeToRebootRequests(redisUtil.chan.flavorStatus(flavor), "flavor-status");
+	}
+
+	_subscribeToRebootRequests(channel, eventName) {
+		this._subscribe(channel);
 		this.on("_message", (message) => {
-			this.emit("reboot-request", message.id, message.isRequest, message);
+			this.emit(eventName, message.id, message.isRequest, message);
 		});
 		return this;
 	}
