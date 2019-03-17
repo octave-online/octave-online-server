@@ -103,7 +103,8 @@ function findWithPassword(email:string, password:string,
 var googleStrategy = new (GoogleOAuth.OAuth2Strategy)({
 		callbackURL: googCallbackUrl,
 		clientID: Config.auth.google.oauth_key,
-		clientSecret: Config.auth.google.oauth_secret
+		clientSecret: Config.auth.google.oauth_secret,
+		userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
 	},
 	function (accessToken, refreshToken, profile, done) {
 		const email = profile.emails[0].value;

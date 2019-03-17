@@ -28,6 +28,7 @@ declare module 'passport-google-oauth' {
 		callbackURL: string;
 		clientID: string;
 		clientSecret: string;
+		userProfileURL: string;
 	}
 
 	interface VerifyFunction {
