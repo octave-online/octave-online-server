@@ -293,9 +293,9 @@ define(
 		}
 		updateTheme(viewModel.selectedSkin());
 		viewModel.selectedSkin.subscribe(updateTheme);
-		$("#change-skin").click(function () {
+		function toggleTheme(dark) {
 			var newSkin;
-			if (viewModel.selectedSkin() !== OctMethods.ko.availableSkins[1]) {
+			if (dark) {
 				newSkin = OctMethods.ko.availableSkins[1];
 			} else switch(viewModel.purpose()) {
 				case "student":
@@ -312,6 +312,13 @@ define(
 			viewModel.selectedSkin(newSkin);
 			OctMethods.prompt.focus();
 			anal.sitecontrol("theme");
+		}
+		$("#change-skin").click(function () {
+			var dark = viewModel.selectedSkin().name !== OctMethods.ko.availableSkins[1].name;
+			toggleTheme(dark);
+		});
+		window.matchMedia("(prefers-color-scheme: dark)").addListener(function(updated) {
+			toggleTheme(updated.matches);
 		});
 
 		// Callouts positioned relative to non-top-level elements

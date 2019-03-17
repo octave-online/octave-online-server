@@ -42,6 +42,12 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		new Skin("ice", "crimson_editor", "black"),
 		new Skin("sun", "crimson_editor", "black"),
 	];
+	var defaultSkin;
+	if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+		defaultSkin = availableSkins[1];
+	} else {
+		defaultSkin = availableSkins[0];
+	}
 
 	// Plot MVVM class
 	function PlotObject(id){
@@ -106,7 +112,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 	// Initialize MVVM variables
 	var allOctFiles = ko.observableArray([]);
-	var selectedSkin = ko.observable(availableSkins[0]);
+	var selectedSkin = ko.observable(defaultSkin);
 	var purpose = ko.observable("default");
 	var vars = ko.observableArray([]);
 	var plotHistory = ko.observableArray([]);
@@ -266,6 +272,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 	viewModel.flex.sizes.extend({ localStorage: "flex:h" });
 	viewModel.inlinePlots.extend({ localStorage: "inline-plots" });
 	viewModel.consoleWhiteSpaceWrap.extend({ localStorage: "console-white-space-wrap" });
+	viewModel.selectedSkin.extend({ localStorage: "selected-skin" });
 	// Keep the console output visible when the plot window opens
 	viewModel.showPlot.subscribe(function(){
 		setTimeout(OctMethods.console.scroll, 0);
