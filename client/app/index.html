@@ -401,7 +401,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 			Plot charts and graphs.
 		</figcaption>
 		<img src="images/demo/sombrero-prompt.png" alt="sombrero()" style="max-width: 150px;"/>
-		<img src="images/demo/sombrero-result.png" alt="plot showing a sombrero" style="max-width: 531px;"/>
+		<img src="images/demo/sombrero-result.jpg" alt="plot showing a sombrero" style="max-width: 531px;"/>
 	</figure>
 	<figure>
 		<figcaption>
@@ -536,7 +536,8 @@ ONBOARDING-->
 //<!-- End RequireJS -->
 <script type="text/javascript">
 require.config({
-	urlArgs: "{!js-timestamp!}"
+	urlArgs: "{!js-timestamp!}",
+	waitSeconds: 0
 });
 require(["js/app"], function(){
 	require(["js/runtime"]);
