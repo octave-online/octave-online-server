@@ -43,13 +43,14 @@ new Image().src = "images/spinner.svg";
 <script type="text/javascript" src="main.js"></script>
 <script type="text/javascript">
 
-var docId = "test";
+var wsId = "test";
+var docId = "prompt.test";
 
 require(["ace/ace", "js/ot-client", "socket.io"], function(ace, Client, io){
 	var socket = io();
 	socket.emit("init", {
 		action: "workspace",
-		wsId: "test"
+		info: wsId
 	});
 	socket.on("init", function(){
 		setTimeout(function(){
@@ -75,19 +76,23 @@ require(["ace/ace", "js/ot-client", "socket.io"], function(ace, Client, io){
 		});
 		otClient.addEventListener("cursor", function(cursor){
 			console.log("client cursor", arguments);
-			socket.emit("ot.cursor", cursor);
+			socket.emit("ot.cursor", {
+				docId: docId,
+				cursor: cursor
+			});
 		});
+		otClient.initWith(obj.rev, obj.content);
 
-		var socket = window.socket = io();
 		socket.on("ot.broadcast", function(obj){
 			var op = ot.TextOperation.fromJSON(obj.ops);
 			otClient.applyServer(op);
 		});
 		socket.on("ot.ack", function(obj){
+			console.log("ack", obj);
 			otClient.serverAck();
 		});
-		socket.on("ot.cursor", function(cursor){
-			otClient.adapter.setOtherCursor(cursor, "#F00", "foo");
+		socket.on("ot.cursor", function(obj){
+			otClient.setOtherCursor(obj.cursor, "#F00", "foo");
 		});
 
 	});
