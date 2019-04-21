@@ -310,12 +310,12 @@ define(
 					break;
 			}
 			viewModel.selectedSkin(newSkin);
+			viewModel.prefersDarkMode(dark);
 			OctMethods.prompt.focus();
 			anal.sitecontrol("theme");
 		}
 		$("#change-skin").click(function () {
-			var dark = viewModel.selectedSkin().name !== OctMethods.ko.availableSkins[1].name;
-			toggleTheme(dark);
+			toggleTheme(!viewModel.prefersDarkMode());
 		});
 		window.matchMedia("(prefers-color-scheme: dark)").addListener(function(updated) {
 			toggleTheme(updated.matches);

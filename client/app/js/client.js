@@ -42,8 +42,19 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		new Skin("ice", "crimson_editor", "black"),
 		new Skin("sun", "crimson_editor", "black"),
 	];
-	var defaultSkin;
-	if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+
+	// Initialization for skin and dark mode.
+	// April 2019: This has to be done this way for backwards compatibility. Eventually, oldSelectedSkin can be deleted.
+	var oldSelectedSkin = ko.observable();
+	oldSelectedSkin.extend({ localStorage: "selected-skin" });
+	var prefersDarkMode = ko.observable(false);
+	if (oldSelectedSkin() && oldSelectedSkin().name === "lava") {
+		prefersDarkMode(true);
+	} else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+		prefersDarkMode(true);
+	}
+	prefersDarkMode.extend({ localStorage: "prefers-dark-mode" });
+	if (prefersDarkMode()) {
 		defaultSkin = availableSkins[1];
 	} else {
 		defaultSkin = availableSkins[0];
@@ -124,6 +135,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			OctMethods.editor.close();
 		},
 		selectedSkin: selectedSkin,
+		prefersDarkMode: prefersDarkMode,
 		purpose: purpose,
 		vars: vars,
 		plots: plotHistory,
@@ -272,7 +284,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 	viewModel.flex.sizes.extend({ localStorage: "flex:h" });
 	viewModel.inlinePlots.extend({ localStorage: "inline-plots" });
 	viewModel.consoleWhiteSpaceWrap.extend({ localStorage: "console-white-space-wrap" });
-	viewModel.selectedSkin.extend({ localStorage: "selected-skin" });
 	// Keep the console output visible when the plot window opens
 	viewModel.showPlot.subscribe(function(){
 		setTimeout(OctMethods.console.scroll, 0);
