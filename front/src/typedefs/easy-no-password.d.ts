@@ -26,6 +26,7 @@ declare module 'easy-no-password' {
 
 	interface IStrategyOptions {
 		secret: string;
+		maxTokenAge: number;
 	}
 
 	interface IRequestData {
