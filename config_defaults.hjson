@@ -306,6 +306,7 @@ auth: {
 	}
 	easy: {
 		secret: xxxxxxxxx
+		max_token_age: 900000
 	}
 	password: {
 		salt_rounds: 10

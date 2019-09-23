@@ -40,6 +40,7 @@ interface IAppConfig {
 		}
 		easy: {
 			secret: string;
+			max_token_age: number;
 		}
 		password: {
 			salt_rounds: number;

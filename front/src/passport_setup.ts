@@ -121,7 +121,8 @@ var personaStrategy = new (Persona.Strategy)({
 	});
 
 var easyStrategy = new (EasyNoPassword.Strategy)({
-		secret: Config.auth.easy.secret
+		secret: Config.auth.easy.secret,
+		maxTokenAge: Config.auth.easy.max_token_age
 	},
 	function (req) {
 		if (req.body && req.body.s) {
