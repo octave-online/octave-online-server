@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "description": "Reads and writes to an Octave session working directory",
   "main": "app.js",
-  "scripts": {
-  },
+  "scripts": {},
   "author": "Octave Online LLC",
   "license": "AGPL-3.0",
   "private": true,

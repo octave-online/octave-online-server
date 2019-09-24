@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "description": "Spawns Octave sessions and passes messages",
   "main": "app.js",
-  "scripts": {
-  },
+  "scripts": {},
   "author": "Octave Online LLC",
   "license": "AGPL-3.0",
   "private": true,
