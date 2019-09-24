@@ -14,7 +14,6 @@
     "body-parser": "^1.18.3",
     "compression": "^1.7.3",
     "connect-mongo": "^2.0.1",
-    "connect-redis": "^2.5.1",
     "console-stamp": "^0.1.6",
     "easy-no-password": "^1.0.7",
     "ejs": "^2.6.1",
@@ -24,7 +23,7 @@
     "mailgun-js": "^0.20.0",
     "mime": "^1.6.0",
     "mongodb": "^2.2.35",
-    "mongoose": "^4.13.14",
+    "mongoose": "^5.7.1",
     "nomnom": "^1.8.1",
     "ot": "0.0.15",
     "passport": "^0.2.2",
@@ -33,17 +32,16 @@
     "passport-persona": "^0.1.7",
     "redis": "^2.8.0",
     "serve-static": "^1.13.2",
-    "socket.io": "^1.7.4",
+    "socket.io": "^2.3.0",
     "socketio-file-upload": "^0.4.8",
     "socketio-wildcard": "^0.1.1",
-    "string": "^3.3.3",
     "uuid": "^2.0.3"
   },
   "devDependencies": {
-    "grunt": "^1.0.3",
+    "grunt": "^1.0.4",
     "grunt-cli": "^1.2.0",
     "grunt-contrib-watch": "^1.1.0",
-    "grunt-ts": "^6.0.0-beta.20",
+    "grunt-ts": "^6.0.0-beta.22",
     "typescript": "latest"
   }
 }
