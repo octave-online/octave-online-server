@@ -38,48 +38,9 @@ define(
 
 		// Make Socket Connection and Add Listeners:
 		var socket = io();
-		socket.on("data", OctMethods.socketListeners.data);
-		socket.on("alert", OctMethods.socketListeners.alert);
-		socket.on("prompt", OctMethods.socketListeners.prompt);
-		socket.on("saved", OctMethods.socketListeners.saved);
-		socket.on("renamed", OctMethods.socketListeners.renamed);
-		socket.on("deleted", OctMethods.socketListeners.deleted);
-		// TODO: Stop this event from operating on everyone in a shared workspace
-		socket.on("binary", OctMethods.socketListeners.binary);
-		socket.on("userinfo", OctMethods.socketListeners.userinfo);
-		// The inconsistent naming convention here ("user" vs. "filelist") is for backwards compatibility.  At some point I would like to rename this and other events all the way through the stack.
-		socket.on("user", OctMethods.socketListeners.filelist);
-		socket.on("fileadd", OctMethods.socketListeners.fileadd);
-		socket.on("plotd", OctMethods.socketListeners.plotd);
-		socket.on("plote", OctMethods.socketListeners.plote);
-		socket.on("ctrl", OctMethods.socketListeners.ctrl);
-		socket.on("workspace", OctMethods.socketListeners.vars);
-		socket.on("sesscode", OctMethods.socketListeners.sesscode);
-		socket.on("init", OctMethods.socketListeners.init);
-		socket.on("files-ready", OctMethods.socketListeners.filesReady);
-		socket.on("destroy-u", OctMethods.socketListeners.destroyu);
-		socket.on("disconnect", OctMethods.socketListeners.disconnect);
-		socket.on("reload", OctMethods.socketListeners.reload);
-		socket.on("instructor", OctMethods.socketListeners.instructor);
-		socket.on("bucket-info", OctMethods.socketListeners.bucketInfo);
-		socket.on("bucket-created", OctMethods.socketListeners.bucketCreated);
-		socket.on("bucket-deleted", OctMethods.socketListeners.bucketDeleted);
-		socket.on("all-buckets", OctMethods.socketListeners.allBuckets);
-		socket.on("oo.pong", OctMethods.socketListeners.pong);
-		socket.on("restart-countdown", OctMethods.socketListeners.restartCountdown);
-		socket.on("change-directory", OctMethods.socketListeners.changeDirectory);
-		socket.on("edit-file", OctMethods.socketListeners.editFile);
-		socket.on("payload-paused", OctMethods.socketListeners.payloadPaused);
-		socket.on("ot.doc", OtHandler.listeners.doc);
-		socket.on("ot.broadcast", OtHandler.listeners.broadcast);
-		socket.on("ot.ack", OtHandler.listeners.ack);
-		socket.on("ot.cursor", OtHandler.listeners.cursor);
-		socket.on("ws.command", WsShared.listeners.command);
-		socket.on("ws.save", WsShared.listeners.save);
-		socket.on("ws.promptid", WsShared.listeners.promptid);
-		socket.on("ws.doc", WsShared.listeners.doc);
-		socket.on("ws.rename", WsShared.listeners.renamed);
-		socket.on("ws.delete", WsShared.listeners.deleted);
+		OctMethods.socketListeners.subscribe(socket);
+		OtHandler.listeners.subscribe(socket);
+		WsShared.listeners.subscribe(socket);
 		OctMethods.socket.instance = socket;
 
 		// Autocompletion with filenames:
