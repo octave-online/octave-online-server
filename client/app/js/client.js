@@ -578,6 +578,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					OctMethods.socket.updateStudents(program);
 					OctMethods.prompt.clear();
 				}else if(pingRegex.test(cmd)) {
+					OctMethods.console.command(cmd, true);
 					OctMethods.socket.ping();
 					OctMethods.prompt.clear();
 				}else{
@@ -1019,6 +1020,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				var startTime = parseInt(data.startTime);
 				var endTime = new Date().valueOf();
 				OctMethods.console.write("Ping time: " + (endTime-startTime) + "ms\n");
+				OctMethods.prompt.enable();
+				OctMethods.prompt.focus();
 			},
 			restartCountdown: function(){
 				// TODO: Is this method dead?
