@@ -181,6 +181,48 @@ plot-svg-styles()
 	right: 5px
 	width: 120px
 }
+
+#flavor_upgrade_div {
+	position: absolute
+	right: 8px
+	bottom: 8px
+	text-align: right
+
+	font-size: 12px
+	
+	#upgrade_btn {
+		display: inline-block
+		padding: 5px 10px
+		border-radius: 11px
+		border: 1px solid colorfgd
+		box-shadow: 0px 0px 5px color3
+		vertical-align: middle
+		background-color: colorfg2
+		color: colorfgd
+		// border: none
+		cursor: pointer
+
+		.disk {
+			&::before {
+				content: "⦾"
+			}
+
+			&.available {
+				&::before {
+					content: "⦿"
+				}
+			}
+
+			font-size: 1.2em
+		}
+	}
+	
+	#flavor_status {
+		display: inline-block
+		padding: 3px 5px
+		background-color: color2
+	}
+}
 		
 #plot_container {
 	position: relative

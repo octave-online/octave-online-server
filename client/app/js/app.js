@@ -22,9 +22,6 @@ define(
 	["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile", "splittr", "SocketIOFileUpload", "js/anal", "js/onboarding", "js/ot-handler", "js/ws-shared", "js/utils", "jquery.purl", "ko-flash", "ace/mode/octave", "ace/ext/language_tools", "js/ko-ace", "js/flex-resize"],
 	function (ko, io, OctMethods, ace, $, isMobile, splittr, SocketIOFileUpload, anal, onboarding, OtHandler, WsShared) {
 
-		// Set OO version for index.html compatibility
-		window.oo$version = 20161230.1;
-
 		// Initial GUI setup
 		splittr.init();
 

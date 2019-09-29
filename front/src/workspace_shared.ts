@@ -116,15 +116,20 @@ implements IWorkspace {
 	}
 
 	public destroyD(message:string){
-		this.destroyed = true;
-
 		// The Octave session will be destroyed by expiring keys once all
 		// users have disconnected.  There is no need to destroy it here.
-
-		// Special case: when sharing is disabled
+		// Special case: when sharing is disabled or flavor upgraded
 		// TODO: It's poor style to do a string comparison here
-		if (message === "Sharing Disabled" && this.sessCode) {
+		if (!this.sessCode) {
+			this.destroyed = true;
+		} else if (message === "Sharing Disabled") {
+			this.destroyed = true;
 			OctaveHelper.sendDestroyD(this.sessCode, message);
+		} else if (message === "Flavor Upgrade") {
+			// Don't set this.destroyed here because the workspace will get a new sessCode
+			OctaveHelper.sendDestroyD(this.sessCode, message);
+		} else {
+			this.destroyed = true;
 		}
 	}
 

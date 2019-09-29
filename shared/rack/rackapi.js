@@ -84,6 +84,7 @@ function callRackspaceApi(method, url, jsonPayload, next) {
 					"X-Auth-Token": token.id
 				}
 			}).then((response) => {
+				mlog.trace("API response body", fullUrl, response.body);
 				_next(null, JSON.parse(response.body));
 			}).catch(_next);
 		}

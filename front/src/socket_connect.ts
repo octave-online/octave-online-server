@@ -30,6 +30,7 @@
 
 import User = require("./user_model");
 import Bucket = require("./bucket_model");
+import FlavorRecord = require("./flavor_record_model");
 import Config = require("./config");
 import BackServerHandler = require("./back_server_handler");
 import NormalWorkspace = require("./workspace_normal");
@@ -303,6 +304,9 @@ class SocketHandler implements IDestroyable {
 			case "oo.delete_bucket":
 				this.onDeleteBucket(data);
 				return;
+			case "oo.flavor_upgrade":
+				this.onFlavorUpgrade(data);
+				return;
 
 			default:
 				break;
@@ -325,7 +329,7 @@ class SocketHandler implements IDestroyable {
 	};
 
 	// When the back server sends a message (data from upstream)
-	// Let everything continue downstream to the client
+	// Let (almost) everything continue downstream to the client
 	private onDataU = (name, data) => {
 		if (this.workspace) this.workspace.dataU(name, data);
 
@@ -333,6 +337,10 @@ class SocketHandler implements IDestroyable {
 			case "bucket-repo-created":
 				this.onBucketCreated(data);
 				return;
+
+			case "oo.touch-flavor":
+				this.onTouchFlavor(data);
+				break;
 		}
 
 		this.socket.emit(name, data);
@@ -472,6 +480,34 @@ class SocketHandler implements IDestroyable {
 		});
 	}
 
+	private onTouchFlavor = (obj) => {
+		if (!obj) return;
+		if (!this.user) {
+			this.log("ERROR: No user on a flavor session");
+			return;
+		}
+
+		// Step 1: insert a new FlavorRecord
+		var flavorRecord = new FlavorRecord();
+		flavorRecord.user_id = this.user._id;
+		flavorRecord.sesscode = this.back.sessCode;
+		flavorRecord.start = new Date(obj.start);
+		flavorRecord.current = new Date(obj.current);
+		flavorRecord.flavor = obj.flavor;
+		flavorRecord.save((err) => {
+			if (err) return this.log("ERROR creating FlavorRecord:", err);
+
+			// Step 2: delete older FlavorRecords from the same sessCode
+			FlavorRecord.deleteMany({
+				sesscode: flavorRecord.sesscode,
+				current: { $lt: flavorRecord.current }
+			}, (err, writeOpResult) => {
+				if (err) return this.log("ERROR deleting old FlavorRecords:", err);
+				// this.log("Added new FlavorRecord and deleted " + (writeOpResult && writeOpResult.result && writeOpResult.result.n) + " old ones");
+			});
+		});
+	}
+
 	private onOoReconnect = ():void => {
 		if (this.workspace) {
 			this.workspace.beginOctaveRequest(this.flavor);
@@ -573,6 +609,27 @@ class SocketHandler implements IDestroyable {
 				this.socket.emit("reload", {});
 			});
 		}
+	};
+
+	private onFlavorUpgrade = (obj) => {
+		if (!this.user || !obj) return;
+		var flavor = obj.flavor;
+
+		this.user.isFlavorOK(flavor, (err, flavorOK) => {
+			if (err) this.log("FLAVOR OK ERROR", err);
+			if (!flavorOK) {
+				this.log("Failed to upgrade user to flavor:", flavor);
+				return;
+			}
+			if (!this.workspace) {
+				this.log("No workspace on flavor upgrade attempt");
+				return;
+			}
+			this.log("User upgraded to flavor:", flavor);
+			this.flavor = flavor;
+			this.workspace.destroyD("Flavor Upgrade");
+			this.workspace.beginOctaveRequest(this.flavor);
+		});
 	};
 }
 

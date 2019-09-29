@@ -27,6 +27,10 @@ const uuidv4 = require("uuid/v4");
 const fs = require("fs");
 const async = require("async");
 
+function listFlavors(next) {
+	rackapi.callRackspaceApi("GET", "/flavors", {}, next);
+}
+
 function getFlavorServers(flavor, next) {
 	const flavorConfig = config2.flavor(flavor);
 	if (!flavorConfig) {
@@ -49,21 +53,10 @@ function createFlavorServer(flavor, next) {
 		flavor,
 		serverName
 	}) + "\n";
-	rackapi.callRackspaceApi("POST", "/servers", {
+	const payload = {
 		server: {
 			name: serverName,
-			imageRef: "",
 			flavorRef: flavorConfig.rackspaceFlavor,
-			block_device_mapping_v2: [
-				{
-					boot_index: 0,
-					uuid: flavorConfig.image_uuid,
-					volume_size: 50,
-					source_type: "image",
-					destination_type: "volume",
-					delete_on_termination: true
-				}
-			],
 			personality: [
 				{
 					path: config.rackspace.personality_filename,
@@ -82,7 +75,20 @@ function createFlavorServer(flavor, next) {
 				}
 			]
 		}
-	}, next);
+	};
+	if (flavorConfig.blockVolume) {
+		payload.server.block_device_mapping_v2 = [{
+			boot_index: 0,
+			uuid: flavorConfig.image_uuid,
+			volume_size: 50,
+			source_type: "image",
+			destination_type: "volume",
+			delete_on_termination: true
+		}];
+	} else {
+		payload.server.imageRef = flavorConfig.image_uuid;
+	}
+	rackapi.callRackspaceApi("POST", "/servers", payload, next);
 }
 
 function doDeleteServer(serverName, next) {
@@ -125,6 +131,7 @@ function deleteSelf(personality, next) {
 }
 
 module.exports = {
+	listFlavors,
 	getFlavorServers,
 	createFlavorServer,
 	deleteSelf

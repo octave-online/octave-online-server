@@ -40,7 +40,12 @@ log.log(process.env);
 var sessionManager, mainImpl, personality;
 if (fs.existsSync(config.rackspace.personality_filename)) {
 	personality = JSON.parse(fs.readFileSync(config.rackspace.personality_filename, "utf8"));
-	log.info("Personality:", personality);
+	log.info("Personality:", personality.flavor, personality);
+	sessionManager = new SessionManager(true);
+	mainImpl = require("./src/main-flavor");
+} else if (process.env["OO_FLAVOR_OVERRIDE"]) {
+	personality = { flavor: process.env["OO_FLAVOR_OVERRIDE"] };
+	log.info("Flavor override:", personality.flavor);
 	sessionManager = new SessionManager(true);
 	mainImpl = require("./src/main-flavor");
 } else {
@@ -98,8 +103,15 @@ redisExpireHandler.on("expired", (sessCode, channel) => {
 	sessionManager.destroy(sessCode, "Octave Session Expired (downstream)");
 });
 
-sessionManager.on("touch", (sessCode) => {
+sessionManager.on("touch", (sessCode, start) => {
 	redisMessenger.touchOutput(sessCode);
+	if (personality) {
+		redisMessenger.output(sessCode, "oo.touch-flavor", {
+			start,
+			current: new Date().valueOf(),
+			flavor: personality.flavor
+		});
+	}
 });
 
 sessionManager.on("live", (sessCode) => {

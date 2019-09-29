@@ -41,6 +41,7 @@ class FilesController extends EventEmitter {
 		this.workDir = workDir;
 		this.user = null;
 		this.bucketId = null;
+		this.destroyed = false;
 
 		this.fakeSocket = new FakeSocket();
 		this.fakeSocket.on("_emit", this._sendMessage.bind(this));
@@ -80,8 +81,10 @@ class FilesController extends EventEmitter {
 						if (/unable to write file/.test(err.message)) {
 							return this._fail("filelist", "warn", `Whoops! You are currently exceeding your space limit of ${config.docker.diskQuotaKiB} KiB.\nPlease open a support ticket and we will help you resolve the\nissue. Sorry for the inconvenience!`);
 						} else {
-							this._log.error("Git Initialize Error:", err);
-							return this._fail("filelist", "warn", "Unable to load your files from the server: please try again.");
+							if (this._logError("initialize", err)) {
+								this._fail("filelist", "warn", "Unable to load your files from the server: please try again.");
+							}
+							return;
 						}
 					}
 					this._mlog.debug("User successfully initialized");
@@ -112,7 +115,7 @@ class FilesController extends EventEmitter {
 						this.workingUtil.listAll(_next);
 					}
 				], (err, fileData) => {
-					if (err) return this._log.error(err);
+					if (err) return this._logError("bucket", err);
 					this._mlog.debug("Bucket successfully initialized");
 					this._sendMessage("filelist", {
 						success: true,
@@ -132,7 +135,7 @@ class FilesController extends EventEmitter {
 						this.workingUtil.listAll(_next);
 					}
 				], (err, fileData) => {
-					if (err) return this._log.error(err);
+					if (err) return this._logError("list", err);
 					this._log.debug("Files successfully listed");
 					this._sendMessage("filelist", {
 						success: true,
@@ -155,7 +158,7 @@ class FilesController extends EventEmitter {
 						this.workingUtil.listAll(_next);
 					}
 				], (err, fileData) => {
-					if (err) return this._log.error(err);
+					if (err) return this._logError("refresh", err);
 					this._log.debug("Files successfully refreshed");
 					this._sendMessage("filelist", {
 						success: true,
@@ -343,6 +346,20 @@ class FilesController extends EventEmitter {
 				this.fakeSocket.trigger(name, content);
 				break;
 			}
+		}
+	}
+
+	destroy() {
+		this.destroyed = true;
+	}
+
+	_logError(context, err) {
+		if (this.destroyed) {
+			this._mlog.trace("Ignoring git error:", context, err);
+			return false;
+		} else {
+			this._log.error(context, err);
+			return true;
 		}
 	}
 

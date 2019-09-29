@@ -172,9 +172,12 @@ class SessionManager extends EventEmitter {
 			this.emit("message", remoteCode, message[0], message[1]);
 		});
 
+		// Save the start time to keep a record of the time spent on flavor servers
+		var startTime = new Date().valueOf();
+
 		// Create touch interval for Redis and save reference
 		const touchInterval = setInterval(() => {
-			this.emit("touch", remoteCode);
+			this.emit("touch", remoteCode, startTime);
 		}, config.redis.expire.interval);
 
 		// Emit an event to set to live in Redis (required for OT)

@@ -299,6 +299,7 @@ flavorCommon: {
 	defaultClusterSize: 2
 	idleTime: 600000
 	statusInterval: 300000
+	blockVolume: true
 }
 
 # # # # # # # # # # # # # # # #

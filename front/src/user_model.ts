@@ -52,6 +52,7 @@ var userSchema = new Mongoose.Schema({
 	payload_limit_override: Number,
 	countdown_extra_time_override: Number,
 	countdown_request_time_override: Number,
+	flavors_enabled: Boolean,
 	last_activity: {
 		type: Date,
 		default: Date.now
@@ -262,10 +263,11 @@ userSchema.pre("save", function(next){
 	});
 };
 (<any>userSchema).methods.isFlavorOK = function(flavor, next){
-	// TODO: Implement this when more interesting logic is available
 	// Note: This function must at least validate that the flavor is valid; to this point, the flavor is unsanitized user input.
 	const availableFlavors = Object.keys(Config.flavors);
 	if (availableFlavors.indexOf(flavor) !== -1) {
+		// TODO: Implement this when more interesting logic is available.
+		// next(null, !!this.flavors_enabled);
 		next(null, true);
 	} else if (flavor) {
 		console.log("WARNING: User requested illegal flavor", flavor);

@@ -23,6 +23,7 @@
 ///<reference path='boris-typedefs/express/express.d.ts'/>
 ///<reference path='typedefs/socketio-wildcard.d.ts'/>
 
+import Config = require("./config");
 import SocketIO = require("socket.io");
 import Http = require("http");
 import SocketIOWildcard = require("socketio-wildcard");
@@ -30,6 +31,10 @@ import Middleware = require("./session_middleware");
 import SocketConnect = require("./socket_connect");
 import ExpressApp = require("./express_setup");
 import Express = require("express");
+import Async = require("async");
+import RackOperations = require("@oo/shared/rack/operations");
+
+const ALL_FLAVORS = Object.keys(Config.flavors);
 
 module S {
 	export function init(){
@@ -41,7 +46,41 @@ module S {
 			})
 			.on("connection", SocketConnect.onConnection);
 
+		S.watchFlavorServers(io);
+
 		console.log("Initialized Socket.IO Server");
+	}
+
+	export function watchFlavorServers(io) {
+		// This version of the typedefs doesn't know about the forever function
+		(<any>Async).forever(
+			(next) => {
+				Async.map(ALL_FLAVORS, (flavor, _next) => {
+					// TODO: Move this call somewhere it could be configurable.
+					RackOperations.getFlavorServers(flavor, _next);
+				}, (err, results) => {
+					if (err) {
+						console.error("RACKSPACE ERROR", err);
+					} else {
+						var rawServers = Array.prototype.concat.apply([], results.map((data) => { return (<any>data).servers; }));
+						const servers = rawServers.map((server) => {
+							var { name, created, status } = server;
+							return { name, created, status };
+						});
+						io.emit("oo.flavor-list", { servers });
+
+						console.log("Flavor Servers:");
+						servers.forEach(({ name, created, status }) => {
+							console.log(name + " " + status + " " + created);
+						});
+					}
+					setTimeout(next, Config.front.flavor_log_interval);
+				});
+			},
+			(err) => {
+				console.error("FOREVER ERROR", err);
+			}
+		);
 	}
 }
 

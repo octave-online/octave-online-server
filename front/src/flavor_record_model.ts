@@ -19,26 +19,25 @@
  */
 
 ///<reference path='boris-typedefs/node/node.d.ts'/>
-///<reference path='boris-typedefs/mime/mime.d.ts'/>
+///<reference path='boris-typedefs/mongoose/mongoose.d.ts'/>
 
-import Mime = require("mime");
+// Mongoose Flavor Record: logs the amount of time using flavor servers.
+
+import Mongoose = require("mongoose");
 import Config = require("./config");
-import Mongo = require("./mongo");
-import Passport = require("./passport_setup");
-import ExpressApp = require("./express_setup");
-import Middleware = require("./session_middleware");
-import SocketIoApp = require("./socketio");
 
-Mongo.connect((err)=>{
-	if (err) {
-		console.log("Error Connecting to Mongo", err);
-		return;
-	}
+// Patch for https://github.com/Automattic/mongoose/issues/4951
+Mongoose.Promise = <any> global.Promise
 
-	console.log("Connected to Mongo");
-
-	Passport.init();
-	Middleware.init();
-	ExpressApp.init();
-	SocketIoApp.init();
+// Initialize the schema
+var flavorRecordSchema = new Mongoose.Schema({
+	user_id: Mongoose.Schema.Types.ObjectId,
+	sesscode: String,
+	start: Date,
+	current: Date,
+	flavor: String
 });
+
+// See comment in user_model.ts about the casting.
+var FlavorRecord = <any> Mongoose.model("FlavorRecord", flavorRecordSchema);
+export = FlavorRecord;

@@ -271,6 +271,9 @@ class FilesControllerHandler extends OnlineOffline {
 	_doDestroy(next) {
 		async.series([
 			(_next) => {
+				if (this.controller) {
+					this.controller.destroy();
+				}
 				if (this.gitdir) {
 					this._mlog.trace("Destroying gitdir");
 					child_process.exec(`rm -rf ${this.gitdir}`, _next);

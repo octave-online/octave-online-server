@@ -238,9 +238,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 							<span class="l3" data-purpose="close">dismiss</span>
 						</div>
 						ONBOARDING-->
-						<!-- ko if: window.oo$version >= 20161218.2 -->
 						<div id="cwd_box" style="display: none" data-bind="visible: !!cwd()">cwd: <span data-bind="text: cwd"></span></div>
-						<!-- /ko -->
 						<div id="type_here" aria-hidden="true">
 							<span class="l1">Octave Command Prompt</span>
 							<span class="l2">Type expressions here and press enter.</span>
@@ -250,6 +248,18 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 						</div>
 						<span id="plot_opener" aria-hidden="true" title="Expand Plot Window" data-bind="click: togglePlot"></span>
 						<a id="agpl_icon" title="Octave Online Server on GitHub" href="https://github.com/octave-online/octave-online-server" target="_blank"><img src="images/agpl-logo.svg" alt="AGPL Free Software" /></a>
+						<div id="flavor_upgrade_div" style="display: none" data-bind="visible: !!canUseFlavors()">
+							<!-- ko ifnot: activeFlavor -->
+							<button id="upgrade_btn" data-bind="click: showUpgradeBox" title="Request dedicated server">
+								<span class="disk" data-bind="css: { available: hasFlavorsAvailable() }"></span> UPGRADE
+							</button>
+							<!-- /ko -->
+							<!-- ko with: activeFlavor -->
+							<div id="flavor_status">
+								Running on: <span data-bind="text: details.displayName"></span> <span data-bind="text: minutes"></span>
+							</div>
+							<!-- /ko -->
+						</div>
 					</div>
 					<div id="console_prompt_container">
 
@@ -274,7 +284,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				</div>
 			</div>
 		</div>
-		<div id="main_menu" aria-hidden="true">
+		<div id="main_menu" aria-hidden="true"><div id="main_menu_content">
 			<!-- ko if: (!currentUser() && !showUserInHeader()) -->
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
 					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="Sign in with Google" />
@@ -309,11 +319,9 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 						</div>
 					<!-- /ko -->
 				</div>
-				<!-- ko if: window.oo$version >= 20161230.1 -->
 				<div class="site-control-item" id="create-password-btn" data-bind="click: showChangePassword">
 					<a href="javascript:void(0)">Change Password</a>
 				</div>
-				<!-- /ko -->
 			<!-- /ko -->
 			<!-- ko foreach: instructorPrograms -->
 				<div class="instructor-programs">
@@ -361,6 +369,14 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					Wrap Long Lines in Console
 				</label>
 			</div>
+			<!-- ko if: currentUser -->
+				<div class="preference-inline-item">
+					<label>
+						<input type="checkbox" data-bind="checked: flavorTester" />
+						Beta Test Dedicated Servers
+					</label>
+				</div>
+			<!-- /ko -->
 			<!-- ko if: allBuckets().length > 0 -->
 				<div class="all-buckets">
 					<strong>Your Buckets:</strong>
@@ -378,7 +394,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 			<div id="footnotes">
 				Icons made by <a href="http://www.flaticon.com/authors/bogdan-rosu" title="Bogdan Rosu" target="_blank">Bogdan Rosu</a>, <a href="http://www.flaticon.com/authors/daniel-bruce" title="Daniel Bruce" target="_blank">Daniel Bruce</a>, <a href="http://www.flaticon.com/authors/sarfraz-shoukat" title="Sarfraz Shoukat" target="_blank">Sarfraz Shoukat</a>, <a href="http://www.flaticon.com/authors/icomoon" title="Icomoon" target="_blank">Icomoon</a>, <a href="http://www.flaticon.com/authors/freepik" title="Freepik" target="_blank">Freepik</a>, <a href="http://www.flaticon.com/authors/icon-works" title="Icon Works" target="_blank">Icon Works</a>, <a href="http://www.flaticon.com/authors/plainicon" title="Plainicon" target="_blank">Plainicon</a>, and <a href="http://www.flaticon.com/authors/simpleicon" title="SimpleIcon" target="_blank">SimpleIcon</a> are from <a href="http://www.flaticon.com" title="Flaticon" target="_blank">www.flaticon.com</a> and licensed by <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank" title="Creative Commons BY 3.0">CC BY 3.0</a>.
 			</div>
-		</div>
+		</div></div>
 	</section>
 </div>
 
@@ -493,6 +509,21 @@ ONBOARDING-->
 	<img id="create-bucket-spinner" src="images/spinner.svg" width="40" data-bind="visible: !showCreateButton()" />
 	<!-- /ko -->
 	<span class="closebtn" data-purpose="close" data-bind="click: clearBucket"></span>
+</div></div></div>
+
+<div id="upgrade_to_flavor" data-purpose="popover" aria-hidden="true"><div><div>
+	<p><strong>Upgrade to Dedicated Server</strong></p>
+	<p>Choose your server configuration:</p>
+	<p>
+		<select id="flavor_select" data-bind="foreach: availableFlavorsArray, value: selectedFlavor">
+			<option data-bind="value: id, text: longName"></option>
+		</select>
+	</p>
+	<!-- ko if: flavorList().length -->
+	<p><em>There are currently <span data-bind="text: flavorList().length"></span> dedicated servers available!</em></p>
+	<!-- /ko -->
+	<p><button data-purpose="close" data-bind="click: upgradeNow">Upgrade Now</button></p>
+	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
 <div id="site_loading">
