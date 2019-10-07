@@ -33,7 +33,8 @@ RUN yum install -y \
 	librsvg2-tools \
 	libsndfile-devel \
 	icoutils \
-	transfig
+	transfig \
+	openblas-devel
 
 # When building without --disable-docs, the following additional packages are required:
 # texlive-collection-latexrecommended
