@@ -42,8 +42,7 @@ require.config({
 		"analytics": [
 			"https://www.google-analytics.com/analytics",
 			"http://www.google-analytics.com/analytics",
-			"https://cdn.octave-online.com/analytics-dummy",
-			"http://cdn.octave-online.com/analytics-dummy"
+			"/js-default/analytics"
 		],
 		"webfont": [
 			"https://ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont",
