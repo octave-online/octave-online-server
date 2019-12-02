@@ -32,7 +32,7 @@
     "passport-persona": "^0.1.7",
     "redis": "^2.8.0",
     "serve-static": "^1.13.2",
-    "socket.io": "^2.3.0",
+    "socket.io": "^1.7.4",
     "socketio-file-upload": "^0.4.8",
     "socketio-wildcard": "^0.1.1",
     "uuid": "^2.0.3"
