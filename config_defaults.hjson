@@ -74,12 +74,8 @@ rackspace: {
 	identity_base_url: https://identity.api.rackspacecloud.com/v2.0/
 	# Fill in the following with the region as xxx and the tenant ID as yyy
 	servers_base_url: https://xxx.servers.api.rackspacecloud.com/v2/yyy/
-	# The image UUID to use when spinning up flavor servers
-	image_uuid: xxxx-xxxx-xxxx
-	# The UUID of the private network to which to add this server
-	network_uuid: xxxx-xxxx-xxxx
 	# The personality filename to send metadata to the instance
-	personality_filename: /etc/personality.json
+	personality_filename: /etc/oo-personality.json
 }
 
 # # # # # # # # # # # # # # # #
@@ -291,7 +287,18 @@ flavors: {
 	# Example custom flavor: named "basic" and mapped to the Rackspace flavor "memory1-15"
 	# basic: {
 	# 	rackspaceFlavor: memory1-15
+	# 	# The image UUID to use when spinning up flavor servers
+	# 	image_uuid: xxxx-xxxx-xxxx
+	# 	# The UUID of the private network to which to add this server
+	# 	network_uuid: xxxx-xxxx-xxxx
 	# }
+}
+
+# Settings common to all flavors; may be overriden by custom flavors
+flavorCommon: {
+	defaultClusterSize: 2
+	idleTime: 600000
+	statusInterval: 300000
 }
 
 # # # # # # # # # # # # # # # #

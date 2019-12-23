@@ -61,7 +61,7 @@ implements IWorkspace, IDestroyable {
 		}
 	}
 
-	public beginOctaveRequest() {
+	public beginOctaveRequest(flavor: string) {
 		Async.waterfall([
 			(next) => {
 				// Check with Redis about the status of the desired sessCode
@@ -81,7 +81,8 @@ implements IWorkspace, IDestroyable {
 				if (state === IRedis.SessionState.Needed) {
 					OctaveHelper.askForOctave(sessCode, {
 						user: this.user,
-						bucketId: this.bucketId
+						bucketId: this.bucketId,
+						flavor
 					}, next);
 				} else {
 					this.emit("sesscode", sessCode);

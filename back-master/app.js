@@ -28,6 +28,7 @@ const SessionManager = require("./src/session-manager");
 const config = require("@oo/shared").config;
 const gcStats = (require("gc-stats"))();
 const child_process = require("child_process");
+const fs = require("fs");
 
 process.stdout.write("Process ID: " + process.pid + "\n");
 process.stderr.write("Process ID: " + process.pid + "\n");
@@ -36,13 +37,25 @@ const hostname = child_process.execSync("hostname").toString("utf8").trim();
 log.info("Hostname:", hostname);
 log.log(process.env);
 
+var sessionManager, mainImpl, personality;
+if (fs.existsSync(config.rackspace.personality_filename)) {
+	personality = JSON.parse(fs.readFileSync(config.rackspace.personality_filename, "utf8"));
+	log.info("Personality:", personality);
+	sessionManager = new SessionManager(true);
+	mainImpl = require("./src/main-flavor");
+} else {
+	log.info("No personality file found");
+	personality = null;
+	sessionManager = new SessionManager(false);
+	mainImpl = require("./src/main-pool");
+}
+
 const redisInputHandler = new RedisMessenger().subscribeToInput();
 const redisDestroyDHandler = new RedisMessenger().subscribeToDestroyD();
 const redisExpireHandler = new RedisMessenger().subscribeToExpired();
 const redisScriptHandler = new RedisMessenger().enableScripts();
 const redisMessenger = new RedisMessenger();
 const translator = new MessageTranslator();
-const sessionManager = new SessionManager();
 
 redisInputHandler.on("message", translator.fromDownstream.bind(translator));
 sessionManager.on("message", translator.fromUpstream.bind(translator));
@@ -102,19 +115,17 @@ gcStats.on("stats", (stats) => {
 	mlog.trace(`Garbage Collected (type ${stats.gctype}, ${stats.pause/1e6} ms)`);
 });
 
-const mainImpl = require("./src/main-pool");
-
 mainImpl.start({
 	sessionManager,
 	redisScriptHandler,
-	redisMessenger
+	redisMessenger,
+	personality
 }, (err) => {
 	log.error("Main-impl ended", err);
+	doExit();
 });
 
 function doExit() {
-	log.info("RECEIVED SIGNAL.  Terminating gracefully.");
-
 	sessionManager.terminate("Server Maintenance");
 	mainImpl.doExit();
 
@@ -127,9 +138,14 @@ function doExit() {
 	}, 5000);
 }
 
-process.on("SIGINT", doExit);
-process.on("SIGHUP", doExit);
-process.on("SIGTERM", doExit);
+function doExitSignal() {
+	log.info("RECEIVED SIGNAL.  Terminating gracefully.");
+	doExit();
+}
+
+process.on("SIGINT", doExitSignal);
+process.on("SIGHUP", doExitSignal);
+process.on("SIGTERM", doExitSignal);
 
 //const heapdump = require("heapdump");
 //setInterval(() => { heapdump.writeSnapshot("/srv/oo/logs/heap/" + hostname + "." + process.pid + "." + Date.now() + ".heapsnapshot"); }, 30000);

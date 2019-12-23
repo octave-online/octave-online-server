@@ -224,7 +224,7 @@ class RedisMessenger extends EventEmitter {
 		return this._requestReboot(redisUtil.chan.rebootRequest, id, priority);
 	}
 
-	requestFlavorStatus(channel, id, priority) {
+	requestFlavorStatus(flavor, id, priority) {
 		return this._requestReboot(redisUtil.chan.flavorStatus(flavor), id, priority);
 	}
 
@@ -240,7 +240,7 @@ class RedisMessenger extends EventEmitter {
 		return this._replyToRebootRequest(redisUtil.chan.rebootRequest, id, response);
 	}
 
-	replyToFlavorStatus(id, response) {
+	replyToFlavorStatus(flavor, id, response) {
 		return this._replyToRebootRequest(redisUtil.chan.flavorStatus(flavor), id, response);
 	}
 

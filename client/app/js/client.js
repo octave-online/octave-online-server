@@ -1081,7 +1081,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					OctMethods.socket.emit("init", {
 						action: "session",
 						sessCode: OctMethods.socket.sessCode,
-						skipCreate: OctMethods.socket.isExited
+						skipCreate: OctMethods.socket.isExited,
+						//flavor: "basic"
 					});
 				}
 

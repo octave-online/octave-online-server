@@ -18,20 +18,6 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-"use strict";
+///<reference path='boris-typedefs/node/node.d.ts'/>
 
-module.exports = {
-	asyncCache: require("./async-cache"),
-	config: require("./config"),
-	config2: require("./config-helper"),
-	JSONStreamSafe: require("./json-stream-safe"),
-	logger: require("./logger"),
-	onceMessage: require("./once-message"),
-	OnlineOffline: require("./online-offline"),
-	Queue: require("./queue"),
-	RedisMessenger: require("./redis-messenger"),
-	redisUtil: require("./redis-util"),
-	silent: require("./silent"),
-	StdioMessenger: require("./stdio-messenger"),
-	timeLimit: require("./time-limit"),
-};
+require("@oo/rack")

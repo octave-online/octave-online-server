@@ -28,18 +28,21 @@ const config = require("@oo/shared").config;
 class MaintenanceRequestFlavorManager extends EventEmitter {
 	constructor(clusterSize) {
 		super();
-		this.reset();
 		if (clusterSize) {
 			this._forFlavor = true;
-			tihs._clusterSize = clusterSize;
+			this._clusterSize = clusterSize;
 			this._priority = Math.random();
+			log.debug("Flavor Priority:", this._priority);
 		}
+		this.reset();
 	}
 
 	reset() {
-		this._priority = 0;
 		this._responses = {};
 		this._ignoreAll = false;
+		if (!this._forFlavor) {
+			this._priority = 0;
+		}
 	}
 
 	ignoreAll() {

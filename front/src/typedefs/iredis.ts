@@ -87,6 +87,9 @@ module IRedis {
 		output: function (sessCode:string):string {
 			return "oo:output:" + sessCode;
 		},
+		needsOctaveFlavor: function (flavor:string):string {
+			return "oo:needs-flavor:" + flavor;
+		},
 		otOps: function (docId:string):string {
 			return "ot:" + docId + ":ops";
 		},

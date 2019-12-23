@@ -52,6 +52,7 @@ class SocketHandler implements IDestroyable {
 	public workspace:IWorkspace;
 	public user:IUser = null;
 	public bucketId:string = null;
+	public flavor:string = null;
 	public sessCode:string;
 	public destroyed:boolean = false;
 
@@ -113,6 +114,7 @@ class SocketHandler implements IDestroyable {
 				var info = init && init.info;
 				var oldSessCode = init && init.sessCode;
 				var skipCreate = init && init.skipCreate;
+				this.flavor = init && init.flavor || null;
 				if (action === "session" && !oldSessCode) {
 					oldSessCode = info; // backwards compat.
 				}
@@ -154,7 +156,7 @@ class SocketHandler implements IDestroyable {
 					this.bucketId = <string> info;
 					this.loadBucket(skipCreate);
 				} else if (!skipCreate) {
-					this.workspace.beginOctaveRequest();
+					this.workspace.beginOctaveRequest(this.flavor);
 				}
 
 				// Continue down the chain (does not do anything currently)
@@ -377,7 +379,7 @@ class SocketHandler implements IDestroyable {
 			this.log("Bucket loaded:", bucket.bucket_id);
 			this.socket.emit("bucket-info", bucket);
 			if (!skipCreate) {
-				this.workspace.beginOctaveRequest();
+				this.workspace.beginOctaveRequest(this.flavor);
 			}
 		});
 	}
@@ -446,7 +448,7 @@ class SocketHandler implements IDestroyable {
 
 	private onOoReconnect = ():void => {
 		if (this.workspace) {
-			this.workspace.beginOctaveRequest();
+			this.workspace.beginOctaveRequest(this.flavor);
 		} else {
 			this.socket.emit("destroy-u", "Invalid Session");
 		}

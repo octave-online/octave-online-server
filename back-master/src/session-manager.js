@@ -27,6 +27,7 @@ const impls = require("./session-impl");
 const uuid = require("uuid");
 const Queue = require("@oo/shared").Queue;
 const config = require("@oo/shared").config;
+const config2 = require("@oo/shared").config2;
 const timeLimit = require("@oo/shared").timeLimit;
 
 class SessionManager extends EventEmitter {
@@ -46,10 +47,7 @@ class SessionManager extends EventEmitter {
 
 		tiersEnabled.forEach((tier) => {
 			this._pool[tier] = {};
-			this._poolSizes[tier] = config.tiers[tier]["sessionManager.poolSize"];
-			if (!this._poolSizes[tier]) {
-				this._poolSizes[tier] = config.sessionManager.poolSize;
-			}
+			this._poolSizes[tier] = config2.tier(tier)["sessionManager.poolSize"];
 		});
 
 		this._online = {};
@@ -215,7 +213,12 @@ class SessionManager extends EventEmitter {
 
 		// Destroy the session
 		const session = meta.session;
-		session.destroy(session._handleError.bind(session), reason);
+		session.destroy((err) => {
+			if (err) {
+				log.error("Error destroying session:", sessCode, err);
+			}
+			this.emit("destroy-done", sessCode);
+		}, reason);
 
 		// Send destroy-u message
 		this.emit("destroy-u", sessCode, reason);

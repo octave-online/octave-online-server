@@ -67,7 +67,13 @@ class OctaveSessionHelper extends EventEmitter2.EventEmitter2 {
 	public askForOctave(sessCode:string, content:any, next:(err:Error)=>void) {
 		var time = new Date().valueOf();
 		var multi = infoClient.multi();
-		multi.zadd(IRedis.Chan.needsOctave, time, sessCode);
+		var needsOctaveChan;
+		if (content.flavor) {
+			needsOctaveChan = IRedis.Chan.needsOctaveFlavor(content.flavor);
+		} else {
+			needsOctaveChan = IRedis.Chan.needsOctave;
+		}
+		multi.zadd(needsOctaveChan, time, sessCode);
 		// NOTE: For backwards compatibilty, this field is called "user" instead of "content"
 		multi.hset(IRedis.Chan.session(sessCode), "user", JSON.stringify(content));
 		multi.hset(IRedis.Chan.session(sessCode), "live", "false");
@@ -88,6 +94,7 @@ class OctaveSessionHelper extends EventEmitter2.EventEmitter2 {
 		multi.del(IRedis.Chan.session(sessCode));
 		multi.del(IRedis.Chan.input(sessCode));
 		multi.del(IRedis.Chan.output(sessCode));
+		// For efficiency, zrem the key from needsOctave. However, the key could be in a needs-flavor channel. That case is handled in get-sesscode.lua.
 		multi.zrem(IRedis.Chan.needsOctave, sessCode);
 		multi.publish(IRedis.Chan.destroyD, JSON.stringify(destroyMessage));
 		multi.exec((err)=> {

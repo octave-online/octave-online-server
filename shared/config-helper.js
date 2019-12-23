@@ -20,18 +20,31 @@
 
 "use strict";
 
+const config = require("./config");
+
 module.exports = {
-	asyncCache: require("./async-cache"),
-	config: require("./config"),
-	config2: require("./config-helper"),
-	JSONStreamSafe: require("./json-stream-safe"),
-	logger: require("./logger"),
-	onceMessage: require("./once-message"),
-	OnlineOffline: require("./online-offline"),
-	Queue: require("./queue"),
-	RedisMessenger: require("./redis-messenger"),
-	redisUtil: require("./redis-util"),
-	silent: require("./silent"),
-	StdioMessenger: require("./stdio-messenger"),
-	timeLimit: require("./time-limit"),
+	tier: function(tier) {
+		return Object.assign(
+			{
+				"sessionManager.poolSize": config.sessionManager.poolSize,
+				"selinux.cgroup.name": config.selinux.cgroup.name,
+				"selinux.prlimit.addressSpace": config.selinux.prlimit.addressSpace,
+				"session.legalTime.user": config.session.legalTime.user,
+				"session.payloadLimit.user": config.session.payloadLimit.user,
+				"session.countdownExtraTime": config.session.countdownExtraTime,
+				"session.countdownRequestTime": config.session.countdownRequestTime,
+			},
+			config.tiers[tier]
+		);
+	},
+	flavor: function(flavor) {
+		if (!config.flavors[flavor]) {
+			return null;
+		}
+		return Object.assign(
+			{},
+			config.flavorCommon,
+			config.flavors[flavor]
+		);
+	}
 };

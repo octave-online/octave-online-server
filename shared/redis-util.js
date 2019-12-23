@@ -53,7 +53,7 @@ module.exports = {
 			return "attachment:" + id;
 		},
 		needsOctaveFlavor: (flavor) => {
-			return "oo:needs-flavor-" + flavor;
+			return "oo:needs-flavor:" + flavor;
 		},
 		flavorStatus: (flavor) => {
 			return "oo:flavor-status-" + flavor;

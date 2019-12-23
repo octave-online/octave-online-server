@@ -280,7 +280,7 @@ implements IWorkspace {
 		});
 	}
 
-	public beginOctaveRequest() {
+	public beginOctaveRequest(flavor: string) {
 		// Before actually performing the Octave request, ensure that
 		// pre-conditions are satisfied.
 		Async.auto({
@@ -305,12 +305,12 @@ implements IWorkspace {
 					this.emit("data", "destroy-u", "No Such Workspace");
 					return;
 				}
-				this.doBeginOctaveRequest();
+				this.doBeginOctaveRequest(flavor);
 			}]
 		});
 	}
 
-	private doBeginOctaveRequest() {
+	private doBeginOctaveRequest(flavor: string) {
 		Async.waterfall([
 			(next) => {
 				// Check if there is a sessCode in Redis already.
@@ -363,7 +363,10 @@ implements IWorkspace {
 			(_, next) => {
 				// Start the new Octave session.
 				this.log("Sending Octave Request for Shared Workspace");
-				OctaveHelper.askForOctave(this.sessCode, this.user, next);
+				OctaveHelper.askForOctave(this.sessCode, {
+					user: this.user,
+					flavor
+				}, next);
 			}
 		], (err) => {
 			if (err) console.log("REDIS ERROR", err);

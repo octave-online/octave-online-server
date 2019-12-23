@@ -25,6 +25,7 @@ const CappedFileSystem = require("./capped-file-system");
 const DockerHandler = require("./docker-handler");
 const ProcessHandler = require("./process-handler");
 const config = require("@oo/shared").config;
+const config2 = require("@oo/shared").config2;
 const async = require("async");
 const silent = require("@oo/shared").silent;
 const child_process = require("child_process");
@@ -133,14 +134,8 @@ class HostProcessHandler extends ProcessHandler {
 
 	_doCreate(next, dataDir) {
 		const tier = this.options.tier;
-		let cgroupName = config.tiers[tier]["selinux.cgroup.name"];
-		if (!cgroupName) {
-			cgroupName = config.selinux.cgroup.name;
-		}
-		let addressSpace = config.tiers[tier]["selinux.prlimit.addressSpace"];
-		if (!addressSpace) {
-			addressSpace = config.selinux.prlimit.addressSpace;
-		}
+		let cgroupName = config2.tier(tier)["selinux.cgroup.name"];
+		let addressSpace = config2.tier(tier)["selinux.prlimit.addressSpace"];
 
 		const envVars = [
 			"env", "GNUTERM=svg",
