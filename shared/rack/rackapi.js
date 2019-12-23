@@ -20,20 +20,22 @@
 
 "use strict";
 
-const log = require("@oo/shared").logger("rackapi");
-const mlog = require("@oo/shared").logger("rackapi:minor");
-const config = require("@oo/shared").config;
-const asyncCache = require("@oo/shared").asyncCache;
+const log = require("..").logger("rackapi");
+const mlog = require("..").logger("rackapi:minor");
+const config = require("..").config;
+const asyncCache = require("..").asyncCache;
 const got = require("got");
 const async = require("async");
+const urlJoin = require("url-join");
 
 
 function getToken(next) {
 	mlog.trace("Requesting new token");
 	// Note: a newer version of 'got' may add JSON auto-conversion,
-	// but as of this writing, the feature is not stable.
-	got.post("tokens", {
-		baseUrl: config.rackspace.identity_base_url,
+	// but as of this writing, the feature is not stable. A newer version
+	// also added baseUrl, but the version used here does not have that.
+	const fullUrl = urlJoin(config.rackspace.identity_base_url, "tokens");
+	got.post(fullUrl, {
 		body: JSON.stringify({
 			auth: {
 				"RAX-KSKEY:apiKeyCredentials": {
@@ -60,13 +62,22 @@ let getCachedToken = asyncCache(getToken, 3600000);
 
 
 function callRackspaceApi(method, url, jsonPayload, next) {
+	if (method === "GET") {
+		var query = jsonPayload;
+		var body = undefined;
+	} else {
+		var query = "";
+		var body = JSON.stringify(jsonPayload);
+	}
 	async.waterfall([
 		getCachedToken,
 		(token, _next) => {
-			got(url, {
+			const fullUrl = urlJoin(config.rackspace.servers_base_url, url);
+			log.trace("Sending API request to:", fullUrl);
+			got(fullUrl, {
 				method,
-				baseUrl: config.rackspace.servers_base_url,
-				body: JSON.stringify(jsonPayload),
+				query,
+				body,
 				headers: {
 					"Content-Type": "application/json",
 					"Accept": "application/json",
