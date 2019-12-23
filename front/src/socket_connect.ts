@@ -143,7 +143,7 @@ class SocketHandler implements IDestroyable {
 							this.log("Attaching as host to student's workspace:", user.share_key);
 							this.workspace = new SharedWorkspace("host", user);
 						} else {
-							this.log("Attaching to default workspace with sessCode", info);
+							this.log("Attaching to default workspace with sessCode", oldSessCode);
 							this.workspace = new NormalWorkspace(oldSessCode, user, null);
 						}
 						break;
