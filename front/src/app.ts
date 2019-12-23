@@ -28,6 +28,8 @@ import Passport = require("./passport_setup");
 import ExpressApp = require("./express_setup");
 import Middleware = require("./session_middleware");
 import SocketIoApp = require("./socketio");
+import Async = require("async");
+import RackOperations = require("@oo/shared/rack/operations");
 
 Mongo.connect((err)=>{
 	if (err) {
@@ -42,3 +44,29 @@ Mongo.connect((err)=>{
 	ExpressApp.init();
 	SocketIoApp.init();
 });
+
+const ALL_FLAVORS = Object.keys(Config.flavors);
+// This version of the typedefs doesn't know about the forever function
+(<any>Async).forever(
+	(next) => {
+		Async.map(ALL_FLAVORS, (flavor, _next) => {
+			// TODO: Move this call somewhere it could be configurable.
+			RackOperations.getFlavorServers(flavor, _next);
+		}, (err, results) => {
+			if (err) {
+				console.error("RACKSPACE ERROR", err);
+			} else {
+				var allFlavorServers = Array.prototype.concat.apply([], results.map((data) => { return (<any>data).servers; }));
+				console.log("Flavor Servers:");
+				allFlavorServers.forEach((server) => {
+					var { name, created, status } = server;
+					console.log(name + " " + created + " " + status);
+				});
+			}
+			setTimeout(next, Config.front.flavor_log_interval);
+		});
+	},
+	(err) => {
+		console.error("FOREVER ERROR", err);
+	}
+);

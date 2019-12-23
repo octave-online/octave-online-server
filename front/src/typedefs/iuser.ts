@@ -52,6 +52,7 @@ interface IUser /* extends require("mongoose").Document */ {
 	setPassword(password:string, callback?:(err?:any)=>void): void
 	checkPassword(password:string, callback?:(err:any, success:boolean)=>void): void
 	touchLastActivity(callback?:(err?:any)=>void): void
+	isFlavorOK(flavor:string, callback?:(err?:any, result?:boolean)=>void): void
 
 	// Extended methods from Mongoose Document
 	save<T>(callback?: (err: any, res: T) => void): void

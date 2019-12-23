@@ -261,6 +261,19 @@ userSchema.pre("save", function(next){
 		next(null, this);
 	});
 };
+(<any>userSchema).methods.isFlavorOK = function(flavor, next){
+	// TODO: Implement this when more interesting logic is available
+	// Note: This function must at least validate that the flavor is valid; to this point, the flavor is unsanitized user input.
+	const availableFlavors = Object.keys(Config.flavors);
+	if (availableFlavors.indexOf(flavor) !== -1) {
+		next(null, true);
+	} else if (flavor) {
+		console.log("WARNING: User requested illegal flavor", flavor);
+		next(null, false);
+	} else {
+		next(null, false);
+	}
+};
 
 // Make sure the fields are initialized
 userSchema.post("init", function(doc){

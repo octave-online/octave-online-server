@@ -341,6 +341,10 @@ front: {
 		secret: xxxxxxxxx
 		max_age: 7889231400  # (3 months)
 	}
+
+	# OTHER OPTIONS
+	# Timeout (in ms) for logging status of flavor servers.
+	flavor_log_interval: 60000
 }
 
 # Operational Transformation settings

@@ -149,6 +149,7 @@ function startLifetimeLoop(globals, next) {
 					statusTimer = setTimeout(__next, config.maintenance.pauseDuration);
 				},
 				(__next) => {
+					// TODO: Move this call somewhere it could be configurable.
 					rackOperations.deleteSelf(personality, __next);
 				}
 			], (err) => {

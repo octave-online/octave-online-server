@@ -40,6 +40,8 @@ import Async = require("async");
 
 const enp = require("easy-no-password")(Config.auth.easy.secret);
 
+const TOKEN_REGEX = /^\w*$/;
+
 interface ISocketCustom extends SocketIO.Socket {
 	handler: SocketHandler;
 	removeAllListeners():ISocketCustom;
@@ -62,8 +64,6 @@ class SocketHandler implements IDestroyable {
 	}
 
 	constructor(socket:SocketIO.Socket) {
-		var self = this;
-
 		// Set up the socket
 		this.socket = <ISocketCustom> socket;
 		this.log("New Connection", this.socket.handshake.address);
@@ -80,7 +80,7 @@ class SocketHandler implements IDestroyable {
 
 			// 1. Load user from database
 			raw_user: (next) => {
-				var sess = self.socket.request.session;
+				var sess = this.socket.request.session;
 				var userId = sess && sess.passport && sess.passport.user;
 
 				if (userId) User.findById(userId, next);
@@ -92,32 +92,58 @@ class SocketHandler implements IDestroyable {
 			}],
 
 			// 2. User requested to connect
-			init: (next) => {
-				self.socket.once("init", (data) => {
+			raw_init: (next) => {
+				this.socket.once("init", (data) => {
 					next(null, data);
 				});
 			},
+			init: ["user", "raw_init", (next, {user, raw_init}) => {
+				raw_init = raw_init || {};
+
+				// Process the user's requested action
+				var action = raw_init.action;
+				var info = raw_init.info;
+				var oldSessCode = raw_init.sessCode;
+				var skipCreate = raw_init.skipCreate;
+				var flavor = raw_init.flavor;
+				if (action === "session" && !oldSessCode) {
+					oldSessCode = info; // backwards compat.
+				}
+
+				// Sanitize the inputs (don't add flavor yet)
+				action = TOKEN_REGEX.test(action) ? action : null;
+				info = TOKEN_REGEX.test(info) ? info : null;
+				oldSessCode = TOKEN_REGEX.test(oldSessCode) ? oldSessCode : null;
+				skipCreate = !!skipCreate;
+				var init = { action, info, oldSessCode, skipCreate, flavor: null };
+
+				if (flavor && user) {
+					user.isFlavorOK(flavor, (err, flavorOK) => {
+						if (err) return next(err);
+						if (flavorOK) {
+							this.log("User connected with flavor:", flavor);
+							init.flavor = flavor;
+						}
+						next(null, init);
+					});
+				} else {
+					next(null, init);
+				}
+			}],
 
 			// Callback (depends on 1 and 2)
 			init_session: ["user", "init", (next, {user, init}) => {
-				if (self.destroyed) return;
+				if (this.destroyed) return;
 
-				self.user = user;
+				// Unpack and save init settings
+				var { action, info, oldSessCode, skipCreate, flavor } = init;
+				this.user = user;
+				this.flavor = flavor;
 
 				// Fork to load instructor data and buckets
 				this.loadInstructor();
 				this.loadUserBuckets();
 				this.touchUser();
-
-				// Process the user's requested action
-				var action = init && init.action;
-				var info = init && init.info;
-				var oldSessCode = init && init.sessCode;
-				var skipCreate = init && init.skipCreate;
-				this.flavor = init && init.flavor || null;
-				if (action === "session" && !oldSessCode) {
-					oldSessCode = info; // backwards compat.
-				}
 
 				switch (action) {
 					case "workspace":

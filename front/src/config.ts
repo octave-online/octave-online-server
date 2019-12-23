@@ -32,6 +32,7 @@ interface IAppConfig {
 			secret: string;
 			max_age: number;
 		}
+		flavor_log_interval: number;
 	}
 	auth: {
 		google: {
@@ -85,6 +86,7 @@ interface IAppConfig {
 		countdownRequestTime: number;
 	}
 	tiers: any;
+	flavors: any;
 }
 
 var appConfig:IAppConfig = require("@oo/shared").config;

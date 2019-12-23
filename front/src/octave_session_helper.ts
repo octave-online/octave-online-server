@@ -28,6 +28,7 @@ import Crypto = require("crypto");
 import EventEmitter2 = require("eventemitter2");
 import IRedis = require("./typedefs/iredis");
 import Config = require("./config");
+import RackOperations = require("@oo/shared/rack/operations");
 
 var infoClient = IRedis.createClient();
 
@@ -69,7 +70,13 @@ class OctaveSessionHelper extends EventEmitter2.EventEmitter2 {
 		var multi = infoClient.multi();
 		var needsOctaveChan;
 		if (content.flavor) {
+			// Request a flavor server now, and also start adding a new one to the pool to replace it
 			needsOctaveChan = IRedis.Chan.needsOctaveFlavor(content.flavor);
+			// TODO: Move this call somewhere it could be configurable.
+			RackOperations.createFlavorServer(content.flavor, (err) => {
+				if (err) return console.error("RACKSPACE ERROR", err);
+				console.log("Spinning up new server with flavor", content.flavor);
+			});
 		} else {
 			needsOctaveChan = IRedis.Chan.needsOctave;
 		}
@@ -98,7 +105,7 @@ class OctaveSessionHelper extends EventEmitter2.EventEmitter2 {
 		multi.zrem(IRedis.Chan.needsOctave, sessCode);
 		multi.publish(IRedis.Chan.destroyD, JSON.stringify(destroyMessage));
 		multi.exec((err)=> {
-			if (err) console.log("REDIS ERROR", err);
+			if (err) console.error("REDIS ERROR", err);
 		});
 	}
 
@@ -115,7 +122,7 @@ class OctaveSessionHelper extends EventEmitter2.EventEmitter2 {
 
 	private isValid(sessCode:string, next:(valid:IRedis.SessionState)=>void) {
 		infoClient.hget(IRedis.Chan.session(sessCode), "live", function(err, valid){
-			if (err) return console.log("REDIS ERROR", err);
+			if (err) return console.error("REDIS ERROR", err);
 			var state = (valid === null) ? IRedis.SessionState.Needed
 				: ((valid === "false") ? IRedis.SessionState.Loading : IRedis.SessionState.Live);
 			next(state);

@@ -333,7 +333,7 @@ implements IWorkspace {
 					// in core Redis, so a Lua script is required)
 					var casScript = 'local k=redis.call("GET",KEYS[1]); print(k); if k==false or k==ARGV[2] then redis.call("SET",KEYS[1],ARGV[1]); return {true,ARGV[1]}; end; return {false,k};';
 					wsPushClient.eval(casScript, 1, IRedis.Chan.wsSess(this.wsId),
-						sessCode, this.sessCode, next);
+						sessCode, this.sessCode || "-", next);
 
 				// Request a file listing if we need one
 				} else if (state === IRedis.SessionState.Live) {
