@@ -20,6 +20,7 @@
 _old/
 bundle/
 node_modules/
+node_modules_1/
 vendor/
 tmp/
 
