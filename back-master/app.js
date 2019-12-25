@@ -29,6 +29,8 @@ const config = require("@oo/shared").config;
 const gcStats = (require("gc-stats"))();
 const child_process = require("child_process");
 const fs = require("fs");
+const mkdirp = require("mkdirp");
+const path = require("path");
 
 process.stdout.write("Process ID: " + process.pid + "\n");
 process.stderr.write("Process ID: " + process.pid + "\n");
@@ -54,6 +56,25 @@ if (fs.existsSync(config.rackspace.personality_filename)) {
 	sessionManager = new SessionManager(false);
 	mainImpl = require("./src/main-pool");
 }
+
+let sessionLogDirCount = 0;
+function makeSessionLogDir(tokens) {
+	if (tokens.length === config.worker.sessionLogs.depth) {
+		const dirname = path.join(config.worker.logDir, config.worker.sessionLogs.subdir, ...tokens);
+		if (sessionLogDirCount % 1000 === 0) {
+			mlog.trace(dirname);
+		}
+		sessionLogDirCount++;
+		mkdirp.sync(dirname);
+	} else {
+		for (let a of "0123456789abcdef") {
+			makeSessionLogDir(tokens.concat([a]));
+		}
+	}
+}
+log.info("Creating session log dirs…");
+makeSessionLogDir([]);
+log.info(sessionLogDirCount, "dirs touched");
 
 const redisInputHandler = new RedisMessenger().subscribeToInput();
 const redisDestroyDHandler = new RedisMessenger().subscribeToDestroyD();
