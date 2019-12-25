@@ -17,7 +17,7 @@
 # <https://www.gnu.org/licenses/>.
 
 CC = gcc
-CFLAGS = -Wall -pthread
+CFLAGS = -Wall -pthread -I/usr/local/include -L/usr/local/lib
 DEPS = 
 OBJ = host.o
 LIBS = -Wl,-Bstatic -luv -ljson-c -Wl,-Bdynamic

@@ -82,14 +82,14 @@ install-selinux-policy:
 reinstall-selinux:
 	cp entrypoint/back-selinux.js /usr/local/bin/oo-back-selinux
 	cp entrypoint/oo.service /usr/lib/systemd/system/oo.service
-	cp entrypoint/oo-reinstall.service /usr/lib/systemd/system/oo-reinstall.service
+	# cp entrypoint/oo-reinstall.service /usr/lib/systemd/system/oo-reinstall.service
 	echo "$(CGROUP_CONF)" | tr '\1' '\n' > /etc/cgconfig.d/oo.conf
 	echo "Run `systemctl restart cgconfig.service` to load changes to cgroup configurations."
 
 install-selinux-bin: reinstall-selinux
 	systemctl daemon-reload
 	systemctl enable oo
-	systemctl enable oo-reinstall
+	# systemctl enable oo-reinstall
 	systemctl enable cgconfig
 	ln -sf $$PWD /usr/local/share/oo
 

@@ -28,6 +28,7 @@ tmp/
 *.bak
 *.log
 *.o
+*.out
 *.pem
 *.pub
 *.pp

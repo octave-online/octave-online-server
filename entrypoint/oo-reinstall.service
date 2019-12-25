@@ -22,7 +22,8 @@ Description=Install the Octave Online host file
 [Service]
 ExecStart=/bin/true
 ExecStop=/usr/bin/make -C /srv/oo/projects/back-octave install; \
-	/usr/bin/make -C /srv/oo/projects reinstall-selinux;
+	/usr/bin/make -C /srv/oo/projects reinstall-selinux; \
+	/usr/bin/make -C /srv/oo/projects install-site-m;
 Type=oneshot
 RemainAfterExit=yes
 
