@@ -54,6 +54,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		prefersDarkMode(true);
 	}
 	prefersDarkMode.extend({ localStorage: "prefers-dark-mode" });
+	var defaultSkin;
 	if (prefersDarkMode()) {
 		defaultSkin = availableSkins[1];
 	} else {
@@ -287,7 +288,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			return currentUser() && (activeFlavor() || flavorTester());
 		}),
 		desiredFlavorId: ko.computed(function() {
-			return activeFlavor() && activeFlavor().details.id
+			return activeFlavor() && activeFlavor().details.id;
 		}),
 		hasFlavorsAvailable: function() {
 			return viewModel.flavorList().length > 0;

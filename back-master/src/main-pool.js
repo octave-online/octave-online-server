@@ -21,7 +21,6 @@
 // This file contains the main loop for normal pool servers.
 
 const log = require("@oo/shared").logger("main-pool");
-const mlog = require("@oo/shared").logger("main-pool:minor");
 const config = require("@oo/shared").config;
 const RedisMessenger = require("@oo/shared").RedisMessenger;
 const MaintenanceRequestFlavorManager = require("./maintenance-request-manager");

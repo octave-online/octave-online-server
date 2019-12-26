@@ -92,11 +92,11 @@ class RedisMessenger extends EventEmitter {
 	}
 
 	putSessCode(sessCode, content) {
-		return _putSessCode(sessCode, redisUtil.chan.needsOctave, content);
+		return this._putSessCode(sessCode, redisUtil.chan.needsOctave, content);
 	}
 
 	putSessCodeFlavor(sessCode, flavor, content) {
-		return _putSessCode(sessCode, redisUtil.chan.needsOctaveFlavor(flavor), content);
+		return this._putSessCode(sessCode, redisUtil.chan.needsOctaveFlavor(flavor), content);
 	}
 
 	_putSessCode(sessCode, channel, content) {

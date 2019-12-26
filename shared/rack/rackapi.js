@@ -62,12 +62,13 @@ let getCachedToken = asyncCache(getToken, 3600000);
 
 
 function callRackspaceApi(method, url, jsonPayload, next) {
+	var query, body;
 	if (method === "GET") {
-		var query = jsonPayload;
-		var body = undefined;
+		query = jsonPayload;
+		body = undefined;
 	} else {
-		var query = "";
-		var body = JSON.stringify(jsonPayload);
+		query = "";
+		body = JSON.stringify(jsonPayload);
 	}
 	async.waterfall([
 		getCachedToken,

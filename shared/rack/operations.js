@@ -19,7 +19,6 @@
  */
 
 const log = require("..").logger("rack-ops");
-const mlog = require("..").logger("rack-ops:minor");
 const config = require("..").config;
 const config2 = require("..").config2;
 const rackapi = require("./rackapi");
