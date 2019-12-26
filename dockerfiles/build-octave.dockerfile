@@ -16,6 +16,11 @@
 # along with Octave Online Server.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+####################################################
+# NOTICE: This file has largely been superceded by #
+#         related files in the /gcp directory      #
+####################################################
+
 # Install build dependencies for Octave
 RUN yum install -y epel-release yum-utils
 RUN yum-builddep -y octave
