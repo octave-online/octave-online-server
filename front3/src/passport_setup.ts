@@ -25,7 +25,7 @@ import Local = require("passport-local");
 import Mailgun = require("mailgun-js");
 
 import { User, IUser } from "./user_model";
-import { Utils } from "./utils";
+import * as Utils from "./utils";
 import { config, logger } from "@oo/shared";
 
 type Err = Error | null;
@@ -59,7 +59,7 @@ function findOrCreateUser(email:string, profile:any, done:(err: Err, user?: IUse
 			User.create({
 				email: email,
 				profile: profile
-			}, (err, user) => {
+			}, (err: Err, user: IUser) => {  // TODO: Use promise
 				console.log("New User", user.consoleText);
 				done(err, user);
 			});
@@ -95,27 +95,23 @@ function findWithPassword(email:string, password:string, done:(err: Err, status?
 
 var googleStrategy = new (GoogleOAuth.OAuth2Strategy)({
 		callbackURL: googCallbackUrl,
-		clientID: Config.auth.google.oauth_key,
-		clientSecret: Config.auth.google.oauth_secret,
+		clientID: config.auth.google.oauth_key,
+		clientSecret: config.auth.google.oauth_secret,
 		userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
 	},
 	function (accessToken, refreshToken, profile, done) {
-		const email = profile.emails[0].value;
+		const email = profile.emails?.[0].value;
+		if (!email) {
+			console.error("No email returned from Google", profile);
+			return done(new Error("No email returned from Google"));
+		}
 		console.log("Google Login", Utils.emailHash(email));
 		findOrCreateUser(email, profile._json, done);
-	});	
-
-var personaStrategy = new (Persona.Strategy)({
-		audience: baseUrl
-	},
-	function (email, done) {
-		console.log("Persona Callback", Utils.emailHash(email));
-		findOrCreateUser(email, { method: "persona" }, done);
 	});
 
 var easyStrategy = new (EasyNoPassword.Strategy)({
-		secret: Config.auth.easy.secret,
-		maxTokenAge: Config.auth.easy.max_token_age
+		secret: config.auth.easy.secret,
+		maxTokenAge: config.auth.easy.max_token_age
 	},
 	function (req) {
 		if (req.body && req.body.s) {
@@ -142,7 +138,7 @@ var easyStrategy = new (EasyNoPassword.Strategy)({
 			done(null);
 		});
 	},
-	function (email, done) {
+	function (email: string, done: (err: Err, user?: unknown, info?: any) => void) {
 		console.log("Easy Callback", Utils.emailHash(email));
 		findOrCreateUser(email, { method: "easy" }, done);
 	});
@@ -158,7 +154,7 @@ var passwordStrategy = new (Local.Strategy)({
 				console.log("Password Callback Failure", status);
 				return done(null, false);
 			} else {
-				console.log("Password Callback Success", status, user.consoleText);
+				console.log("Password Callback Success", status, (user as IUser).consoleText);
 				return done(null, user);
 			}
 		});
@@ -167,13 +163,12 @@ var passwordStrategy = new (Local.Strategy)({
 
 export function init(){
 	Passport.use(googleStrategy);
-	Passport.use(personaStrategy);
 	Passport.use(easyStrategy);
 	Passport.use(passwordStrategy);
-	Passport.serializeUser((user, cb) => {
+	Passport.serializeUser((user: IUser, cb) => {
 		cb(null, user.id);
 	});
-	Passport.deserializeUser((user, cb) => {
+	Passport.deserializeUser((user: IUser, cb) => {
 		User.findById(user, cb);
 	});
 
