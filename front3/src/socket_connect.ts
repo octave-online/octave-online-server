@@ -18,7 +18,6 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import Ot = require("ot");
 import Async = require("async");
 
 import { BackServerHandler } from "./back_server_handler";
@@ -55,7 +54,6 @@ interface SocketAsyncAuto {
 
 export class SocketHandler implements IDestroyable {
 	public socket: ISocketCustom;
-	public otServer: Ot.Server;
 	public back: BackServerHandler;
 	public workspace: IWorkspace|null = null;
 	public user: IUser|null = null;
@@ -210,20 +208,20 @@ export class SocketHandler implements IDestroyable {
 		this.unlisten();
 
 		// Make listeners on the socket
-		this.socket.on("*", this.onDataD);
-		this.socket.on("disconnect", this.onDestroyD);
+		this.socket.on("*", this.onDataD.bind(this));
+		this.socket.on("disconnect", this.onDestroyD.bind(this));
 
 		// Make listeners on Redis
-		this.back.on("data", this.onDataU);
-		this.back.on("destroy-u", this.onDestroyU);
+		this.back.on("data", this.onDataU.bind(this));
+		this.back.on("destroy-u", this.onDestroyU.bind(this));
 
 		// Make listeners on Workspace
 		if (this.workspace) {
-			this.workspace.on("data", this.onDataW);
-			this.workspace.on("message", this.sendMessage);
-			this.workspace.on("sesscode", this.setSessCode);
-			this.workspace.on("back", this.onDataWtoU);
-			this.workspace.on("log", this.onLogW);
+			this.workspace.on("data", this.onDataW.bind(this));
+			this.workspace.on("message", this.sendMessage.bind(this));
+			this.workspace.on("sesscode", this.setSessCode.bind(this));
+			this.workspace.on("back", this.onDataWtoU.bind(this));
+			this.workspace.on("log", this.onLogW.bind(this));
 			this.workspace.subscribe();
 		}
 
@@ -491,7 +489,7 @@ export class SocketHandler implements IDestroyable {
 		// Step 1: insert a new FlavorRecord
 		var flavorRecord = new FlavorRecord();
 		flavorRecord.user_id = this.user._id;
-		flavorRecord.sesscode = this.back.sessCode;
+		flavorRecord.sesscode = this.back.sessCode || "null";
 		flavorRecord.start = new Date(obj.start);
 		flavorRecord.current = new Date(obj.current);
 		flavorRecord.flavor = obj.flavor;
