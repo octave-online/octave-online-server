@@ -23,3 +23,22 @@ import Crypto = require("crypto");
 export function emailHash(email: string): string {
 	return "email:" + Crypto.createHash("md5").update(email).digest("hex").substr(0, 12);
 }
+
+export interface IDestroyable {
+	destroyed: boolean;
+}
+
+export interface IWorkspace {
+	sessCode: string;
+
+	destroyD(message: string): void;
+	destroyU(message: string): void;
+	dataD(name: string, val: any): void;
+	dataU(name: string, val: any): void;
+	beginOctaveRequest(flavor: string|null): void;
+
+	on(event:string, callback: (...args: any[])=>void):void;
+	removeAllListeners(): void;
+	subscribe(): void;
+	unsubscribe(): void;
+}

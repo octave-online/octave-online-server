@@ -64,7 +64,7 @@ interface IUserMethods {
 	checkPassword(password: string, next: (err: Err, success: boolean) => void): void;
 	touchLastActivity(next: (err: Err) => void): void;
 	loadDependencies(next: (err: Err, user?: IUser) => void): void;
-	isFlavorOK(flavor:string, next: (err: Err, result: boolean) => void): void;
+	isFlavorOK(flavor: string, next: (err: Err, result: boolean) => void): void;
 };
 
 export interface IUser extends Mongoose.Document, IUserMethods {

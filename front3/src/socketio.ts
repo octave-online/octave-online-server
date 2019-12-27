@@ -23,9 +23,9 @@ import Express = require("express");
 import SocketIO = require("socket.io");
 import SocketIOWildcard = require("socketio-wildcard");
 
-import ExpressApp = require("./express_setup");
-import Middleware = require("./session_middleware");
-import SocketConnect = require("./socket_connect");
+import * as ExpressApp from "./express_setup";
+import * as Middleware from "./session_middleware";
+import { SocketHandler } from "./socket_connect";
 import { config, rack } from "@oo/shared";
 
 type Err = Error|null;
@@ -39,7 +39,7 @@ export function init(){
 			// Parse the session using middleware
 			Middleware.middleware(socket.request, <Express.Response>{}, next);
 		})
-		.on("connection", SocketConnect.onConnection);
+		.on("connection", SocketHandler.onConnection);
 
 	watchFlavorServers(io);
 
