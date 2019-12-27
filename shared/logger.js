@@ -34,4 +34,14 @@ const logger = require("debug-logger").config({
 	}
 });
 
-module.exports = logger;
+module.exports = function(id) {
+	const impl = logger(id);
+	return {
+		trace: impl.trace,
+		debug: impl.debug,
+		log: impl.log,
+		info: impl.info,
+		warn: impl.warn,
+		error: impl.error,
+	};
+};
