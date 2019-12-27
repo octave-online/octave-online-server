@@ -20,12 +20,12 @@
 
 // Mongoose User: stores OpenID information for a user.
 
-import Mongoose = require("mongoose");
-import Crypto = require("crypto");
 import Bcrypt = require("bcrypt");
+import Crypto = require("crypto");
+import Mongoose = require("mongoose");
 
-import { config } from "@oo/shared";
 import * as Utils from "./utils";
+import { config } from "@oo/shared";
 import { Program, IProgram } from "./program_model";
 
 type Err = Error | null;

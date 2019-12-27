@@ -19,6 +19,7 @@
  */
 
 import Mongoose = require("mongoose");
+
 import { config } from "@oo/shared";
 
 export function connect() {

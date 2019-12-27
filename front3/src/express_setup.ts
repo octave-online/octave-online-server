@@ -21,15 +21,15 @@
 import Http = require("http");
 import Path = require("path");
 
+import BodyParser = require("body-parser");
+import Compression = require("compression");
 import Express = require("express");
 import Passport = require("passport");
-import Siofu = require("socketio-file-upload");
 import ServeStatic = require("serve-static");
-import Compression = require("compression");
-import BodyParser = require("body-parser");
+import Siofu = require("socketio-file-upload");
 
-import { config } from "@oo/shared";
 import * as SessionMiddleware from "./session_middleware";
+import { config } from "@oo/shared";
 
 module ExpressApp {
 	export function init(){

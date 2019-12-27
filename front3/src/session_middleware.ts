@@ -18,12 +18,12 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import ExpressSession = require("express-session");
 import ConnectMongo = require("connect-mongo");
 import Express = require("express");
+import ExpressSession = require("express-session");
 
-import { config } from "@oo/shared";
 import * as Mongo from "./mongo";
+import { config } from "@oo/shared";
 
 var MongoStore = ConnectMongo(ExpressSession);
 

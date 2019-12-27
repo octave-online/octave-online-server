@@ -602,6 +602,17 @@ export namespace config2 {
 
 }
 
+export namespace rack {
+    function createFlavorServer(flavor: any, next: any): any;
+
+    function deleteSelf(personality: any, next: any): any;
+
+    function getFlavorServers(flavor: any, next: any): any;
+
+    function listFlavors(next: any): void;
+
+}
+
 export namespace redisUtil {
     function createClient(): any;
 

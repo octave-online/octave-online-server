@@ -20,10 +20,10 @@
 
 "use strict";
 
-const log = require("..").logger("rackapi");
-const mlog = require("..").logger("rackapi:minor");
-const config = require("..").config;
-const asyncCache = require("..").asyncCache;
+const log = require("../logger")("rackapi");
+const mlog = require("../logger")("rackapi:minor");
+const config = require("../config");
+const asyncCache = require("../async-cache");
 const got = require("got");
 const async = require("async");
 const urlJoin = require("url-join");

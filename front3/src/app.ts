@@ -19,12 +19,13 @@
  */
 
 import express = require("express");
-import { config, logger } from "@oo/shared";
 
+import { config, logger } from "@oo/shared";
 import * as Mongo from "./mongo";
 import * as Passport from "./passport_setup";
 import * as Middleware from "./session_middleware";
 import * as ExpressApp from "./express_setup";
+import * as SocketIoApp from "./socketio";
 
 const log = logger("app");
 
@@ -40,6 +41,7 @@ async function main() {
 	Passport.init();
 	Middleware.init();
 	ExpressApp.init();
+	SocketIoApp.init();
 
 	const app = express();
 	app.get("/", (req, res) => res.send(config.client.title));

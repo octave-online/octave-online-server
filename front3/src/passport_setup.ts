@@ -18,15 +18,15 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import Passport = require("passport");
 import EasyNoPassword = require("easy-no-password");
 import GoogleOAuth = require("passport-google-oauth");
 import Local = require("passport-local");
 import Mailgun = require("mailgun-js");
+import Passport = require("passport");
 
-import { User, IUser } from "./user_model";
 import * as Utils from "./utils";
 import { config, logger } from "@oo/shared";
+import { User, IUser } from "./user_model";
 
 type Err = Error | null;
 

@@ -11,6 +11,7 @@
   "author": "Shane F. Carr",
   "license": "AGPL-3.0",
   "dependencies": {
+    "async": "^3.1.0",
     "bcrypt": "^3.0.7",
     "body-parser": "^1.19.0",
     "compression": "^1.7.4",
@@ -24,9 +25,12 @@
     "passport-google-oauth": "^2.0.0",
     "passport-local": "^1.0.0",
     "serve-static": "^1.14.1",
-    "socketio-file-upload": "^0.7.0"
+    "socket.io": "^2.3.0",
+    "socketio-file-upload": "^0.7.0",
+    "socketio-wildcard": "^2.0.0"
   },
   "devDependencies": {
+    "@types/async": "^3.0.3",
     "@types/bcrypt": "^3.0.0",
     "@types/body-parser": "^1.17.1",
     "@types/compression": "^1.0.1",
@@ -39,6 +43,7 @@
     "@types/passport-google-oauth": "^1.0.41",
     "@types/passport-local": "^1.0.33",
     "@types/serve-static": "^1.13.3",
+    "@types/socket.io": "^2.1.4",
     "typescript": "^3.7.4"
   }
 }

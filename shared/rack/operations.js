@@ -18,9 +18,9 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-const log = require("..").logger("rack-ops");
-const config = require("..").config;
-const config2 = require("..").config2;
+const log = require("../logger")("rack-ops");
+const config = require("../config");
+const config2 = require("../config-helper");
 const rackapi = require("./rackapi");
 const uuidv4 = require("uuid/v4");
 const fs = require("fs");
