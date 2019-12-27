@@ -22,10 +22,7 @@ import { EventEmitter } from "events";
 
 import { octaveHelper } from "./octave_session_helper";
 import { config, RedisMessenger, RedisQueue } from "@oo/shared";
-
-// Workaround for EventEmitter not being added to shared/index.d.ts
-interface IRedisMessenger extends RedisMessenger, EventEmitter {}
-interface IRedisQueue extends RedisQueue, EventEmitter {}
+import { IRedisMessenger, IRedisQueue } from "./utils";
 
 const outputClient = new RedisMessenger() as IRedisMessenger;
 outputClient.subscribeToOutput();

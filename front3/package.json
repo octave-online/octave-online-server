@@ -27,7 +27,8 @@
     "serve-static": "^1.14.1",
     "socket.io": "^2.3.0",
     "socketio-file-upload": "^0.7.0",
-    "socketio-wildcard": "^2.0.0"
+    "socketio-wildcard": "^2.0.0",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "@types/async": "^3.0.3",
@@ -44,6 +45,7 @@
     "@types/passport-local": "^1.0.33",
     "@types/serve-static": "^1.13.3",
     "@types/socket.io": "^2.1.4",
+    "@types/uuid": "^3.4.6",
     "typescript": "^3.7.4"
   }
 }
