@@ -71,7 +71,7 @@ class RedisMessenger extends EventEmitter {
 	}
 
 	subscribeToInput() {
-		this._psubscribe(redisUtil.chan.input("*"));
+		this._psubscribe(redisUtil.chan.input);
 		this.on("_message", this._emitMessage.bind(this));
 		return this;
 	}
@@ -86,7 +86,7 @@ class RedisMessenger extends EventEmitter {
 	}
 
 	subscribeToOutput() {
-		this._psubscribe(redisUtil.chan.output("*"));
+		this._psubscribe(redisUtil.chan.output);
 		this.on("_message", this._emitMessage.bind(this));
 		return this;
 	}
@@ -213,6 +213,13 @@ class RedisMessenger extends EventEmitter {
 		multi.exec(this._handleError.bind(this));
 	}
 
+	touchWorkspace(wsId) {
+		this._ensureNotSubscribed();
+
+		// TODO: Should these "expire" calls on intervals be buffered and sent to the server in batches, both here and above?
+		this._client.expire(redisUtil.chan.wsSess(wsId), config.redis.expire.timeout/1000, this._handleError.bind(this));
+	}
+
 	subscribeToExpired() {
 		this._epsubscribe();
 		this.on("_message", (sessCode, channel) => {
@@ -269,6 +276,37 @@ class RedisMessenger extends EventEmitter {
 		return this;
 	}
 
+	workspaceMsg(wsId, type, data) {
+		this._ensureNotSubscribed();
+
+		let channel = redisUtil.chan.wsSub(wsId);
+		let messageString = JSON.stringify({
+			type,
+			data
+		});
+
+		this._client.publish(channel, messageString, this._handleError.bind(this));
+	}
+
+	subscribeToWorkspaceMsgs() {
+		this._psubscribe(redisUtil.chan.wsSub);
+		this.on("_message", (wsId, message) => {
+			this.emit("ws-sub", wsId, message.type, message.data);
+		});
+		return this;
+	}
+
+	getWorkspaceSessCode(wsId, next) {
+		this._client.get(redisUtil.chan.wsSess(wsId), next);
+	}
+
+	setWorkspaceSessCode(wsId, newSessCode, oldSessCode, next) {
+		// Perform a Compare-And-Swap operation (this is oddly not
+		// in core Redis, so a Lua script is required)
+		var casScript = 'local k=redis.call("GET",KEYS[1]); print(k); if k==false or k==ARGV[2] then redis.call("SET",KEYS[1],ARGV[1]); return {true,ARGV[1]}; end; return {false,k};';
+		this._client.eval(casScript, 1, redisUtil.chan.wsSess(wsId), newSessCode, oldSessCode || "-", next);
+	}
+
 	close() {
 		this._client.end(true);
 	}
@@ -293,16 +331,24 @@ class RedisMessenger extends EventEmitter {
 		return this;
 	}
 
-	_psubscribe(pattern) {
+	_psubscribe(chanFn) {
 		this._ensureNotSubscribed();
 		this._subscribed = true;
 
+		const pattern = chanFn("*");
 		this._log.info("Subscribing to pattern:", pattern);
+
+		const regex = new RegExp(`^${chanFn("(\\w+)")}$`);
 
 		this._client.psubscribe(pattern);
 		this._client.on("pmessage", (pattern, channel, message) => {
+			const match = regex.exec(channel);
+			if (!match) {
+				this._log.error("pmessage result does not match regex", pattern, channel);
+				return;
+			}
+			const sessCode = match[1];
 			try {
-				let sessCode = redisUtil.getSessCodeFromChannel(channel);
 				let obj = JSON.parse(message);
 				this.emit("_message", sessCode, obj);
 			} catch (err) {
@@ -320,11 +366,9 @@ class RedisMessenger extends EventEmitter {
 
 		this._client.subscribe("__keyevent@0__:expired");
 		this._client.on("message", (channel, message) => {
-			try {
-				let sessCode = redisUtil.getSessCodeFromChannel(message);
-				this.emit("_message", sessCode, message);
-			} catch (err) {
-				// Silently ignore this error; there are many examples of keys that expire that don't have sessCodes in the name.
+			const match = /^oo:\w+:(\w+)$/.exec(channel);
+			if (match) {
+				this.emit("_message", match[1], message);
 			}
 		});
 	}

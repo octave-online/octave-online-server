@@ -57,7 +57,25 @@ module.exports = {
 		},
 		flavorStatus: (flavor) => {
 			return "oo:flavor-status-" + flavor;
-		}
+		},
+		otOps: (docId) => {
+			return "ot:" + docId + ":ops";
+		},
+		otDoc: (docId) => {
+			return "ot:" + docId + ":doc";
+		},
+		otSub: (docId) => {
+			return "ot:" + docId + ":sub";
+		},
+		otCnt: (docId) => {
+			return "ot:" + docId + ":cnt";
+		},
+		wsSess: (wsId) => {
+			return "oo:workspace:" + wsId + ":sess";
+		},
+		wsSub: (wsId) => {
+			return "oo:workspace:" + wsId + ":sub";
+		},
 	},
 
 	getSessCodeFromChannel: (channel) => {

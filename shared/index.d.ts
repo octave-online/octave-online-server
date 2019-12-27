@@ -76,6 +76,8 @@ export class RedisMessenger {
 
     getSessCodeFlavor(...args: any[]): void;
 
+    getWorkspaceSessCode(...args: any[]): void;
+
     input(...args: any[]): void;
 
     isValid(...args: any[]): void;
@@ -96,6 +98,8 @@ export class RedisMessenger {
 
     setLive(...args: any[]): void;
 
+    setWorkspaceSessCode(...args: any[]): void;
+
     subscribeToDestroyD(...args: any[]): void;
 
     subscribeToDestroyU(...args: any[]): void;
@@ -110,9 +114,15 @@ export class RedisMessenger {
 
     subscribeToRebootRequests(...args: any[]): void;
 
+    subscribeToWorkspaceMsgs(...args: any[]): void;
+
     touchInput(...args: any[]): void;
 
     touchOutput(...args: any[]): void;
+
+    touchWorkspace(...args: any[]): void;
+
+    workspaceMsg(...args: any[]): void;
 
     static defaultMaxListeners: number;
 
@@ -708,9 +718,21 @@ export namespace redisUtil {
 
         function needsOctaveFlavor(flavor: any): any;
 
+        function otCnt(docId: any): any;
+
+        function otDoc(docId: any): any;
+
+        function otOps(docId: any): any;
+
+        function otSub(docId: any): any;
+
         function output(sessCode: any): any;
 
         function session(sessCode: any): any;
+
+        function wsSess(wsId: any): any;
+
+        function wsSub(wsId: any): any;
 
     }
 
