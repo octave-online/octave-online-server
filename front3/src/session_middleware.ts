@@ -18,34 +18,33 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import express = require("express");
-import { config, logger } from "@oo/shared";
+import ExpressSession = require("express-session");
+import ConnectMongo = require("connect-mongo");
+import Express = require("express");
 
+import { config } from "@oo/shared";
 import * as Mongo from "./mongo";
-import * as Passport from "./passport_setup";
-import * as Middleware from "./session_middleware";
-import * as ExpressApp from "./express_setup";
 
-const log = logger("app");
+var MongoStore = ConnectMongo(ExpressSession);
 
-async function main() {
-	try {
-		log.trace("Connecting to Mongo...");
-		await Mongo.connect();
-		log.info("Connected to Mongo");
-	} catch(err) {
-		log.warn("Could not connect to Mongo:", err);
-	}
+export function init() {
+	// Make the store instance
+	store = new MongoStore({
+		mongooseConnection: Mongo.connection
+	});
 
-	Passport.init();
-	Middleware.init();
-	ExpressApp.init();
+	// Make the middleware instance
+	middleware = ExpressSession({
+		name: config.front.cookie.name,
+		secret: config.front.cookie.secret,
+		cookie: {
+			maxAge: config.front.cookie.max_age
+		},
+		store: store
+	});
 
-	const app = express();
-	app.get("/", (req, res) => res.send(config.client.title));
-	app.listen(3000, () => console.log("Example app listening on port 3000!"));
+	console.log("Initialized Session Store");
 }
 
-main().catch((err) => {
-	log.error(err);
-});
+export var middleware: Express.RequestHandler;
+export var store: ExpressSession.Store;
