@@ -43,8 +43,7 @@ const redisMessenger = new RedisMessenger() as IRedisMessenger;
 const wsSessClient = new RedisMessenger() as IRedisMessenger;
 wsSessClient.subscribeToWorkspaceMsgs();
 
-// TODO?
-// wsSessClient.setMaxListeners(30);
+wsSessClient.setMaxListeners(30);
 
 export class SharedWorkspace
 extends EventEmitter

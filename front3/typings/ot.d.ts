@@ -18,18 +18,18 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-declare module 'socketio-file-upload' {
+declare module 'ot' {
+	interface ITextOperation {
+		toJSON(): any;
+	}
 
-	export = socketio_file_upload;
+	export class Server {
+		constructor(initial_text:string);
+		receiveOperation(rev:number, operation:ITextOperation):ITextOperation;
+	}
 
-	function socketio_file_upload(options: any): any;
-
-	namespace socketio_file_upload {
-	    const clientPath: string;
-
-	    function listen(app: any): void;
-
-	    function router(req: any, res: any, next: any): void;
-
+	export class TextOperation {
+		static fromJSON(json: string): ITextOperation;
 	}
 }
+

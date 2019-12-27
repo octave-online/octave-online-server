@@ -32,10 +32,9 @@ const expireClient = new RedisMessenger() as IRedisMessenger;
 expireClient.subscribeToExpired();
 const redisMessenger = new RedisMessenger() as IRedisMessenger;
 
-// TODO?
-// outputClient.setMaxListeners(100);
-// destroyUClient.setMaxListeners(100);
-// expireClient.setMaxListeners(100);
+outputClient.setMaxListeners(100);
+destroyUClient.setMaxListeners(100);
+expireClient.setMaxListeners(100);
 
 export class BackServerHandler extends EventEmitter {
 	public sessCode: string|null = null;
