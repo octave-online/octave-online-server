@@ -79,7 +79,7 @@ log.info(sessionLogDirCount, "dirs touched");
 const redisInputHandler = new RedisMessenger().subscribeToInput();
 const redisDestroyDHandler = new RedisMessenger().subscribeToDestroyD();
 const redisExpireHandler = new RedisMessenger().subscribeToExpired();
-const redisScriptHandler = new RedisMessenger().enableScripts();
+const redisScriptHandler = new RedisMessenger().enableSessCodeScriptsSync();
 const redisMessenger = new RedisMessenger();
 const translator = new MessageTranslator();
 

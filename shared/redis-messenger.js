@@ -55,10 +55,16 @@ class RedisMessenger extends EventEmitter {
 
 	// PUBLIC METHODS
 
-	enableScripts() {
-		this._scriptManager = new Scripto(this._client);
+	enableSessCodeScriptsSync() {
+		this._makeScriptManager();
 		this._scriptManager.loadFromFile("get-sesscode", path.join(__dirname, "lua/get-sesscode.lua"));
 		return this;
+	}
+
+	_makeScriptManager() {
+		if (!this._scriptManager) {
+			this._scriptManager = new Scripto(this._client);
+		}
 	}
 
 	input(sessCode, name, content) {
