@@ -64,13 +64,21 @@ export class Queue {
 export class RedisMessenger {
     constructor(...args: any[]);
 
+    applyOtOperation(...args: any[]): void;
+
+    changeOtDocId(...args: any[]): void;
+
     close(...args: any[]): void;
 
     destroyD(...args: any[]): void;
 
+    destroyOtDoc(...args: any[]): void;
+
     destroyU(...args: any[]): void;
 
-    enableScripts(...args: any[]): void;
+    enableOtScriptsSync(...args: any[]): void;
+
+    enableSessCodeScriptsSync(...args: any[]): void;
 
     getSessCode(...args: any[]): void;
 
@@ -81,6 +89,10 @@ export class RedisMessenger {
     input(...args: any[]): void;
 
     isValid(...args: any[]): void;
+
+    loadOtDoc(...args: any[]): void;
+
+    otMsg(...args: any[]): void;
 
     output(...args: any[]): void;
 
@@ -98,6 +110,8 @@ export class RedisMessenger {
 
     setLive(...args: any[]): void;
 
+    setOtDocContent(...args: any[]): void;
+
     setWorkspaceSessCode(...args: any[]): void;
 
     subscribeToDestroyD(...args: any[]): void;
@@ -110,6 +124,8 @@ export class RedisMessenger {
 
     subscribeToInput(...args: any[]): void;
 
+    subscribeToOtMsgs(...args: any[]): void;
+
     subscribeToOutput(...args: any[]): void;
 
     subscribeToRebootRequests(...args: any[]): void;
@@ -117,6 +133,8 @@ export class RedisMessenger {
     subscribeToWorkspaceMsgs(...args: any[]): void;
 
     touchInput(...args: any[]): void;
+
+    touchOtDoc(...args: any[]): void;
 
     touchOutput(...args: any[]): void;
 

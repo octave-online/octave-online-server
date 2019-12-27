@@ -26,6 +26,7 @@ const redisUtil = require("./redis-util");
 const Scripto = require("redis-scripto");
 const path = require("path");
 const uuid = require("uuid");
+const fs = require("fs");
 const config = require("./config");
 
 class RedisMessenger extends EventEmitter {
@@ -58,6 +59,23 @@ class RedisMessenger extends EventEmitter {
 	enableSessCodeScriptsSync() {
 		this._makeScriptManager();
 		this._scriptManager.loadFromFile("get-sesscode", path.join(__dirname, "lua/get-sesscode.lua"));
+		return this;
+	}
+
+	enableOtScriptsSync() {
+		this._makeScriptManager();
+
+		let otApplyScript = fs.readFileSync("lua/ot.lua", "utf8");
+		otApplyScript += fs.readFileSync("lua/ot_apply.lua", "utf8");
+		otApplyScript = otApplyScript.replace(/function/g, "local function");
+
+		let otSetScript = fs.readFileSync("lua/ot_set.lua", "utf8");
+
+		this._scriptManager.load({
+			"ot-apply": otApplyScript,
+			"ot-set": otSetScript
+		});
+
 		return this;
 	}
 
@@ -204,7 +222,7 @@ class RedisMessenger extends EventEmitter {
 	touchInput(sessCode) {
 		this._ensureNotSubscribed();
 
-		let multi = this._client.multi();
+		const multi = this._client.multi();
 		multi.expire(redisUtil.chan.session(sessCode), config.redis.expire.timeout/1000);
 		multi.expire(redisUtil.chan.input(sessCode), config.redis.expire.timeout/1000);
 		multi.exec(this._handleError.bind(this));
@@ -213,7 +231,7 @@ class RedisMessenger extends EventEmitter {
 	touchOutput(sessCode) {
 		this._ensureNotSubscribed();
 
-		let multi = this._client.multi();
+		const multi = this._client.multi();
 		multi.expire(redisUtil.chan.session(sessCode), config.redis.expire.timeout/1000);
 		multi.expire(redisUtil.chan.output(sessCode), config.redis.expire.timeout/1000);
 		multi.exec(this._handleError.bind(this));
@@ -224,6 +242,15 @@ class RedisMessenger extends EventEmitter {
 
 		// TODO: Should these "expire" calls on intervals be buffered and sent to the server in batches, both here and above?
 		this._client.expire(redisUtil.chan.wsSess(wsId), config.redis.expire.timeout/1000, this._handleError.bind(this));
+	}
+
+	touchOtDoc(docId) {
+		this._ensureNotSubscribed();
+
+		const multi = this._client.multi();
+		multi.expire(redisUtil.chan.otCnt(docId), config.ot.document_expire.timeout/1000);
+		multi.expire(redisUtil.chan.otDoc(docId), config.ot.document_expire.timeout/1000);
+		multi.exec(this._handleError.bind(this));
 	}
 
 	subscribeToExpired() {
@@ -303,14 +330,105 @@ class RedisMessenger extends EventEmitter {
 	}
 
 	getWorkspaceSessCode(wsId, next) {
+		this._ensureNotSubscribed();
 		this._client.get(redisUtil.chan.wsSess(wsId), next);
 	}
 
 	setWorkspaceSessCode(wsId, newSessCode, oldSessCode, next) {
+		this._ensureNotSubscribed();
+
 		// Perform a Compare-And-Swap operation (this is oddly not
 		// in core Redis, so a Lua script is required)
-		var casScript = 'local k=redis.call("GET",KEYS[1]); print(k); if k==false or k==ARGV[2] then redis.call("SET",KEYS[1],ARGV[1]); return {true,ARGV[1]}; end; return {false,k};';
+		const casScript = 'local k=redis.call("GET",KEYS[1]); print(k); if k==false or k==ARGV[2] then redis.call("SET",KEYS[1],ARGV[1]); return {true,ARGV[1]}; end; return {false,k};';
 		this._client.eval(casScript, 1, redisUtil.chan.wsSess(wsId), newSessCode, oldSessCode || "-", next);
+	}
+
+	otMsg(docId, obj) {
+		this._ensureNotSubscribed();
+
+		const channel = redisUtil.chan.otSub(docId);
+		const messageString = JSON.stringify(obj);
+
+		this._client.publish(channel, messageString, this._handleError.bind(this));
+	}
+
+	subscribeToOtMsgs() {
+		this._psubscribe(redisUtil.chan.otSub);
+		this.on("_message", (docId, obj) => {
+			this.emit("ot-sub", docId, obj);
+		});
+		return this;
+	}
+
+	changeOtDocId(oldDocId, newDocId) {
+		this._ensureNotSubscribed();
+
+		const multi = this._client.multi();
+		multi.rename(redisUtil.chan.otOps(oldDocId), redisUtil.chan.otOps(newDocId));
+		multi.rename(redisUtil.chan.otDoc(oldDocId), redisUtil.chan.otDoc(newDocId));
+		multi.rename(redisUtil.chan.otSub(oldDocId), redisUtil.chan.otSub(newDocId));
+		multi.rename(redisUtil.chan.otCnt(oldDocId), redisUtil.chan.otCnt(newDocId));
+		multi.exec(this._handleError.bind(this));
+	}
+
+	destroyOtDoc(docId) {
+		this._ensureNotSubscribed();
+
+		const multi = this._client.multi();
+		multi.del(redisUtil.chan.otOps(docId));
+		multi.del(redisUtil.chan.otDoc(docId));
+		multi.del(redisUtil.chan.otSub(docId));
+		multi.del(redisUtil.chan.otCnt(docId));
+		multi.exec(this._handleError.bind(this));
+	}
+
+	loadOtDoc(docId, next) {
+		const multi = this._client.multi();
+		multi.get(redisUtil.chan.otCnt(docId));
+		multi.get(redisUtil.chan.otDoc(docId));
+		multi.exec((err) => {
+			if (err) return next(err);
+			const rev = Number(res[0]) || 0;
+			const content = res[1] || "";
+			next(err, rev, content);
+		});
+	}
+
+	applyOtOperation(docId, rev, message) {
+		const ops_key = redisUtil.chan.otOps(docId);
+		const doc_key = redisUtil.chan.otDoc(docId);
+		const sub_key = redisUtil.chan.otSub(docId);
+		const cnt_key = redisUtil.chan.otCnt(docId);
+
+		this._runScript(
+			"ot-apply",
+			[ops_key, doc_key, sub_key, cnt_key],
+			[
+				rev,
+				JSON.stringify(message),
+				config.ot.operation_expire/1000,
+				config.ot.document_expire.timeout/1000
+			],
+			this._handleError.bind(this));
+	}
+
+	setOtDocContent(docId, content, overwrite, message) {
+		const ops_key = redisUtil.chan.otOps(docId);
+		const doc_key = redisUtil.chan.otDoc(docId);
+		const sub_key = redisUtil.chan.otSub(docId);
+		const cnt_key = redisUtil.chan.otCnt(docId);
+
+		this._runScript(
+			"ot-set",
+			[ops_key, doc_key, sub_key, cnt_key],
+			[
+				content,
+				JSON.stringify(message),
+				Config.ot.operation_expire/1000,
+				Config.ot.document_expire.timeout/1000,
+				(overwrite?"overwrite":"retain")
+			],
+			this._handleError.bind(this));
 	}
 
 	close() {
@@ -381,7 +499,7 @@ class RedisMessenger extends EventEmitter {
 
 	_runScript(memo, keys, args, next) {
 		this._ensureNotSubscribed();
-		if (!this._scriptManager) throw new Error("Need to call enableScripts() first");
+		if (!this._scriptManager) throw new Error("Need to enable scripts first");
 
 		this._mlog.trace("Running script:", memo, keys);
 
