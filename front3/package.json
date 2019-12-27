@@ -1,0 +1,33 @@
+{
+  "name": "front3",
+  "version": "0.0.0",
+  "description": "Front server for Octave Online, 2019 refresh",
+  "main": "dist/app.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shane F. Carr",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "bcrypt": "^3.0.7",
+    "easy-no-password": "^1.2.0",
+    "express": "^4.17.1",
+    "mailgun-js": "^0.22.0",
+    "mongoose": "^5.8.3",
+    "passport": "^0.4.1",
+    "passport-google-oauth": "^2.0.0",
+    "passport-local": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^3.0.0",
+    "@types/express": "^4.17.2",
+    "@types/mailgun-js": "^0.22.3",
+    "@types/mongoose": "^5.5.35",
+    "@types/passport": "^1.0.2",
+    "@types/passport-google-oauth": "^1.0.41",
+    "@types/passport-local": "^1.0.33",
+    "typescript": "^3.7.4"
+  }
+}
