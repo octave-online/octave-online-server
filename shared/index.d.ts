@@ -47,6 +47,8 @@ export class Queue {
 
     removeAll(...args: any[]): void;
 
+    size(...args: any[]): void;
+
     static defaultMaxListeners: number;
 
     static init(): void;
@@ -111,6 +113,25 @@ export class RedisMessenger {
     touchInput(...args: any[]): void;
 
     touchOutput(...args: any[]): void;
+
+    static defaultMaxListeners: number;
+
+    static init(): void;
+
+    static listenerCount(emitter: any, type: any): any;
+
+    static once(emitter: any, name: any): any;
+
+    static usingDomains: boolean;
+
+}
+
+export class RedisQueue {
+    constructor(...args: any[]);
+
+    enqueueMessage(...args: any[]): void;
+
+    reset(...args: any[]): void;
 
     static defaultMaxListeners: number;
 
@@ -496,6 +517,56 @@ export namespace Queue {
 }
 
 export namespace RedisMessenger {
+    class EventEmitter {
+        constructor();
+
+        addListener(type: any, listener: any): any;
+
+        emit(type: any, args: any): any;
+
+        eventNames(): any;
+
+        getMaxListeners(): any;
+
+        listenerCount(type: any): any;
+
+        listeners(type: any): any;
+
+        off(type: any, listener: any): any;
+
+        on(type: any, listener: any): any;
+
+        once(type: any, listener: any): any;
+
+        prependListener(type: any, listener: any): any;
+
+        prependOnceListener(type: any, listener: any): any;
+
+        rawListeners(type: any): any;
+
+        removeAllListeners(type: any, ...args: any[]): any;
+
+        removeListener(type: any, listener: any): any;
+
+        setMaxListeners(n: any): any;
+
+        static EventEmitter: any;
+
+        static defaultMaxListeners: number;
+
+        static init(): void;
+
+        static listenerCount(emitter: any, type: any): any;
+
+        static once(emitter: any, name: any): any;
+
+        static usingDomains: boolean;
+
+    }
+
+}
+
+export namespace RedisQueue {
     class EventEmitter {
         constructor();
 

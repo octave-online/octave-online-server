@@ -34,7 +34,7 @@ const http = require("http");
 const https = require("https");
 const querystring = require("querystring");
 const uuid = require("uuid");
-const Queue = require("@oo/shared").Queue;
+const RedisQueue = require("@oo/shared").RedisQueue;
 const base58 = require("base-x")("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz");
 const temp = require("temp");
 const onceMessage = require("@oo/shared").onceMessage;
@@ -58,7 +58,8 @@ class OctaveSession extends OnlineOffline {
 		this._plotPngStore = {};
 		this._plotSvgStore = {};
 
-		this._messageQueue = new Queue();
+		this._redisQueue = new RedisQueue(sessCode);
+		this._redisQueue.on("message", this.sendMessage.bind(this));
 
 		this._throttleCounter = 0;
 		this._throttleTime = process.hrtime();
@@ -100,6 +101,10 @@ class OctaveSession extends OnlineOffline {
 
 	interrupt() {
 		this._signal("SIGINT");
+	}
+
+	enqueueMessage(name, getData) {
+		this._redisQueue.enqueueMessage(name, getData);
 	}
 
 	// COUNTDOWN METHODS: For interrupting the Octave kernel after a fixed number of seconds to ensure a fair distribution of CPU time.
@@ -466,25 +471,6 @@ class OctaveSession extends OnlineOffline {
 				this.emit("message", "bucket-repo-created", bucketInfo);
 			}
 		});
-	}
-
-	// Use a queue to handle incoming messages to ensure that messages are processed in order.  The loading of data via attachments is asynchronous and may cause messages to change order.
-	enqueueMessage(name, getData) {
-		let message = { name, ready: false };
-		this._messageQueue.enqueue(message);
-		getData((err, content) => {
-			if (err) this._log.error(err);
-			message.content = content;
-			message.ready = true;
-			this._flushMessageQueue();
-		});
-	}
-	_flushMessageQueue() {
-		while (!this._messageQueue.isEmpty() && this._messageQueue.peek().ready) {
-			let message = this._messageQueue.dequeue();
-			this._log.trace("Sending Upstream:", message.name);
-			this.sendMessage(message.name, message.content);
-		}
 	}
 
 	// Prevent spammy messages from clogging up the server.

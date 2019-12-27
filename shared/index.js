@@ -31,6 +31,7 @@ module.exports = {
 	Queue: require("./queue"),
 	rack: require("./rack/operations"),
 	RedisMessenger: require("./redis-messenger"),
+	RedisQueue: require("./redis-queue"),
 	redisUtil: require("./redis-util"),
 	silent: require("./silent"),
 	StdioMessenger: require("./stdio-messenger"),
