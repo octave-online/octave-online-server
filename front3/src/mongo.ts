@@ -20,7 +20,7 @@
 
 import Mongoose = require("mongoose");
 
-import { config } from "@oo/shared";
+import { config } from "./shared_wrap";
 
 export function connect() {
 	var url = `mongodb://${config.mongo.hostname}:${config.mongo.port}/${config.mongo.db};`;

@@ -26,7 +26,7 @@ import SocketIOWildcard = require("socketio-wildcard");
 import * as ExpressApp from "./express_setup";
 import * as Middleware from "./session_middleware";
 import { SocketHandler } from "./socket_connect";
-import { config, rack } from "@oo/shared";
+import { config, rack } from "./shared_wrap";
 
 type Err = Error|null;
 

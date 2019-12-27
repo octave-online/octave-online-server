@@ -29,7 +29,7 @@ import ServeStatic = require("serve-static");
 import Siofu = require("socketio-file-upload");
 
 import * as SessionMiddleware from "./session_middleware";
-import { config } from "@oo/shared";
+import { config } from "./shared_wrap";
 
 module ExpressApp {
 	export function init(){

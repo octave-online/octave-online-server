@@ -20,7 +20,7 @@
 
 import express = require("express");
 
-import { config, logger } from "@oo/shared";
+import { config, logger } from "./shared_wrap";
 import * as Mongo from "./mongo";
 import * as Passport from "./passport_setup";
 import * as Middleware from "./session_middleware";

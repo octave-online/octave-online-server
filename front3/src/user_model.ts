@@ -25,7 +25,7 @@ import Crypto = require("crypto");
 import Mongoose = require("mongoose");
 
 import * as Utils from "./utils";
-import { config } from "@oo/shared";
+import { config } from "./shared_wrap";
 import { Program, IProgram } from "./program_model";
 
 type Err = Error | null;

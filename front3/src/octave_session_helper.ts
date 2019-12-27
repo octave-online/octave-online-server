@@ -21,16 +21,13 @@
 import Crypto = require("crypto");
 import { EventEmitter } from "events";
 
-import { RedisMessenger, redisUtil, rack as RackOperations } from "@oo/shared";
+import { newRedisMessenger, redisUtil, rack } from "./shared_wrap";
 
 type Err = Error|null;
 
-// Workaround for EventEmitter not being added to shared/index.d.ts
-interface IRedisMessenger extends RedisMessenger, EventEmitter {}
-
 export enum SessionState { Needed, Loading, Live };
 
-const redisMessenger = new RedisMessenger() as IRedisMessenger;
+const redisMessenger = newRedisMessenger();
 
 class OctaveSessionHelper extends EventEmitter {
 	constructor() {
@@ -69,7 +66,7 @@ class OctaveSessionHelper extends EventEmitter {
 		if (content.flavor) {
 			redisMessenger.putSessCodeFlavor(sessCode, content.flavor, content);
 			// TODO: Move this call somewhere it could be configurable.
-			RackOperations.createFlavorServer(content.flavor, (err: Err) => {
+			rack.createFlavorServer(content.flavor, (err: Err) => {
 				if (err) return console.error("RACKSPACE ERROR", err);
 				console.log("Spinning up new server with flavor", content.flavor);
 			});

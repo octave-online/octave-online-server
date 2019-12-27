@@ -25,7 +25,7 @@ import Mailgun = require("mailgun-js");
 import Passport = require("passport");
 
 import * as Utils from "./utils";
-import { config, logger } from "@oo/shared";
+import { config, logger } from "./shared_wrap";
 import { User, IUser } from "./user_model";
 
 type Err = Error | null;

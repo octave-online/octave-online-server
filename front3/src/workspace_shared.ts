@@ -24,10 +24,10 @@ import Crypto = require("crypto");
 import Async = require("async");
 import Uuid = require("uuid");
 
-import { IWorkspace, ILogger, IRedisMessenger } from "./utils";
+import { config, newRedisMessenger, logger, ILogger } from "./shared_wrap";
+import { IWorkspace } from "./utils";
 import { octaveHelper, SessionState } from "./octave_session_helper";
 import { OtDocument } from "./ot_document";
-import { config, RedisMessenger, logger } from "@oo/shared";
 import { User, IUser } from "./user_model";
 
 interface BeginOctaveRequestAsyncAuto {
@@ -39,8 +39,8 @@ type Err = Error|null;
 
 
 // Make Redis connections for Shared Workspace
-const redisMessenger = new RedisMessenger() as IRedisMessenger;
-const wsSessClient = new RedisMessenger() as IRedisMessenger;
+const redisMessenger = newRedisMessenger();
+const wsSessClient = newRedisMessenger();
 wsSessClient.subscribeToWorkspaceMsgs();
 
 wsSessClient.setMaxListeners(30);
@@ -64,7 +64,7 @@ implements IWorkspace {
 	constructor(type:string, info:any) {
 		super();
 
-		this._log = logger("workspace-shr:uninitialized") as ILogger;
+		this._log = logger("workspace-shr:uninitialized");
 
 		switch(type){
 			case "student":
@@ -97,7 +97,7 @@ implements IWorkspace {
 
 		// May 2018: remove email-based IDs from log
 		const safeWsId = this.wsId && this.wsId.substr(0, 8);
-		this._log = logger("workspace-shr:" + safeWsId) as ILogger;
+		this._log = logger("workspace-shr:" + safeWsId);
 
 		// Create the prompt's OtDocument (every session)
 		// Never emit from constructors since there are no listeners yet;

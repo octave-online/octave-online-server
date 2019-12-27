@@ -22,7 +22,7 @@ import Async = require("async");
 
 import { BackServerHandler } from "./back_server_handler";
 import { Bucket } from "./bucket_model";
-import { logger } from "@oo/shared";
+import { logger, ILogger } from "./shared_wrap";
 import { FlavorRecord } from "./flavor_record_model";
 import { IDestroyable, IWorkspace } from "./utils";
 import { NormalWorkspace } from "./workspace_normal";
@@ -61,7 +61,7 @@ export class SocketHandler implements IDestroyable {
 	public flavor: string|null = null;
 	public destroyed: boolean = false;
 
-	private log: (...arg0: any) => void;
+	private _log: ILogger;
 
 	public static onConnection(socket:SocketIO.Socket) {
 		var handler = new SocketHandler(socket);
@@ -71,8 +71,8 @@ export class SocketHandler implements IDestroyable {
 	constructor(socket:SocketIO.Socket) {
 		// Set up the socket
 		this.socket = <ISocketCustom> socket;
-		this.log = logger("socker-handler:" + socket.id);
-		this.log("New Connection", this.socket.handshake.address);
+		this._log = logger("socker-handler:" + socket.id);
+		this._log.info("New Connection", this.socket.handshake.address);
 		this.socket.emit("init");
 
 		// Set up Redis connection to back server
@@ -127,7 +127,7 @@ export class SocketHandler implements IDestroyable {
 					user.isFlavorOK(flavor, (err, flavorOK) => {
 						if (err) return next(err);
 						if (flavorOK) {
-							this.log("User connected with flavor:", flavor);
+							this._log.info("User connected with flavor:", flavor);
 							init.flavor = flavor;
 						}
 						next(null, init);
@@ -154,30 +154,30 @@ export class SocketHandler implements IDestroyable {
 				switch (action) {
 					case "workspace":
 						if (!info) return;
-						this.log("Attaching to colaborative workspace:", info);
+						this._log.info("Attaching to colaborative workspace:", info);
 						this.workspace = new SharedWorkspace("default", info);
 						break;
 
 					case "student":
 						if (!info) return;
 						// Note: this is not necesarilly a student.  It can be any user.
-						this.log("Attaching to a student's workspace:", info)
+						this._log.info("Attaching to a student's workspace:", info)
 						this.workspace = new SharedWorkspace("student", info);
 						break;
 
 					case "bucket":
 						if (!info) return;
-						this.log("Attaching to a bucket:", info);
+						this._log.info("Attaching to a bucket:", info);
 						this.workspace = new NormalWorkspace(oldSessCode, user, <string> info);
 						break;
 
 					case "session":
 					default:
 						if (user && user.share_key) {
-							this.log("Attaching as host to student's workspace:", user.share_key);
+							this._log.info("Attaching as host to student's workspace:", user.share_key);
 							this.workspace = new SharedWorkspace("host", user);
 						} else {
-							this.log("Attaching to default workspace with sessCode", oldSessCode);
+							this._log.info("Attaching to default workspace with sessCode", oldSessCode);
 							this.workspace = new NormalWorkspace(oldSessCode, user, null);
 						}
 						break;
@@ -198,7 +198,7 @@ export class SocketHandler implements IDestroyable {
 		}, (err) => {
 			// Error Handler
 			if (err) {
-				this.log("ASYNC ERROR", err);
+				this._log.error("ASYNC ERROR", err);
 			}
 		});
 	}
@@ -221,7 +221,6 @@ export class SocketHandler implements IDestroyable {
 			this.workspace.on("message", this.sendMessage.bind(this));
 			this.workspace.on("sesscode", this.setSessCode.bind(this));
 			this.workspace.on("back", this.onDataWtoU.bind(this));
-			this.workspace.on("log", this.onLogW.bind(this));
 			this.workspace.subscribe();
 		}
 
@@ -254,14 +253,14 @@ export class SocketHandler implements IDestroyable {
 
 	// When the client disconnects (destroyed from downstream)
 	private onDestroyD(): void {
-		this.log("Client Disconnect");
+		this._log.info("Client Disconnect");
 		if (this.workspace) this.workspace.destroyD("Client Disconnect");
 		this.unlisten();
 	}
 
 	// When the back server exits (destroyed from upstream)
 	private onDestroyU(message:string): void {
-		this.log("Upstream Destroyed:", message);
+		this._log.info("Upstream Destroyed:", message);
 		this.socket.emit("destroy-u", message);
 		this.back.setSessCode(null);
 		if (this.workspace) this.workspace.destroyU(message);
@@ -351,11 +350,6 @@ export class SocketHandler implements IDestroyable {
 		this.socket.emit(name, data);
 	};
 
-	// When the workspace instance wants to log something
-	private onLogW(data: any): void {
-		this.log.apply(this, data);
-	};
-
 	//// OTHER UTILITY FUNCTIONS ////
 
 	private loadInstructor(): void {
@@ -377,10 +371,10 @@ export class SocketHandler implements IDestroyable {
 		if (!this.user) return;
 		Bucket.find({ user_id: this.user._id }, (err, buckets) => {
 			if (err) {
-				this.log("LOAD USER BUCKETS ERROR", err);
+				this._log.error("LOAD USER BUCKETS ERROR", err);
 				return;
 			}
-			this.log("Loaded", buckets.length, "buckets for user", this.user!.consoleText);
+			this._log.trace("Loaded", buckets.length, "buckets for user", this.user!.consoleText);
 			this.socket.emit("all-buckets", { buckets });
 		});
 	}
@@ -389,7 +383,7 @@ export class SocketHandler implements IDestroyable {
 		if (!this.user) return;
 		this.user.touchLastActivity((err) => {
 			if (err) {
-				this.log("TOUCH ACTIVITY ERROR", err);
+				this._log.error("TOUCH ACTIVITY ERROR", err);
 				return;
 			}
 		});
@@ -399,7 +393,7 @@ export class SocketHandler implements IDestroyable {
 		if (!this.bucketId) return;
 		Bucket.findOne({ bucket_id: this.bucketId }, (err, bucket) => {
 			if (err) {
-				this.log("LOAD BUCKET ERROR", err);
+				this._log.error("LOAD BUCKET ERROR", err);
 				this.sendMessage("Encountered error while initializing bucket.");
 				return;
 			}
@@ -409,7 +403,7 @@ export class SocketHandler implements IDestroyable {
 				this.workspace = null;
 				return;
 			}
-			this.log("Bucket loaded:", bucket.bucket_id);
+			this._log.trace("Bucket loaded:", bucket.bucket_id);
 			this.socket.emit("bucket-info", bucket);
 			if (!skipCreate && this.workspace) {
 				this.workspace.beginOctaveRequest(this.flavor);
@@ -421,7 +415,7 @@ export class SocketHandler implements IDestroyable {
 		if (!obj) return;
 		if (!this.user) return;
 		this.user.setPassword(obj.new_pwd, (err) => {
-			if (err) return this.log("SET PASSWORD ERROR", err);
+			if (err) return this._log.error("SET PASSWORD ERROR", err);
 			this.sendMessage("Your password has been changed.");
 		});
 	}
@@ -430,17 +424,17 @@ export class SocketHandler implements IDestroyable {
 		if (!obj) return;
 		if (!obj.bucket_id) return;
 		if (!this.user) {
-			this.log("ERROR: No user but got bucket-created message!", obj.bucket_id);
+			this._log.error("ERROR: No user but got bucket-created message!", obj.bucket_id);
 			return;
 		}
 
 		var bucket = new Bucket();
-		this.log("Creating bucket:", obj.bucket_id, this.user.consoleText);
+		this._log.info("Creating bucket:", obj.bucket_id, this.user.consoleText);
 		bucket.bucket_id = obj.bucket_id;
 		bucket.user_id = this.user._id;
 		bucket.main = obj.main;
 		bucket.save((err) => {
-			if (err) return this.log("ERROR creating bucket:", err);
+			if (err) return this._log.error("ERROR creating bucket:", err);
 			this.socket.emit("bucket-created", { bucket });
 		});
 	}
@@ -449,11 +443,11 @@ export class SocketHandler implements IDestroyable {
 		if (!obj) return;
 		if (!obj.bucket_id) return;
 		if (!this.user) return;
-		this.log("Deleting bucket:", obj.bucket_id);
+		this._log.info("Deleting bucket:", obj.bucket_id);
 		// NOTE: This deletes the bucket from mongo, but not from the file server.  A batch job can be run to delete bucket repos that are not in sync with mongo.
 		Bucket.findOne({ bucket_id: obj.bucket_id }, (err, bucket) => {
 			if (err) {
-				this.log("LOAD BUCKET ERROR", err);
+				this._log.error("LOAD BUCKET ERROR", err);
 				this.sendMessage("Encountered error while finding bucket.");
 				return;
 			}
@@ -462,13 +456,13 @@ export class SocketHandler implements IDestroyable {
 				return;
 			}
 			if (!this.user!._id.equals(bucket.user_id)) {
-				this.log("ERROR: Bad owner:", bucket.user_id, this.user!.consoleText);
+				this._log.error("ERROR: Bad owner:", bucket.user_id, this.user!.consoleText);
 				this.sendMessage("You are not the owner of that bucket");
 				return;
 			}
 			bucket.remove((err, bucket) => {
 				if (err) {
-					this.log("REMOVE BUCKET ERROR", err);
+					this._log.error("REMOVE BUCKET ERROR", err);
 					this.sendMessage("Encountered error while removing bucket.");
 					return;
 				}
@@ -482,7 +476,7 @@ export class SocketHandler implements IDestroyable {
 	private onTouchFlavor(obj: any): void {
 		if (!obj) return;
 		if (!this.user) {
-			this.log("ERROR: No user on a flavor session");
+			this._log.error("ERROR: No user on a flavor session");
 			return;
 		}
 
@@ -494,15 +488,15 @@ export class SocketHandler implements IDestroyable {
 		flavorRecord.current = new Date(obj.current);
 		flavorRecord.flavor = obj.flavor;
 		flavorRecord.save((err) => {
-			if (err) return this.log("ERROR creating FlavorRecord:", err);
+			if (err) return this._log.error("ERROR creating FlavorRecord:", err);
 
 			// Step 2: delete older FlavorRecords from the same sessCode
 			FlavorRecord.deleteMany({
 				sesscode: flavorRecord.sesscode,
 				current: { $lt: flavorRecord.current }
 			}, (err /* , writeOpResult */) => {
-				if (err) return this.log("ERROR deleting old FlavorRecords:", err);
-				// this.log("Added new FlavorRecord and deleted " + (writeOpResult && writeOpResult.result && writeOpResult.result.n) + " old ones");
+				if (err) return this._log.error("ERROR deleting old FlavorRecords:", err);
+				// this._log.trace("Added new FlavorRecord and deleted " + (writeOpResult && writeOpResult.result && writeOpResult.result.n) + " old ones");
 			});
 		});
 	}
@@ -517,7 +511,7 @@ export class SocketHandler implements IDestroyable {
 
 	private setSessCode(sessCode: string): void {
 		// We have our sessCode.
-		this.log("SessCode", sessCode);
+		this._log.info("SessCode", sessCode);
 		this.back.setSessCode(sessCode);
 		this.socket.emit("sesscode", {
 			sessCode: sessCode
@@ -535,10 +529,10 @@ export class SocketHandler implements IDestroyable {
 		if (!this.user || !obj) return;
 		var program = obj.program;
 		if (!program) return;
-		this.log("Enrolling", this.user.consoleText, "in program", program);
+		this._log.info("Enrolling", this.user.consoleText, "in program", program);
 		this.user.program = program;
 		this.user.save((err)=> {
-			if (err) return this.log("MONGO ERROR", err);
+			if (err) return this._log.error("MONGO ERROR", err);
 			this.sendMessage("Successfully enrolled");
 		});
 	};
@@ -553,13 +547,13 @@ export class SocketHandler implements IDestroyable {
 		if (!obj.userId) return;
 		if (!this.user) return;
 		User.findById(obj.userId, (err, student)=> {
-			if (err) return this.log("MONGO ERROR", err);
-			if (!student) return this.log("Warning: student not found", obj.userId);
-			if (this.user!.instructor.indexOf(student.program) === -1) return this.log("Warning: illegal call to unenroll student");
-			this.log("Un-enrolling", this.user!.consoleText, "from program", student.program);
+			if (err) return this._log.error("MONGO ERROR", err);
+			if (!student) return this._log.warn("Warning: student not found", obj.userId);
+			if (this.user!.instructor.indexOf(student.program) === -1) return this._log.warn("Warning: illegal call to unenroll student");
+			this._log.info("Un-enrolling", this.user!.consoleText, "from program", student.program);
 			student.program = "default";
 			student.save((err1) =>{
-				if (err1) return this.log("MONGO ERROR", err1);
+				if (err1) return this._log.error("MONGO ERROR", err1);
 				this.sendMessage("Student successfully unenrolled: " + student.displayName);
 			});
 		});
@@ -572,16 +566,16 @@ export class SocketHandler implements IDestroyable {
 		if (!this.user) return;
 		if (this.user.instructor.indexOf(obj.program) === -1) {
 			this.sendMessage("Student not re-enrolled: Cannot use the course code " + obj.program);
-			return this.log("Warning: illegal call to re-enroll student");
+			return this._log.warn("Warning: illegal call to re-enroll student");
 		}
 		User.findById(obj.userId, (err, student)=> {
-			if (err) return this.log("ERROR ON REENROLL STUDENT", err);
-			if (!student) return this.log("Warning: student not found", obj.userId);
-			if (this.user!.instructor.indexOf(student.program) === -1) return this.log("Warning: illegal call to reenroll student");
-			this.log("Re-enrolling", this.user!.consoleText, "from program", student.program, "to program", obj.program);
+			if (err) return this._log.error("ERROR ON REENROLL STUDENT", err);
+			if (!student) return this._log.warn("Warning: student not found", obj.userId);
+			if (this.user!.instructor.indexOf(student.program) === -1) return this._log.warn("Warning: illegal call to reenroll student");
+			this._log.info("Re-enrolling", this.user!.consoleText, "from program", student.program, "to program", obj.program);
 			student.program = obj.program;
 			student.save((err1) =>{
-				if (err1) return this.log("MONGO ERROR", err1);
+				if (err1) return this._log.error("MONGO ERROR", err1);
 				this.sendMessage("Student successfully re-enrolled: " + student.displayName);
 			});
 		});
@@ -602,13 +596,13 @@ export class SocketHandler implements IDestroyable {
 			this.sendMessage("You must unenroll before disabling sharing.\nTo unenroll, run the command \"enroll('default')\".");
 		} else if (enabled) {
 			this.user.createShareKey((err)=> {
-				if (err) this.log("MONGO ERROR", err);
+				if (err) this._log.error("MONGO ERROR", err);
 				this.socket.emit("reload", {});
 			});
 		} else {
 			if (this.workspace) this.workspace.destroyD("Sharing Disabled");
 			this.user.removeShareKey((err)=> {
-				if (err) this.log("MONGO ERROR", err);
+				if (err) this._log.error("MONGO ERROR", err);
 				this.socket.emit("reload", {});
 			});
 		}
@@ -619,16 +613,16 @@ export class SocketHandler implements IDestroyable {
 		var flavor = obj.flavor;
 
 		this.user.isFlavorOK(flavor, (err, flavorOK) => {
-			if (err) this.log("FLAVOR OK ERROR", err);
+			if (err) this._log.error("FLAVOR OK ERROR", err);
 			if (!flavorOK) {
-				this.log("Failed to upgrade user to flavor:", flavor);
+				this._log.warn("Failed to upgrade user to flavor:", flavor);
 				return;
 			}
 			if (!this.workspace) {
-				this.log("No workspace on flavor upgrade attempt");
+				this._log.warn("No workspace on flavor upgrade attempt");
 				return;
 			}
-			this.log("User upgraded to flavor:", flavor);
+			this._log.info("User upgraded to flavor:", flavor);
 			this.flavor = flavor;
 			this.workspace.destroyD("Flavor Upgrade");
 			this.workspace.beginOctaveRequest(this.flavor);

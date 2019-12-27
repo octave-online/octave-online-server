@@ -23,15 +23,14 @@ import { EventEmitter } from "events";
 import Ot = require("ot");
 import Uuid = require("uuid");
 
-import { config, RedisMessenger, logger } from "@oo/shared";
-import { IRedisMessenger, ILogger } from "./utils";
+import { config, newRedisMessenger, logger, ILogger } from "./shared_wrap";
 
 type Err = Error|null;
 
 // Make Redis connections for OT
-const redisMessenger = new RedisMessenger() as IRedisMessenger;
+const redisMessenger = newRedisMessenger();
 redisMessenger.enableOtScriptsSync();
-const otListenClient = new RedisMessenger() as IRedisMessenger;
+const otListenClient = newRedisMessenger();
 otListenClient.subscribeToOtMsgs();
 
 // A single workspace could account for 50 or more listeners, because each document listens on the same connection.

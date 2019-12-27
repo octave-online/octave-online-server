@@ -23,7 +23,7 @@ import Express = require("express");
 import ExpressSession = require("express-session");
 
 import * as Mongo from "./mongo";
-import { config } from "@oo/shared";
+import { config } from "./shared_wrap";
 
 var MongoStore = ConnectMongo(ExpressSession);
 

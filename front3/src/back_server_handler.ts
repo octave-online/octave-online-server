@@ -20,17 +20,16 @@
 
 import { EventEmitter } from "events";
 
+import { config, newRedisMessenger, newRedisQueue, IRedisQueue } from "./shared_wrap";
 import { octaveHelper } from "./octave_session_helper";
-import { config, RedisMessenger, RedisQueue } from "@oo/shared";
-import { IRedisMessenger, IRedisQueue } from "./utils";
 
-const outputClient = new RedisMessenger() as IRedisMessenger;
+const outputClient = newRedisMessenger();
 outputClient.subscribeToOutput();
-const destroyUClient = new RedisMessenger() as IRedisMessenger;
+const destroyUClient = newRedisMessenger();
 destroyUClient.subscribeToDestroyU();
-const expireClient = new RedisMessenger() as IRedisMessenger;
+const expireClient = newRedisMessenger();
 expireClient.subscribeToExpired();
-const redisMessenger = new RedisMessenger() as IRedisMessenger;
+const redisMessenger = newRedisMessenger();
 
 outputClient.setMaxListeners(100);
 destroyUClient.setMaxListeners(100);
@@ -52,7 +51,7 @@ export class BackServerHandler extends EventEmitter {
 			this.redisQueue = null;
 		}
 		if (sessCode) {
-			this.redisQueue = new RedisQueue(sessCode) as IRedisQueue;
+			this.redisQueue = newRedisQueue(sessCode);
 			this.redisQueue.on("message", (name, content) => {
 				this.emit("data", name, content);
 			});

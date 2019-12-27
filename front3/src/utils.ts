@@ -19,9 +19,6 @@
  */
 
 import Crypto = require("crypto");
-import { EventEmitter } from "events";
-
-import { RedisMessenger, RedisQueue } from "@oo/shared";
 
 
 export function emailHash(email: string): string {
@@ -45,18 +42,4 @@ export interface IWorkspace {
 	removeAllListeners(): void;
 	subscribe(): void;
 	unsubscribe(): void;
-}
-
-// Workaround for EventEmitter not being added to shared/index.d.ts
-export interface IRedisMessenger extends RedisMessenger, EventEmitter {}
-export interface IRedisQueue extends RedisQueue, EventEmitter {}
-
-// This is the interface for @oo/shared/logger, but dts-gen does not generate a full interface for that class.
-export interface ILogger {
-	trace(...args: any): void;
-	debug(...args: any): void;
-	log(...args: any): void;
-	info(...args: any): void;
-	warn(...args: any): void;
-	error(...args: any): void;
 }

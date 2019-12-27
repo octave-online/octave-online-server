@@ -22,9 +22,9 @@ import { EventEmitter } from "events";
 
 import Async = require("async");
 
-import { IDestroyable, IWorkspace, ILogger } from "./utils";
+import { IDestroyable, IWorkspace } from "./utils";
 import { IUser } from "./user_model";
-import { logger } from "@oo/shared";
+import { logger, ILogger } from "./shared_wrap";
 import { octaveHelper, SessionState } from "./octave_session_helper";
 
 type Err = Error|null;
@@ -44,7 +44,7 @@ implements IWorkspace, IDestroyable {
 		this.sessCode = sessCode;
 		this.user = user;
 		this.bucketId = bucketId;
-		this._log = logger(`workspace-nrm:uninitialized`) as ILogger;
+		this._log = logger(`workspace-nrm:uninitialized`);
 
 		process.nextTick(()=>{
 			this.emit("data", "userinfo", user);
