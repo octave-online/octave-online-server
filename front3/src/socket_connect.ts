@@ -23,7 +23,7 @@ import Async = require("async");
 
 import { BackServerHandler } from "./back_server_handler";
 import { Bucket } from "./bucket_model";
-import { config, logger } from "@oo/shared";
+import { logger } from "@oo/shared";
 import { FlavorRecord } from "./flavor_record_model";
 import { IDestroyable, IWorkspace } from "./utils";
 import { NormalWorkspace } from "./workspace_normal";
@@ -382,7 +382,7 @@ export class SocketHandler implements IDestroyable {
 				this.log("LOAD USER BUCKETS ERROR", err);
 				return;
 			}
-			this.log("Loaded", buckets.length, "buckets for user", this.user.consoleText);
+			this.log("Loaded", buckets.length, "buckets for user", this.user!.consoleText);
 			this.socket.emit("all-buckets", { buckets });
 		});
 	}
@@ -502,7 +502,7 @@ export class SocketHandler implements IDestroyable {
 			FlavorRecord.deleteMany({
 				sesscode: flavorRecord.sesscode,
 				current: { $lt: flavorRecord.current }
-			}, (err, writeOpResult) => {
+			}, (err /* , writeOpResult */) => {
 				if (err) return this.log("ERROR deleting old FlavorRecords:", err);
 				// this.log("Added new FlavorRecord and deleted " + (writeOpResult && writeOpResult.result && writeOpResult.result.n) + " old ones");
 			});
