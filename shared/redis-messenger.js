@@ -146,6 +146,7 @@ class RedisMessenger extends EventEmitter {
 		multi.del(redisUtil.chan.session(sessCode));
 		multi.del(redisUtil.chan.input(sessCode));
 		multi.del(redisUtil.chan.output(sessCode));
+		// For efficiency, zrem the key from needsOctave. However, the key could be in a needs-flavor channel. That case is handled in get-sesscode.lua.
 		multi.zrem(redisUtil.chan.needsOctave, sessCode);
 		multi.publish(channel, JSON.stringify(message));
 		multi.exec(this._handleError.bind(this));

@@ -20,7 +20,7 @@
 
 import { EventEmitter } from "events";
 
-import OctaveHelper = require("./octave_session_helper");
+import { octaveHelper } from "./octave_session_helper";
 import { config, RedisMessenger, RedisQueue } from "@oo/shared";
 
 // Workaround for EventEmitter not being added to shared/index.d.ts
@@ -132,7 +132,7 @@ export class BackServerHandler extends EventEmitter {
 		// If the session becomes expired, trigger a destroy event
 		// both upstream and downstream.
 		console.log("Detected Expired:", channel);
-		OctaveHelper.sendDestroyD(this.sessCode, "Octave Session Expired");
+		octaveHelper.sendDestroyD(this.sessCode, "Octave Session Expired");
 		this.emit("destroy-u", "Octave Session Expired");
 	};
 }

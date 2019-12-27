@@ -64,5 +64,9 @@ module.exports = {
 		const match = /^oo:(\w+):(\w+)$/.exec(channel);
 		if (!match) throw new Error("Can't extract sessCode from channel name");
 		return match[2];
+	},
+
+	isValidSessCode: (sessCode) => {
+		return /^\w{24}$/.test(sessCode);
 	}
 };

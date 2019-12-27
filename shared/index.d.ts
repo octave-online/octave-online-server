@@ -689,6 +689,8 @@ export namespace redisUtil {
 
     function getSessCodeFromChannel(channel: any): any;
 
+    function isValidSessCode(sessCode: any): any;
+
     namespace chan {
         const destroyD: string;
 
