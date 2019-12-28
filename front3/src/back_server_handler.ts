@@ -20,7 +20,7 @@
 
 import { EventEmitter } from "events";
 
-import { config, newRedisMessenger, newRedisQueue, IRedisQueue } from "./shared_wrap";
+import { config, newRedisMessenger, newRedisQueue, IRedisQueue, logger, ILogger } from "./shared_wrap";
 import { octaveHelper } from "./octave_session_helper";
 
 const outputClient = newRedisMessenger();
@@ -39,9 +39,11 @@ export class BackServerHandler extends EventEmitter {
 	public sessCode: string|null = null;
 	private touchInterval: any;
 	private redisQueue: IRedisQueue|null = null;
+	private _log: ILogger;
 
 	constructor() {
 		super();
+		this._log = logger("back-handler:uninitialized");
 	}
 
 	public setSessCode(sessCode: string|null) {
@@ -55,6 +57,9 @@ export class BackServerHandler extends EventEmitter {
 			this.redisQueue.on("message", (name, content) => {
 				this.emit("data", name, content);
 			});
+			this._log = logger("back-handler:" + sessCode);
+		} else {
+			this._log = logger("back-handler:uninitialized");
 		}
 		this.touch();
 	}
@@ -67,7 +72,7 @@ export class BackServerHandler extends EventEmitter {
 		try {
 			redisMessenger.input(this.sessCode, name, data);
 		} catch(err) {
-			console.log("ATTACHMENT ERROR", err);
+			this._log.error("ATTACHMENT ERROR", err);
 		}
 	}
 
@@ -98,7 +103,7 @@ export class BackServerHandler extends EventEmitter {
 	private depend(props:string[], log:boolean=false) {
 		for (var i = 0; i < props.length; i++){
 			if (!(<any>this)[props[i]]) {
-				if (log) console.log("UNMET DEPENDENCY", props[i], arguments.callee.caller);
+				if (log) this._log.warn("UNMET DEPENDENCY", props[i], arguments.callee.caller);
 				return false;
 			}
 		}
@@ -126,7 +131,7 @@ export class BackServerHandler extends EventEmitter {
 		if (sessCode !== this.sessCode) return;
 		// If the session becomes expired, trigger a destroy event
 		// both upstream and downstream.
-		console.log("Detected Expired:", channel);
+		this._log.trace("Detected Expired:", channel);
 		octaveHelper.sendDestroyD(this.sessCode, "Octave Session Expired");
 		this.emit("destroy-u", "Octave Session Expired");
 	};

@@ -21,7 +21,7 @@
 import Crypto = require("crypto");
 import { EventEmitter } from "events";
 
-import { newRedisMessenger, redisUtil, rack } from "./shared_wrap";
+import { newRedisMessenger, redisUtil, rack, logger, ILogger } from "./shared_wrap";
 
 type Err = Error|null;
 
@@ -30,8 +30,11 @@ export enum SessionState { Needed, Loading, Live };
 const redisMessenger = newRedisMessenger();
 
 class OctaveSessionHelper extends EventEmitter {
+	private _log: ILogger;
+
 	constructor() {
 		super();
+		this._log = logger("octave-helper");
 	}
 
 	public getNewSessCode(sessCodeGuess:string|null, next:(err:Err, sessCode:string, state:SessionState)=>void){
@@ -67,8 +70,8 @@ class OctaveSessionHelper extends EventEmitter {
 			redisMessenger.putSessCodeFlavor(sessCode, content.flavor, content);
 			// TODO: Move this call somewhere it could be configurable.
 			rack.createFlavorServer(content.flavor, (err: Err) => {
-				if (err) return console.error("RACKSPACE ERROR", err);
-				console.log("Spinning up new server with flavor", content.flavor);
+				if (err) return this._log.error("RACKSPACE ERROR", err);
+				this._log.trace("Spinning up new server with flavor", content.flavor);
 			});
 		} else {
 			redisMessenger.putSessCode(sessCode, content);
@@ -76,7 +79,7 @@ class OctaveSessionHelper extends EventEmitter {
 	}
 
 	public sendDestroyD(sessCode:string, message:string) {
-		console.log("Sending Destroy-D", message, sessCode);
+		this._log.trace("Sending Destroy-D", message, sessCode);
 		redisMessenger.destroyD(sessCode, message);
 	}
 
@@ -92,8 +95,8 @@ class OctaveSessionHelper extends EventEmitter {
 	}
 
 	private isValid(sessCode:string, next:(valid:SessionState)=>void) {
-		redisMessenger.isValid(sessCode, function(err:Err, valid:string|null){
-			if (err) return console.error("REDIS ERROR", err);
+		redisMessenger.isValid(sessCode, (err:Err, valid:string|null) => {
+			if (err) return this._log.error("REDIS ERROR", err);
 			var state = (valid === null) ? SessionState.Needed
 				: ((valid === "false") ? SessionState.Loading : SessionState.Live);
 			next(state);

@@ -23,9 +23,11 @@ import Express = require("express");
 import ExpressSession = require("express-session");
 
 import * as Mongo from "./mongo";
-import { config } from "./shared_wrap";
+import { config, logger } from "./shared_wrap";
 
-var MongoStore = ConnectMongo(ExpressSession);
+const MongoStore = ConnectMongo(ExpressSession);
+
+const log = logger("session-middleware");
 
 export function init() {
 	// Make the store instance
@@ -43,7 +45,7 @@ export function init() {
 		store: store
 	});
 
-	console.log("Initialized Session Store");
+	log.info("Initialized Session Store");
 }
 
 export var middleware: Express.RequestHandler;

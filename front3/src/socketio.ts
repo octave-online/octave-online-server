@@ -26,11 +26,12 @@ import SocketIOWildcard = require("socketio-wildcard");
 import * as ExpressApp from "./express_setup";
 import * as Middleware from "./session_middleware";
 import { SocketHandler } from "./socket_connect";
-import { config, rack } from "./shared_wrap";
+import { config, rack, logger } from "./shared_wrap";
 
 type Err = Error|null;
 
 const ALL_FLAVORS = Object.keys(config.flavors);
+const log = logger("oo-socketio");
 
 export function init(){
 	var io = SocketIO(ExpressApp.app)
@@ -43,7 +44,7 @@ export function init(){
 
 	watchFlavorServers(io);
 
-	console.log("Initialized Socket.IO Server");
+	log.info("Initialized Socket.IO Server");
 }
 
 export function watchFlavorServers(io: SocketIO.Namespace) {
@@ -55,7 +56,7 @@ export function watchFlavorServers(io: SocketIO.Namespace) {
 				rack.getFlavorServers(flavor, _next);
 			}, (err, results) => {
 				if (err) {
-					console.error("RACKSPACE ERROR", err);
+					log.error("RACKSPACE ERROR", err);
 				} else {
 					results = results as any[];
 					var rawServers = Array.prototype.concat.apply([], results.map((data) => { return (data as any).servers; }));
@@ -65,16 +66,16 @@ export function watchFlavorServers(io: SocketIO.Namespace) {
 					});
 					io.emit("oo.flavor-list", { servers });
 
-					console.log("Flavor Servers:");
+					log.debug("Flavor Servers:");
 					servers.forEach(({ name, created, status }) => {
-						console.log(name + " " + status + " " + created);
+						log.debug(name + " " + status + " " + created);
 					});
 				}
 				setTimeout(next, config.front.flavor_log_interval);
 			});
 		},
 		(err: Err) => {
-			console.error("FOREVER ERROR", err);
+			log.error("FOREVER ERROR", err);
 		}
 	);
 }

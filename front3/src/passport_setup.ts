@@ -50,17 +50,17 @@ function findOrCreateUser(email:string, profile:any, done:(err: Err, user?: IUse
 
 		if (user) {
 			// Returning user
-			console.log("Returning User", user.consoleText);
+			log.trace("Returning User", user.consoleText);
 			done(null, user);
 
 		} else {
 			// Make a new user
-			console.log("Creating New User");
+			log.trace("Creating New User");
 			User.create({
 				email: email,
 				profile: profile
 			}, (err: Err, user: IUser) => {  // TODO: Use promise
-				console.log("New User", user.consoleText);
+				log.info("New User", user.consoleText);
 				done(err, user);
 			});
 		}
@@ -102,10 +102,10 @@ var googleStrategy = new (GoogleOAuth.OAuth2Strategy)({
 	function (accessToken, refreshToken, profile, done) {
 		const email = profile.emails?.[0].value;
 		if (!email) {
-			console.error("No email returned from Google", profile);
+			log.warn("No email returned from Google", profile);
 			return done(new Error("No email returned from Google"));
 		}
-		console.log("Google Login", Utils.emailHash(email));
+		log.trace("Google Login", Utils.emailHash(email));
 		findOrCreateUser(email, profile._json, done);
 	});
 
@@ -131,15 +131,15 @@ var easyStrategy = new (EasyNoPassword.Strategy)({
 			text: `Your login token for Octave Online is: ${token}\n\nYou can also click the following link.\n\n${url}\n\nOnce you have signed into your account, you may optionally set a password to speed up the sign-in process.  To do this, open the menu and click Change Password.`
 		}, (err, info) => {
 			if (err) {
-				console.error("Failed sending email:", email, info);
+				log.warn("Failed sending email:", email, info);
 			} else {
-				console.log("Sent token email:", Utils.emailHash(email));
+				log.trace("Sent token email:", Utils.emailHash(email));
 			}
 			done(null);
 		});
 	},
 	function (email: string, done: (err: Err, user?: unknown, info?: any) => void) {
-		console.log("Easy Callback", Utils.emailHash(email));
+		log.trace("Easy Callback", Utils.emailHash(email));
 		findOrCreateUser(email, { method: "easy" }, done);
 	});
 
@@ -151,10 +151,10 @@ var passwordStrategy = new (Local.Strategy)({
 		findWithPassword(username, password, function(err, status, user) {
 			if (err) return done(err);
 			if (status === PasswordStatus.UNKNOWN || status == PasswordStatus.INCORRECT) {
-				console.log("Password Callback Failure", status);
+				log.warn("Password Callback Failure", status);
 				return done(null, false);
 			} else {
-				console.log("Password Callback Success", status, (user as IUser).consoleText);
+				log.trace("Password Callback Success", status, (user as IUser).consoleText);
 				return done(null, user);
 			}
 		});

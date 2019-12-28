@@ -18,9 +18,7 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import express = require("express");
-
-import { config, logger } from "./shared_wrap";
+import { logger } from "./shared_wrap";
 import * as Mongo from "./mongo";
 import * as Passport from "./passport_setup";
 import * as Middleware from "./session_middleware";
@@ -42,10 +40,6 @@ async function main() {
 	Middleware.init();
 	ExpressApp.init();
 	SocketIoApp.init();
-
-	const app = express();
-	app.get("/", (req, res) => res.send(config.client.title));
-	app.listen(3000, () => console.log("Example app listening on port 3000!"));
 }
 
 main().catch((err) => {

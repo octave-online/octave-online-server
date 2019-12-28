@@ -29,12 +29,14 @@ import ServeStatic = require("serve-static");
 import Siofu = require("socketio-file-upload");
 
 import * as SessionMiddleware from "./session_middleware";
-import { config } from "./shared_wrap";
+import { config, logger } from "./shared_wrap";
+
+const log = logger("express-setup");
 
 module ExpressApp {
 	export function init(){
 		const staticPath = Path.join(__dirname, "..", "..", config.front.static_path);
-		console.log("Serving static files from:", staticPath);
+		log.info("Serving static files from:", staticPath);
 
 		app = Express()
 			.use(Compression())
@@ -101,7 +103,7 @@ module ExpressApp {
 			})
 			.listen(config.front.listen_port);
 
-		console.log("Initialized Express Server on port:", config.front.listen_port);
+		log.info("Initialized Express Server on port:", config.front.listen_port);
 	}
 
 	export var app:Http.Server;

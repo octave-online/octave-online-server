@@ -371,7 +371,7 @@ implements IWorkspace {
 				}, next);
 			}
 		], (err) => {
-			if (err) console.log("REDIS ERROR", err);
+			if (err) this._log.error("REDIS ERROR", err);
 		});
 	};
 

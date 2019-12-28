@@ -25,7 +25,7 @@ import Crypto = require("crypto");
 import Mongoose = require("mongoose");
 
 import * as Utils from "./utils";
-import { config } from "./shared_wrap";
+import { config, logger, ILogger } from "./shared_wrap";
 import { Program, IProgram } from "./program_model";
 
 type Err = Error | null;
@@ -65,6 +65,7 @@ interface IUserMethods {
 	touchLastActivity(next: (err: Err) => void): void;
 	loadDependencies(next: (err: Err, user?: IUser) => void): void;
 	isFlavorOK(flavor: string, next: (err: Err, result: boolean) => void): void;
+	logf(): ILogger;
 };
 
 export interface IUser extends Mongoose.Document, IUserMethods {
@@ -248,20 +249,20 @@ class UserMethods implements IUserMethods {
 	// Instance methods for shared workspace keys
 	createShareKey(this: IUser, next?: (err: Err) => void): void {
 		this.share_key = randomAlphaString(48);
-		console.log("Creating share key for user", this.consoleText, this.share_key);
+		this.logf().trace("Creating share key", this.consoleText, this.share_key);
 		this.save(next);
 	};
 
 	removeShareKey(this: IUser, next?: (err: Err) => void): void {
 		this.share_key = undefined;
-		console.log("Removing share key from user", this.consoleText);
+		this.logf().trace("Removing share key", this.consoleText);
 		this.save(next);
 	};
 
 	// Instance methods for password hashes
 	setPassword(this: IUser, password: string, next?: (err: Err) => void): void {
 		var self = this;
-		console.log("Setting password for user", this.consoleText);
+		this.logf().trace("Setting password", this.consoleText);
 		if (!password) {
 			process.nextTick(function() {
 				self.password_hash = "";
@@ -278,7 +279,7 @@ class UserMethods implements IUserMethods {
 	};
 
 	checkPassword(this: IUser, password: string, next: (err: Err, success: boolean) => void): void {
-		console.log("Checking password for user", this.consoleText);
+		this.logf().trace("Checking password", this.consoleText);
 		if (!this.password_hash || !password) {
 			// Fail if no password is set on user
 			process.nextTick(function() {
@@ -291,7 +292,7 @@ class UserMethods implements IUserMethods {
 
 	// Other instance methods
 	touchLastActivity(this: IUser, next: (err: Err) => void): void {
-		console.log("Touching last activity", this.consoleText);
+		this.logf().trace("Touching last activity", this.consoleText);
 		this.last_activity = new Date();
 		this.save(next);
 	};
@@ -317,11 +318,15 @@ class UserMethods implements IUserMethods {
 			// next(null, !!this.flavors_enabled);
 			next(null, true);
 		} else if (flavor) {
-			console.log("WARNING: User requested illegal flavor", flavor);
+			this.logf().trace("WARNING: User requested illegal flavor", flavor);
 			next(null, false);
 		} else {
 			next(null, false);
 		}
+	};
+
+	logf(this: IUser): ILogger {
+		return logger("user:" + this.id.toHexString());
 	};
 };
 
@@ -333,6 +338,7 @@ userSchema.methods.checkPassword = UserMethods.prototype.checkPassword;
 userSchema.methods.touchLastActivity = UserMethods.prototype.touchLastActivity;
 userSchema.methods.loadDependencies = UserMethods.prototype.loadDependencies;
 userSchema.methods.isFlavorOK = UserMethods.prototype.isFlavorOK;
+userSchema.methods.logf = UserMethods.prototype.logf;
 
 
 // Make sure the fields are initialized
