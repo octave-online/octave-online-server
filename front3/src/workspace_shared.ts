@@ -68,17 +68,17 @@ export class SharedWorkspace
 
 		switch(type){
 			case "student":
-				this.shareKey = <string> info;
+				this.shareKey = info as string;
 				break;
 
 			case "host":
-				this.user = <IUser> info;
+				this.user = info as IUser;
 				this.setWsId(this.user.parametrized);
 				break;
 
 			case "default":
 			default:
-				this.setWsId(<string> info);
+				this.setWsId(info as string);
 				break;
 		}
 
@@ -134,6 +134,7 @@ export class SharedWorkspace
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
 	public destroyU(message: string){
 	}
 
@@ -188,7 +189,7 @@ export class SharedWorkspace
 	}
 
 	private resolveFileList(files: any, update: boolean, overwrite: boolean){
-		var files = files || {};
+		files = files || {};
 		for(const filename in files){
 			if (!files.hasOwnProperty(filename)) continue;
 			const file = files[filename];
@@ -383,10 +384,9 @@ export class SharedWorkspace
 		this.touchInterval = setInterval(this.touch, config.redis.expire.interval);
 		this.statsInterval = setInterval(this.recordStats, config.ot.stats_interval);
 
-		const self = this;
-		this.forEachDoc(function(docId,doc){
+		this.forEachDoc((docId,doc) => {
 			doc.subscribe();
-			doc.on("data", self.onDataO);
+			doc.on("data", this.onDataO);
 		});
 	}
 
@@ -395,10 +395,9 @@ export class SharedWorkspace
 		clearInterval(this.touchInterval);
 		clearInterval(this.statsInterval);
 
-		const self = this;
-		this.forEachDoc(function(docId,doc){
+		this.forEachDoc((docId, doc) => {
 			doc.unsubscribe();
-			doc.off("data", self.onDataO);
+			doc.off("data", this.onDataO);
 		});
 	}
 
@@ -415,16 +414,18 @@ export class SharedWorkspace
 
 		this.wsMessageCounter++;
 
+		let i;
+
 		switch(type){
 			case "sesscode":
 				this.emit("sesscode", data);
 				break;
 
 			case "user-action":
-				var i = this.msgIds.indexOf(data.id);
+				i = this.msgIds.indexOf(data.id);
 				if (i > -1) this.msgIds.splice(i, 1);
 				else {
-					this.emit("data", <string> data.name, data.data);
+					this.emit("data", data.name as string, data.data);
 
 					// Special handlers for a few user actions
 					switch(data.name){

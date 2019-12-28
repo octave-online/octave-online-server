@@ -70,7 +70,7 @@ export class SocketHandler implements IDestroyable {
 
 	constructor(socket: SocketIO.Socket) {
 		// Set up the socket
-		this.socket = <ISocketCustom> socket;
+		this.socket = socket as ISocketCustom;
 		this._log = logger("socker-handler:" + socket.id);
 		this._log.info("New Connection", this.socket.handshake.address);
 		this.socket.emit("init");
@@ -168,7 +168,7 @@ export class SocketHandler implements IDestroyable {
 					case "bucket":
 						if (!info) return;
 						this._log.info("Attaching to a bucket:", info);
-						this.workspace = new NormalWorkspace(oldSessCode, user, <string> info);
+						this.workspace = new NormalWorkspace(oldSessCode, user, info as string);
 						break;
 
 					case "session":
@@ -185,7 +185,7 @@ export class SocketHandler implements IDestroyable {
 
 				this.listen();
 				if (action === "bucket") {
-					this.bucketId = <string> info;
+					this.bucketId = info as string;
 					this.loadBucket(skipCreate);
 				} else if (!skipCreate) {
 					(this.workspace as IWorkspace).beginOctaveRequest(this.flavor);
@@ -460,7 +460,7 @@ export class SocketHandler implements IDestroyable {
 				this.sendMessage("You are not the owner of that bucket");
 				return;
 			}
-			bucket.remove((err, bucket) => {
+			bucket.remove((err) => {
 				if (err) {
 					this._log.error("REMOVE BUCKET ERROR", err);
 					this.sendMessage("Encountered error while removing bucket.");

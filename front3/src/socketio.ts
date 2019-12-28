@@ -28,7 +28,7 @@ import * as Middleware from "./session_middleware";
 import { SocketHandler } from "./socket_connect";
 import { config, rack, logger } from "./shared_wrap";
 
-type Err = Error|null;
+type Err = Error|null|undefined;
 
 const ALL_FLAVORS = Object.keys(config.flavors);
 const log = logger("oo-socketio");
@@ -38,18 +38,18 @@ export function init(){
 		.use(SocketIOWildcard())
 		.use((socket,next)=>{
 			// Parse the session using middleware
-			Middleware.middleware(socket.request, <Express.Response>{}, next);
+			Middleware.middleware(socket.request, {} as Express.Response, next);
 		})
 		.on("connection", SocketHandler.onConnection);
 
+	// eslint-disable-next-line @typescript-eslint/no-use-before-define
 	watchFlavorServers(io);
 
 	log.info("Initialized Socket.IO Server");
 }
 
 export function watchFlavorServers(io: SocketIO.Namespace) {
-	// This version of the typedefs doesn't know about the forever function
-	(<any>Async).forever(
+	Async.forever(
 		(next: () => void) => {
 			Async.map(ALL_FLAVORS, (flavor, _next) => {
 				// TODO: Move this call somewhere it could be configurable.

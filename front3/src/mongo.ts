@@ -30,4 +30,4 @@ export function connect() {
 	});
 }
 
-export var connection = Mongoose.connection;
+export const connection = Mongoose.connection;

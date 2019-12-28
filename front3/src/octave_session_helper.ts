@@ -65,7 +65,7 @@ class OctaveSessionHelper extends EventEmitter {
 		}
 	}
 
-	public askForOctave(sessCode: string, content: any, next: (err: Error) => void) {
+	public askForOctave(sessCode: string, content: any, next: (err: Err) => void) {
 		if (content.flavor) {
 			redisMessenger.putSessCodeFlavor(sessCode, content.flavor, content);
 			// TODO: Move this call somewhere it could be configurable.
@@ -76,6 +76,10 @@ class OctaveSessionHelper extends EventEmitter {
 		} else {
 			redisMessenger.putSessCode(sessCode, content);
 		}
+		// TODO: Should we do something more interesting for the callback?
+		process.nextTick(() => {
+			next(null);
+		});
 	}
 
 	public sendDestroyD(sessCode: string, message: string) {
@@ -104,4 +108,4 @@ class OctaveSessionHelper extends EventEmitter {
 	}
 }
 
-export var octaveHelper = new OctaveSessionHelper();
+export const octaveHelper = new OctaveSessionHelper();

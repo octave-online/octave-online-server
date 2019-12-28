@@ -110,7 +110,7 @@ function v2Parametrize(id: Mongoose.Types.ObjectId, email: string) {
 	// 
 	const param_email = email
 		.trim()
-		.replace(/[-\s@\.]+/g, "_") // replace certain chars with underscores
+		.replace(/[-\s@.]+/g, "_") // replace certain chars with underscores
 		.replace(/[^\w]/g, "") // remove all other non-ASCII characters
 		.replace(/([A-Z]+)/g, "_$1") // add underscores before caps
 		.replace(/_+/g, "_") // remove duplicate underscores
@@ -201,17 +201,17 @@ userSchema.virtual("tier").get(function(this: IUser) {
 ].forEach(({field, overrideKey, tierKey, defaultValue})=>{
 	userSchema.virtual(field).get(function(this: IUser) {
 		// <any> cast: https://stackoverflow.com/a/35209016/1407170
-		let candidate: any = (<any>this)[overrideKey];
+		let candidate: any = (this as any)[overrideKey];
 		if (candidate) {
 			return candidate;
 		}
 		// <any> cast: https://stackoverflow.com/a/35209016/1407170
-		candidate = (<any|null>this._program)?.[overrideKey];
+		candidate = (this._program as any|null)?.[overrideKey];
 		if (candidate) {
 			return candidate;
 		}
 		// <any> cast: https://stackoverflow.com/a/35209016/1407170
-		candidate = (<any>config.tiers)[this.tier]?.[tierKey];
+		candidate = (config.tiers as any)[this.tier]?.[tierKey];
 		if (candidate) {
 			return candidate;
 		}
@@ -261,19 +261,18 @@ class UserMethods implements IUserMethods {
 
 	// Instance methods for password hashes
 	setPassword(this: IUser, password: string, next?: (err: Err) => void): void {
-		const self = this;
 		this.logf().trace("Setting password", this.consoleText);
 		if (!password) {
-			process.nextTick(function() {
-				self.password_hash = "";
-				self.save(next);
+			process.nextTick(() => {
+				this.password_hash = "";
+				this.save(next);
 			});
 		} else {
 			// To create a new password manually, run:
 			// $ node -e "require('bcrypt').hash('foo', 10, console.log)"
-			Bcrypt.hash(password, config.auth.password.salt_rounds, function(err, hash) {
-				self.password_hash = hash;
-				self.save(next);
+			Bcrypt.hash(password, config.auth.password.salt_rounds, (err, hash) => {
+				this.password_hash = hash;
+				this.save(next);
 			});
 		}
 	}
@@ -342,7 +341,7 @@ userSchema.methods.logf = UserMethods.prototype.logf;
 
 
 // Make sure the fields are initialized
-userSchema.post("init", function(this: IUser, doc){
+userSchema.post("init", function(this: IUser){
 	if (this.program && this.program !== "default" && !this.share_key) {
 		this.createShareKey();
 	}
@@ -354,7 +353,7 @@ userSchema.post("init", function(this: IUser, doc){
 // Also leave out the *_override fields since the information in those fields is available via the corresponding camel-case virtuals.
 userSchema.set("toJSON", {
 	virtuals: true,
-	transform: function(doc, ret, options) {
+	transform: function(doc, ret /* , options */) {
 		delete ret.password_hash;
 		delete ret.tier_override;
 		delete ret.legal_time_override;
@@ -365,4 +364,4 @@ userSchema.set("toJSON", {
 	}
 });
 
-export var User = Mongoose.model<IUser>("User", userSchema);
+export const User = Mongoose.model<IUser>("User", userSchema);

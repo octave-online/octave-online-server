@@ -46,4 +46,4 @@ programSchema.set("toJSON", {
 	virtuals: true
 });
 
-export var Program = Mongoose.model<IProgram>("Program", programSchema);
+export const Program = Mongoose.model<IProgram>("Program", programSchema);

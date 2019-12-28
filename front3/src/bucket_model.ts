@@ -46,4 +46,4 @@ bucketSchema.set("toJSON", {
 	virtuals: true
 });
 
-export var Bucket = Mongoose.model<IBucket>("Bucket", bucketSchema);
+export const Bucket = Mongoose.model<IBucket>("Bucket", bucketSchema);

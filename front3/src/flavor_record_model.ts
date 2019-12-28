@@ -40,4 +40,4 @@ export interface IFlavorRecord extends Mongoose.Document {
 	flavor: string;
 }
 
-export var FlavorRecord = Mongoose.model<IFlavorRecord>("FlavorRecord", flavorRecordSchema);
+export const FlavorRecord = Mongoose.model<IFlavorRecord>("FlavorRecord", flavorRecordSchema);

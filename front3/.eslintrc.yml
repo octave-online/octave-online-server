@@ -4,3 +4,14 @@ plugins:
 extends:
   - plugin:@typescript-eslint/eslint-recommended
   - plugin:@typescript-eslint/recommended
+rules:
+  # Allow the explicit any type, since there is a lot of interfacing to non-TS libraries
+  '@typescript-eslint/no-explicit-any': off
+  # JSON/Mongo uses snake case
+  '@typescript-eslint/camelcase': off
+  # Explicit void return types are a lot of clutter
+  '@typescript-eslint/explicit-function-return-type': off
+  # The non-null assertion has valid use cases, such as within callback functions
+  '@typescript-eslint/no-non-null-assertion': off
+  # Interfaces that act as interfaces for the purposes of class hierarchy should be prefixed with I; other interfaces, such as those used for declaring object structure, don't need to be prefixed with I
+  '@typescript-eslint/interface-name-prefix': off

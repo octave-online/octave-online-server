@@ -102,7 +102,7 @@ export class BackServerHandler extends EventEmitter {
 
 	private depend(props: string[], log=false) {
 		for (let i = 0; i < props.length; i++){
-			if (!(<any>this)[props[i]]) {
+			if (!(this as any)[props[i]]) {
 				if (log) this._log.warn("UNMET DEPENDENCY", props[i], arguments.callee.caller);
 				return false;
 			}

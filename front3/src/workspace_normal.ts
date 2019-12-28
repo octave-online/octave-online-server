@@ -101,24 +101,31 @@ export class NormalWorkspace
 				}
 
 				this.emit("sesscode", this.sessCode!);
+
+				next(null);
 			}
 		], (err) => {
 			if (err) this._log.error("REDIS ERROR", err);
 		});
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
 	public destroyU(message: string){
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
 	public dataD(name: string, val: any){
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
 	public dataU(name: string, val: any){
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public subscribe() {
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public unsubscribe() {
 	}
 }

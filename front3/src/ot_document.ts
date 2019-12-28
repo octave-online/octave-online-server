@@ -118,10 +118,11 @@ export class OtDocument extends EventEmitter {
 	private otMessageListener = (docId: string, obj: any) => {
 		if (docId !== this.id) return;
 
+		let i;
 		switch(obj.type){
 			case "cursor":
 				if (!obj.data) return;
-				var i = this.crsIds.indexOf(obj.data.id);
+				i = this.crsIds.indexOf(obj.data.id);
 				if (i > -1) this.crsIds.splice(i, 1);
 				else this.emit("data", "ot.cursor", {
 					docId: this.id,
@@ -131,7 +132,7 @@ export class OtDocument extends EventEmitter {
 
 			case "operation":
 				if (!obj.chgId || !obj.ops) return;
-				var i = this.chgIds.indexOf(obj.chgId);
+				i = this.chgIds.indexOf(obj.chgId);
 				if (i > -1) {
 					this.chgIds.splice(i, 1);
 					this.emit("data", "ot.ack", {

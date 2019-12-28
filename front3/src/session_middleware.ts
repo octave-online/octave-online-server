@@ -29,6 +29,9 @@ const MongoStore = ConnectMongo(ExpressSession);
 
 const log = logger("session-middleware");
 
+export let middleware: Express.RequestHandler;
+export let store: ExpressSession.Store;
+
 export function init() {
 	// Make the store instance
 	store = new MongoStore({
@@ -47,6 +50,3 @@ export function init() {
 
 	log.info("Initialized Session Store");
 }
-
-export var middleware: Express.RequestHandler;
-export var store: ExpressSession.Store;
