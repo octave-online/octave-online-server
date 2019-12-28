@@ -31,7 +31,7 @@ import { Program, IProgram } from "./program_model";
 type Err = Error | null;
 
 // Initialize the schema
-var userSchema = new Mongoose.Schema({
+const userSchema = new Mongoose.Schema({
 	email: String,
 	parametrized: String,
 	profile: Mongoose.Schema.Types.Mixed,
@@ -66,7 +66,7 @@ interface IUserMethods {
 	loadDependencies(next: (err: Err, user?: IUser) => void): void;
 	isFlavorOK(flavor: string, next: (err: Err, result: boolean) => void): void;
 	logf(): ILogger;
-};
+}
 
 export interface IUser extends Mongoose.Document, IUserMethods {
 	_id: Mongoose.Types.ObjectId;
@@ -97,7 +97,7 @@ export interface IUser extends Mongoose.Document, IUserMethods {
 
 	// Extra internal slots
 	_program: IProgram | null;
-};
+}
 
 // Parametrization function used by Octave Online,
 // c. January 2015 - ?
@@ -108,13 +108,13 @@ function v2Parametrize(id: Mongoose.Types.ObjectId, email: string) {
 	// 
 	// Adds a human-readable characteristic to the filename.
 	// 
-	var param_email = email
+	const param_email = email
 		.trim()
-		.replace(/[-\s@\.]+/g, '_') // replace certain chars with underscores
-		.replace(/[^\w]/g, '') // remove all other non-ASCII characters
-		.replace(/([A-Z]+)/g, '_$1') // add underscores before caps
-		.replace(/_+/g, '_') // remove duplicate underscores
-		.replace(/^_/, '') // remove leading underscore if it exists
+		.replace(/[-\s@\.]+/g, "_") // replace certain chars with underscores
+		.replace(/[^\w]/g, "") // remove all other non-ASCII characters
+		.replace(/([A-Z]+)/g, "_$1") // add underscores before caps
+		.replace(/_+/g, "_") // remove duplicate underscores
+		.replace(/^_/, "") // remove leading underscore if it exists
 		.toLowerCase(); // convert to lower case
 
 	// Add an arbitrary, but deterministic, eight characters to the
@@ -123,11 +123,11 @@ function v2Parametrize(id: Mongoose.Types.ObjectId, email: string) {
 	// Helps with indexing of filenames, and mostly prevents filename
 	// collisions arising from similar email addresses.
 	// 
-	var param_md5 = Crypto
+	let param_md5 = Crypto
 		.createHash("md5")
 		.update(id.toHexString())
 		.digest("base64")
-		.replace(/[^a-zA-Z]/g, '')
+		.replace(/[^a-zA-Z]/g, "")
 		.toLowerCase();
 
 	// In the rare case when this returns a string less than eight,
@@ -220,13 +220,13 @@ userSchema.virtual("tier").get(function(this: IUser) {
 });
 
 function randomAlphaString(length: number): string {
-	var str = "";
+	let str = "";
 	while (str.length < length) {
 		str += Crypto
 			.createHash("md5")
 			.update(Math.random().toString())
 			.digest("base64")
-			.replace(/[^a-zA-Z]/g, '');
+			.replace(/[^a-zA-Z]/g, "");
 	}
 	return str.substr(0, length);
 }
@@ -251,17 +251,17 @@ class UserMethods implements IUserMethods {
 		this.share_key = randomAlphaString(48);
 		this.logf().trace("Creating share key", this.consoleText, this.share_key);
 		this.save(next);
-	};
+	}
 
 	removeShareKey(this: IUser, next?: (err: Err) => void): void {
 		this.share_key = undefined;
 		this.logf().trace("Removing share key", this.consoleText);
 		this.save(next);
-	};
+	}
 
 	// Instance methods for password hashes
 	setPassword(this: IUser, password: string, next?: (err: Err) => void): void {
-		var self = this;
+		const self = this;
 		this.logf().trace("Setting password", this.consoleText);
 		if (!password) {
 			process.nextTick(function() {
@@ -276,7 +276,7 @@ class UserMethods implements IUserMethods {
 				self.save(next);
 			});
 		}
-	};
+	}
 
 	checkPassword(this: IUser, password: string, next: (err: Err, success: boolean) => void): void {
 		this.logf().trace("Checking password", this.consoleText);
@@ -288,14 +288,14 @@ class UserMethods implements IUserMethods {
 		} else {
 			Bcrypt.compare(password, this.password_hash, next);
 		}
-	};
+	}
 
 	// Other instance methods
 	touchLastActivity(this: IUser, next: (err: Err) => void): void {
 		this.logf().trace("Touching last activity", this.consoleText);
 		this.last_activity = new Date();
 		this.save(next);
-	};
+	}
 
 	loadDependencies(this: IUser, next: (err: Err, user?: IUser) => void): void {
 		if (!this.program) {
@@ -308,9 +308,9 @@ class UserMethods implements IUserMethods {
 			this._program = _program;
 			next(null, this);
 		});
-	};
+	}
 
-	isFlavorOK(this: IUser, flavor:string, next: (err: Err, result: boolean) => void): void {
+	isFlavorOK(this: IUser, flavor: string, next: (err: Err, result: boolean) => void): void {
 		// Note: This function must at least validate that the flavor is valid; to this point, the flavor is unsanitized user input.
 		const availableFlavors = Object.keys(config.flavors);
 		if (availableFlavors.indexOf(flavor) !== -1) {
@@ -323,12 +323,12 @@ class UserMethods implements IUserMethods {
 		} else {
 			next(null, false);
 		}
-	};
+	}
 
 	logf(this: IUser): ILogger {
 		return logger("user:" + this.id.toHexString());
-	};
-};
+	}
+}
 
 // Copy the methods into userSchema
 userSchema.methods.createShareKey = UserMethods.prototype.createShareKey;

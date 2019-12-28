@@ -33,7 +33,7 @@ import { config, logger } from "./shared_wrap";
 
 const log = logger("express-setup");
 
-module ExpressApp {
+namespace ExpressApp {
 	export function init(){
 		const staticPath = Path.join(__dirname, "..", "..", config.front.static_path);
 		log.info("Serving static files from:", staticPath);
@@ -106,7 +106,7 @@ module ExpressApp {
 		log.info("Initialized Express Server on port:", config.front.listen_port);
 	}
 
-	export var app:Http.Server;
+	export var app: Http.Server;
 }
 
 export = ExpressApp;

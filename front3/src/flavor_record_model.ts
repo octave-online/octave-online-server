@@ -23,7 +23,7 @@
 import Mongoose = require("mongoose");
 
 // Initialize the schema
-var flavorRecordSchema = new Mongoose.Schema({
+const flavorRecordSchema = new Mongoose.Schema({
 	user_id: Mongoose.Schema.Types.ObjectId,
 	sesscode: String,
 	start: Date,
@@ -38,6 +38,6 @@ export interface IFlavorRecord extends Mongoose.Document {
 	start: Date;
 	current: Date;
 	flavor: string;
-};
+}
 
 export var FlavorRecord = Mongoose.model<IFlavorRecord>("FlavorRecord", flavorRecordSchema);

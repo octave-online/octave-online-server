@@ -27,6 +27,7 @@ const Queue = require("./queue");
 // For streams of messages with attachments, use a queue to handle incoming messages to ensure that messages are processed in order.  The loading of data via attachments is asynchronous and may cause messages to change order.
 class RedisQueue extends EventEmitter {
 	constructor(logId) {
+		super();
 		this._queue = new Queue();
 		this._log = logger("rq:" + logId);
 		this._mlog = logger("rq:" + logId + ":minor");

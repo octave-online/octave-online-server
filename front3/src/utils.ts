@@ -38,7 +38,7 @@ export interface IWorkspace {
 	dataU(name: string, val: any): void;
 	beginOctaveRequest(flavor: string|null): void;
 
-	on(event:string, callback: (...args: any[])=>void):void;
+	on(event: string, callback: (...args: any[]) => void): void;
 	removeAllListeners(): void;
 	subscribe(): void;
 	unsubscribe(): void;

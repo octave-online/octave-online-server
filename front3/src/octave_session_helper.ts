@@ -25,7 +25,7 @@ import { newRedisMessenger, redisUtil, rack, logger, ILogger } from "./shared_wr
 
 type Err = Error|null;
 
-export enum SessionState { Needed, Loading, Live };
+export enum SessionState { Needed, Loading, Live }
 
 const redisMessenger = newRedisMessenger();
 
@@ -37,7 +37,7 @@ class OctaveSessionHelper extends EventEmitter {
 		this._log = logger("octave-helper");
 	}
 
-	public getNewSessCode(sessCodeGuess:string|null, next:(err:Err, sessCode:string, state:SessionState)=>void){
+	public getNewSessCode(sessCodeGuess: string|null, next: (err: Err, sessCode: string, state: SessionState) => void){
 		let sessCode = sessCodeGuess;
 
 		// Check for proper sessCode format (possible attack vector)
@@ -65,7 +65,7 @@ class OctaveSessionHelper extends EventEmitter {
 		}
 	}
 
-	public askForOctave(sessCode:string, content:any, next:(err:Error)=>void) {
+	public askForOctave(sessCode: string, content: any, next: (err: Error) => void) {
 		if (content.flavor) {
 			redisMessenger.putSessCodeFlavor(sessCode, content.flavor, content);
 			// TODO: Move this call somewhere it could be configurable.
@@ -78,26 +78,26 @@ class OctaveSessionHelper extends EventEmitter {
 		}
 	}
 
-	public sendDestroyD(sessCode:string, message:string) {
+	public sendDestroyD(sessCode: string, message: string) {
 		this._log.trace("Sending Destroy-D", message, sessCode);
 		redisMessenger.destroyD(sessCode, message);
 	}
 
-	private makeSessCode(next:(err:Err, sessCode:string)=>void) {
+	private makeSessCode(next: (err: Err, sessCode: string) => void) {
 		Crypto.pseudoRandomBytes(12, (err, buf) => {
 			if (err) {
 				return next(err, "zzz");
 			}
 
-			var sessCode = buf.toString("hex");
+			const sessCode = buf.toString("hex");
 			next(null, sessCode);
 		});
 	}
 
-	private isValid(sessCode:string, next:(valid:SessionState)=>void) {
-		redisMessenger.isValid(sessCode, (err:Err, valid:string|null) => {
+	private isValid(sessCode: string, next: (valid: SessionState) => void) {
+		redisMessenger.isValid(sessCode, (err: Err, valid: string|null) => {
 			if (err) return this._log.error("REDIS ERROR", err);
-			var state = (valid === null) ? SessionState.Needed
+			const state = (valid === null) ? SessionState.Needed
 				: ((valid === "false") ? SessionState.Loading : SessionState.Live);
 			next(state);
 		});

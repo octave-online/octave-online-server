@@ -31,27 +31,27 @@ type Err = Error|null;
 
 
 export class NormalWorkspace
-extends EventEmitter
-implements IWorkspace, IDestroyable {
+	extends EventEmitter
+	implements IWorkspace, IDestroyable {
 	public sessCode: string|null;
-	public destroyed: boolean = false;
+	public destroyed = false;
 	private user: IUser|null;
 	private bucketId: string|null;
 	private _log: ILogger;
 
-	constructor(sessCode:string|null, user:IUser|null, bucketId:string|null){
+	constructor(sessCode: string|null, user: IUser|null, bucketId: string|null){
 		super();
 		this.sessCode = sessCode;
 		this.user = user;
 		this.bucketId = bucketId;
-		this._log = logger(`workspace-nrm:uninitialized`);
+		this._log = logger("workspace-nrm:uninitialized");
 
 		process.nextTick(()=>{
 			this.emit("data", "userinfo", user);
 		});
 	}
 
-	public destroyD(message:string){
+	public destroyD(message: string){
 		this.destroyed = true;
 		if (this.sessCode) {
 			octaveHelper.sendDestroyD(this.sessCode, message);
@@ -60,11 +60,11 @@ implements IWorkspace, IDestroyable {
 
 	public beginOctaveRequest(flavor: string) {
 		Async.waterfall([
-			(next: (err:Err, sessCode:string, state:SessionState)=>void) => {
+			(next: (err: Err, sessCode: string, state: SessionState) => void) => {
 				// Check with Redis about the status of the desired sessCode
 				octaveHelper.getNewSessCode(this.sessCode, next);
 			},
-			(sessCode:string, state:SessionState, next:(err:Err)=>void) => {
+			(sessCode: string, state: SessionState, next: (err: Err) => void) => {
 				if (this.destroyed) {
 					if (state !== SessionState.Needed)
 						octaveHelper.sendDestroyD(sessCode, "Client Gone 1");
@@ -94,7 +94,7 @@ implements IWorkspace, IDestroyable {
 					this.emit("data", "files-ready", {});
 				}
 			},
-			(next:(err:Err)=>void) => {
+			(next: (err: Err) => void) => {
 				if (this.destroyed) {
 					octaveHelper.sendDestroyD(this.sessCode!, "Client Gone 2");
 					return;
@@ -107,13 +107,13 @@ implements IWorkspace, IDestroyable {
 		});
 	}
 
-	public destroyU(message:string){
+	public destroyU(message: string){
 	}
 
-	public dataD(name:string, val:any){
+	public dataD(name: string, val: any){
 	}
 
-	public dataU(name:string, val:any){
+	public dataU(name: string, val: any){
 	}
 
 	public subscribe() {
@@ -121,4 +121,4 @@ implements IWorkspace, IDestroyable {
 
 	public unsubscribe() {
 	}
-};
+}

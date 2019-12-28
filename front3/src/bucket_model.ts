@@ -23,7 +23,7 @@
 import Mongoose = require("mongoose");
 
 // Initialize the schema
-var bucketSchema = new Mongoose.Schema({
+const bucketSchema = new Mongoose.Schema({
 	bucket_id: String,
 	user_id: Mongoose.Schema.Types.ObjectId,
 	main: String
@@ -36,7 +36,7 @@ export interface IBucket extends Mongoose.Document {
 	main: string;
 
 	createdTime: Date;
-};
+}
 
 bucketSchema.virtual("createdTime").get(function (this: IBucket) {
 	return this._id.getTimestamp();

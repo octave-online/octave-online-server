@@ -45,7 +45,7 @@ export class OtDocument extends EventEmitter {
 	public opsReceivedCounter = 0;
 	public setContentCounter = 0;
 
-	constructor (id:string) {
+	constructor (id: string) {
 		super();
 		this.id = id;
 		this._log = logger("ot-doc:" + id) as ILogger;
@@ -65,7 +65,7 @@ export class OtDocument extends EventEmitter {
 		clearInterval(this.touchInterval);
 	}
 
-	public dataD(name:string, value:any) {
+	public dataD(name: string, value: any) {
 		if (this.id !== value.docId) return;
 
 		switch(name){
@@ -82,10 +82,10 @@ export class OtDocument extends EventEmitter {
 		}
 	}
 
-	public changeDocId(newDocId:string) {
+	public changeDocId(newDocId: string) {
 		if (this.id === newDocId) return;
 
-		var oldDocId = this.id;
+		const oldDocId = this.id;
 		this.id = newDocId;
 
 		// Note that multiple clients may all demand the rename simultaneously.
@@ -109,13 +109,13 @@ export class OtDocument extends EventEmitter {
 				});
 			}
 		});
-	};
+	}
 
 	private touch() {
 		redisMessenger.touchOtDoc(this.id);
-	};
+	}
 
-	private otMessageListener = (docId:string, obj:any) => {
+	private otMessageListener = (docId: string, obj: any) => {
 		if (docId !== this.id) return;
 
 		switch(obj.type){
@@ -156,14 +156,14 @@ export class OtDocument extends EventEmitter {
 			|| typeof obj.rev === "undefined")
 			return;
 
-		var op = Ot.TextOperation.fromJSON(obj.op);
+		const op = Ot.TextOperation.fromJSON(obj.op);
 		this.receiveOperation(obj.rev, op);
 	};
 
 	private onOtCursor = (obj: any) => {
 		if (!obj || !obj.cursor) return;
 
-		var crsId = Uuid.v4();
+		const crsId = Uuid.v4();
 		this.crsIds.push(crsId);
 		redisMessenger.otMsg(this.id, {
 			type: "cursor",
@@ -174,33 +174,33 @@ export class OtDocument extends EventEmitter {
 		});
 	};
 
-	private receiveOperation(rev:number, op:Ot.ITextOperation) {
-		var chgId = Uuid.v4();
+	private receiveOperation(rev: number, op: Ot.ITextOperation) {
+		const chgId = Uuid.v4();
 
 		this._log.trace("Applying operation", rev, chgId);
 
-		var message = {
+		const message = {
 			type: "operation",
 			docId: this.id,
 			chgId: chgId,
 			ops: op.toJSON()
-		}
+		};
 
 		this.chgIds.push(chgId);
 		redisMessenger.applyOtOperation(this.id, rev, message);
 		this.opsReceivedCounter++;
 	}
 
-	public setContent(content:string, overwrite:boolean) {
-		var chgId = Uuid.v4();
+	public setContent(content: string, overwrite: boolean) {
+		const chgId = Uuid.v4();
 
 		this._log.trace("Setting content", content.length, overwrite);
 
-		var message = {
+		const message = {
 			type: "operation",
 			docId: this.id,
 			chgId: chgId
-		}
+		};
 
 		// note: don't push chgId to this.chgIds so that the operation reply gets sent to our own client
 		redisMessenger.setOtDocContent(this.id, content, overwrite, message);

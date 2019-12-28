@@ -339,7 +339,7 @@ class RedisMessenger extends EventEmitter {
 
 		// Perform a Compare-And-Swap operation (this is oddly not
 		// in core Redis, so a Lua script is required)
-		const casScript = 'local k=redis.call("GET",KEYS[1]); print(k); if k==false or k==ARGV[2] then redis.call("SET",KEYS[1],ARGV[1]); return {true,ARGV[1]}; end; return {false,k};';
+		const casScript = "local k=redis.call(\"GET\",KEYS[1]); print(k); if k==false or k==ARGV[2] then redis.call(\"SET\",KEYS[1],ARGV[1]); return {true,ARGV[1]}; end; return {false,k};";
 		this._client.eval(casScript, 1, redisUtil.chan.wsSess(wsId), newSessCode, oldSessCode || "-", next);
 	}
 
@@ -386,7 +386,7 @@ class RedisMessenger extends EventEmitter {
 		const multi = this._client.multi();
 		multi.get(redisUtil.chan.otCnt(docId));
 		multi.get(redisUtil.chan.otDoc(docId));
-		multi.exec((err) => {
+		multi.exec((err, res) => {
 			if (err) return next(err);
 			const rev = Number(res[0]) || 0;
 			const content = res[1] || "";
@@ -424,8 +424,8 @@ class RedisMessenger extends EventEmitter {
 			[
 				content,
 				JSON.stringify(message),
-				Config.ot.operation_expire/1000,
-				Config.ot.document_expire.timeout/1000,
+				config.ot.operation_expire/1000,
+				config.ot.document_expire.timeout/1000,
 				(overwrite?"overwrite":"retain")
 			],
 			this._handleError.bind(this));

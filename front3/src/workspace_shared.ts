@@ -46,14 +46,14 @@ wsSessClient.subscribeToWorkspaceMsgs();
 wsSessClient.setMaxListeners(30);
 
 export class SharedWorkspace
-extends EventEmitter
-implements IWorkspace {
+	extends EventEmitter
+	implements IWorkspace {
 	public wsId: string|null = null;
 	public sessCode: string|null = null;
-	public destroyed: boolean = false;
+	public destroyed = false;
 	private shareKey: string|null = null;
 	private user: IUser|null = null;
-	private docs: { [key: string]: OtDocument; } = {};
+	private docs: { [key: string]: OtDocument } = {};
 	private msgIds: string[] = [];
 	private otEventCounter = 0;
 	private wsMessageCounter = 0;
@@ -61,7 +61,7 @@ implements IWorkspace {
 	private touchInterval: any;
 	private _log: ILogger;
 
-	constructor(type:string, info:any) {
+	constructor(type: string, info: any) {
 		super();
 
 		this._log = logger("workspace-shr:uninitialized");
@@ -86,7 +86,7 @@ implements IWorkspace {
 		this.subscribe();
 	}
 
-	private setWsId(wsId:string) {
+	private setWsId(wsId: string) {
 		if (this.wsId) {
 			if (this.wsId !== wsId)
 				this._log.error("SHARED WORKSPACE ERROR: Trying to set wsId to", wsId, "when it was already set to", this.wsId);
@@ -102,7 +102,7 @@ implements IWorkspace {
 		// Create the prompt's OtDocument (every session)
 		// Never emit from constructors since there are no listeners yet;
 		// use process.nextTick() instead
-		var promptId = "prompt." + this.wsId;
+		const promptId = "prompt." + this.wsId;
 		process.nextTick(() => {
 			this.emit("data", "ws.promptid", promptId);
 			this.docs[promptId] = new OtDocument(promptId);
@@ -110,13 +110,13 @@ implements IWorkspace {
 		});
 	}
 
-	private forEachDoc(fn:(docId:string,doc:OtDocument)=>void){
+	private forEachDoc(fn: (docId: string,doc: OtDocument) => void){
 		Object.getOwnPropertyNames(this.docs).forEach((docId) => {
 			fn(docId, this.docs[docId]);
 		});
 	}
 
-	public destroyD(message:string){
+	public destroyD(message: string){
 		// The Octave session will be destroyed by expiring keys once all
 		// users have disconnected.  There is no need to destroy it here.
 		// Special case: when sharing is disabled or flavor upgraded
@@ -134,10 +134,10 @@ implements IWorkspace {
 		}
 	}
 
-	public destroyU(message:string){
+	public destroyU(message: string){
 	}
 
-	public dataD(name:string, value:any) {
+	public dataD(name: string, value: any) {
 		if (!name) name = "";
 		if (!value) value = {};
 
@@ -146,7 +146,7 @@ implements IWorkspace {
 
 		// Pass OT events down to the OT instances
 		if (name.substr(0,3) === "ot.") {
-			this.forEachDoc(function(docId,doc){ doc.dataD(name, value) });
+			this.forEachDoc(function(docId,doc){ doc.dataD(name, value); });
 			this.otEventCounter++;
 			return;
 		}
@@ -161,7 +161,7 @@ implements IWorkspace {
 		this.onUserAction(name, value);
 	}
 
-	public dataU(name:string, value:any) {
+	public dataU(name: string, value: any) {
 		if (!name) name = "";
 		if (!value) value = {};
 
@@ -187,35 +187,35 @@ implements IWorkspace {
 		}
 	}
 
-	private resolveFileList(files:any, update:boolean, overwrite:boolean){
+	private resolveFileList(files: any, update: boolean, overwrite: boolean){
 		var files = files || {};
-		for(var filename in files){
+		for(const filename in files){
 			if (!files.hasOwnProperty(filename)) continue;
-			var file = files[filename];
+			const file = files[filename];
 			if (!file.isText) continue;
-			var content = new Buffer(file.content, "base64").toString();
+			const content = new Buffer(file.content, "base64").toString();
 			this.resolveFile(filename, content, update, overwrite);
 		}
 	}
 
-	private resolveFileAdd(file:any, update:boolean, overwrite:boolean){
+	private resolveFileAdd(file: any, update: boolean, overwrite: boolean){
 		if (!file.isText) return;
 
 		this._log.trace("Resolving File Add", file.filename, update, overwrite);
 
-		var content = new Buffer(file.content, "base64").toString();
+		const content = new Buffer(file.content, "base64").toString();
 		this.resolveFile(file.filename, content, update, overwrite);
 	}
 
-	private resolveFileSave(file:any, update:boolean, overwrite:boolean){
+	private resolveFileSave(file: any, update: boolean, overwrite: boolean){
 		this._log.trace("Resolving File Save", file.filename, update, overwrite);
 		this.resolveFile(file.filename, file.content, update, overwrite);
 	}
 
-	private resolveFile(filename:string, content:string,
-			update:boolean, overwrite:boolean) {
-		var hash = Crypto.createHash("md5").update(filename).digest("hex");
-		var docId = "doc." + this.wsId + "." + hash;
+	private resolveFile(filename: string, content: string,
+		update: boolean, overwrite: boolean) {
+		const hash = Crypto.createHash("md5").update(filename).digest("hex");
+		const docId = "doc." + this.wsId + "." + hash;
 
 		if (!this.docs[docId]) {
 			this.docs[docId] = new OtDocument(docId);
@@ -231,12 +231,12 @@ implements IWorkspace {
 		if (update) this.docs[docId].setContent(content, overwrite);
 	}
 
-	private resolveFileRename(oldname:string, newname:string) {
-		var oldhash = Crypto.createHash("md5").update(oldname).digest("hex");
-		var newhash = Crypto.createHash("md5").update(newname).digest("hex");
+	private resolveFileRename(oldname: string, newname: string) {
+		const oldhash = Crypto.createHash("md5").update(oldname).digest("hex");
+		const newhash = Crypto.createHash("md5").update(newname).digest("hex");
 
-		var oldDocId = "doc." + this.wsId + "." + oldhash;
-		var newDocId = "doc." + this.wsId + "." + newhash;
+		const oldDocId = "doc." + this.wsId + "." + oldhash;
+		const newDocId = "doc." + this.wsId + "." + newhash;
 
 		// May 2018: do not log email-based identifiers
 		if (!this.docs[oldDocId]) {
@@ -250,7 +250,7 @@ implements IWorkspace {
 
 		this._log.trace("Resolving File Remame", oldname, newname);
 
-		var doc = this.docs[oldDocId];
+		const doc = this.docs[oldDocId];
 		delete this.docs[oldDocId];
 		this.docs[newDocId] = doc;
 
@@ -264,9 +264,9 @@ implements IWorkspace {
 		});
 	}
 
-	private resolveFileDelete(filename:string) {
-		var hash = Crypto.createHash("md5").update(filename).digest("hex");
-		var docId = "doc." + this.wsId + "." + hash;
+	private resolveFileDelete(filename: string) {
+		const hash = Crypto.createHash("md5").update(filename).digest("hex");
+		const docId = "doc." + this.wsId + "." + hash;
 
 		// May 2018: do not log email-based identifiers
 		if (!this.docs[docId]) {
@@ -276,7 +276,7 @@ implements IWorkspace {
 
 		this._log.trace("Resolving File Delete", filename);
 
-		var doc = this.docs[docId];
+		const doc = this.docs[docId];
 		delete this.docs[docId];
 		doc.destroy();
 
@@ -321,18 +321,18 @@ implements IWorkspace {
 
 	private doBeginOctaveRequest(flavor: string) {
 		Async.waterfall([
-			(next: (err:Err, sessCode:string)=>void) => {
+			(next: (err: Err, sessCode: string) => void) => {
 				// Check if there is a sessCode in Redis already.
 				redisMessenger.getWorkspaceSessCode(this.wsId, next);
 			},
-			(sessCode: string, next: (err:Err, sessCode:string, state:SessionState)=>void) => {
+			(sessCode: string, next: (err: Err, sessCode: string, state: SessionState) => void) => {
 				if (this.destroyed) return;
 				this.sessCode = sessCode;
 
 				// Make sure that sessCode is still live.
 				octaveHelper.getNewSessCode(sessCode, next);
 			},
-			(sessCode:string, state:SessionState, next: (err:Err, result:any)=>void) => {
+			(sessCode: string, state: SessionState, next: (err: Err, result: any) => void) => {
 				if (this.destroyed) return;
 				this._log.trace("SessCode State:", state);
 
@@ -352,7 +352,7 @@ implements IWorkspace {
 					this.emit("sesscode", sessCode);
 				}
 			},
-			(results: any[], next: (err:Err)=>void) => {
+			(results: any[], next: (err: Err) => void) => {
 				const saved: boolean = results[0];
 				const sessCode: string = results[1];
 				if (!saved) return;
@@ -373,7 +373,7 @@ implements IWorkspace {
 		], (err) => {
 			if (err) this._log.error("REDIS ERROR", err);
 		});
-	};
+	}
 
 	public subscribe() {
 		this.unsubscribe();
@@ -383,24 +383,24 @@ implements IWorkspace {
 		this.touchInterval = setInterval(this.touch, config.redis.expire.interval);
 		this.statsInterval = setInterval(this.recordStats, config.ot.stats_interval);
 
-		var self = this;
+		const self = this;
 		this.forEachDoc(function(docId,doc){
 			doc.subscribe();
 			doc.on("data", self.onDataO);
 		});
-	};
+	}
 
 	public unsubscribe() {
 		wsSessClient.removeListener("ws-sub", this.wsMessageListener);
 		clearInterval(this.touchInterval);
 		clearInterval(this.statsInterval);
 
-		var self = this;
+		const self = this;
 		this.forEachDoc(function(docId,doc){
 			doc.unsubscribe();
 			doc.off("data", self.onDataO);
 		});
-	};
+	}
 
 	private touch = () => {
 		if (!this.wsId) return;
@@ -444,7 +444,7 @@ implements IWorkspace {
 	// Clients on the same channel will resolve those messages in their
 	// "wsMessageListener" function.
 	private onUserAction = (name: string, value: any) => {
-		var eventName, data;
+		let eventName, data;
 
 		switch(name){
 			case "data":
@@ -461,7 +461,7 @@ implements IWorkspace {
 				return;
 		}
 
-		var msgId = Uuid.v4();
+		const msgId = Uuid.v4();
 		this.msgIds.push(msgId);
 
 		redisMessenger.workspaceMsg(this.wsId, "user-action", {
@@ -476,7 +476,7 @@ implements IWorkspace {
 	};
 
 	private recordStats = () => {
-		var opsReceivedTotal = 0, setContentTotal = 0;
+		let opsReceivedTotal = 0, setContentTotal = 0;
 		this.forEachDoc(function(docId,doc){
 			opsReceivedTotal += doc.opsReceivedCounter;
 			setContentTotal += doc.setContentCounter;
@@ -487,4 +487,4 @@ implements IWorkspace {
 			opsReceivedTotal, "operations received and",
 			setContentTotal, "calls to setContent");
 	}
-};
+}

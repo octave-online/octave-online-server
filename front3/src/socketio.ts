@@ -34,7 +34,7 @@ const ALL_FLAVORS = Object.keys(config.flavors);
 const log = logger("oo-socketio");
 
 export function init(){
-	var io = SocketIO(ExpressApp.app)
+	const io = SocketIO(ExpressApp.app)
 		.use(SocketIOWildcard())
 		.use((socket,next)=>{
 			// Parse the session using middleware
@@ -59,9 +59,9 @@ export function watchFlavorServers(io: SocketIO.Namespace) {
 					log.error("RACKSPACE ERROR", err);
 				} else {
 					results = results as any[];
-					var rawServers = Array.prototype.concat.apply([], results.map((data) => { return (data as any).servers; }));
+					const rawServers = Array.prototype.concat.apply([], results.map((data) => { return (data as any).servers; }));
 					const servers = rawServers.map((server) => {
-						var { name, created, status } = server;
+						const { name, created, status } = server;
 						return { name, created, status };
 					});
 					io.emit("oo.flavor-list", { servers });

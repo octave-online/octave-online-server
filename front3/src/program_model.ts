@@ -23,7 +23,7 @@
 import Mongoose = require("mongoose");
 
 // Initialize the schema
-var programSchema = new Mongoose.Schema({
+const programSchema = new Mongoose.Schema({
 	program_name: String,
 	tier_override: String,
 	legal_time_override: Number,
@@ -40,7 +40,7 @@ export interface IProgram extends Mongoose.Document {
 	payload_limit_override: number;
 	countdown_extra_time_override: number;
 	countdown_request_time_override: number;
-};
+}
 
 programSchema.set("toJSON", {
 	virtuals: true

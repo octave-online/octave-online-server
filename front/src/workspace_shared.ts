@@ -43,12 +43,10 @@ wsSessClient.psubscribe(IRedis.Chan.wsSub("*"));
 
 wsSessClient.setMaxListeners(30);
 
-class SharedWorkspace
-extends EventEmitter2.EventEmitter2
-implements IWorkspace {
+class SharedWorkspace extends EventEmitter2.EventEmitter2 implements IWorkspace {
 	public wsId:string;
 	public sessCode:string;
-	public destroyed:boolean = false;
+	public destroyed = false;
 	private shareKey:string = null;
 	private user:IUser = null;
 	private docs:any = {};

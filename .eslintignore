@@ -7,3 +7,4 @@ client/app/fonts/
 _old/
 front/
 front2/
+*.d.ts

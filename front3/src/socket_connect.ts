@@ -59,16 +59,16 @@ export class SocketHandler implements IDestroyable {
 	public user: IUser|null = null;
 	public bucketId: string|null = null;
 	public flavor: string|null = null;
-	public destroyed: boolean = false;
+	public destroyed = false;
 
 	private _log: ILogger;
 
-	public static onConnection(socket:SocketIO.Socket) {
-		var handler = new SocketHandler(socket);
+	public static onConnection(socket: SocketIO.Socket) {
+		const handler = new SocketHandler(socket);
 		handler.socket.handler = handler;
 	}
 
-	constructor(socket:SocketIO.Socket) {
+	constructor(socket: SocketIO.Socket) {
 		// Set up the socket
 		this.socket = <ISocketCustom> socket;
 		this._log = logger("socker-handler:" + socket.id);
@@ -86,8 +86,8 @@ export class SocketHandler implements IDestroyable {
 
 			// 1. Load user from database
 			raw_user: (next) => {
-				var sess = this.socket.request.session;
-				var userId = sess && sess.passport && sess.passport.user;
+				const sess = this.socket.request.session;
+				const userId = sess && sess.passport && sess.passport.user;
 
 				if (userId) User.findById(userId, next);
 				else next(null, null);
@@ -107,11 +107,11 @@ export class SocketHandler implements IDestroyable {
 				raw_init = raw_init || {};
 
 				// Process the user's requested action
-				var action = raw_init.action;
-				var info = raw_init.info;
-				var oldSessCode = raw_init.sessCode;
-				var skipCreate = raw_init.skipCreate;
-				var flavor = raw_init.flavor;
+				let action = raw_init.action;
+				let info = raw_init.info;
+				let oldSessCode = raw_init.sessCode;
+				let skipCreate = raw_init.skipCreate;
+				const flavor = raw_init.flavor;
 				if (action === "session" && !oldSessCode) {
 					oldSessCode = info; // backwards compat.
 				}
@@ -121,7 +121,7 @@ export class SocketHandler implements IDestroyable {
 				info = TOKEN_REGEX.test(info) ? info : null;
 				oldSessCode = TOKEN_REGEX.test(oldSessCode) ? oldSessCode : null;
 				skipCreate = !!skipCreate;
-				var init = { action, info, oldSessCode, skipCreate, flavor: null };
+				const init = { action, info, oldSessCode, skipCreate, flavor: null };
 
 				if (flavor && user) {
 					user.isFlavorOK(flavor, (err, flavorOK) => {
@@ -142,7 +142,7 @@ export class SocketHandler implements IDestroyable {
 				if (this.destroyed) return;
 
 				// Unpack and save init settings
-				var { action, info, oldSessCode, skipCreate, flavor } = init;
+				const { action, info, oldSessCode, skipCreate, flavor } = init;
 				this.user = user;
 				this.flavor = flavor;
 
@@ -161,7 +161,7 @@ export class SocketHandler implements IDestroyable {
 					case "student":
 						if (!info) return;
 						// Note: this is not necesarilly a student.  It can be any user.
-						this._log.info("Attaching to a student's workspace:", info)
+						this._log.info("Attaching to a student's workspace:", info);
 						this.workspace = new SharedWorkspace("student", info);
 						break;
 
@@ -239,7 +239,7 @@ export class SocketHandler implements IDestroyable {
 	}
 
 	// Convenience function to post a message in the client's console window
-	private sendMessage(message:string): void {
+	private sendMessage(message: string): void {
 		// Log to console for backwards compatibility with older clients.
 		// TODO: Remove this and send the alert box only
 		this.socket.emit("data", {
@@ -259,17 +259,17 @@ export class SocketHandler implements IDestroyable {
 	}
 
 	// When the back server exits (destroyed from upstream)
-	private onDestroyU(message:string): void {
+	private onDestroyU(message: string): void {
 		this._log.info("Upstream Destroyed:", message);
 		this.socket.emit("destroy-u", message);
 		this.back.setSessCode(null);
 		if (this.workspace) this.workspace.destroyU(message);
-	};
+	}
 
 	// When the client sends a message (data from downstream)
 	private onDataD(obj: any): void {
-		var name: string = obj.data[0] || "";
-		var data: any|null = obj.data[1] || null;
+		const name: string = obj.data[0] || "";
+		const data: any|null = obj.data[1] || null;
 
 		// Check for name matches
 		switch(name){
@@ -324,7 +324,7 @@ export class SocketHandler implements IDestroyable {
 
 		// Send everything else upstream to the back server
 		this.back.dataD(name, data);
-	};
+	}
 
 	// When the back server sends a message (data from upstream)
 	// Let (almost) everything continue downstream to the client
@@ -342,13 +342,13 @@ export class SocketHandler implements IDestroyable {
 		}
 
 		this.socket.emit(name, data);
-	};
+	}
 
 	// When the workspace sends a message (data from workspace)
 	// Let everything continue downstream to the client
 	private onDataW(name: string, data: any): void {
 		this.socket.emit(name, data);
-	};
+	}
 
 	//// OTHER UTILITY FUNCTIONS ////
 
@@ -356,13 +356,13 @@ export class SocketHandler implements IDestroyable {
 		if (!this.user || !this.user.instructor || !this.user.instructor.length)
 			return;
 
-		var programs = this.user.instructor;
-		programs.forEach((program:string) => {
+		const programs = this.user.instructor;
+		programs.forEach((program: string) => {
 			User.find({ program: program }, (err,users) => {
 				this.socket.emit("instructor", {
 					program: program,
 					users: users
-				})
+				});
 			});
 		});
 	}
@@ -428,7 +428,7 @@ export class SocketHandler implements IDestroyable {
 			return;
 		}
 
-		var bucket = new Bucket();
+		const bucket = new Bucket();
 		this._log.info("Creating bucket:", obj.bucket_id, this.user.consoleText);
 		bucket.bucket_id = obj.bucket_id;
 		bucket.user_id = this.user._id;
@@ -481,7 +481,7 @@ export class SocketHandler implements IDestroyable {
 		}
 
 		// Step 1: insert a new FlavorRecord
-		var flavorRecord = new FlavorRecord();
+		const flavorRecord = new FlavorRecord();
 		flavorRecord.user_id = this.user._id;
 		flavorRecord.sesscode = this.back.sessCode || "null";
 		flavorRecord.start = new Date(obj.start);
@@ -507,7 +507,7 @@ export class SocketHandler implements IDestroyable {
 		} else {
 			this.socket.emit("destroy-u", "Invalid Session");
 		}
-	};
+	}
 
 	private setSessCode(sessCode: string): void {
 		// We have our sessCode.
@@ -517,17 +517,17 @@ export class SocketHandler implements IDestroyable {
 			sessCode: sessCode
 		});
 		if (this.workspace) this.workspace.sessCode = sessCode;
-	};
+	}
 
-	private onDataWtoU(name:string, value:any): void {
+	private onDataWtoU(name: string, value: any): void {
 		this.back.dataD(name, value);
-	};
+	}
 
 	//// ENROLLING AND STUDENTS LISTENER FUNCTIONS ////
 
 	private onEnroll(obj: any): void {
 		if (!this.user || !obj) return;
-		var program = obj.program;
+		const program = obj.program;
 		if (!program) return;
 		this._log.info("Enrolling", this.user.consoleText, "in program", program);
 		this.user.program = program;
@@ -535,12 +535,12 @@ export class SocketHandler implements IDestroyable {
 			if (err) return this._log.error("MONGO ERROR", err);
 			this.sendMessage("Successfully enrolled");
 		});
-	};
+	}
 
 	private onUpdateStudents(obj: any): void {
 		if (!obj) return;
 		return this.sendMessage("The update_students command has been replaced.\nOpen a support ticket for more information.");
-	};
+	}
 
 	private onUnenrollStudent(obj: any): void {
 		if (!obj) return;
@@ -586,11 +586,11 @@ export class SocketHandler implements IDestroyable {
 		this.socket.emit("oo.pong", {
 			startTime: parseInt(obj.startTime)
 		});
-	};
+	}
 
 	private onToggleSharing(obj: any): void {
 		if (!this.user || !obj) return;
-		var enabled = obj.enabled;
+		const enabled = obj.enabled;
 
 		if (!enabled && this.user.program && this.user.program !== "default") {
 			this.sendMessage("You must unenroll before disabling sharing.\nTo unenroll, run the command \"enroll('default')\".");
@@ -606,11 +606,11 @@ export class SocketHandler implements IDestroyable {
 				this.socket.emit("reload", {});
 			});
 		}
-	};
+	}
 
 	private onFlavorUpgrade(obj: any): void {
 		if (!this.user || !obj) return;
-		var flavor = obj.flavor;
+		const flavor = obj.flavor;
 
 		this.user.isFlavorOK(flavor, (err, flavorOK) => {
 			if (err) this._log.error("FLAVOR OK ERROR", err);
@@ -627,5 +627,5 @@ export class SocketHandler implements IDestroyable {
 			this.workspace.destroyD("Flavor Upgrade");
 			this.workspace.beginOctaveRequest(this.flavor);
 		});
-	};
+	}
 }

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Hosted GNU Octave processes served over the World Wide Web. The infrastructure that powers Octave Online.",
   "scripts": {
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix"
   },
   "repository": {
     "type": "git",

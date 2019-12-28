@@ -64,7 +64,7 @@ export class BackServerHandler extends EventEmitter {
 		this.touch();
 	}
 
-	public dataD(name:string, data:any) {
+	public dataD(name: string, data: any) {
 		if (this.sessCode === null) {
 			this.emit("data", "alert", "ERROR: Please reconnect! Your action was not performed: " + name);
 			return;
@@ -100,15 +100,15 @@ export class BackServerHandler extends EventEmitter {
 		redisMessenger.touchInput(this.sessCode);
 	};
 
-	private depend(props:string[], log:boolean=false) {
-		for (var i = 0; i < props.length; i++){
+	private depend(props: string[], log=false) {
+		for (let i = 0; i < props.length; i++){
 			if (!(<any>this)[props[i]]) {
 				if (log) this._log.warn("UNMET DEPENDENCY", props[i], arguments.callee.caller);
 				return false;
 			}
 		}
 		return true;
-	};
+	}
 
 	private pMessageListener = (sessCode: string, name: string, getData: any) => {
 		if (!this.depend(["sessCode"])) return;

@@ -32,15 +32,15 @@ type Err = Error | null;
 
 const log = logger("passport-setup");
 
-var baseUrl = `${config.front.protocol}://${config.front.hostname}:${config.front.port}/`;
-var googCallbackUrl = baseUrl + "auth/google/callback";
+const baseUrl = `${config.front.protocol}://${config.front.hostname}:${config.front.port}/`;
+const googCallbackUrl = baseUrl + "auth/google/callback";
 
-var mailgun = Mailgun({
+const mailgun = Mailgun({
 	apiKey: config.mailgun.api_key,
 	domain: config.mailgun.domain
 });
 
-function findOrCreateUser(email:string, profile:any, done:(err: Err, user?: IUser) => void) {
+function findOrCreateUser(email: string, profile: any, done: (err: Err, user?: IUser) => void) {
 	User.findOne({
 		email: email
 	}, (err, user) => {
@@ -69,7 +69,7 @@ function findOrCreateUser(email:string, profile:any, done:(err: Err, user?: IUse
 
 enum PasswordStatus { UNKNOWN, INCORRECT, VALID }
 
-function findWithPassword(email:string, password:string, done:(err: Err, status?: PasswordStatus, user?: IUser) => void) {
+function findWithPassword(email: string, password: string, done: (err: Err, status?: PasswordStatus, user?: IUser) => void) {
 	User.findOne({
 		email: email
 	}, (err, user) => {
@@ -93,72 +93,72 @@ function findWithPassword(email:string, password:string, done:(err: Err, status?
 	});
 }
 
-var googleStrategy = new (GoogleOAuth.OAuth2Strategy)({
-		callbackURL: googCallbackUrl,
-		clientID: config.auth.google.oauth_key,
-		clientSecret: config.auth.google.oauth_secret,
-		userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
-	},
-	function (accessToken, refreshToken, profile, done) {
-		const email = profile.emails?.[0].value;
-		if (!email) {
-			log.warn("No email returned from Google", profile);
-			return done(new Error("No email returned from Google"));
-		}
-		log.trace("Google Login", Utils.emailHash(email));
-		findOrCreateUser(email, profile._json, done);
-	});
-
-var easyStrategy = new (EasyNoPassword.Strategy)({
-		secret: config.auth.easy.secret,
-		maxTokenAge: config.auth.easy.max_token_age
-	},
-	function (req) {
-		if (req.body && req.body.s) {
-			return { stage: 1, username: req.body.s };
-		} else if (req.query && req.query.u && req.query.t) {
-			return { stage: 2, username: req.query.u, token: req.query.t };
-		} else {
-			return null;
-		}
-	},
-	function (email, token, done) {
-		var url = `${baseUrl}auth/tok?u=${encodeURIComponent(email)}&t=${token}`;
-		mailgun.messages().send({
-			from: "Octave Online <webmaster@octave-online.net>",
-			to: email,
-			subject: "Octave Online Login",
-			text: `Your login token for Octave Online is: ${token}\n\nYou can also click the following link.\n\n${url}\n\nOnce you have signed into your account, you may optionally set a password to speed up the sign-in process.  To do this, open the menu and click Change Password.`
-		}, (err, info) => {
-			if (err) {
-				log.warn("Failed sending email:", email, info);
-			} else {
-				log.trace("Sent token email:", Utils.emailHash(email));
-			}
-			done(null);
-		});
-	},
-	function (email: string, done: (err: Err, user?: unknown, info?: any) => void) {
-		log.trace("Easy Callback", Utils.emailHash(email));
-		findOrCreateUser(email, { method: "easy" }, done);
-	});
-
-var passwordStrategy = new (Local.Strategy)({
-		usernameField: "s",
-		passwordField: "p"
-	},
-	function(username, password, done) {
-		findWithPassword(username, password, function(err, status, user) {
-			if (err) return done(err);
-			if (status === PasswordStatus.UNKNOWN || status == PasswordStatus.INCORRECT) {
-				log.warn("Password Callback Failure", status);
-				return done(null, false);
-			} else {
-				log.trace("Password Callback Success", status, (user as IUser).consoleText);
-				return done(null, user);
-			}
-		});
+const googleStrategy = new (GoogleOAuth.OAuth2Strategy)({
+	callbackURL: googCallbackUrl,
+	clientID: config.auth.google.oauth_key,
+	clientSecret: config.auth.google.oauth_secret,
+	userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
+},
+function (accessToken, refreshToken, profile, done) {
+	const email = profile.emails?.[0].value;
+	if (!email) {
+		log.warn("No email returned from Google", profile);
+		return done(new Error("No email returned from Google"));
 	}
+	log.trace("Google Login", Utils.emailHash(email));
+	findOrCreateUser(email, profile._json, done);
+});
+
+const easyStrategy = new (EasyNoPassword.Strategy)({
+	secret: config.auth.easy.secret,
+	maxTokenAge: config.auth.easy.max_token_age
+},
+function (req) {
+	if (req.body && req.body.s) {
+		return { stage: 1, username: req.body.s };
+	} else if (req.query && req.query.u && req.query.t) {
+		return { stage: 2, username: req.query.u, token: req.query.t };
+	} else {
+		return null;
+	}
+},
+function (email, token, done) {
+	const url = `${baseUrl}auth/tok?u=${encodeURIComponent(email)}&t=${token}`;
+	mailgun.messages().send({
+		from: "Octave Online <webmaster@octave-online.net>",
+		to: email,
+		subject: "Octave Online Login",
+		text: `Your login token for Octave Online is: ${token}\n\nYou can also click the following link.\n\n${url}\n\nOnce you have signed into your account, you may optionally set a password to speed up the sign-in process.  To do this, open the menu and click Change Password.`
+	}, (err, info) => {
+		if (err) {
+			log.warn("Failed sending email:", email, info);
+		} else {
+			log.trace("Sent token email:", Utils.emailHash(email));
+		}
+		done(null);
+	});
+},
+function (email: string, done: (err: Err, user?: unknown, info?: any) => void) {
+	log.trace("Easy Callback", Utils.emailHash(email));
+	findOrCreateUser(email, { method: "easy" }, done);
+});
+
+const passwordStrategy = new (Local.Strategy)({
+	usernameField: "s",
+	passwordField: "p"
+},
+function(username, password, done) {
+	findWithPassword(username, password, function(err, status, user) {
+		if (err) return done(err);
+		if (status === PasswordStatus.UNKNOWN || status == PasswordStatus.INCORRECT) {
+			log.warn("Password Callback Failure", status);
+			return done(null, false);
+		} else {
+			log.trace("Password Callback Success", status, (user as IUser).consoleText);
+			return done(null, user);
+		}
+	});
+}
 );
 
 export function init(){
