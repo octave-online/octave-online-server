@@ -23,7 +23,7 @@ import Mongoose = require("mongoose");
 import { config } from "./shared_wrap";
 
 export function connect() {
-	const url = `mongodb://${config.mongo.hostname}:${config.mongo.port}/${config.mongo.db};`;
+	const url = `mongodb://${config.mongo.hostname}:${config.mongo.port}/${config.mongo.db}`;
 
 	return Mongoose.connect(url, {
 		useNewUrlParser: true,
