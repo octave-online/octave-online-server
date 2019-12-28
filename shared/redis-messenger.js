@@ -40,17 +40,17 @@ class RedisMessenger extends EventEmitter {
 		this._mlog = logger("redis-messenger:" + this.id + ":minor");
 
 		this._client.on("error", (err) => {
-			this._log.error("REDIS CLIENT", err);
+			this._log.trace("REDIS CLIENT", err);
 		});
 		this._client.on("end", () => {
-			this._log.info("Redis connection ended");
+			this._log.trace("Redis connection ended");
 		});
 		this._client.on("reconnecting", (info) => {
-			this._log.info("Redis reconnecting:", info);
+			this._log.trace("Redis reconnecting:", info);
 			this._log.debug("FYI: Subscription set:", this._client.subscription_set);
 		});
 		this._client.on("ready", (info) => {
-			this._log.info("Redis ready:", info);
+			this._log.trace("Redis ready:", info);
 		});
 	}
 
@@ -65,11 +65,11 @@ class RedisMessenger extends EventEmitter {
 	enableOtScriptsSync() {
 		this._makeScriptManager();
 
-		let otApplyScript = fs.readFileSync("lua/ot.lua", "utf8");
-		otApplyScript += fs.readFileSync("lua/ot_apply.lua", "utf8");
+		let otApplyScript = fs.readFileSync(path.join(__dirname, "lua/ot.lua"), "utf8");
+		otApplyScript += fs.readFileSync(path.join(__dirname, "lua/ot_apply.lua"), "utf8");
 		otApplyScript = otApplyScript.replace(/function/g, "local function");
 
-		let otSetScript = fs.readFileSync("lua/ot_set.lua", "utf8");
+		let otSetScript = fs.readFileSync(path.join(__dirname, "lua/ot_set.lua"), "utf8");
 
 		this._scriptManager.load({
 			"ot-apply": otApplyScript,
@@ -441,7 +441,7 @@ class RedisMessenger extends EventEmitter {
 		this._ensureNotSubscribed();
 		this._subscribed = true;
 
-		this._log.info("Subscribing to channel:", channel);
+		this._log.trace("Subscribing to channel:", channel);
 
 		this._client.subscribe(channel);
 		this._client.on("message", (channel, message) => {
@@ -460,9 +460,9 @@ class RedisMessenger extends EventEmitter {
 		this._subscribed = true;
 
 		const pattern = chanFn("*");
-		this._log.info("Subscribing to pattern:", pattern);
+		this._log.trace("Subscribing to pattern:", pattern);
 
-		const regex = new RegExp(`^${chanFn("(\\w+)")}$`);
+		const regex = new RegExp(`^${chanFn("([^:]+)")}$`);
 
 		this._client.psubscribe(pattern);
 		this._client.on("pmessage", (pattern, channel, message) => {
@@ -486,7 +486,7 @@ class RedisMessenger extends EventEmitter {
 		this._ensureNotSubscribed();
 		this._subscribed = true;
 
-		this._log.info("Subscribing to expiring keys");
+		this._log.trace("Subscribing to expiring keys");
 
 		this._client.subscribe("__keyevent@0__:expired");
 		this._client.on("message", (channel, message) => {

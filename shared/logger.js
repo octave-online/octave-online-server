@@ -35,7 +35,7 @@ const logger = require("debug-logger").config({
 });
 
 module.exports = function(id) {
-	const impl = logger(id);
+	const impl = logger("oo:" + id);
 	return {
 		trace: impl.trace,
 		debug: impl.debug,

@@ -40,31 +40,25 @@ const mailgun = Mailgun({
 	domain: config.mailgun.domain
 });
 
-function findOrCreateUser(email: string, profile: any, done: (err: Err, user?: IUser) => void) {
-	User.findOne({
+async function findOrCreateUser(email: string, profile: any) {
+	let user = await User.findOne({
 		email: email
-	}, (err, user) => {
-		if (err) {
-			return done(err);
-		}
-
-		if (user) {
-			// Returning user
-			log.trace("Returning User", user.consoleText);
-			done(null, user);
-
-		} else {
-			// Make a new user
-			log.trace("Creating New User");
-			User.create({
-				email: email,
-				profile: profile
-			}, (err: Err, user: IUser) => {  // TODO: Use promise
-				log.info("New User", user.consoleText);
-				done(err, user);
-			});
-		}
 	});
+
+	// Returning user
+	if (user) {
+		log.trace("Returning User", user.consoleText);
+		return user;
+	}
+
+	// Make a new user
+	log.trace("Creating New User");
+	user = await User.create({
+		email: email,
+		profile: profile
+	});
+	log.info("New User", user.consoleText);
+	return user;
 }
 
 enum PasswordStatus { UNKNOWN, INCORRECT, VALID }
@@ -106,7 +100,11 @@ function (accessToken, refreshToken, profile, done) {
 		return done(new Error("No email returned from Google"));
 	}
 	log.trace("Google Login", Utils.emailHash(email));
-	findOrCreateUser(email, profile._json, done);
+	findOrCreateUser(email, profile._json).then((user) => {
+		done(null, user);
+	}, (err) => {
+		done(err);
+	});
 });
 
 const easyStrategy = new (EasyNoPassword.Strategy)({
@@ -140,7 +138,11 @@ function (email, token, done) {
 },
 function (email: string, done: (err: Err, user?: unknown, info?: any) => void) {
 	log.trace("Easy Callback", Utils.emailHash(email));
-	findOrCreateUser(email, { method: "easy" }, done);
+	findOrCreateUser(email, { method: "easy" }).then((user) => {
+		done(null, user);
+	}, (err) => {
+		done(err);
+	});
 });
 
 const passwordStrategy = new (Local.Strategy)({

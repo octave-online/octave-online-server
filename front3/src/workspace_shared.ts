@@ -316,7 +316,7 @@ export class SharedWorkspace
 				next(null);
 			}]
 		}, (err) => {
-			this._log.error("ASYNC ERROR", err);
+			if (err) this._log.error("ASYNC ERROR", err);
 		});
 	}
 
@@ -384,7 +384,7 @@ export class SharedWorkspace
 		this.touchInterval = setInterval(this.touch, config.redis.expire.interval);
 		this.statsInterval = setInterval(this.recordStats, config.ot.stats_interval);
 
-		this.forEachDoc((docId,doc) => {
+		this.forEachDoc((docId, doc) => {
 			doc.subscribe();
 			doc.on("data", this.onDataO);
 		});
@@ -397,7 +397,7 @@ export class SharedWorkspace
 
 		this.forEachDoc((docId, doc) => {
 			doc.unsubscribe();
-			doc.off("data", this.onDataO);
+			doc.removeListener("data", this.onDataO);
 		});
 	}
 

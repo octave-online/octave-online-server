@@ -54,7 +54,7 @@ class RedisQueue extends EventEmitter {
 			this._mlog.trace("Emitting message:", message.name);
 			this.emit("message", message.name, message.content);
 		}
-		this._mlog.debug("Items remaining in queue:", this._messageQueue.size());
+		this._mlog.debug("Items remaining in queue:", this._queue.size());
 	}
 }
 

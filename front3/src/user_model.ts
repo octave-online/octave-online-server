@@ -125,7 +125,7 @@ function v2Parametrize(id: Mongoose.Types.ObjectId, email: string) {
 	// 
 	let param_md5 = Crypto
 		.createHash("md5")
-		.update(id.toHexString())
+		.update(id.toString())
 		.digest("base64")
 		.replace(/[^a-zA-Z]/g, "")
 		.toLowerCase();
@@ -298,7 +298,7 @@ class UserMethods implements IUserMethods {
 
 	loadDependencies(this: IUser, next: (err: Err, user?: IUser) => void): void {
 		if (!this.program) {
-			next(null, this);
+			return next(null, this);
 		}
 		Program.findOne({
 			program_name: this.program
@@ -325,7 +325,7 @@ class UserMethods implements IUserMethods {
 	}
 
 	logf(this: IUser): ILogger {
-		return logger("user:" + this.id.toHexString());
+		return logger("user:" + this.id.valueOf());
 	}
 }
 
