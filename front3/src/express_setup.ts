@@ -52,7 +52,7 @@ export function init(){
 		.use(Passport.initialize())
 		.use(Passport.session())
 		.use(Siofu.router)
-		.set("views", "./src/views")
+		.set("views", Path.join(__dirname, "..", "src", "views"))
 		.set("view engine", "ejs")
 		.get("/ping", function(req, res){
 			res.sendStatus(204);
