@@ -155,14 +155,14 @@ export class SocketHandler implements IDestroyable {
 					case "workspace":
 						if (!info) return;
 						this._log.info("Attaching to colaborative workspace:", info);
-						this.workspace = new SharedWorkspace("default", info);
+						this.workspace = new SharedWorkspace("default", info, socket.id);
 						break;
 
 					case "student":
 						if (!info) return;
 						// Note: this is not necesarilly a student.  It can be any user.
 						this._log.info("Attaching to a student's workspace:", info);
-						this.workspace = new SharedWorkspace("student", info);
+						this.workspace = new SharedWorkspace("student", info, socket.id);
 						break;
 
 					case "bucket":
@@ -175,7 +175,7 @@ export class SocketHandler implements IDestroyable {
 					default:
 						if (user && user.share_key) {
 							this._log.info("Attaching as host to student's workspace:", user.share_key);
-							this.workspace = new SharedWorkspace("host", user);
+							this.workspace = new SharedWorkspace("host", user, socket.id);
 						} else {
 							this._log.info("Attaching to default workspace with sessCode", oldSessCode);
 							this.workspace = new NormalWorkspace(oldSessCode, user, null);

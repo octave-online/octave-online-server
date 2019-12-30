@@ -76,7 +76,7 @@ function findWithPassword(email: string, password: string, done: (err: Err, stat
 				if (valid) {
 					return done(null, PasswordStatus.VALID, user);
 				} else {
-					return done(null, PasswordStatus.INCORRECT);
+					return done(null, PasswordStatus.INCORRECT, user);
 				}
 			});
 
@@ -152,9 +152,11 @@ const passwordStrategy = new (Local.Strategy)({
 function(username, password, done) {
 	findWithPassword(username, password, function(err, status, user) {
 		if (err) return done(err);
-		if (status === PasswordStatus.UNKNOWN || status == PasswordStatus.INCORRECT) {
-			log.warn("Password Callback Failure", status);
+		if (status === PasswordStatus.UNKNOWN) {
+			log.trace("Password Callback Unknown User", status, username);
 			return done(null, false);
+		} else if (status === PasswordStatus.INCORRECT) {
+			log.trace("Password Callback Incorrect", status, (user as IUser).consoleText);
 		} else {
 			log.trace("Password Callback Success", status, (user as IUser).consoleText);
 			return done(null, user);

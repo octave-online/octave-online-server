@@ -35,7 +35,7 @@ class RedisMessenger extends EventEmitter {
 		this._client = redisUtil.createClient();
 		this._subscribed = false;
 		this._scriptManager = null;
-		this.id = uuid.v4();  // For logging
+		this.id = uuid.v4().substr(0, 8);  // For logging
 		this._log = logger("redis-messenger:" + this.id);
 		this._mlog = logger("redis-messenger:" + this.id + ":minor");
 
@@ -501,7 +501,7 @@ class RedisMessenger extends EventEmitter {
 		this._ensureNotSubscribed();
 		if (!this._scriptManager) throw new Error("Need to enable scripts first");
 
-		this._mlog.trace("Running script:", memo, keys);
+		this._mlog.trace("Running script:", memo);
 
 		this._scriptManager.run(memo, keys, args, next);
 	}

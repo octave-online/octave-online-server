@@ -45,11 +45,15 @@ export class OtDocument extends EventEmitter {
 	public opsReceivedCounter = 0;
 	public setContentCounter = 0;
 
-	constructor (id: string) {
+	constructor (id: string, safeId: string) {
 		super();
 		this.id = id;
-		this._log = logger("ot-doc:" + id) as ILogger;
+		this._log = logger("ot-doc:" + safeId) as ILogger;
 		this.load();
+	}
+
+	public logFilename(filename: string) {
+		this._log.trace("Filename:", filename);
 	}
 
 	public subscribe() {

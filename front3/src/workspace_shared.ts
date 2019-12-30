@@ -49,6 +49,7 @@ export class SharedWorkspace
 	extends EventEmitter
 	implements IWorkspace {
 	public wsId: string|null = null;
+	public safeWsId: string|null = null;  // ID with no username
 	public sessCode: string|null = null;
 	public destroyed = false;
 	private shareKey: string|null = null;
@@ -60,11 +61,13 @@ export class SharedWorkspace
 	private statsInterval: any;
 	private touchInterval: any;
 	private _log: ILogger;
+	private logId: string;
 
-	constructor(type: string, info: any) {
+	constructor(type: string, info: any, logId: string) {
 		super();
 
-		this._log = logger("workspace-shr:uninitialized");
+		this._log = logger(`workspace-shr:${logId}:uninitialized`);
+		this.logId = logId;
 
 		switch(type){
 			case "student":
@@ -97,7 +100,8 @@ export class SharedWorkspace
 
 		// May 2018: remove email-based IDs from log
 		const safeWsId = this.wsId && this.wsId.substr(0, 8);
-		this._log = logger("workspace-shr:" + safeWsId);
+		this.safeWsId = safeWsId;
+		this._log = logger(`workspace-shr:${this.logId}:${safeWsId}`);
 
 		// Create the prompt's OtDocument (every session)
 		// Never emit from constructors since there are no listeners yet;
@@ -105,7 +109,7 @@ export class SharedWorkspace
 		const promptId = "prompt." + this.wsId;
 		process.nextTick(() => {
 			this.emit("data", "ws.promptid", promptId);
-			this.docs[promptId] = new OtDocument(promptId);
+			this.docs[promptId] = new OtDocument(promptId, `${this.logId}:prompt.${safeWsId}`);
 			this.subscribe();
 		});
 	}
@@ -215,11 +219,14 @@ export class SharedWorkspace
 
 	private resolveFile(filename: string, content: string,
 		update: boolean, overwrite: boolean) {
-		const hash = Crypto.createHash("md5").update(filename).digest("hex");
-		const docId = "doc." + this.wsId + "." + hash;
+		// Note: hash.copy() was added in Node.js 13; we could use that here instead of converting via Buffer.from()
+		const hexHash = Crypto.createHash("md5").update(filename).digest("hex");
+		const shortHash = Buffer.from(hexHash, "hex").toString("base64").replace(/=/g, "");
+		const docId = `doc.${this.wsId}.${hexHash}`;
 
 		if (!this.docs[docId]) {
-			this.docs[docId] = new OtDocument(docId);
+			this.docs[docId] = new OtDocument(docId, `${this.logId}:doc.${this.safeWsId}.${shortHash}`);
+			this.docs[docId].logFilename(filename);
 			this.subscribe();
 			process.nextTick(() => {
 				this.emit("data", "ws.doc", {
@@ -239,17 +246,16 @@ export class SharedWorkspace
 		const oldDocId = "doc." + this.wsId + "." + oldhash;
 		const newDocId = "doc." + this.wsId + "." + newhash;
 
-		// May 2018: do not log email-based identifiers
 		if (!this.docs[oldDocId]) {
-			this._log.warn("WARNING: Attempted to resolve file rename, but couldn't find old file in shared workspace:", oldname, newname);
+			this._log.trace("Attempted to resolve file rename, but couldn't find old file in shared workspace (non-text file?)", oldname, newname, oldhash);
 			return;
 		}
 		if (this.docs[newDocId]) {
-			this._log.warn("WARNING: Attempted to resolve file rename, but the new name already exists in the workspace:", oldname, newname);
+			this._log.warn("WARNING: Attempted to resolve file rename, but the new name already exists in the workspace", oldname, newname, newhash);
 			return;
 		}
 
-		this._log.trace("Resolving File Remame", oldname, newname);
+		this._log.trace("Resolving File Remame", oldname, newname, oldhash, newhash);
 
 		const doc = this.docs[oldDocId];
 		delete this.docs[oldDocId];
@@ -269,9 +275,8 @@ export class SharedWorkspace
 		const hash = Crypto.createHash("md5").update(filename).digest("hex");
 		const docId = "doc." + this.wsId + "." + hash;
 
-		// May 2018: do not log email-based identifiers
 		if (!this.docs[docId]) {
-			this._log.warn("WARNING: Attempted to resolve file delete, but couldn't find file in shared workspace:", filename);
+			this._log.trace("Attempted to resolve file delete, but couldn't find file in shared workspace (non-text file?)", filename, hash);
 			return;
 		}
 
