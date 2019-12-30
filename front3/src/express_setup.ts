@@ -33,6 +33,8 @@ import { config, logger } from "./shared_wrap";
 
 const log = logger("express-setup");
 
+const PORT = process.env.PORT || config.front.listen_port;
+
 export let app: Http.Server;
 
 export function init(){
@@ -102,7 +104,7 @@ export function init(){
 		.get("*", function(req, res){
 			res.sendStatus(404);
 		})
-		.listen(config.front.listen_port);
+		.listen(PORT);
 
-	log.info("Initialized Express Server on port:", config.front.listen_port);
+	log.info("Initialized Express Server on port:", PORT);
 }

@@ -1,5 +1,5 @@
 {
-  "name": "front3",
+  "name": "@oo/front3",
   "version": "0.0.0",
   "description": "Front server for Octave Online, 2019 refresh",
   "main": "dist/app.js",
@@ -10,7 +10,11 @@
   },
   "author": "Shane F. Carr",
   "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=10"
+  },
   "dependencies": {
+    "@oo/shared": "file:../shared",
     "async": "^3.1.0",
     "bcrypt": "^3.0.7",
     "body-parser": "^1.19.0",
