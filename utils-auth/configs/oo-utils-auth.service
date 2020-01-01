@@ -16,20 +16,19 @@
 # along with Octave Online Server.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+[Unit]
+Description="Authenticates users against the Mongo database"
+
 [Service]
-ExecStart=/usr/local/share/oo/utils-auth/app.js
+ExecStart=/srv/oo/projects/utils-auth/app.js
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=oo-utils-auth
-User=www-data
-Group=www-data
+User=nginx
+Group=nginx
 RuntimeDirectory=oosocks
 Environment=NODE_ENV=production
 Restart=always
-
-[Unit]
-After=mongodb.service,"mnt-oo\x2dblock2.mount"
-Requires=mongodb.service,"mnt-oo\x2dblock2.mount"
 
 [Install]
 WantedBy=multi-user.target

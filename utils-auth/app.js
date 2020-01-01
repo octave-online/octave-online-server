@@ -38,7 +38,8 @@ try {
 }
 console.log("Listening on UNIX socket " + SOCKET_PATH);
 
-mongoose.connect("mongodb://127.0.0.1: " + config.mongo.port + "/" + config.mongo.db);
+const mongoUrl = `mongodb://${config.mongo.hostname}:${config.mongo.port}/${config.mongo.db}`;
+mongoose.connect(mongoUrl, { useNewUrlParser: true });
 const User = mongoose.model("User", {
 	email: String,
 	parametrized: String,
