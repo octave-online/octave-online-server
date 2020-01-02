@@ -1,5 +1,5 @@
 {
-  "name": "@oo/front3",
+  "name": "@oo/front",
   "version": "0.0.0",
   "description": "Front server for Octave Online, 2019 refresh",
   "main": "dist/app.js",
