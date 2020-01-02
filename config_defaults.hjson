@@ -190,15 +190,15 @@ maintenance: {
 
 # Git file server settings
 git: {
-	# Hostname for the git file server; the user running the process should have SSH access to the Git repositories.  You may need to do SSH configurations outside of Octave Online Server for this to work.
+	# Hostname for the git file server; it is expected that this server exposes a Git daemon (git:// protocol) on default port 9418 and the create-repo service on default port 3003 (see back-filesystem/README.md).
 	hostname: localhost
 	# Author as shown in commit messages.
 	author: {
 		name: Octave Online Server
 		email: localhost@localhost
 	}
-	# User on the Git server with permissions to create new repositories.
-	helperUser: git
+	gitDaemonPort: 9418
+	createRepoPort: 3003
 	# Time limit for committing to Git; if the time limit is exceeded, the commit is aborted.
 	commitTimeLimit: 30000
 	# Interval (in ms) for committing without the user having to request; behaves like an "auto-save" where changes to script files are persisted to the Git server.

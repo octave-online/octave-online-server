@@ -36,12 +36,6 @@ Run all of the following make commands from the projects directory.
 
 Follow the Option 2 instructions to build and install Octave from source.  Stop before installing selinux-policy-devel and other selinux packages.
 
-## Additional Setup
-
-### Git SSH Key
-
-If you use SSH to connect to the Git server containing people's saved files, you need to create a private key, save it at *back-filesystem/git/key.pem*, and export the variable `GIT_SSH=/path/to/back-filesystem/git/key.pem`.  You need to export that variable before you run `DEBUG=* node app.js` as described below.
-
 ## Running the Back Server
 
 ### Debugging

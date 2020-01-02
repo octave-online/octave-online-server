@@ -22,12 +22,11 @@
 
 const async = require("async");
 const child_process = require("child_process");
+const got = require("got");
 const logger = require("@oo/shared").logger;
 const path = require("path");
 const config = require("@oo/shared").config;
 const silent = require("@oo/shared").silent;
-
-const GIT_SSH_FILE = path.join(__dirname, "..", "git", "git_ssh.sh");
 
 class GitUtil {
 	constructor(gitDir, logMemo) {
@@ -191,8 +190,14 @@ class GitUtil {
 				_next();
 			},
 			(_next) => {
-				// This command can safely fail silently for the case when the remote repo already exists
-				child_process.execFile(GIT_SSH_FILE, [`${config.git.helperUser}@${config.git.hostname}`, `./create_repo.sh '${user.parametrized}'`], this.execOptions, silent(/File exists/, _next));
+				got(`http://${config.git.hostname}:${config.git.createRepoPort}`, {
+					searchParams: {
+						type: "repos",
+						name: user.parametrized
+					}
+				}).then(() => {
+					next();
+				}).catch(next);
 			}
 		], next);
 	}
@@ -204,18 +209,24 @@ class GitUtil {
 				_next();
 			},
 			(_next) => {
-				// In this case, the command failing is desirable behavior, right?
-				child_process.execFile(GIT_SSH_FILE, [`${config.git.helperUser}@${config.git.hostname}`, `./create_bucket.sh '${bucketId}'`], this.execOptions, _next);
+				got(`http://${config.git.hostname}:${config.git.createRepoPort}`, {
+					searchParams: {
+						type: "buckets",
+						name: bucketId
+					}
+				}).then(() => {
+					next();
+				}).catch(next);
 			}
 		], next);
 	}
 
 	_userToRemote(user) {
-		return `git@${config.git.hostname}:repos/${user.parametrized}.git`;
+		return `git://${config.git.hostname}:${config.git.gitDaemonPort}/repos/${user.parametrized}.git`;
 	}
 
 	_bucketToRemote(bucketId) {
-		return `git@${config.git.hostname}:buckets/${bucketId}.git`;
+		return `git://${config.git.hostname}:${config.git.gitDaemonPort}/buckets/${bucketId}.git`;
 	}
 }
 
