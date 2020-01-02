@@ -36,7 +36,6 @@ console.log("Date:", new Date().toISOString());
 const prefix = (__dirname === "/usr/local/bin") ? "/usr/local/share/oo" : path.join(__dirname, "..");
 const configFile = path.join(prefix, "shared/config.js");
 const exitFile = path.join(prefix, "entrypoint/exit.js");
-const gitSshFile = path.join(prefix, "back-filesystem/git/git_ssh.sh");
 const spawnDirectory = path.join(prefix, "back-master");
 const spawnFile = path.join(prefix, "back-master/app.js");
 
@@ -45,7 +44,6 @@ const spawnFile = path.join(prefix, "back-master/app.js");
 while (true) {
 	try {
 		fs.statSync(configFile);
-		fs.statSync(gitSshFile);
 		fs.statSync(spawnDirectory);
 		fs.statSync(spawnFile);
 		break;
