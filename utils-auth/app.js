@@ -39,7 +39,12 @@ try {
 console.log("Listening on UNIX socket " + SOCKET_PATH);
 
 const mongoUrl = `mongodb://${config.mongo.hostname}:${config.mongo.port}/${config.mongo.db}`;
-mongoose.connect(mongoUrl, { useNewUrlParser: true });
+mongoose.connect(mongoUrl, { useNewUrlParser: true }).then(() => {
+	console.log("Connected to MongoDB at", mongoUrl);
+}).catch((err) => {
+	console.error("FAILED TO CONNECT TO MONGODB", mongoUrl, err);
+	process.exit(1);
+});
 const User = mongoose.model("User", {
 	email: String,
 	parametrized: String,

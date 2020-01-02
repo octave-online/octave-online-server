@@ -58,7 +58,7 @@ function getToken(next) {
 }
 
 // Store the token in ephemeral memory
-let getCachedToken = asyncCache(getToken, 3600000);
+let getCachedToken;
 
 
 function callRackspaceApi(method, url, jsonPayload, next) {
@@ -69,6 +69,9 @@ function callRackspaceApi(method, url, jsonPayload, next) {
 	} else {
 		query = "";
 		body = JSON.stringify(jsonPayload);
+	}
+	if (!getCachedToken) {
+		getCachedToken = asyncCache(getToken, 3600000);
 	}
 	async.waterfall([
 		getCachedToken,
