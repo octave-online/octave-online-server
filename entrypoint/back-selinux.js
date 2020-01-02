@@ -109,7 +109,6 @@ console.log("Logging to:", logPath);
 const spawnOptions = {
 	cwd: spawnDirectory,
 	env: {
-		"GIT_SSH": gitSshFile,
 		"GNUTERM": "svg",
 		"DEBUG": "*"
 	},
