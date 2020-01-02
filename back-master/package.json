@@ -8,6 +8,7 @@
   "license": "AGPL-3.0",
   "private": true,
   "dependencies": {
+    "@oo/shared": "file:../shared",
     "async": "^1.5.2",
     "base-x": "^3.0.4",
     "gc-stats": "^1.0.0",
