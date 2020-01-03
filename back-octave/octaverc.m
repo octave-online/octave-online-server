@@ -50,24 +50,26 @@ setenv("PYTHON", "python3")
 % Packages that are installed but not auto-loaded have a reason, such as shadows.
 
 pkg load control;
-pkg load data-smoothing;
 pkg load divand;
-pkg load financial;
 pkg load general;
 pkg load geometry;
 pkg load image;
 pkg load interval;
-pkg load io;
 pkg load linear-algebra;
 pkg load mapping;
 pkg load miscellaneous;
-pkg load optim;
 pkg load signal;
-pkg load statistics;
 pkg load struct;
 pkg load symbolic;
 
-% Packages not auto-loaded:
+% Packages not auto-loaded because of the JVM dependency:
+% pkg load data-smoothing;
+% pkg load financial;
+% pkg load io;
+% pkg load optim;
+% pkg load statistics;
+
+% Packages not auto-loaded for performance or other reasons:
 % pkg load communications;
 % pkg load ltfat;
 % pkg load mechanics;
