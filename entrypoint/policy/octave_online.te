@@ -16,7 +16,7 @@
 # along with Octave Online Server.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-policy_module(octave_online, 1.7);
+policy_module(octave_online, 1.8);
 
 ### TO SETUP THIS POLICY FILE:
 #
@@ -102,7 +102,7 @@ allow sandbox_t home_root_t:dir { search getattr };
 allow sandbox_t urandom_device_t:chr_file open;
 
 # Give permissions to read and execute octave_site_t to sandbox
-allow sandbox_t octave_site_t:file { open execute };
+allow sandbox_t octave_site_t:file { open execute map };
 allow sandbox_t octave_site_t:dir { read open search getattr };
 allow sandbox_t octave_site_t:lnk_file read;
 
