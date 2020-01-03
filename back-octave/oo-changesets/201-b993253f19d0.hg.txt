@@ -1,0 +1,543 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1578034524 21600
+#      Fri Jan 03 00:55:24 2020 -0600
+# Branch oo-5.2
+# Node ID b993253f19d07cc1e9373cd8e9a35745cde9fef9
+# Parent  84cbf166497fa3d942be6a0b026ec24521301d16
+Updating OO patch code to be 5.2-compatible
+
+diff -r 84cbf166497f -r b993253f19d0 libinterp/corefcn/interpreter.cc
+--- a/libinterp/corefcn/interpreter.cc	Thu Jan 02 06:37:54 2020 -0600
++++ b/libinterp/corefcn/interpreter.cc	Fri Jan 03 00:55:24 2020 -0600
+@@ -510,6 +510,11 @@
+         std::string texi_macros_file = options.texi_macros_file ();
+         if (! texi_macros_file.empty ())
+           Ftexi_macros_file (*this, octave_value (texi_macros_file));
++
++        if (!options.json_sock_path().empty ()) {
++          static json_main _json_main (options.json_sock_path(), options.json_max_message_length());
++          _json_main.run_loop_on_new_thread();
++        }
+       }
+ 
+     m_input_system.initialize (line_editing);
+@@ -519,11 +524,6 @@
+ 
+     initialize_version_info ();
+ 
+-    if (!options.json_sock_path().empty ()) {
+-      static json_main _json_main (options.json_sock_path(), options.json_max_message_length());
+-      _json_main.run_loop_on_new_thread();
+-    }
+-
+     // This should be done before initializing the load path because
+     // some PKG_ADD files might need --traditional behavior.
+ 
+diff -r 84cbf166497f -r b993253f19d0 libinterp/corefcn/json-util.cc
+--- a/libinterp/corefcn/json-util.cc	Thu Jan 02 06:37:54 2020 -0600
++++ b/libinterp/corefcn/json-util.cc	Fri Jan 03 00:55:24 2020 -0600
+@@ -3,17 +3,107 @@
+ #endif
+ 
+ #include <cstdlib>
++#include <assert.h>
+ #include <sys/un.h>
+ #include <sys/socket.h>
+ #include <stdio.h>
+ #include <json-c/arraylist.h>
++#include <json-c/json_object.h>
+ 
+ #include "str-vec.h"
+ 
+ #include "json-util.h"
+ 
+ JSON_OBJECT_T json_util::from_string(const std::string& str) {
+-	return json_object_new_string(str.c_str());
++	const char* snowflake = "\xEF\xBF\xBD";
++
++	// Ensure that the string is valid UTF-8
++	std::string sanitized;
++	size_t state = 0;
++	size_t cpLength = 0;
++	for (size_t i=0; i<str.length(); i++) {
++		unsigned char c = str[i];
++		switch (state) {
++		case 0:
++			if (c < 0x80) {
++				// 1-byte character
++				sanitized.push_back(c);
++			} else if (c >= 0xC2 && c <= 0xDF) {
++				// 2-byte character
++				state = 1;
++				cpLength = 2;
++			} else if (c >= 0xE0 && c <= 0xEF) {
++				// 3-byte character
++				state = 1;
++				cpLength = 3;
++			} else if (c >= 0xF0 && c <= 0xF4) {
++				// 4-byte character
++				state = 1;
++				cpLength = 4;
++			} else {
++				// Invalid byte
++				sanitized.append(snowflake);
++			}
++			break;
++
++		case 1:
++			if (c < 0x80 || c > 0xBF) {
++				// Invalid byte
++				sanitized.append(snowflake);
++				state = 0;
++			} else if (cpLength == 2) {
++				// Final byte in 2-byte character
++				sanitized.push_back(str[i-1]);
++				sanitized.push_back(c);
++				state = 0;
++			} else {
++				// 3-byte or 4-byte character
++				state = 2;
++			}
++			break;
++
++		case 2:
++			if (c < 0x80 || c > 0xBF) {
++				// Invalid byte
++				sanitized.append(snowflake);
++				state = 0;
++			} else if (cpLength == 3) {
++				// Final byte in 3-byte character
++				sanitized.push_back(str[i-2]);
++				sanitized.push_back(str[i-1]);
++				sanitized.push_back(c);
++				state = 0;
++			} else {
++				// 4-byte character
++				state = 3;
++			}
++			break;
++
++		case 3:
++			if (c < 0x80 || c > 0xBF) {
++				// Invalid byte
++				sanitized.append(snowflake);
++				state = 0;
++			} else {
++				assert(cpLength == 4);
++				sanitized.push_back(str[i-3]);
++				sanitized.push_back(str[i-2]);
++				sanitized.push_back(str[i-1]);
++				sanitized.push_back(c);
++				state = 0;
++			}
++			break;
++
++		}
++	}
++
++	if (state != 0) {
++		// Last character is invalid
++		sanitized.append(snowflake);
++		state = 0;
++	}
++
++	return json_object_new_string_len(sanitized.c_str(), sanitized.length());
+ }
+ 
+ JSON_OBJECT_T json_util::from_int(int i) {
+@@ -36,7 +126,7 @@
+ JSON_OBJECT_T json_object_from_list(const std::list<T>& list, JSON_OBJECT_T (*convert)(T)) {
+ 	JSON_OBJECT_T jobj = json_object_new_array();
+ 	for (
+-		typename std::list<T>::const_iterator it = list.begin();
++		auto it = list.begin();
+ 		it != list.end();
+ 		++it
+ 	){
+@@ -67,8 +157,16 @@
+ 	return json_object_from_list(list, json_util::from_float);
+ }
+ 
+-JSON_OBJECT_T json_util::from_workspace_list(const std::list<workspace_element>& list) {
+-	return json_object_from_list(list, json_util::from_workspace_element);
++JSON_OBJECT_T json_util::from_symbol_info_list(const octave::symbol_info_list& list) {
++	JSON_OBJECT_T jobj = json_object_new_array();
++	for (
++		auto it = list.begin();
++		it != list.end();
++		++it
++	){
++		json_object_array_add(jobj, json_util::from_symbol_info(*it));
++	}
++	return jobj;
+ }
+ 
+ JSON_OBJECT_T json_util::from_filter_list(const octave_link::filter_list& list) {
+@@ -79,21 +177,28 @@
+ 	return json_util::from_string(str);
+ }
+ 
+-JSON_OBJECT_T json_util::from_workspace_element(workspace_element element) {
++JSON_OBJECT_T json_util::from_symbol_info(const octave::symbol_info element) {
++	octave_value val = element.value();
++
++	std::string dims_str = val.get_dims_str();
++
++	std::ostringstream display_str;
++	val.short_disp(display_str);
++
+ 	JSON_MAP_T m;
+-	m["scope"] = json_util::from_int(element.scope());
+-	m["symbol"] = json_util::from_string(element.symbol());
+-	m["class_name"] = json_util::from_string(element.class_name());
+-	m["dimension"] = json_util::from_string(element.dimension());
+-	m["value"] = json_util::from_string(element.value());
+-	m["complex_flag"] = json_util::from_boolean(element.complex_flag());
++	// m["scope"] = json_util::from_int(element.scope());
++	m["symbol"] = json_util::from_string(element.name());
++	m["class_name"] = json_util::from_string(val.class_name());
++	m["dimension"] = json_util::from_string(dims_str);
++	m["value"] = json_util::from_string(display_str.str());
++	m["complex_flag"] = json_util::from_boolean(element.is_complex());
+ 	return json_util::from_map(m);
+ }
+ 
+ JSON_OBJECT_T json_util::from_pair(std::pair<std::string, std::string> pair) {
+ 	JSON_OBJECT_T jobj = json_object_new_array();
+-	json_object_array_add(jobj, json_object_new_string(pair.first.c_str()));
+-	json_object_array_add(jobj, json_object_new_string(pair.second.c_str()));
++	json_object_array_add(jobj, json_util::from_string(pair.first.c_str()));
++	json_object_array_add(jobj, json_util::from_string(pair.second.c_str()));
+ 	return jobj;
+ }
+ 
+@@ -129,7 +234,7 @@
+ 	if (arr == NULL)
+ 		return ret;
+ 
+-	for (int i = 0; i < array_list_length(arr); ++i) {
++	for (size_t i = 0; i < array_list_length(arr); ++i) {
+ 		JSON_OBJECT_T jsub = static_cast<JSON_OBJECT_T> (array_list_get_idx(arr, i));
+ 		ret.push_back(convert(jsub));
+ 	}
+diff -r 84cbf166497f -r b993253f19d0 libinterp/corefcn/json-util.h
+--- a/libinterp/corefcn/json-util.h	Thu Jan 02 06:37:54 2020 -0600
++++ b/libinterp/corefcn/json-util.h	Fri Jan 03 00:55:24 2020 -0600
+@@ -5,7 +5,7 @@
+ #include <map>
+ #include <list>
+ 
+-#include "workspace-element.h"
++#include "syminfo.h"
+ #include "octave-link.h"
+ 
+ class string_vector;
+@@ -33,11 +33,11 @@
+ 	static JSON_OBJECT_T from_string_vector(const string_vector& list);
+ 	static JSON_OBJECT_T from_int_list(const std::list<int>& list);
+ 	static JSON_OBJECT_T from_float_list(const std::list<float>& list);
+-	static JSON_OBJECT_T from_workspace_list(const std::list<workspace_element>& list);
++	static JSON_OBJECT_T from_symbol_info_list(const octave::symbol_info_list& list);
+ 	static JSON_OBJECT_T from_filter_list(const octave_link::filter_list& list);
+ 
+ 	static JSON_OBJECT_T from_value_string(const std::string str);
+-	static JSON_OBJECT_T from_workspace_element(workspace_element element);
++	static JSON_OBJECT_T from_symbol_info(const octave::symbol_info element);
+ 	static JSON_OBJECT_T from_pair(std::pair<std::string, std::string> pair);
+ 
+ 	static JSON_OBJECT_T from_map(JSON_MAP_T m);
+diff -r 84cbf166497f -r b993253f19d0 libinterp/corefcn/octave-json-link.cc
+--- a/libinterp/corefcn/octave-json-link.cc	Thu Jan 02 06:37:54 2020 -0600
++++ b/libinterp/corefcn/octave-json-link.cc	Fri Jan 03 00:55:24 2020 -0600
+@@ -26,7 +26,6 @@
+ 
+ #include <iostream>
+ #include "octave-json-link.h"
+-#include "workspace-element.h"
+ #include "cmd-edit.h"
+ #include "json-main.h"
+ #include "json-util.h"
+@@ -73,17 +72,18 @@
+ 	return confirm_shutdown_queue.dequeue();
+ }
+ 
+-bool octave_json_link::do_exit(int status) {
+-	JSON_MAP_T m;
+-	JSON_MAP_SET(m, status, int);
+-	_publish_message("exit", json_util::from_map(m));
++// do_exit was removed in Octave 5
++// bool octave_json_link::do_exit(int status) {
++// 	JSON_MAP_T m;
++// 	JSON_MAP_SET(m, status, int);
++// 	_publish_message("exit", json_util::from_map(m));
+ 
+-	// It is our responsibility in octave_link to call exit. If we don't, then
+-	// the kernel waits for 24 hours expecting us to do something.
+-	::exit(status);
++// 	// It is our responsibility in octave_link to call exit. If we don't, then
++// 	// the kernel waits for 24 hours expecting us to do something.
++// 	::exit(status);
+ 
+-	return true;
+-}
++// 	return true;
++// }
+ 
+ bool octave_json_link::do_copy_image_to_clipboard(const std::string& file) {
+ 	// This endpoint might be unused?  (References appear only in libgui)
+@@ -112,16 +112,16 @@
+ 	return prompt_new_edit_file_queue.dequeue();
+ }
+ 
+-int octave_json_link::do_message_dialog(const std::string& dlg, const std::string& msg, const std::string& title) {
+-	// Triggered in "msgbox", "helpdlg", and "errordlg", among others
+-	JSON_MAP_T m;
+-	JSON_MAP_SET(m, dlg, string); // i.e., m["dlg"] = json_util::from_string(dlg);
+-	JSON_MAP_SET(m, msg, string);
+-	JSON_MAP_SET(m, title, string);
+-	_publish_message("message-dialog", json_util::from_map(m));
++// int octave_json_link::do_message_dialog(const std::string& dlg, const std::string& msg, const std::string& title) {
++// 	// Triggered in "msgbox", "helpdlg", and "errordlg", among others
++// 	JSON_MAP_T m;
++// 	JSON_MAP_SET(m, dlg, string); // i.e., m["dlg"] = json_util::from_string(dlg);
++// 	JSON_MAP_SET(m, msg, string);
++// 	JSON_MAP_SET(m, title, string);
++// 	_publish_message("message-dialog", json_util::from_map(m));
+ 
+-	return message_dialog_queue.dequeue();
+-}
++// 	return message_dialog_queue.dequeue();
++// }
+ 
+ std::string octave_json_link::do_question_dialog(const std::string& msg, const std::string& title, const std::string& btn1, const std::string& btn2, const std::string& btn3, const std::string& btndef) {
+ 	// Triggered in "questdlg"
+@@ -198,6 +198,19 @@
+ 	_publish_message("change-directory", json_util::from_map(m));
+ }
+ 
++void octave_json_link::do_file_remove (const std::string& old_name, const std::string& new_name) {
++	// Called by "unlink", "rmdir", "rename"
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, old_name, string);
++	JSON_MAP_SET(m, new_name, string);
++	_publish_message("file-remove", json_util::from_map(m));
++}
++
++void octave_json_link::do_file_renamed (bool status) {
++	// Called by "unlink", "rmdir", "rename"
++	_publish_message("file-renamed", json_util::from_boolean(status));
++}
++
+ void octave_json_link::do_execute_command_in_terminal(const std::string& command) {
+ 	// This endpoint might be unused?  (References appear only in libgui)
+ 	JSON_MAP_T m;
+@@ -205,13 +218,22 @@
+ 	_publish_message("execute-command-in-terminal", json_util::from_map(m));
+ }
+ 
+-void octave_json_link::do_set_workspace(bool top_level, bool debug, const std::list<workspace_element>& ws /*, const bool& variable_editor_too */) {
++uint8NDArray octave_json_link::do_get_named_icon (const std::string& /* icon_name */) {
++	// Called from msgbox.m
++	// TODO: Implement request/response for this event
++	uint8NDArray retval;
++	return retval;
++}
++
++void octave_json_link::do_set_workspace(bool top_level, bool debug,
++                         const octave::symbol_info_list& ws,
++                         bool update_variable_editor) {
+ 	// Triggered on every new line entry
+ 	JSON_MAP_T m;
+ 	JSON_MAP_SET(m, top_level, boolean);
+ 	JSON_MAP_SET(m, debug, boolean);
+-	JSON_MAP_SET(m, ws, workspace_list);
+-	// variable_editor_too?
++	JSON_MAP_SET(m, ws, symbol_info_list);
++	JSON_MAP_SET(m, update_variable_editor, boolean);
+ 	_publish_message("set-workspace", json_util::from_map(m));
+ }
+ 
+@@ -279,29 +301,49 @@
+ 	_publish_message("update-breakpoint", json_util::from_map(m));
+ }
+ 
+-void octave_json_link::do_set_default_prompts(std::string& ps1, std::string& ps2, std::string& ps4) {
+-	// Triggered upon interpreter startup
+-	JSON_MAP_T m;
+-	JSON_MAP_SET(m, ps1, string);
+-	JSON_MAP_SET(m, ps2, string);
+-	JSON_MAP_SET(m, ps4, string);
+-	_publish_message("set-default-prompts", json_util::from_map(m));
+-}
++// void octave_json_link::do_set_default_prompts(std::string& ps1, std::string& ps2, std::string& ps4) {
++// 	// Triggered upon interpreter startup
++// 	JSON_MAP_T m;
++// 	JSON_MAP_SET(m, ps1, string);
++// 	JSON_MAP_SET(m, ps2, string);
++// 	JSON_MAP_SET(m, ps4, string);
++// 	_publish_message("set-default-prompts", json_util::from_map(m));
++// }
+ 
+ void octave_json_link::do_show_preferences(void) {
+ 	// Triggered on "preferences" command
+ 	_publish_message("show-preferences", json_util::empty());
+ }
+ 
++std::string octave_json_link::do_gui_preference (const std::string& /* key */, const std::string& /* value */) {
++	// Used by Octave GUI?
++	// TODO: Implement request/response for this event
++	std::string retval;
++	return retval;
++}
++
+ void octave_json_link::do_show_doc(const std::string& file) {
+ 	// Triggered on "doc" command
+ 	_publish_message("show-doc", json_util::from_string(file));
+ }
+ 
+-// void octave_json_link::do_openvar(const std::string& name) {
+-// 	// Triggered on "openvar" command
+-// 	_publish_message("openvar", json_util::from_string(name));
+-// }
++void octave_json_link::do_register_doc (const std::string& file) {
++	// Triggered by the GUI documentation viewer?
++	_publish_message("register-doc", json_util::from_string(file));
++}
++
++void octave_json_link::do_unregister_doc (const std::string& file) {
++	// Triggered by the GUI documentation viewer?
++	_publish_message("unregister-doc", json_util::from_string(file));
++}
++
++void octave_json_link::do_edit_variable (const std::string& name, const octave_value& /* val */) {
++	// Triggered on "openvar" command
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, name, string);
++	// TODO: val
++	_publish_message("edit-variable", json_util::from_map(m));
++}
+ 
+ void octave_json_link::do_show_static_plot(const std::string& term, const std::string& content) {
+ 	// Triggered on all plot commands with setenv("GNUTERM","svg")
+diff -r 84cbf166497f -r b993253f19d0 libinterp/corefcn/octave-json-link.h
+--- a/libinterp/corefcn/octave-json-link.h	Thu Jan 02 06:37:54 2020 -0600
++++ b/libinterp/corefcn/octave-json-link.h	Fri Jan 03 00:55:24 2020 -0600
+@@ -45,7 +45,7 @@
+ 
+ private:
+   std::queue<T> _queue;
+-  octave_mutex _mutex;
++  octave::mutex _mutex;
+ };
+ 
+ class octave_json_link : public octave_link
+@@ -61,16 +61,12 @@
+   std::string do_request_url (const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success) override;
+ 
+   bool do_confirm_shutdown (void) override;
+-  bool do_exit (int status) override;
+ 
+   bool do_copy_image_to_clipboard (const std::string& file) override;
+ 
+   bool do_edit_file (const std::string& file) override;
+   bool do_prompt_new_edit_file (const std::string& file) override;
+ 
+-  int do_message_dialog (const std::string& dlg, const std::string& msg,
+-                         const std::string& title) override;
+-
+   std::string
+   do_question_dialog (const std::string& msg, const std::string& title,
+                       const std::string& btn1, const std::string& btn2,
+@@ -105,13 +101,16 @@
+ 
+   void do_change_directory (const std::string& dir) override;
+ 
++  void do_file_remove (const std::string& old_name, const std::string& new_name) override;
++  void do_file_renamed (bool) override;
++
+   void do_execute_command_in_terminal (const std::string& command) override;
+ 
++  uint8NDArray do_get_named_icon (const std::string& icon_name) override;
++
+   void do_set_workspace (bool top_level, bool debug,
+-                         const std::list<workspace_element>& ws
+-                         // Added on head but not yet in stable:
+-                         // , const bool& variable_editor_too = true
+-                         ) override;
++                         const octave::symbol_info_list& ws,
++                         bool update_variable_editor) override;
+ 
+   void do_clear_workspace (void) override;
+ 
+@@ -132,15 +131,17 @@
+                              const std::string& file, int line,
+                              const std::string& cond) override;
+ 
+-  void do_set_default_prompts (std::string& ps1, std::string& ps2,
+-                               std::string& ps4) override;
++  void do_show_preferences (void) override;
+ 
+-  void do_show_preferences (void) override;
++  std::string do_gui_preference (const std::string& key, const std::string& value) override;
+ 
+   void do_show_doc (const std::string& file) override;
+ 
+-  // Added on head but not yet in stable:
+-  // void do_openvar (const std::string& name) override;
++  void do_register_doc (const std::string& file) override;
++
++  void do_unregister_doc (const std::string& file) override;
++
++  void do_edit_variable (const std::string& name, const octave_value& val) override;
+ 
+   void do_show_static_plot (const std::string& term,
+                             const std::string& content) override;
+diff -r 84cbf166497f -r b993253f19d0 libinterp/corefcn/octave-link.h
+--- a/libinterp/corefcn/octave-link.h	Thu Jan 02 06:37:54 2020 -0600
++++ b/libinterp/corefcn/octave-link.h	Fri Jan 03 00:55:24 2020 -0600
+@@ -31,7 +31,7 @@
+ #include <string>
+ 
+ #include "oct-mutex.h"
+-#include "octave.h"
++#include "libinterp/octave.h"
+ #include "event-queue.h"
+ #include "uint8NDArray.h"
+ 
+diff -r 84cbf166497f -r b993253f19d0 liboctave/util/url-transfer.cc
+--- a/liboctave/util/url-transfer.cc	Thu Jan 02 06:37:54 2020 -0600
++++ b/liboctave/util/url-transfer.cc	Fri Jan 03 00:55:24 2020 -0600
+@@ -890,26 +890,26 @@
+ 
+   url_transfer::url_transfer (void) {
+     if (octave_link::request_input_enabled()) {
+-      rep = new link_transfer();
++      rep.reset(new link_transfer());
+     } else {
+-      rep = new REP_CLASS();
++      rep.reset(new REP_CLASS());
+     }
+   }
+ 
+   url_transfer::url_transfer (const std::string& host, const std::string& user,
+                               const std::string& passwd, std::ostream& os) {
+     if (octave_link::request_input_enabled()) {
+-      rep = new link_transfer(host, user, passwd, os);
++      rep.reset(new link_transfer(host, user, passwd, os));
+     } else {
+-      rep = new REP_CLASS(host, user, passwd, os);
++      rep.reset(new REP_CLASS(host, user, passwd, os));
+     }
+   }
+ 
+   url_transfer::url_transfer (const std::string& url, std::ostream& os) {
+     if (octave_link::request_input_enabled()) {
+-      rep = new link_transfer(url, os);
++      rep.reset(new link_transfer(url, os));
+     } else {
+-      rep = new REP_CLASS(url, os);
++      rep.reset(new REP_CLASS(url, os));
+     }
+   }
+ 
