@@ -146,8 +146,6 @@ void print_json_msg_str(const char* name, const char* str, size_t len) {
 	// Relese memory
 	// jstr is automatically released along with obj: https://github.com/json-c/json-c/issues/83
 	json_object_put(obj);
-	json_object_put(nameobj);
-	json_object_put(strobj);
 }
 
 // Process all messages received from the streams: child out, child err, stdin, and socket.

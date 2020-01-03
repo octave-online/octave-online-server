@@ -1,0 +1,50 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1578045495 21600
+#      Fri Jan 03 03:58:15 2020 -0600
+# Branch oo-5.2
+# Node ID d9d23f97ba78c49221f476e82b550a59e9f146a0
+# Parent  b993253f19d07cc1e9373cd8e9a35745cde9fef9
+Updating json-main to obey new ownership policy of octave_link
+
+diff -r b993253f19d0 -r d9d23f97ba78 libinterp/corefcn/json-main.cc
+--- a/libinterp/corefcn/json-main.cc	Fri Jan 03 00:55:24 2020 -0600
++++ b/libinterp/corefcn/json-main.cc	Fri Jan 03 03:58:15 2020 -0600
+@@ -28,11 +28,12 @@
+   : _json_sock_path (json_sock_path),
+     _max_message_length (max_message_length),
+     _loop_thread_active (false),
+-    _octave_json_link (this)
++    _octave_json_link (new octave_json_link(this))
+ {
+-  // Enable octave_json_link instance
+-	octave_link::connect_link(&_octave_json_link);
+-
++  // Enable the octave_json_link instance
++  // Note: this passes ownership to octave_link
++	octave_link::connect_link(_octave_json_link);
++j
+   // Open UNIX socket file descriptor
+   sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+   struct sockaddr_un addr;
+@@ -89,5 +90,5 @@
+ }
+ 
+ void json_main::process_json_object(std::string name, JSON_OBJECT_T jobj) {
+-  _octave_json_link.receive_message(name, jobj);
++  _octave_json_link->receive_message(name, jobj);
+ }
+diff -r b993253f19d0 -r d9d23f97ba78 libinterp/corefcn/json-main.h
+--- a/libinterp/corefcn/json-main.h	Fri Jan 03 00:55:24 2020 -0600
++++ b/libinterp/corefcn/json-main.h	Fri Jan 03 03:58:15 2020 -0600
+@@ -24,7 +24,9 @@
+ 	int sockfd;
+ 	bool _loop_thread_active;
+ 	pthread_t _loop_thread;
+-	octave_json_link _octave_json_link;
++
++	// Owned by octave_link
++	octave_json_link* _octave_json_link;
+ };
+ 
+ #endif
