@@ -1,0 +1,21 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1578047258 21600
+#      Fri Jan 03 04:27:38 2020 -0600
+# Branch oo-5.2
+# Node ID d6b5ffb8e4cc940b7337575d0194d025c7385b24
+# Parent  d9d23f97ba78c49221f476e82b550a59e9f146a0
+Remove extra character
+
+diff -r d9d23f97ba78 -r d6b5ffb8e4cc libinterp/corefcn/json-main.cc
+--- a/libinterp/corefcn/json-main.cc	Fri Jan 03 03:58:15 2020 -0600
++++ b/libinterp/corefcn/json-main.cc	Fri Jan 03 04:27:38 2020 -0600
+@@ -33,7 +33,7 @@
+   // Enable the octave_json_link instance
+   // Note: this passes ownership to octave_link
+ 	octave_link::connect_link(_octave_json_link);
+-j
++
+   // Open UNIX socket file descriptor
+   sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+   struct sockaddr_un addr;
