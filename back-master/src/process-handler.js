@@ -76,11 +76,14 @@ class ProcessHandler extends StdioMessenger {
 		});
 	}
 
-	_doDestroy(/* next */) {
+	_doDestroy(next) {
 		// This method wont't be called unless the process state is ONLINE, so we don't need to check.
-		// We can ignore the "next" callback because it will be implicitly called by _handleExit()
-		this._log.trace("Sending SIGTERM");
-		this._signal("SIGTERM");
+		if (this._spwn.exitCode !== null) {
+			// We can ignore the "next" callback because it will be implicitly called by _handleExit()
+			this._doDestroyProcess();
+		} else {
+			next(null);
+		}
 	}
 
 	signal(name) {
