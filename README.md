@@ -180,6 +180,7 @@ Here are some critical user journeys that test a fairly wide cross-section of th
 1. Small interpreter features
 	1. Run a few lines of code and then run `clc`; it should clear all output from the console window
 	1. Run `doc fplot`; it should produce a working link
+	1. Run `char(randi(256, 1000, 1)' .- 1)`; it should print a nonsense string with a lot of replacement characters
 	1. Run `O = urlread("http://example.com")`; it should finish without error and print the HTML content of that page
 	1. Run `O = urlread("https://example.com")`; it should print the same HTML as the previous line (http vs https)
 	1. Run `O = urlread("http://cnn.com")`; it should print an error saying that the domain is not in the whitelist (unless you added that domain to your custom whitelist)
