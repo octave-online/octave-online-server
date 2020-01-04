@@ -20,7 +20,8 @@
 
 "use strict";
 
-const JSONStream = require("JSONStream");
+const parserFactory = require("stream-json").parser;
+const streamValues = require("stream-json/streamers/StreamValues").streamValues;
 const EventEmitter = require("events");
 const log = require("./logger")("json-stream-safe");
 
@@ -34,13 +35,27 @@ class JSONStreamSafe extends EventEmitter {
 	}
 
 	_run() {
-		var jstream = this.stream.pipe(JSONStream.parse());
-		jstream.on("data", (d) => { this.emit("data", d); });
-		jstream.on("error", (err) => {
-			log.warn("Encountered invalid JSON", err);
-			// Restart the parser (in Node, streams are closed upon any error event, even caught ones)
-			this._run();
-		});
+		// Note: upon error events, we must restart the parser, because Node closes streams upon any error event.
+		this.stream
+			.pipe(parserFactory({
+				jsonStreaming: true
+			}))
+			.on("error", (err) => {
+				log.error("JSON syntax error", err);
+				this._run();
+			})
+			.pipe(streamValues())
+			.on("error", (err) => {
+				log.error("Could not unpack value", err);
+				this._run();
+			})
+			.on("data", (d) => {
+				this.emit("data", d.value);
+			})
+			.on("end", () => {
+				// TODO: Does this method get run? Is it important?
+				this.emit("end");
+			});
 	}
 }
 

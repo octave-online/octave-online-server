@@ -2,6 +2,8 @@ language: node_js
 node_js:
   - "7"
 install:
-  - npm install
+  - npm ci
+  - cd test && npm ci
 script:
   - npm run lint
+  - cd test && npm test
