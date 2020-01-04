@@ -78,7 +78,8 @@ class ProcessHandler extends StdioMessenger {
 
 	_doDestroy(next) {
 		// This method wont't be called unless the process state is ONLINE, so we don't need to check.
-		if (this._spwn.exitCode !== null) {
+		this._mlog.trace("this._spwn =", this._spwn.exitCode);
+		if (this._spwn) {
 			// We can ignore the "next" callback because it will be implicitly called by _handleExit()
 			this._doDestroyProcess();
 		} else {
@@ -106,6 +107,7 @@ class ProcessHandler extends StdioMessenger {
 
 	_handleExit(code, signal) {
 		this._log.debug("Process Exit:", code, signal);
+		this._spwn = null;
 		this.emit("message", "process-exit", { code, signal });
 		this._internalDestroyed(null);
 
