@@ -22,20 +22,22 @@
 
 "use strict";
 
+/* eslint-disable no-console */
+
 const child_process = require("child_process");
 const http = require("http");
 const path = require("path");
 const url = require("url");
 
 if (process.argv.length !== 4) {
-	console.error("Usage: node create-repo-service.js /path/to/git/root PORT")
+	console.error("Usage: node create-repo-service.js /path/to/git/root PORT");
 	process.exit(1);
 }
 
 const gitRoot = process.argv[2];
 const port = parseInt(process.argv[3]);
 
-const server = http.createServer(async (req, res) => {
+http.createServer((req, res) => {
 	const { query } = url.parse(req.url, true);
 	const isoTime = new Date().toISOString();
 	if (["buckets", "repos"].indexOf(query.type) === -1) {
@@ -57,7 +59,7 @@ const server = http.createServer(async (req, res) => {
 	process.stderr.on("data", (chunk) => {
 		resData = Buffer.concat([resData, chunk]);
 	});
-	process.on("exit", (code, signal) => {
+	process.on("exit", (code /* , signal */) => {
 		if (code === 0) {
 			res.writeHead(200, { "Content-Type": "text/plain" });
 			console.log(`${isoTime} Created ${bareRepoPath}`);
