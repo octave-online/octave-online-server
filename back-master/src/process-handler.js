@@ -78,11 +78,12 @@ class ProcessHandler extends StdioMessenger {
 
 	_doDestroy(next) {
 		// This method wont't be called unless the process state is ONLINE, so we don't need to check.
-		this._mlog.trace("this._spwn =", this._spwn);
 		if (this._spwn) {
 			// We can ignore the "next" callback because it will be implicitly called by _handleExit()
+			this._mlog.trace("this._spwn exists");
 			this._doDestroyProcess();
 		} else {
+			this._mlog.trace("this._spwn does not exist");
 			next(null);
 		}
 	}

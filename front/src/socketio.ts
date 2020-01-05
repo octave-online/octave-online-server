@@ -47,7 +47,7 @@ export function init(){
 	// eslint-disable-next-line @typescript-eslint/no-use-before-define
 	watchFlavorServers(io);
 
-	log.info("Initialized Socket.IO Server");
+	log.info("Initialized Socket.IO Server", config.front.socket_io_path);
 }
 
 export function watchFlavorServers(io: SocketIO.Namespace) {
