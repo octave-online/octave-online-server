@@ -346,6 +346,8 @@ front: {
 	# OTHER OPTIONS
 	# Timeout (in ms) for logging status of flavor servers.
 	flavor_log_interval: 60000
+	# Socket.io path. There may be situations where you need to change this, such as when performing server upgrades.
+	socket_io_path: /socket.io
 }
 
 # Operational Transformation settings

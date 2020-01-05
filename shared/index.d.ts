@@ -259,6 +259,7 @@ export const config: {
         listen_port: number;
         port: number;
         protocol: string;
+        socket_io_path: string;
         static_path: string;
     };
     git: {
@@ -268,7 +269,8 @@ export const config: {
         };
         autoCommitInterval: number;
         commitTimeLimit: number;
-        helperUser: string;
+        createRepoPort: number;
+        gitDaemonPort: number;
         hostname: string;
     };
     mailgun: {

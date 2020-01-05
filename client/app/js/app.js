@@ -34,7 +34,9 @@ define(
 		ko.applyBindings(viewModel);
 
 		// Make Socket Connection and Add Listeners:
-		var socket = io();
+		// The first two lines are a hack to make injected configs work
+		var ioPath = "{!socket_io_path!}";
+		var socket = (ioPath[0] === "{") ? io() : io({ path: ioPath });
 		OctMethods.socketListeners.subscribe(socket);
 		OtHandler.listeners.subscribe(socket);
 		WsShared.listeners.subscribe(socket);

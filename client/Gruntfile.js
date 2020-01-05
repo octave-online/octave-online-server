@@ -202,6 +202,12 @@ module.exports = function (grunt) {
 						replace: config.client.uservoice,
 						flags: "g"
 					},
+					{
+						name: "socket_io_path",
+						search: "\\{!socket_io_path!\\}",
+						replace: config.front.socket_io_path,
+						flags: "g"
+					},
 				]
 			},
 			html: {

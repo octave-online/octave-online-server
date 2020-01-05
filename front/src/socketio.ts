@@ -34,7 +34,9 @@ const ALL_FLAVORS = Object.keys(config.flavors);
 const log = logger("oo-socketio");
 
 export function init(){
-	const io = SocketIO(ExpressApp.app)
+	const io = SocketIO(ExpressApp.app, {
+			path: config.front.socket_io_path
+		})
 		.use(SocketIOWildcard())
 		.use((socket,next)=>{
 			// Parse the session using middleware
