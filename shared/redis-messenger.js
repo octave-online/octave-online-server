@@ -490,8 +490,10 @@ class RedisMessenger extends EventEmitter {
 
 		this._client.subscribe("__keyevent@0__:expired");
 		this._client.on("message", (channel, message) => {
+			this._mlog.trace("Received expire message", channel, message);
 			const match = /^oo:\w+:(\w+)$/.exec(channel);
 			if (match) {
+				this._log.trace("Matched sesscode in expire message");
 				this.emit("_message", match[1], message);
 			}
 		});
