@@ -210,6 +210,13 @@ Here are some critical user journeys that test a fairly wide cross-section of th
 	1. The loading animation should appear on the browser window, and the animation should go away once the front server has finished restarting.  However, you should NOT get the "Connection lost" message printed to the console, and you should NOT get an active prompt automatically after the animation goes away
 	1. Press the "Click Here to Reconnect" button; you should now get an active command prompt.  Run a command or two to make sure the session is working normally
 	1. For an exhaustive test, repeate this section as (i) a signed-in user, (ii) a session with sharing enabled, and (iii) a bucket session.
+1. Reconnecting to and expiring collaborative workspaces
+	1. Sign in to a user that has sharing enabled
+	1. *Ensure that no one else is viewing the user's workspace* (for example, there should be no red cursors at the command prompt)
+	1. Set a variable like `x = 99`
+	1. Reload the browser window; it should be the same session.  Check that `x` is still `99`
+	1. Close the browser window without exiting explicitly
+	1. Wait for `config.redis.expire.timeout` milliseconds to ellapse, then open up a new tab for that user; it should be a new session.  Check that `x` is no longer set to `99`
 1. GUI: Flexbox panels and CSS
 	1. Hover over the border between panels; a slider should appear.  Drag the slider around to resize the panels
 	1. Open the menu and click "Change/Reset Layout"; the panel sizes should reset to the defaults
