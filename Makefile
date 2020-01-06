@@ -81,6 +81,7 @@ install-selinux-policy:
 
 install-selinux-bin:
 	cp entrypoint/back-selinux.js /usr/local/bin/oo-back-selinux
+	# TODO: Put in /etc instead of /usr/lib?
 	cp entrypoint/oo.service /usr/lib/systemd/system/oo.service
 	systemctl daemon-reload
 	echo "$(CGROUP_CONF)" | tr '\1' '\n' > /etc/cgconfig.d/oo.conf
@@ -90,6 +91,12 @@ install-selinux-bin:
 
 install-site-m:
 	cp back-octave/octaverc.m /usr/local/share/octave/site/m/startup/octaverc
+
+enable-graceful-shutdown:
+	cp entrypoint/oo-no-restart.service /usr/lib/systemd/system/oo.service;
+	systemctl daemon-reload;
+	echo "Tip 1: Consider removing entrypoint/exit.js if it could cause disruption";
+	echo "Tip 2: Consider sending SIGUSR1 to the server process to start a graceful shutdown";
 
 docker: docker-octave docker-files
 

@@ -57,16 +57,19 @@ while (true) {
 const config = require(configFile);
 
 // Load exit routine
-var exit;
-try {
-	exit = require(exitFile);
-	console.log("Will use exit routine from exit.js");
-} catch(err) {
-	if (/Cannot find module/.test(err.message)) {
-		// If exit.js is not provided, set a no-op.
-		exit = function(){};
-		console.log("Will use no-op exit routine");
-	} else throw err;
+function getExitFunction() {
+	var exit;
+	try {
+		exit = require(exitFile);
+		console.log("Will use exit routine from exit.js");
+	} catch(err) {
+		if (/Cannot find module/.test(err.message)) {
+			// If exit.js is not provided, set a no-op.
+			exit = function(){};
+			console.log("Will use no-op exit routine");
+		} else throw err;
+	}
+	return exit;
 }
 
 // Make log directories
@@ -153,7 +156,7 @@ function runOnce() {
 			setTimeout(runOnce, 500);
 		} else {
 			logStream.close(); // also closes the logFd file descriptor
-			exit();
+			getExitFunction()();
 		}
 	});
 }

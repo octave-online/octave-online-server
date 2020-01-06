@@ -31,6 +31,7 @@ const child_process = require("child_process");
 const fs = require("fs");
 const mkdirp = require("mkdirp");
 const path = require("path");
+const async = require("async");
 
 process.stdout.write("Process ID: " + process.pid + "\n");
 process.stderr.write("Process ID: " + process.pid + "\n");
@@ -171,14 +172,36 @@ function doExit() {
 	}, 5000);
 }
 
-function doExitSignal() {
-	log.info("RECEIVED SIGNAL.  Terminating gracefully.");
+function doGracefulExit() {
+	log.info("RECEIVED SIGUSR1.  Disabling pool to exit gracefully.");
+	mainImpl.doExit();
+	sessionManager.disablePool();
+	async.series([
+		(_next) => {
+			async.whilst(
+				() => { return sessionManager.numActiveSessions() > 0; },
+				(next) => { setTimeout(next, config.maintenance.pauseDuration); },
+				_next
+			);
+		},
+		(_next) => {
+			log.info("All sessions are closed. Starting exit procedure.")
+			doExit();
+		}
+	], (err) => {
+		log.error("Error during graceful exit:", err);
+	});
+}
+
+function doFastExit() {
+	log.info("RECEIVED SIGNAL.  Starting exit procedure.");
 	doExit();
 }
 
-process.on("SIGINT", doExitSignal);
-process.on("SIGHUP", doExitSignal);
-process.on("SIGTERM", doExitSignal);
+process.on("SIGINT", doFastExit);
+process.on("SIGHUP", doFastExit);
+process.on("SIGTERM", doFastExit);
+process.on("SIGUSR1", doGracefulExit);
 
 //const heapdump = require("heapdump");
 //setInterval(() => { heapdump.writeSnapshot("/srv/oo/logs/heap/" + hostname + "." + process.pid + "." + Date.now() + ".heapsnapshot"); }, 30000);
