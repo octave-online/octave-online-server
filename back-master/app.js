@@ -173,7 +173,7 @@ function doExit() {
 }
 
 function doGracefulExit() {
-	log.info("RECEIVED SIGUSR1.  Disabling pool to exit gracefully.");
+	log.info("RECEIVED SIGUSR1.  Will not accept any further sessions.");
 	mainImpl.doExit();
 	sessionManager.disablePool();
 	async.series([
@@ -185,11 +185,11 @@ function doGracefulExit() {
 			);
 		},
 		(_next) => {
-			log.info("All sessions are closed. Starting exit procedure.")
-			doExit();
+			log.info("All user sessions are closed.");
+			_next(null);
 		}
 	], (err) => {
-		log.error("Error during graceful exit:", err);
+		if (err) log.error("Error during graceful exit:", err);
 	});
 }
 

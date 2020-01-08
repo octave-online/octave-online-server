@@ -46,6 +46,12 @@ Go to the *back-master* directory and run `DEBUG=* node app.js` to start the bac
 
 `node app.js` can be run directly, but consider using `oo.service` in the *entrypoint* directory parallel to this directory.
 
+## Stopping the Back Server
+
+By default, after the back server receives a successful maintenance request, it will wait for all sessions to close, and then cleanup and exit with code 0.
+
+If you wish to cause the back server process to gracefully release all sessions without exiting, you can send the signal SIGUSR1 to the process.
+
 ## To-do list
 
 - Update /usr/bin/sandbox according to https://github.com/SELinuxProject/selinux/commit/0f4620d6111838ce78bf5a591bb80c99c9d88730
