@@ -78,6 +78,12 @@ rackspace: {
 	personality_filename: /etc/oo-personality.json
 }
 
+# StatsD connection info
+statsd: {
+	hostname: localhost
+	port: 8125
+}
+
 # # # # # # # # # # # # # # # #
 # Back Server configurations  #
 # # # # # # # # # # # # # # # #

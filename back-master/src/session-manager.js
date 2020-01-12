@@ -28,6 +28,7 @@ const uuid = require("uuid");
 const Queue = require("@oo/shared").Queue;
 const config = require("@oo/shared").config;
 const config2 = require("@oo/shared").config2;
+const metrics = require("@oo/shared").metrics;
 const timeLimit = require("@oo/shared").timeLimit;
 
 class SessionManager extends EventEmitter {
@@ -54,6 +55,7 @@ class SessionManager extends EventEmitter {
 		this._monitor_session = null;
 		this._setup();
 		this.startPool();
+		this.recordMetrics();
 	}
 
 	_setup() {
@@ -155,6 +157,7 @@ class SessionManager extends EventEmitter {
 		this._online[remoteCode] = this._pool[tier][localCode];
 		delete this._pool[tier][localCode];
 		log.info("Upgraded pool session", tier, localCode, remoteCode);
+		this.recordMetrics();
 
 		// Convenience references
 		const session = this._online[remoteCode].session;
@@ -235,6 +238,7 @@ class SessionManager extends EventEmitter {
 		// Remove it from the index
 		delete this._online[sessCode];
 		log.debug("Removed session from index", sessCode);
+		this.recordMetrics();
 	}
 
 	startPool() {
@@ -262,6 +266,7 @@ class SessionManager extends EventEmitter {
 					cache.removeAll();
 				} else {
 					this._pool[options.tier][localCode] = { session, cache };
+					this.recordMetrics();
 				}
 			}
 
@@ -291,6 +296,7 @@ class SessionManager extends EventEmitter {
 				delete this._pool[tier][localCode];
 			});
 		});
+		this.recordMetrics();
 	}
 
 	terminate(reason) {
@@ -311,6 +317,13 @@ class SessionManager extends EventEmitter {
 	restart() {
 		this.startPool();
 		this._setup();
+	}
+
+	recordMetrics() {
+		metrics.gauge("oo.online_sessions", Object.keys(this._online).length);
+		Object.keys(this._pool).forEach((tier) => {
+			metrics.gauge(`oo.pool_sessions.${tier}`, Object.keys(this._pool[tier]).length);
+		});
 	}
 }
 

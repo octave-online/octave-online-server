@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018, Octave Online LLC
+ * Copyright © 2019, Octave Online LLC
  *
  * This file is part of Octave Online Server.
  *
@@ -20,21 +20,21 @@
 
 "use strict";
 
+const lynx = require("lynx");
+
+const config = require("./config");
+
+let _client = null;
+
+function getClient() {
+	if (!_client) {
+		_client = new lynx(config.statsd.hostname, config.statsd.port);
+	}
+	return _client;
+}
+
 module.exports = {
-	asyncCache: require("./async-cache"),
-	config: require("./config"),
-	config2: require("./config-helper"),
-	JSONStreamSafe: require("./json-stream-safe"),
-	logger: require("./logger"),
-	metrics: require("./metrics"),
-	onceMessage: require("./once-message"),
-	OnlineOffline: require("./online-offline"),
-	Queue: require("./queue"),
-	rack: require("./rack/operations"),
-	RedisMessenger: require("./redis-messenger"),
-	RedisQueue: require("./redis-queue"),
-	redisUtil: require("./redis-util"),
-	silent: require("./silent"),
-	StdioMessenger: require("./stdio-messenger"),
-	timeLimit: require("./time-limit"),
+	gauge: function(id, value) {
+		return getClient().gauge(id, value);
+	}
 };
