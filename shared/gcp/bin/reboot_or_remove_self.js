@@ -44,4 +44,10 @@ async function main() {
 	}
 }
 
-main().then(console.log).catch(console.error);
+main().then((results) => {
+	console.log(results);
+	process.exit(0);
+}).catch((err) => {
+	console.error(err);
+	process.exit(1);
+});
