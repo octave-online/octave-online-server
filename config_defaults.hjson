@@ -78,6 +78,14 @@ rackspace: {
 	personality_filename: /etc/oo-personality.json
 }
 
+# GCP connection info
+gcp: {
+	key_filename: false
+	zone: us-central1-f
+	instance_group_name: xxxxxxxxx
+	instance_group_removal_method: abandon
+}
+
 # StatsD connection info
 statsd: {
 	hostname: localhost
