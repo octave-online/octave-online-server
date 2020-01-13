@@ -44,12 +44,10 @@ async function main() {
 	}
 }
 
-module.exports = function() {
-	main().then((results) => {
-		console.log(results);
-		process.exit(0);
-	}).catch((err) => {
-		console.error(err);
-		process.exit(1);
-	});
-}
+main().then((results) => {
+	console.log(results);
+	process.exit(0);
+}).catch((err) => {
+	console.error(err);
+	process.exit(1);
+});
