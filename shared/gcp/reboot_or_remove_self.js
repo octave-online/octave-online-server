@@ -25,7 +25,7 @@
 const child_process = require("child_process");
 const util = require("util");
 
-const gcp = require("../index");
+const gcp = require("./index");
 
 const execFile = util.promisify(child_process.execFile);
 
