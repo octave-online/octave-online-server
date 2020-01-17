@@ -32,6 +32,7 @@ const fs = require("fs");
 const mkdirp = require("mkdirp");
 const path = require("path");
 const async = require("async");
+const http = require("http");
 
 process.stdout.write("Process ID: " + process.pid + "\n");
 process.stderr.write("Process ID: " + process.pid + "\n");
@@ -149,6 +150,15 @@ gcStats.on("stats", (stats) => {
 	mlog.trace(`Garbage Collected (type ${stats.gctype}, ${stats.pause/1e6} ms)`);
 });
 
+const healthServer = http.createServer((req, res) => {
+	if (sessionManager.isHealthy()) {
+		res.writeHead(204);
+	} else {
+		res.writeHead(503);
+	}
+	res.end();
+}).listen(config.gcp.health_check_port);
+
 mainImpl.start({
 	sessionManager,
 	redisScriptHandler,
@@ -169,6 +179,7 @@ function doExit() {
 		redisExpireHandler.close();
 		redisScriptHandler.close();
 		redisMessenger.close();
+		healthServer.close();
 	}, 5000);
 }
 

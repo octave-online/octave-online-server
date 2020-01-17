@@ -84,6 +84,7 @@ gcp: {
 	zone: us-central1-f
 	instance_group_name: xxxxxxxxx
 	instance_group_removal_method: abandon
+	health_check_port: 3030
 }
 
 # StatsD connection info

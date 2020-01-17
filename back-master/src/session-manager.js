@@ -108,6 +108,10 @@ class SessionManager extends EventEmitter {
 		return true;
 	}
 
+	isHealthy() {
+		return this._monitor_session && this._monitor_session.isOnline();
+	}
+
 	_create(next, options) {
 		// Get the correct implementation
 		const SessionImpl = config.session.implementation === "docker" ? impls.docker : impls.selinux;

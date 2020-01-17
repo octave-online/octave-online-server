@@ -40,6 +40,10 @@ class OnlineOffline extends EventEmitter {
 		this._destroyCBs = new Queue();
 	}
 
+	isOnline() {
+		return this._state === "ONLINE";
+	}
+
 	create(next) {
 		next = next || function(){};
 		switch (this._state) {
