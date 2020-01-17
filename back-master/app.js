@@ -152,7 +152,7 @@ gcStats.on("stats", (stats) => {
 
 const healthServer = http.createServer((req, res) => {
 	if (sessionManager.isHealthy()) {
-		res.writeHead(204);
+		res.writeHead(200);
 	} else {
 		res.writeHead(503);
 	}
