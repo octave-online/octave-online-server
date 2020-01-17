@@ -43,15 +43,15 @@ test("json byte stream", (t) => {
 		];
 
 		let i = 0;
-		let closed = false;
+		// let closed = false;
 		jss.on("data", (data) => {
 			t.deepEqual(data, expectedObjects[i++], `Index ${i}`);
 		});
 		jss.on("end", () => {
-			closed = true;
+			// closed = true;
 		});
 
-		// Write data to the tream:
+		// Write data to the stream:
 		pt.write("[\"a\",\"b\"][\"c\"]");
 		pt.write(Buffer.from([34, 128, 34]));
 		pt.write("{\"key\":\"");

@@ -25,31 +25,34 @@
 const child_process = require("child_process");
 const util = require("util");
 
+const log = require("@oo/shared").logger("gcp-reboot-or-remove-self");
+
 const gcp = require("./index");
 
 const execFile = util.promisify(child_process.execFile);
 
 async function reboot() {
 	return execFile("sudo", ["/usr/sbin/reboot"], { stdio: "inherit" });
-};
+}
 
 async function main() {
 	const { recommendedSize, targetSize } = await gcp.getAutoscalerInfo();
+	log.info("Recommended/Target Size:", recommendedSize, targetSize);
 	if (targetSize > recommendedSize) {
-		console.log("Removing self from group");
+		log.info("Removing self from group");
 		return await gcp.removeSelfFromGroup();
 	} else {
-		console.log("Requesting reboot");
+		log.info("Requesting reboot");
 		return await reboot();
 	}
 }
 
 module.exports = function() {
 	main().then((results) => {
-		console.log(results);
+		log.trace(results);
 		process.exit(0);
 	}).catch((err) => {
-		console.error(err);
+		log.error(err);
 		process.exit(1);
 	});
-}
+};
