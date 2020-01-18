@@ -24,7 +24,6 @@ const Compute = require("@google-cloud/compute");
 const gcpMetadata = require("gcp-metadata");
 
 const config = require("@oo/shared").config;
-const log = require("@oo/shared").logger("gcp-index");
 
 let _computeClient = null;
 
@@ -48,7 +47,7 @@ async function getRecommendedSize() {
 		.zone(config.gcp.zone)
 		.autoscaler(config.gcp.instance_group_name);
 	const [, result ] = await client.get();
-	log.info("Recommended size:", result.recommendedSize);
+	console.log("Recommended size:", result.recommendedSize);
 	return result.recommendedSize;
 }
 
@@ -57,7 +56,7 @@ async function getTargetSize() {
 		.zone(config.gcp.zone)
 		.instanceGroupManager(config.gcp.instance_group_name);
 	const [, result ] = await client.get();
-	log.info("Target size:", result.targetSize);
+	console.log("Target size:", result.targetSize);
 	return result.targetSize;
 }
 
@@ -74,7 +73,7 @@ async function getAutoscalerInfo() {
 
 async function getSelfName() {
 	const name = await gcpMetadata.instance("name");
-	log.info("Self name:", name);
+	console.log("Self name:", name);
 	return name;
 }
 
@@ -89,10 +88,10 @@ async function removeSelfFromGroup() {
 
 	let operation;
 	if (config.gcp.instance_group_removal_method === "abandon") {
-		log.info("Abandoning self");
+		console.log("Abandoning self");
 		[ operation ] = await client.abandonInstances(vm);
 	} else if (config.gcp.instance_group_removal_method === "delete") {
-		log.info("Deleting self");
+		console.log("Deleting self");
 		[ operation ] = await client.deleteInstances(vm);
 	} else {
 		throw new Error("Unknown removal method");

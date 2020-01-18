@@ -155,8 +155,8 @@ function runOnce() {
 		if (code !== 0) {
 			setTimeout(runOnce, 500);
 		} else {
-			logStream.close(); // also closes the logFd file descriptor
 			getExitFunction()();
+			logStream.close(); // also closes the logFd file descriptor
 		}
 	});
 }
