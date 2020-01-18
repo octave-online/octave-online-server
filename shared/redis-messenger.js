@@ -28,6 +28,7 @@ const path = require("path");
 const uuid = require("uuid");
 const fs = require("fs");
 const config = require("./config");
+const hostname = require("./hostname")();
 
 class RedisMessenger extends EventEmitter {
 	constructor() {
@@ -272,7 +273,13 @@ class RedisMessenger extends EventEmitter {
 	_requestReboot(channel, id, priority) {
 		this._ensureNotSubscribed();
 
-		let message = { id, isRequest: true, token: config.worker.token,  priority };
+		let message = {
+			id,
+			isRequest: true,
+			token: config.worker.token,
+			hostname,
+			priority
+		};
 
 		this._client.publish(channel, JSON.stringify(message), this._handleError.bind(this));
 	}
@@ -288,7 +295,13 @@ class RedisMessenger extends EventEmitter {
 	_replyToRebootRequest(channel, id, response) {
 		this._ensureNotSubscribed();
 
-		let message = { id, isRequest: false, token: config.worker.token, response };
+		let message = {
+			id,
+			isRequest: false,
+			token: config.worker.token,
+			hostname,
+			response
+		};
 
 		this._client.publish(channel, JSON.stringify(message), this._handleError.bind(this));
 	}

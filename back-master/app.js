@@ -22,6 +22,7 @@
 
 const log = require("@oo/shared").logger("app");
 const mlog = require("@oo/shared").logger("app:minor");
+const hostname = require("@oo/shared").hostname();
 const MessageTranslator = require("./src/message-translator");
 const RedisMessenger = require("@oo/shared").RedisMessenger;
 const SessionManager = require("./src/session-manager");
@@ -37,7 +38,6 @@ const http = require("http");
 process.stdout.write("Process ID: " + process.pid + "\n");
 process.stderr.write("Process ID: " + process.pid + "\n");
 log.info("Process ID:", process.pid);
-const hostname = child_process.execSync("hostname").toString("utf8").trim();
 log.info("Hostname:", hostname);
 log.log(process.env);
 
