@@ -143,10 +143,11 @@ session: {
 	countdownExtraTime: 15000
 	countdownRequestTime: 3000
 	countdownRequestTimeBuffer: 1000
-	# timeoutTime is the amount of time a session is allowed to be idle before it is terminated by the server due to inactivity.
 	# timewarnTime is when to display the warning message in timewarnMessage that the session will be terminated soon.
-	timeoutTime: 1200000
-	timewarnTime: 900000
+	# timeoutTime is the amount of time a session is allowed to be idle before it is terminated by the server due to inactivity.
+	# 10 min, 15 min
+	timewarnTime: 600000
+	timeoutTime: 900000
 	timewarnMessage: 'NOTICE: Due to inactivity, your session will expire in five minutes.'
 
 	# DATA SIZE LIMITS
@@ -277,6 +278,8 @@ selinux: {
 #  - session.payloadLimit.user
 #  - session.countdownExtraTime
 #  - session.countdownRequestTime
+#  - session.timewarnTime
+#  - session.timeoutTime
 tiers: {
 	# Default tier: no settings need to be customized.
 	_default: {}
@@ -285,9 +288,12 @@ tiers: {
 	_maxima: {
 		sessionManager.poolSize: 1
 		selinux.prlimit.addressSpace: -1
+		# 15 min, 10 min, 5 min, 16 min, 21 min
 		session.legalTime.user: 900000
 		session.countdownExtraTime: 600000
 		session.countdownRequestTime: 300000
+		session.timewarnTime: 960000
+		session.timeoutTime: 1260000
 	}
 
 	# Example custom tier: a tier named "vip" that gets additional memory (4GB)

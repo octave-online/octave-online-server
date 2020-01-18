@@ -33,6 +33,8 @@ module.exports = {
 				"session.payloadLimit.user": config.session.payloadLimit.user,
 				"session.countdownExtraTime": config.session.countdownExtraTime,
 				"session.countdownRequestTime": config.session.countdownRequestTime,
+				"session.timewarnTime": config.session.timewarnTime,
+				"session.timeoutTime": config.session.timeoutTime,
 			},
 			config.tiers[tier]
 		);

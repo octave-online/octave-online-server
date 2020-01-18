@@ -39,7 +39,7 @@ const FilesController = require("../../back-filesystem/src/controller");
 
 class SessionImpl extends OctaveSession {
 	constructor(sessCode, options) {
-		super(sessCode);
+		super(sessCode, options);
 		this.options = options;
 
 		this._makeSessions();

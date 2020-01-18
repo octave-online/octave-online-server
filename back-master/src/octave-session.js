@@ -25,6 +25,7 @@
 const logger = require("@oo/shared").logger;
 const OnlineOffline = require("@oo/shared").OnlineOffline;
 const config = require("@oo/shared").config;
+const config2 = require("@oo/shared").config2;
 const timeLimit = require("@oo/shared").timeLimit;
 const fs = require("fs");
 const path = require("path");
@@ -41,15 +42,18 @@ const onceMessage = require("@oo/shared").onceMessage;
 const child_process = require("child_process");
 
 class OctaveSession extends OnlineOffline {
-	constructor(sessCode) {
+	constructor(sessCode, options) {
 		super();
 		this.sessCode = sessCode;
+		this._options = options;
 		this._log = logger("octave-session:" + sessCode);
 		this._mlog = logger("octave-session:" + sessCode + ":minor");
 
+		this._log.debug("Tier:", this._options.tier);
+
 		this._extraTime = 0;
-		this._countdownExtraTime = config.session.countdownExtraTime;
-		this._countdownRequestTime = config.session.countdownRequestTime;
+		this._countdownExtraTime = config2.tier(this._options.tier)["session.countdownExtraTime"];
+		this._countdownRequestTime = config2.tier(this._options.tier)["session.countdownRequestTime"];
 
 		this._legalTime = config.session.legalTime.guest;
 		this._payloadLimit = config.session.payloadLimit.guest;
@@ -144,13 +148,16 @@ class OctaveSession extends OnlineOffline {
 		if (this._state !== "ONLINE") return;
 		if (this._timewarnTimer) clearTimeout(this._timewarnTimer);
 		if (this._timeoutTimer) clearTimeout(this._timeoutTimer);
+		const timewarnTime = config2.tier(this._options.tier)["session.timewarnTime"];
+		const timeoutTime = config2.tier(this._options.tier)["session.timeoutTime"];
+		this._mlog.trace("Resetting timeout:", timewarnTime, timeoutTime);
 		this._timewarnTimer = setTimeout(() => {
 			this.emit("message", "err", config.session.timewarnMessage+"\n");
-		}, config.session.timewarnTime);
+		}, timewarnTime);
 		this._timeoutTimer = setTimeout(() => {
 			this._log.info("Session Timeout");
 			this.emit("message", "destroy", "Session Timeout");
-		}, config.session.timeoutTime);
+		}, timeoutTime);
 	}
 
 	// PAYLOAD METHODS: For interrupting the Octave kernel after a large amount of stdout/stderr data to prevent infinite loops from using too much bandwidth.
