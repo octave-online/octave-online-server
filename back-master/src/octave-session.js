@@ -352,6 +352,7 @@ class OctaveSession extends OnlineOffline {
 				urlObj.href = urlObj.protocol  + "//" + (urlObj.auth ? urlObj.auth + "@" : "") + urlObj.hostname + (urlObj.port ? ":" + urlObj.port : "") + urlObj.path;
 			}
 
+			this._log.info("Successfully matched URL", content.url, urlObj);
 			this._log.trace("Sending URL request:", urlObj.href);
 			let httpLib = (urlObj.protocol === "https:") ? https : http;
 			let req = httpLib.request(urlObj, (res) => {
