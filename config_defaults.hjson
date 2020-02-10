@@ -93,6 +93,12 @@ statsd: {
 	port: 8125
 }
 
+# Gith server connection info (for git-http-backend and php-fpm)
+# TODO: Consider making the service ports configurable.
+gith: {
+	hostname: localhost
+}
+
 # # # # # # # # # # # # # # # #
 # Back Server configurations  #
 # # # # # # # # # # # # # # # #
