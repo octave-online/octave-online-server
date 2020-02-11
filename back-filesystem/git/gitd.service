@@ -16,6 +16,11 @@
 # along with Octave Online Server.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+###############################################################
+# NOTE: This systemd service file is here for reference only; #
+# it is not currently being used in Octave Online Server.     #
+###############################################################
+
 [Unit]
 Description=Start Read-Write Git Daemon
 
