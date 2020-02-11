@@ -225,6 +225,8 @@ git: {
 	commitTimeLimit: 30000
 	# Interval (in ms) for committing without the user having to request; behaves like an "auto-save" where changes to script files are persisted to the Git server.
 	autoCommitInterval: 300000
+	# Base URL of the HTTP frontend for the Git file server
+	httpUrl: http://localhost/
 }
 
 # Docker implementation settings

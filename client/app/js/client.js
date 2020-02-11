@@ -1373,7 +1373,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				var currentUser = window.viewModel.currentUser();
 				var parametrized = currentUser ? currentUser.parametrized : "unknown";
 				var email = currentUser ? currentUser.email : "";
-				window.open("https://git.octave-online.net/?next=" + parametrized + ".git&user=" + email);
+				window.open("{!file_history_url!}?next=" + parametrized + ".git&user=" + email);
 			},
 			run: function(){
 				OctMethods.editor.run(viewModel.openFile());

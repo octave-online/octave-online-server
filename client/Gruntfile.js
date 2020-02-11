@@ -208,6 +208,12 @@ module.exports = function (grunt) {
 						replace: config.front.socket_io_path,
 						flags: "g"
 					},
+					{
+						name: "file_history_url",
+						search: "\\{!file_history_url!\\}",
+						replace: config.git.httpUrl,
+						flags: "g"
+					},
 				]
 			},
 			html: {
