@@ -76,6 +76,12 @@ auth: {
 		### Make up a long random string! ###
 		secret: xxxxxxxxx
 	}
+	utils_admin: {
+		users: {
+			### Make up a long random string! ###
+			admin: xxxxxxxxx
+		}
+	}
 }
 
 front: {

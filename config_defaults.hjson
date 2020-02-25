@@ -348,6 +348,10 @@ auth: {
 	password: {
 		salt_rounds: 10
 	}
+	utils_admin: {
+		users: {
+		}
+	}
 }
 
 # Front server settings
