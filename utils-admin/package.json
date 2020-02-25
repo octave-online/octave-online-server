@@ -1,0 +1,22 @@
+{
+  "name": "@oo/utilsadmin",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/server.js"
+  },
+  "author": "Octave Online LLC",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "@awaitjs/express": "^0.4.0",
+    "@oo/shared": "file:../shared",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "ejs": "~2.6.1",
+    "express": "~4.16.1",
+    "http-errors": "~1.6.3",
+    "mongodb": "^3.5.3",
+    "morgan": "~1.9.1"
+  }
+}

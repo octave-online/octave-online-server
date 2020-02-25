@@ -1,0 +1,36 @@
+<%#
+Copyright © 2020, Octave Online LLC
+
+This file is part of Octave Online Server.
+
+Octave Online Server is free software: you can redistribute it and/or
+modify it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the License,
+or (at your option) any later version.
+
+Octave Online Server is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with Octave Online Server.  If not, see
+<https://www.gnu.org/licenses/>.
+%>
+
+<!DOCTYPE html>
+<head>
+<meta charset="UTF-8" />
+<title><%= title %></title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css" integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous" />
+<link rel="stylesheet" type="text/css" href="/stylesheets/style.css" />
+</head>
+<body><div id="main">
+
+<header>
+	<% if (!locals.top) { %>
+		<a href="/">&laquo; Home</a>
+	<% } %>
+	<h1><%= title %></h1>
+</header>
