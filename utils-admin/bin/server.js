@@ -25,7 +25,7 @@
 
 const app = require("../app");
 const db = require("../src/db");
-const debug = require("debug")("utils-admin:server");
+const debug = require("debug")("oo:server");
 const http = require("http");
 const config = require("@oo/shared").config;
 
