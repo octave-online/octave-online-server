@@ -223,7 +223,7 @@ class HostProcessHandler extends ProcessHandler {
 		], next);
 	}
 
-	_doDestroyProcess(next) {
+	_doDestroyProcess() {
 		// Starting with Octave 4.4, sending SIGTERM is insufficient to make Octave exit.
 		this._log.trace("Executing 'exit' in Octave process");
 		this.sendMessage("cmd", "exit");

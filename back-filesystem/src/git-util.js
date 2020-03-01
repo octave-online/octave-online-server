@@ -24,7 +24,6 @@ const async = require("async");
 const child_process = require("child_process");
 const got = require("got");
 const logger = require("@oo/shared").logger;
-const path = require("path");
 const config = require("@oo/shared").config;
 const silent = require("@oo/shared").silent;
 
@@ -196,8 +195,8 @@ class GitUtil {
 						name: user.parametrized
 					}
 				}).then(() => {
-					next();
-				}).catch(next);
+					_next();
+				}).catch(_next);
 			}
 		], next);
 	}
@@ -215,8 +214,8 @@ class GitUtil {
 						name: bucketId
 					}
 				}).then(() => {
-					next();
-				}).catch(next);
+					_next();
+				}).catch(_next);
 			}
 		], next);
 	}

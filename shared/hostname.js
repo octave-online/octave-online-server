@@ -21,7 +21,6 @@
 "use strict";
 
 const child_process = require("child_process");
-const util = require("util");
 
 let hostnameCache = null;
 
@@ -30,4 +29,4 @@ module.exports = function getHostname() {
 		hostnameCache = child_process.execSync("hostname").toString("utf8").trim();
 	}
 	return hostnameCache;
-}
+};

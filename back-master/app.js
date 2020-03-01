@@ -28,7 +28,6 @@ const RedisMessenger = require("@oo/shared").RedisMessenger;
 const SessionManager = require("./src/session-manager");
 const config = require("@oo/shared").config;
 const gcStats = (require("gc-stats"))();
-const child_process = require("child_process");
 const fs = require("fs");
 const mkdirp = require("mkdirp");
 const path = require("path");

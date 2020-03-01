@@ -20,6 +20,8 @@
 
 "use strict";
 
+/* eslint-disable no-console */
+
 const Compute = require("@google-cloud/compute");
 const gcpMetadata = require("gcp-metadata");
 
