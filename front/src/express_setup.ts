@@ -48,7 +48,18 @@ export function init(){
 			req.url = "/index.html";
 			next("route");
 		})
-		.use(ServeStatic(staticPath))
+		.use(ServeStatic(staticPath, {
+			maxAge: "7d",
+			setHeaders: (res, path, stat) => {
+				switch (Path.extname(path)) {
+					case ".html":
+						res.setHeader("Cache-Control", "public, max-age=0");
+						break;
+					default:
+						break;
+				}
+			}
+		}))
 		.use(SessionMiddleware.middleware)
 		.use(BodyParser.urlencoded({ extended: true }))
 		.use(Passport.initialize())
