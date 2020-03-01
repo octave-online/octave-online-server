@@ -41,6 +41,10 @@ function getFileUtf8(filepath) {
 	};
 }
 
+const announcement_display = process.env.OO_ANNOUNCEMENT_DISPLAY ? process.env.OO_ANNOUNCEMENT_DISPLAY : config.client.announcement_display;
+
+const announcement_html = process.env.OO_ANNOUNCEMENT_HTML ? process.env.OO_ANNOUNCEMENT_HTML : config.client.announcement_html;
+
 module.exports = function (grunt) {
 	grunt.loadNpmTasks("grunt-contrib-requirejs");
 	grunt.loadNpmTasks("grunt-contrib-stylus");
@@ -282,13 +286,13 @@ module.exports = function (grunt) {
 					{
 						name: "announcement-display",
 						search: "\\{!announcement-display!\\}",
-						replace: config.client.announcement_display,
+						replace: announcement_display,
 						flags: "g"
 					},
 					{
 						name: "announcement-html",
 						search: "\\{!announcement-html!\\}",
-						replace: config.client.announcement_html,
+						replace: announcement_html,
 						flags: "g"
 					},
 					{
