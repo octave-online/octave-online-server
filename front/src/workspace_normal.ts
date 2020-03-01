@@ -24,7 +24,7 @@ import Async = require("async");
 
 import { IDestroyable, IWorkspace } from "./utils";
 import { IUser } from "./user_model";
-import { logger, ILogger } from "./shared_wrap";
+import { config, logger, ILogger } from "./shared_wrap";
 import { octaveHelper, SessionState } from "./octave_session_helper";
 
 type Err = Error|null;
@@ -53,7 +53,11 @@ export class NormalWorkspace
 
 	public destroyD(message: string){
 		this.destroyed = true;
-		if (this.sessCode) {
+		if (!this.sessCode) {
+			return;
+		}
+		// TODO: It's poor style to do a string comparison here
+		if (message !== "Client Disconnect" || config.worker.onDisconnect === "destroy") {
 			octaveHelper.sendDestroyD(this.sessCode, message);
 		}
 	}

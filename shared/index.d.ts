@@ -22,6 +22,8 @@ export class OnlineOffline {
 
     destroy(...args: any[]): void;
 
+    isOnline(...args: any[]): void;
+
     static defaultMaxListeners: number;
 
     static init(): void;
@@ -207,6 +209,11 @@ export const config: {
         password: {
             salt_rounds: number;
         };
+        utils_admin: {
+            users: {
+                webmaster: string;
+            };
+        };
     };
     client: {
         announcement_display: string;
@@ -262,6 +269,13 @@ export const config: {
         socket_io_path: string;
         static_path: string;
     };
+    gcp: {
+        health_check_port: number;
+        instance_group_name: string;
+        instance_group_removal_method: string;
+        key_filename: string;
+        zone: string;
+    };
     git: {
         author: {
             email: string;
@@ -271,6 +285,10 @@ export const config: {
         commitTimeLimit: number;
         createRepoPort: number;
         gitDaemonPort: number;
+        hostname: string;
+        httpUrl: string;
+    };
+    gith: {
         hostname: string;
     };
     mailgun: {
@@ -359,11 +377,20 @@ export const config: {
         poolSize: number;
         startupTimeLimit: number;
     };
+    statsd: {
+        hostname: string;
+        port: number;
+    };
     tiers: {
         vip: {
             "selinux.cgroup.name": string;
             "selinux.prlimit.addressSpace": number;
+            "session.countdownExtraTime": number;
+            "session.countdownRequestTime": number;
+            "session.legalTime.user": number;
             "session.payloadLimit.user": number;
+            "session.timeoutTime": number;
+            "session.timewarnTime": number;
             "sessionManager.poolSize": number;
         };
     };
@@ -377,6 +404,7 @@ export const config: {
         monitorLogs: {
             subdir: string;
         };
+        onDisconnect: string;
         sessionLogs: {
             depth: number;
             subdir: string;
@@ -387,6 +415,8 @@ export const config: {
 };
 
 export function asyncCache(getter: any, bufferTime: any): any;
+
+export function hostname(): any;
 
 export function logger(id: any): any;
 
@@ -700,6 +730,11 @@ export namespace config2 {
     function flavor(flavor: any): any;
 
     function tier(tier: any): any;
+
+}
+
+export namespace metrics {
+    function gauge(id: any, value: any): any;
 
 }
 

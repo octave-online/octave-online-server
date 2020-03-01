@@ -131,6 +131,10 @@ worker: {
 	# PERMISSIONS
 	# uid to use for file ownership; set this to the uid of the user running Octave.
 	uid: 1000
+
+	# SESSION HANDLING
+	# When set to "destroy" (default), destroy sessions immediately when the client disconnects.  When set to "ignore", don't destroy sessions immediately, and let them be cleaned up when they expire (see redis.expire).
+	onDisconnect: destroy
 }
 
 # Octave session settings
