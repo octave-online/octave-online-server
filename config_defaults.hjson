@@ -50,6 +50,7 @@ redis: {
 	expire: {
 		interval: 5000
 		timeout: 16000
+		timeoutShort: 6000
 	}
 	maxPayload: 10000
 }
@@ -133,7 +134,7 @@ worker: {
 	uid: 1000
 
 	# SESSION HANDLING
-	# When set to "destroy" (default), destroy sessions immediately when the client disconnects.  When set to "ignore", don't destroy sessions immediately, and let them be cleaned up when they expire (see redis.expire).
+	# When set to "destroy" (default), destroy sessions immediately when the client disconnects.  When set to "ignore", don't destroy sessions immediately, and let them be cleaned up when they expire (see redis.expire).  When set to "expireShort", set the expire timeout to config.redis.expire.timeoutShort and then ignore.
 	onDisconnect: destroy
 }
 

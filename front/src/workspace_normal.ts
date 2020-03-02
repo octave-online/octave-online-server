@@ -24,11 +24,13 @@ import Async = require("async");
 
 import { IDestroyable, IWorkspace } from "./utils";
 import { IUser } from "./user_model";
-import { config, logger, ILogger } from "./shared_wrap";
+import { config, newRedisMessenger, logger, ILogger } from "./shared_wrap";
 import { octaveHelper, SessionState } from "./octave_session_helper";
 
 type Err = Error|null;
 
+
+const redisMessenger = newRedisMessenger();
 
 export class NormalWorkspace
 	extends EventEmitter
@@ -58,7 +60,14 @@ export class NormalWorkspace
 		}
 		// TODO: It's poor style to do a string comparison here
 		if (message !== "Client Disconnect" || config.worker.onDisconnect === "destroy") {
+			this._log.trace("destroyD: Destroy Now:", message);
 			octaveHelper.sendDestroyD(this.sessCode, message);
+		} else if (config.worker.onDisconnect === "ignore") {
+			this._log.trace("destroyD: Ignore:", message);
+			// no-op
+		} else if (config.worker.onDisconnect === "expireShort") {
+			this._log.trace("destroyD: Expire Short:", message);
+			redisMessenger.touchInput(this.sessCode, true);
 		}
 	}
 

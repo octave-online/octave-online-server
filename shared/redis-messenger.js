@@ -220,12 +220,14 @@ class RedisMessenger extends EventEmitter {
 		this._client.hget(redisUtil.chan.session(sessCode), "live", next);
 	}
 
-	touchInput(sessCode) {
+	touchInput(sessCode, short) {
 		this._ensureNotSubscribed();
 
+		const timeout = short ? config.redis.expire.timeoutShort : config.redis.expire.timeout;
+
 		const multi = this._client.multi();
-		multi.expire(redisUtil.chan.session(sessCode), config.redis.expire.timeout/1000);
-		multi.expire(redisUtil.chan.input(sessCode), config.redis.expire.timeout/1000);
+		multi.expire(redisUtil.chan.session(sessCode), timeout/1000);
+		multi.expire(redisUtil.chan.input(sessCode), timeout/1000);
 		multi.exec(this._handleError.bind(this));
 	}
 

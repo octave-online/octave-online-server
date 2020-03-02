@@ -97,7 +97,7 @@ export class BackServerHandler extends EventEmitter {
 
 	private touch = () => {
 		if (!this.depend(["sessCode"])) return;
-		redisMessenger.touchInput(this.sessCode);
+		redisMessenger.touchInput(this.sessCode, false);
 	};
 
 	private depend(props: string[], log=false) {
