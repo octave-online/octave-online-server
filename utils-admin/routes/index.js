@@ -19,13 +19,24 @@
  */
 
 const express = require("express");
-const router = express.Router();
+const { addAsync } = require("@awaitjs/express");
+
+const db = require("../src/db");
+
+const router = addAsync(express.Router());
 
 router.get("/", function(req, res) {
 	res.render("index", {
 		title: "OO Admin Portal",
 		top: true
 	});
+});
+
+router.postAsync("/create.do", async function(req, res) {
+	const newDoc = JSON.parse(req.body.document);
+	const result = await db.createDocument("users", newDoc);
+	console.log(result);
+	res.redirect(`users/${result.ops[0]._id}`);
 });
 
 module.exports = router;

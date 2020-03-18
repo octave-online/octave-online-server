@@ -90,7 +90,16 @@ export function init(){
 				// Since we overrode the Passport callback function, we need to manually call res.logIn().
 				req.logIn(user, {}, function(err) {
 					if (err) return next(err);
-					res.redirect("/");
+					// Administrative user, first sign-in; generate default fields
+					if (user && !user.parametrized) {
+						log.trace("Administrative User", user.consoleText);
+						user.save().then(() => {
+							log.info("Administrative User Fields Set", user.consoleText);
+							res.redirect("/");
+						}).catch(next);
+					} else {
+						res.redirect("/");
+					}
 				});
 			})(req, res, next);
 		})

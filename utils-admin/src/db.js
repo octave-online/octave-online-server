@@ -59,10 +59,16 @@ async function replaceById(collectionName, id, newDoc) {
 	}, newDoc);
 }
 
+async function createDocument(collectionName, newDoc) {
+	const collection = db.collection(collectionName);
+	return await collection.insertOne(newDoc);
+}
+
 module.exports = {
 	connect,
 	find,
 	findById,
 	updateById,
-	replaceById
+	replaceById,
+	createDocument
 };

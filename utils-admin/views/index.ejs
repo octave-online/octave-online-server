@@ -31,4 +31,20 @@ along with Octave Online Server.  If not, see
 	</p>
 </form>
 
+<hr/>
+
+<form action="/create.do" method="post" class="pure-form">
+	<p>
+		<textarea name="document" class="pure-input-1" rows="7">{
+	"email": "___",
+	"profile": {
+		"method": "administrative"
+	}
+}</textarea>
+	</p>
+	<p>
+		<input type="submit" class="pure-button" value="Create New User" />
+	</p>
+</form>
+
 <%- include("partials/footer"); -%>
