@@ -68,6 +68,12 @@ mailgun: {
 	domain: localhost
 }
 
+# ReCAPTCHA connection info
+recaptcha: {
+	siteKey: xxxxxxxxx
+	secretKey: xxxxxxxxx
+}
+
 # Rackspace connection info
 rackspace: {
 	username: xxxxxxxxx

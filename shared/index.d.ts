@@ -323,10 +323,15 @@ export const config: {
         servers_base_url: string;
         username: string;
     };
+    recaptcha: {
+        secretKey: string;
+        siteKey: string;
+    };
     redis: {
         expire: {
             interval: number;
             timeout: number;
+            timeoutShort: number;
         };
         hostname: string;
         maxPayload: number;

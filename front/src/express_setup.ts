@@ -25,6 +25,7 @@ import BodyParser = require("body-parser");
 import Compression = require("compression");
 import Express = require("express");
 import Passport = require("passport");
+import ReCAPTCHA = require("recaptcha2");
 import ServeStatic = require("serve-static");
 import Siofu = require("socketio-file-upload");
 
@@ -32,6 +33,11 @@ import * as SessionMiddleware from "./session_middleware";
 import { config, logger } from "./shared_wrap";
 
 const log = logger("express-setup");
+
+const recaptcha = new ReCAPTCHA({
+	siteKey: config.recaptcha.siteKey,
+	secretKey: config.recaptcha.secretKey,
+});
 
 const PORT = process.env.PORT || config.front.listen_port;
 
@@ -77,7 +83,17 @@ export function init(){
 			successRedirect: "/",
 			failureRedirect: "/errors/login.html"
 		}))
-		.post("/auth/tok", Passport.authenticate("easy"), function(req, res) {
+		.post("/auth/tok", function(req, res, next) {
+			recaptcha.validateRequest(req, req.ip).then(function(){
+				// validated and secure
+				log.trace("ReCAPTCHA OK");
+				next();
+			}).catch(function(errorCodes){
+				// invalid
+				log.warn("ReCAPTCHA Error:", recaptcha.translateErrors(errorCodes));
+				res.status(400).send("Invalid ReCAPTCHA Response");
+			});
+		}, Passport.authenticate("easy"), function(req, res) {
 			res.redirect("/auth/entry?s=" + encodeURIComponent(req.body && req.body.s));
 		})
 		.get("/auth/entry", function(req, res) {

@@ -49,16 +49,6 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	[aria-hidden="true"] { display: none !important; }
 	</style>
 
-	<!-- Browser Compatibility Check -->
-	<script type="text/javascript">
-	var flexSupported = (function(){for(var b=document.createElement("div"),d=["","-webkit-","-moz-","-o-","-ms-"],c=0;5>c;c++)if(b.style.cssText+=d[c]+"flex-basis:1px",b.style.length)return!0;return!1})();
-
-	if (!flexSupported) {
-		// Send to the non-flexbox version of the site for additional tests
-		window.location.href = "v1/";
-	}
-	</script>
-
 	<!-- Pre-Load Spinner Image -->
 	<script>
 	new Image().src = "images/spinner.svg";
@@ -448,6 +438,7 @@ ONBOARDING-->
 	<label for="emailField">Enter your email address:</label>
 	<form action="./auth/tok" method="post">
 		<input type="email" id="emailField1" name="s" placeholder="email address" />
+		<div class="g-recaptcha" data-sitekey="{!recaptcha-sitekey!}"></div>
 		<input type="submit" value="Submit" />
 	</form>
 	<p>You will be emailed an 11-digit code that you will need to enter on the next screen.</p>
@@ -569,6 +560,7 @@ ONBOARDING-->
 <script type="text/javascript" src="vendor/requirejs/require.js"></script>
 <script type="text/javascript" src="main.js"></script>
 //<!-- End RequireJS -->
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script type="text/javascript">
 require.config({
 	urlArgs: "{!js-timestamp!}",

@@ -47,6 +47,11 @@ mailgun: {
 	domain: localhost
 }
 
+recaptcha: {
+	siteKey: xxxxxxxxx
+	secretKey: xxxxxxxxx
+}
+
 # # # # # # # # # # # # # # # #
 # Back Server configurations  #
 # # # # # # # # # # # # # # # #

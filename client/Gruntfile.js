@@ -296,6 +296,12 @@ module.exports = function (grunt) {
 						flags: "g"
 					},
 					{
+						name: "recaptcha-sitekey",
+						search: "\\{!recaptcha-sitekey!\\}",
+						replace: config.recaptcha.siteKey,
+						flags: "g"
+					},
+					{
 						name: "onboarding",
 						search: "<!--ONBOARDING([\\s\\S]+?)ONBOARDING-->",
 						replace: function(full, match) {

@@ -19,7 +19,8 @@
     "grunt-postcss": "^0.5.4",
     "grunt-regex-replace": "^0.2.6",
     "grunt-sync": "^0.8.1",
-    "kouto-swiss": "^1.0.0"
+    "kouto-swiss": "^1.0.0",
+    "@oo/shared": "file:../shared"
   },
   "dependencies": {
     "bower": "^1.8.4",

@@ -57,6 +57,8 @@ Although it is possible to use a third-party hosted Redis instance, this is not 
 
 [Recommended] *Mailgun:* If you want Octave Online Server to be able to send emails, such as for email-based login, you need a [Mailgun](https://www.mailgun.com) account.  The free tier should cover most experimental and low-traffic usage.
 
+[Recommended] *ReCAPTCHA:* Certain actions, such as when email is sent, require a CAPTCHA to prevent abuse. You should register for a [ReCAPTCHA](https://www.google.com/recaptcha/) v2 Checkbox and put your credentials into your config.hjson file.
+
 [Optional] *Google Analytics:* For aggregated statistics about traffic to your site, you can enable [Google Analytics](https://www.google.com/analytics/) integration.
 
 [Optional] *Nginx:* For better performance with serving static files and easier HTTPS setup, I recommend installing and configuring [Nginx](https://www.nginx.com).  However, this is not an essential piece, and it can be done after the rest of the infrastructure is up and running.
