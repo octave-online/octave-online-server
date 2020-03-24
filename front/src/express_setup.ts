@@ -140,6 +140,10 @@ export function init(){
 		.get("*", function(req, res){
 			res.sendStatus(404);
 		})
+		.use(function (err: any, req: any, res: any, next: any) {
+			log.error("Express Error", err);
+			res.sendStatus(500);
+		})
 		.listen(PORT);
 
 	log.info("Initialized Express Server on port:", PORT);
