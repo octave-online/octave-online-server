@@ -23,6 +23,7 @@ import GoogleOAuth = require("passport-google-oauth");
 import Local = require("passport-local");
 import Mailgun = require("mailgun-js");
 import Passport = require("passport");
+import Postmark = require("postmark");
 
 import * as Utils from "./utils";
 import { config, logger } from "./shared_wrap";
@@ -35,10 +36,17 @@ const log = logger("passport-setup");
 const baseUrl = `${config.front.protocol}://${config.front.hostname}:${config.front.port}/`;
 const googCallbackUrl = baseUrl + "auth/google/callback";
 
-const mailgun = Mailgun({
-	apiKey: config.mailgun.api_key,
-	domain: config.mailgun.domain
-});
+let mailgunClient: Mailgun.Mailgun|null = null;
+let postmarkClient: Postmark.ServerClient|null = null;
+
+if (config.email.provider === "mailgun") {
+	mailgunClient = Mailgun({
+		apiKey: config.mailgun.api_key,
+		domain: config.mailgun.domain
+	});
+} else {
+	postmarkClient = new Postmark.ServerClient(config.postmark.serverToken);
+}
 
 async function findOrCreateUser(email: string, profile: any) {
 	let user = await User.findOne({
@@ -122,19 +130,39 @@ function (req) {
 },
 function (email, token, done) {
 	const url = `${baseUrl}auth/tok?u=${encodeURIComponent(email)}&t=${token}`;
-	mailgun.messages().send({
-		from: "Octave Online <webmaster@octave-online.net>",
-		to: email,
-		subject: "Octave Online Login",
-		text: `Your login token for Octave Online is: ${token}\n\nYou can also click the following link.\n\n${url}\n\nOnce you have signed into your account, you may optionally set a password to speed up the sign-in process.  To do this, open the menu and click Change Password.`
-	}, (err, info) => {
-		if (err) {
-			log.warn("Failed sending email:", email, info);
-		} else {
-			log.trace("Sent token email:", Utils.emailHash(email));
-		}
-		done(null);
-	});
+	if (mailgunClient) {
+		mailgunClient.messages().send({
+			from: config.email.from,
+			to: email,
+			subject: "Octave Online Login",
+			text: `Your login token for Octave Online is: ${token}\n\nYou can also click the following link.\n\n${url}\n\nOnce you have signed into your account, you may optionally set a password to speed up the sign-in process.  To do this, open the menu and click Change Password.`
+		}, (err, info) => {
+			if (err) {
+				log.warn("Failed sending email:", email, info);
+			} else {
+				log.trace("Sent token email:", Utils.emailHash(email));
+			}
+			done(null);
+		});
+	} else if (postmarkClient) {
+		postmarkClient.sendEmailWithTemplate({
+			TemplateAlias: config.postmark.templateAlias,
+			From: config.email.from,
+			To: email,
+			TemplateModel: {
+				product_name: config.email.productName,
+				token_string: token,
+				action_url: url,
+				support_url: config.email.supportUrl
+			}
+		}).then((response) => {
+			log.trace(response);
+			done(null);
+		}).catch((err) => {
+			log.error("Failed sending email:", email, err);
+			done(err);
+		});
+	}
 },
 function (email: string, done: (err: Err, user?: unknown, info?: any) => void) {
 	log.trace("Easy Callback", Utils.emailHash(email));

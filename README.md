@@ -55,7 +55,7 @@ Although it is possible to use a third-party hosted Redis instance, this is not 
 
 [Recommended] *MongoDB:* Install and run a MongoDB instance.  Unlike Redis, MongoDB is not as central of a piece in the infrastructure, so it is possible to use a remotely hosted MongoDB if you do not want to host it locally.  My experience is that it takes some time to correctly configure a fast and secure MongoDB installation.  Keep in mind that MongoDB will contain personally identifiable information for user accounts.
 
-[Recommended] *Mailgun:* If you want Octave Online Server to be able to send emails, such as for email-based login, you need a [Mailgun](https://www.mailgun.com) account.  The free tier should cover most experimental and low-traffic usage.
+[Recommended] *Email SaaS:* If you want Octave Online Server to be able to send transactional emails, such as for email-based login, you need a [Mailgun](https://www.mailgun.com) or [Postmark](https://postmarkapp.com) account.  Mailgun has a free tier that should cover most experimental and low-traffic usage.
 
 [Recommended] *ReCAPTCHA:* Certain actions, such as when email is sent, require a CAPTCHA to prevent abuse. You should register for a [ReCAPTCHA](https://www.google.com/recaptcha/) v2 Checkbox and put your credentials into your config.hjson file.
 

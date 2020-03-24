@@ -238,6 +238,20 @@ export const config: {
         };
         memoryShares: string;
     };
+    email: {
+        from: string;
+        mailgun: {
+            api_key: string;
+            domain: string;
+        };
+        postmark: {
+            serverToken: string;
+            templateAlias: string;
+        };
+        productName: string;
+        provider: string;
+        supportUrl: string;
+    };
     flavorCommon: {
         blockVolume: boolean;
         defaultClusterSize: number;
@@ -315,6 +329,10 @@ export const config: {
         };
         operation_expire: number;
         stats_interval: number;
+    };
+    postmark: {
+        serverToken: string;
+        templateAlias: string;
     };
     rackspace: {
         api_key: string;

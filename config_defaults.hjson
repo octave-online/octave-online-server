@@ -62,10 +62,30 @@ mongo: {
 	db: oo
 }
 
+# Email SaaS settings
+email: {
+	# The email provider should be either "mailgun" or "postmark".
+	provider: mailgun
+
+	# Default headers for sending email
+	from: Octave Online Server <example@example.com>
+
+	# productName and supportUrl are used only for postmark
+	productName: Octave Online Server
+	supportUrl: http://localhost/
+}
+
 # Mailgun connection info
 mailgun: {
 	api_key: xxxxxxxxx
 	domain: localhost
+}
+
+# Postmark connection info
+postmark: {
+	serverToken: xxxx-xxxx-xxxx
+	# Postmark is configured to send email using a template. Please create a template in Postmark with the fields product_name, token_string, action_url, and support_url.
+	templateAlias: xxxxxxxxx
 }
 
 # ReCAPTCHA connection info
