@@ -55,7 +55,7 @@ async function findOrCreateUser(email: string, profile: any) {
 
 	// Returning user
 	if (user) {
-		log.trace("Returning User", user.consoleText);
+		log.info("Returning User", user.consoleText);
 		return user;
 	}
 
@@ -107,7 +107,7 @@ function (accessToken, refreshToken, profile, done) {
 		log.warn("No email returned from Google", profile);
 		return done(new Error("No email returned from Google"));
 	}
-	log.trace("Google Login", Utils.emailHash(email));
+	log.info("Google Login", Utils.emailHash(email));
 	findOrCreateUser(email, profile._json).then((user) => {
 		done(null, user);
 	}, (err) => {
@@ -165,7 +165,7 @@ function (email, token, done) {
 	}
 },
 function (email: string, done: (err: Err, user?: unknown, info?: any) => void) {
-	log.trace("Easy Callback", Utils.emailHash(email));
+	log.info("Easy Callback", Utils.emailHash(email));
 	findOrCreateUser(email, { method: "easy" }).then((user) => {
 		done(null, user);
 	}, (err) => {
@@ -181,12 +181,12 @@ function(username, password, done) {
 	findWithPassword(username, password, function(err, status, user) {
 		if (err) return done(err);
 		if (status === PasswordStatus.UNKNOWN) {
-			log.trace("Password Callback Unknown User", status, username);
+			log.info("Password Callback Unknown User", status, username);
 			return done(null, false);
 		} else if (status === PasswordStatus.INCORRECT) {
-			log.trace("Password Callback Incorrect", status, (user as IUser).consoleText);
+			log.info("Password Callback Incorrect", status, (user as IUser).consoleText);
 		} else {
-			log.trace("Password Callback Success", status, (user as IUser).consoleText);
+			log.info("Password Callback Success", status, (user as IUser).consoleText);
 			return done(null, user);
 		}
 	});
