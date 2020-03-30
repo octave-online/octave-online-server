@@ -86,11 +86,11 @@ export function init(){
 		.post("/auth/tok", function(req, res, next) {
 			recaptcha.validateRequest(req, req.ip).then(function(){
 				// validated and secure
-				log.trace("ReCAPTCHA OK");
+				log.trace("/auth/tok: ReCAPTCHA OK");
 				next();
 			}).catch(function(errorCodes){
 				// invalid
-				log.warn("ReCAPTCHA Error:", recaptcha.translateErrors(errorCodes));
+				log.warn("/auth/tok: ReCAPTCHA Error:", recaptcha.translateErrors(errorCodes));
 				res.status(400).send("Invalid ReCAPTCHA Response");
 			});
 		}, Passport.authenticate("easy"), function(req, res) {
@@ -100,6 +100,16 @@ export function init(){
 			res.render("token_page", { query: req.query });
 		})
 		.post("/auth/pwd", function(req, res, next) {
+			recaptcha.validateRequest(req, req.ip).then(function(){
+				// validated and secure
+				log.trace("/auth/pwd: ReCAPTCHA OK");
+				next();
+			}).catch(function(errorCodes){
+				// invalid
+				log.warn("/auth/pwd: ReCAPTCHA Error:", recaptcha.translateErrors(errorCodes));
+				res.status(400).send("Invalid ReCAPTCHA Response");
+			});
+		}, function(req, res, next) {
 			Passport.authenticate("local", function(err, user, /* info, status */) {
 				if (err) return next(err);
 				if (!user) return res.redirect("/auth/incorrect?s=" + encodeURIComponent(req.body && req.body.s));
