@@ -412,6 +412,8 @@ front: {
 	flavor_log_interval: 60000
 	# Socket.io path. There may be situations where you need to change this, such as when performing server upgrades.
 	socket_io_path: /socket.io
+	# Whether to redirect HTTP to HTTPS in Express
+	require_https: false
 }
 
 # Operational Transformation settings

@@ -240,14 +240,6 @@ export const config: {
     };
     email: {
         from: string;
-        mailgun: {
-            api_key: string;
-            domain: string;
-        };
-        postmark: {
-            serverToken: string;
-            templateAlias: string;
-        };
         productName: string;
         provider: string;
         supportUrl: string;
@@ -280,6 +272,7 @@ export const config: {
         listen_port: number;
         port: number;
         protocol: string;
+        require_https: boolean;
         socket_io_path: string;
         static_path: string;
     };

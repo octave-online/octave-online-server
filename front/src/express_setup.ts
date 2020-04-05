@@ -48,6 +48,13 @@ export function init(){
 	log.info("Serving static files from:", staticPath);
 
 	app = Express()
+		.use(function(req, res, next) {
+			// Redirect HTTP to HTTPS
+			if (!config.front.require_https) return next();
+			if (req.headers["x-forwarded-proto"] === "https") return next();
+			if (req.protocol === "https") return next();
+			res.redirect(301, `https://${req.hostname}${req.url}`);
+		})
 		.use(Compression())
 		.get(/\/[a-z]+~\w+$/, function(req, res, next) {
 			// Internally rewrite the path to index.html
