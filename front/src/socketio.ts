@@ -44,8 +44,10 @@ export function init(){
 		})
 		.on("connection", SocketHandler.onConnection);
 
-	// eslint-disable-next-line @typescript-eslint/no-use-before-define
-	watchFlavorServers(io);
+	if (config.rackspace.username !== "xxxxxxxxx") {
+		// eslint-disable-next-line @typescript-eslint/no-use-before-define
+		watchFlavorServers(io);
+	}
 
 	log.info("Initialized Socket.IO Server", config.front.socket_io_path);
 }
