@@ -233,6 +233,7 @@ define(
 		$("#sign_in_with_email").click(function () {
 			$("#email_token").showSafe();
 			$("#emailField1").focus();
+			$("#passwordField1").hideSafe(); // !! HONEYPOT !!
 		});
 		// Callback for #create-password-btn is in Knockout setup
 		$("#save-password-btn").click(function() {

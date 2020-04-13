@@ -88,7 +88,7 @@ export function init(){
 		})
 		.get("/auth/tok", Passport.authenticate("easy", {
 			successRedirect: "/",
-			failureRedirect: "/errors/login.html"
+			failureRedirect: "/auth/failure"
 		}))
 		.post("/auth/tok", function(req, res, next) {
 			recaptcha.validateRequest(req, req.ip).then(function(){
@@ -97,14 +97,14 @@ export function init(){
 				next();
 			}).catch(function(errorCodes){
 				// invalid
-				log.warn("/auth/tok: ReCAPTCHA Error:", recaptcha.translateErrors(errorCodes));
-				res.status(400).send("Invalid ReCAPTCHA Response");
+				log.info("/auth/tok: ReCAPTCHA Failure: Query:", JSON.stringify(req.body), "Message:", recaptcha.translateErrors(errorCodes));
+				res.status(400).render("captcha_error", { config });
 			});
 		}, Passport.authenticate("easy"), function(req, res) {
 			res.redirect("/auth/entry?s=" + encodeURIComponent(req.body && req.body.s));
 		})
 		.get("/auth/entry", function(req, res) {
-			res.render("token_page", { query: req.query });
+			res.status(200).render("token_page", { config, query: req.query });
 		})
 		.post("/auth/pwd", function(req, res, next) {
 			recaptcha.validateRequest(req, req.ip).then(function(){
@@ -113,8 +113,8 @@ export function init(){
 				next();
 			}).catch(function(errorCodes){
 				// invalid
-				log.warn("/auth/pwd: ReCAPTCHA Error:", recaptcha.translateErrors(errorCodes));
-				res.status(400).send("Invalid ReCAPTCHA Response");
+				log.info("/auth/pwd: ReCAPTCHA Failure: Query:", JSON.stringify(req.body), "Message:", recaptcha.translateErrors(errorCodes));
+				res.status(400).render("captcha_error", { config });
 			});
 		}, function(req, res, next) {
 			Passport.authenticate("local", function(err, user, /* info, status */) {
@@ -137,15 +137,18 @@ export function init(){
 			})(req, res, next);
 		})
 		.get("/auth/incorrect", function(req, res) {
-			res.render("incorrect_page", { query: req.query });
+			res.status(400).render("incorrect_page", { config, query: req.query });
 		})
 		.get("/auth/google", Passport.authenticate("google", {
 			scope: "profile email"
 		}))
 		.get("/auth/google/callback", Passport.authenticate("google", {
 			successRedirect: "/",
-			failureRedirect: "/errors/login.html"
+			failureRedirect: "/auth/failure"
 		}))
+		.get("/auth/failure", function(req, res) {
+			res.status(400).render("login_error", { config });
+		})
 		.get("/logout", function(req, res){
 			req.logout();
 			res.redirect("/");

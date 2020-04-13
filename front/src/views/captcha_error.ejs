@@ -21,28 +21,13 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 <p>
 	<img src="/images/logos/icon-black.svg" width="120px" />
 </p>
-<h1>Email Sign-In</h1>
-<form action="./tok" method="get">
-	<p>
-		<label for="token">An email has been sent to you with your login token.  When you receive your token, enter it here:</label>
-	</p>
-	<input type="hidden" name="u" value="<%= query ? query.s : '' %>" />
-	<p>
-		<input type="text" name="t" id="t" value="" autofocus="autofocus" placeholder="Enter Token" />
-	</p>
-	<p>
-		<input type="submit" value="Submit" />
-	</p>
-</form>
+<h1>ReCAPTCHA Failure</h1>
 <p>
-	After you sign in, you can use the "Change Password" option in the menu to set a new password.  If you don't set a password, you can have Octave Online email you a token whenever you sign in.  This prevents you from having to remember a unique password for Octave Online.
-</p>
-<p>
-	The email address you entered was: <strong><%= query ? query.s : "(empty)" %></strong>.  If you entered an invalid email address, please click the back button and try again.
+	Your request could not be processed due to a ReCAPTCHA Failure. Please click your back button and try again.
 </p>
 <hr/>
 <p>
-	If you did not receive your code or need help, contact support:
+	If you need help, contact support:
 </p>
 <iframe src="<%= config.email.supportUrl %>" id="support"></iframe>
 

@@ -438,6 +438,7 @@ ONBOARDING-->
 	<label for="emailField">Enter your email address:</label>
 	<form action="./auth/tok" method="post">
 		<input type="email" id="emailField1" name="s" placeholder="email address" />
+		<input type="password" id="passwordField1" name="p" />
 		<div class="g-recaptcha" data-sitekey="{!recaptcha-sitekey!}"></div>
 		<input type="submit" value="Submit" />
 	</form>
@@ -561,7 +562,6 @@ ONBOARDING-->
 <script type="text/javascript" src="vendor/requirejs/require.js"></script>
 <script type="text/javascript" src="main.js"></script>
 //<!-- End RequireJS -->
-<script src="https://www.recaptcha.net/recaptcha/api.js" async defer></script>
 <script type="text/javascript">
 require.config({
 	urlArgs: "{!js-timestamp!}",
