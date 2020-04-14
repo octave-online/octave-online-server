@@ -97,6 +97,7 @@ export function init(){
 				next();
 			}).catch(function(errorCodes){
 				// invalid
+				// NOTE: The "p" field is a honeypot in /auth/tok.
 				log.info("/auth/tok: ReCAPTCHA Failure: Query:", JSON.stringify(req.body), "Message:", recaptcha.translateErrors(errorCodes));
 				res.status(400).render("captcha_error", { config });
 			});
@@ -113,6 +114,8 @@ export function init(){
 				next();
 			}).catch(function(errorCodes){
 				// invalid
+				// NOTE: "p" could contain plaintext passwords, so scrub it from the log
+				if ("p" in req.body) req.body.p = "<redacted>";
 				log.info("/auth/pwd: ReCAPTCHA Failure: Query:", JSON.stringify(req.body), "Message:", recaptcha.translateErrors(errorCodes));
 				res.status(400).render("captcha_error", { config });
 			});
