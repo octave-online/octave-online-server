@@ -94,6 +94,20 @@ recaptcha: {
 	secretKey: xxxxxxxxx
 }
 
+# Patreon connection info
+patreon: {
+	client_id: xxxxxxxxx
+	client_secret: xxxxxxxxx
+	redirect_url: http://localhost/auth/patreon/callback
+	# Send webhooks to /auth/patreon/webhook
+	webhook_secret: xxxxxxxxx
+	# A secret used for encoding the state to authenticate OAuth requests (make up a custom string)
+	state_secret: xxxxxxxxx
+	state_max_token_age: 1800000
+	# Where to redirect the user if they link Patreon and aren't already a member
+	login_redirect: https://www.patreon.com/bePatron?u=xxxxxxxxx&redirect_uri=http%3A%2F%2Flocalhost%2Fauth%2Fpatreon
+}
+
 # Rackspace connection info
 rackspace: {
 	username: xxxxxxxxx

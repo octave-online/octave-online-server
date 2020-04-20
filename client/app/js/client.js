@@ -252,6 +252,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			window.location.href = "/logout";
 		},
 		showChangePassword: function() {
+			anal.sitecontrol("changepwdbtn");
 			$("#change_password").showSafe();
 			$("#new_pwd").focus();
 		},
@@ -294,6 +295,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			return viewModel.flavorList().length > 0;
 		},
 		showUpgradeBox: function() {
+			anal.sitecontrol("upgradeflavorbtn");
 			$("#upgrade_to_flavor").showSafe();
 		},
 		upgradeNow: function() {
@@ -301,6 +303,10 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			viewModel.activeFlavor(new FlavorObject(availableFlavors[flavorId]));
 			OctMethods.load.stopPatience();
 			OctMethods.socket.flavorUpgrade(flavorId);
+		},
+		showUpgradeTier: function() {
+			anal.sitecontrol("upgradetierbtn");
+			$("#upgrade_to_tier").showSafe();
 		},
 
 		getOctFileFromName: function(filename){

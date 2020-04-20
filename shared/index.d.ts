@@ -323,6 +323,15 @@ export const config: {
         operation_expire: number;
         stats_interval: number;
     };
+    patreon: {
+        client_id: string;
+        client_secret: string;
+        login_redirect: string;
+        redirect_url: string;
+        state_max_token_age: number;
+        state_secret: string;
+        webhook_secret: string;
+    };
     postmark: {
         serverToken: string;
         templateAlias: string;

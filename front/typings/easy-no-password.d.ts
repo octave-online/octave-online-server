@@ -44,7 +44,7 @@ declare module 'easy-no-password' {
 
 	class EasyNoPassword {
 		createToken(username: string, next: (err: Err, token?: string) => void): void;
-		isValid(username: string, token: string, next: (err: Err, isValid?: boolean) => void): void;
+		isValid(token: string, username: string, next: (err: Err, isValid?: boolean) => void): void;
 	}
 
 	function easy_no_password(secret: string, maxTokenAge: number): EasyNoPassword;

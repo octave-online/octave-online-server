@@ -18,6 +18,9 @@
  * <https://www.gnu.org/licenses/>.
  */
 
+modal_content_padding = 20px
+modal_header_height = 30px
+
 // Popover Box
 popover(_width, _height, _zindex){
 	position: fixed
@@ -44,13 +47,13 @@ popover(_width, _height, _zindex){
 			overflow: auto
 			-ms-overflow-style: -ms-autohiding-scrollbar
 			box-sizing: border-box
-			padding: 20px
+			padding: modal_content_padding
 			background-color: colorbkg
 
 			h2.popover-title-bar {
 				position: relative
-				margin: 0
-				height: 30px
+				margin: -1*modal_content_padding -1*modal_content_padding modal_content_padding
+				height: modal_header_height
 				background-color: color2
 
 				font-size: 20px
@@ -163,7 +166,7 @@ popover(_width, _height, _zindex){
 	
 	#create-bucket-content {
 		position: absolute
-		top: 0
+		top: modal_header_height
 		left: 0
 		right: 0
 		bottom: bucket_bar_height
@@ -259,6 +262,30 @@ popover(_width, _height, _zindex){
 	
 	p {
 		margin: 0 auto 1em
+	}
+}
+
+// Upgrade to Tier
+#upgrade_to_tier {
+	popover(50%, 50%, 320)
+	
+	text-align: center
+	font-size: 1.3em
+	line-height: 1.4em
+	
+	p {
+		margin: 0 auto 1em
+	}
+	
+	.action-links a {
+		background-color: color2
+		color: colorfgd
+		padding: 0.5em
+		border-radius: 0.5em
+	}
+	
+	.bigger {
+		font-size: 1.5em
 	}
 }
 

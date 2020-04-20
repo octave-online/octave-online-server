@@ -48,6 +48,12 @@ const userSchema = new Mongoose.Schema({
 	countdown_extra_time_override: Number,
 	countdown_request_time_override: Number,
 	flavors_enabled: Boolean,
+	patreon: {
+		user_id: String,
+		currently_entitled_amount_cents: Number,
+		currently_entitled_tier: String,
+		oauth2: Mongoose.Schema.Types.Mixed
+	},
 	last_activity: {
 		type: Date,
 		default: Date.now
@@ -86,6 +92,12 @@ export interface IUser extends Mongoose.Document, IUserMethods {
 	countdown_extra_time_override: number;
 	countdown_request_time_override: number;
 	flavors_enabled: boolean;
+	patreon?: {
+		user_id: string;
+		currently_entitled_amount_cents: number;
+		currently_entitled_tier: string|null;
+		oauth2: any;
+	};
 	last_activity: Date;
 	program: string;
 	instructor: string[];
@@ -162,10 +174,12 @@ const validTiers = Object.keys(config.tiers);
 userSchema.virtual("tier").get(function(this: IUser) {
 	let candidate: string|undefined = this.tier_override;
 	if (candidate && validTiers.indexOf(candidate) !== -1) {
+		this.logf().trace("Tier from tier_override:", candidate);
 		return candidate;
 	}
 	candidate = this._program?.tier_override;
 	if (candidate && validTiers.indexOf(candidate) !== -1) {
+		this.logf().trace("Tier from program:", candidate);
 		return candidate;
 	}
 	// Default value:
@@ -356,6 +370,9 @@ userSchema.set("toJSON", {
 	transform: function(doc, ret /* , options */) {
 		delete ret.password_hash;
 		delete ret.tier_override;
+		if (ret.patreon) {
+			delete ret.patreon.oauth2;
+		}
 		delete ret.legal_time_override;
 		delete ret.payload_limit_override;
 		delete ret.countdown_extra_time_override;

@@ -30,6 +30,7 @@ import ServeStatic = require("serve-static");
 import Siofu = require("socketio-file-upload");
 
 import * as SessionMiddleware from "./session_middleware";
+import * as Patreon from "./patreon";
 import { config, logger } from "./shared_wrap";
 
 const log = logger("express-setup");
@@ -75,6 +76,12 @@ export function init(){
 		}))
 		.use(SessionMiddleware.middleware)
 		.use(BodyParser.urlencoded({ extended: true }))
+		.use(BodyParser.json({
+			verify: function(req, res, buf, encoding) {
+				// Save the buffer for verification later
+				(req as any).rawBody = buf;
+			}
+		}))
 		.use(Passport.initialize())
 		.use(Passport.session())
 		.use(Siofu.router)
@@ -149,6 +156,11 @@ export function init(){
 			successRedirect: "/",
 			failureRedirect: "/auth/failure"
 		}))
+		.get("/auth/patreon", Patreon.phase1)
+		.get("/auth/patreon/callback", Patreon.phase2)
+		.get("/auth/patreon/revoke", Patreon.revoke)
+		.get("/auth/patreon/webhook", Patreon.webhook)
+		.post("/auth/patreon/webhook", Patreon.webhook)
 		.get("/auth/failure", function(req, res) {
 			res.status(400).render("login_error", { config });
 		})
