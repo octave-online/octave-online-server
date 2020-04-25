@@ -30,6 +30,12 @@ const got = require("got");
 import { config, logger } from "./shared_wrap";
 import { User, IUser } from "./user_model";
 
+interface PatreonInfo {
+	user_id: string;
+	currently_entitled_amount_cents: number;
+	currently_entitled_tier: string|null;
+}
+
 interface PatreonPhase1AsyncAuto {
 	enp: string;
 	raw_user: IUser|null;
@@ -42,11 +48,7 @@ interface PatreonPhase2AsyncAuto {
 	raw_user: IUser|null;
 	user: IUser;
 	tokenObject: any;
-	patreonInfo: {
-		user_id: string;
-		currently_entitled_amount_cents: number;
-		currently_entitled_tier: string|null;
-	};
+	patreonInfo: PatreonInfo;
 	existingUser: IUser|null;
 	resolve: any;
 }
@@ -76,6 +78,28 @@ const scope = "identity";
 
 // Use EasyNoPassword to create CSRF tokens for OAuth
 const enp = EasyNoPassword(config.patreon.state_secret, config.patreon.state_max_token_age);
+
+function processMembership(membership: any, user_id: string|null): PatreonInfo {
+	log.trace("Processing membership:", user_id, membership);
+	const currently_entitled_amount_cents = (membership?.attributes?.currently_entitled_amount_cents) as number ?? 0;
+	const tiers = membership?.relationships?.currently_entitled_tiers?.data ?? [];
+	const currently_entitled_tier = (tiers.length > 0) ? (tiers[0].id as string) : null;
+	if (!user_id) {
+		user_id = membership?.relationships?.user?.data.id as string;
+	}
+	if (!user_id) {
+		log.error("Could not find user_id in membership", JSON.stringify(membership));
+		throw new Error("Could not find Patreon user_id");
+	}
+	if (!currently_entitled_tier && currently_entitled_amount_cents > 0) {
+		log.warn("No tier, but pledge is > 0:", user_id, JSON.stringify(membership));
+	}
+	return {
+		currently_entitled_amount_cents,
+		currently_entitled_tier,
+		user_id
+	};
+}
 
 export function phase1(req: any, res: any, next: any) {
 	Async.auto<PatreonPhase1AsyncAuto>({
@@ -147,7 +171,7 @@ export function phase2(req: any, res: any, next: any) {
 				log.warn("Patreon callback: invalid state", req.session.id, JSON.stringify(req.session));
 				res.redirect("/auth/failure");
 			} else {
-				log.info("Patreon callback: valid state");
+				log.trace("Patreon callback: valid state");
 				oauth2.authorizationCode.getToken({
 					redirect_uri: config.patreon.redirect_url,
 					code: req.query.code,
@@ -176,24 +200,11 @@ export function phase2(req: any, res: any, next: any) {
 				const body = response.body;
 				try {
 					const user_id = (body.data.id) as string;
+					log.info("Processing Patreon link for user_id:", user_id);
 					const memberships = body.data.relationships.memberships.data;
 					const membership = (memberships.length > 0) ? body.included[0] : null;
-					if (membership && membership.type !== "member") {
-						log.error("ERROR: Expected first include to be the membership");
-						res.status(500).send("<h1>Unexpected error; please contact support</h1>");
-						return;
-					}
-					const currently_entitled_amount_cents = membership ? (membership.attributes.currently_entitled_amount_cents) as number : 0;
-					const tiers = membership ? membership.relationships.currently_entitled_tiers.data : [];
-					const currently_entitled_tier = (tiers.length > 0) ? (tiers[0].id as string) : null;
-					if (!currently_entitled_tier && currently_entitled_amount_cents > 0) {
-						log.warn("No tier, but pledge is > 0:", JSON.stringify(body));
-					}
-					_next(null, {
-						user_id,
-						currently_entitled_tier,
-						currently_entitled_amount_cents,
-					});
+					const patreonInfo = processMembership(membership, user_id);
+					_next(null, patreonInfo);
 				} catch(e) {
 					log.error("Invalid identity response:", JSON.stringify(body));
 					_next(e);
@@ -204,7 +215,7 @@ export function phase2(req: any, res: any, next: any) {
 			User.findOne({ "patreon.user_id": patreonInfo.user_id }, _next);
 		}],
 		resolve: ["user", "tokenObject", "patreonInfo", "existingUser", ({user, tokenObject, patreonInfo, existingUser}, _next) => {
-			log.info("Patreon Resolved", user.consoleText, JSON.stringify(patreonInfo));
+			log.info("Patreon Login Resolved", user.consoleText, JSON.stringify(patreonInfo));
 			if (existingUser && !existingUser._id.equals(user._id)) {
 				log.warn("Different existing user. Old user:", existingUser.consoleText, "New user:", user.consoleText);
 				res.status(400).render("patreon_link_error", {
@@ -291,12 +302,40 @@ export function webhook(req: any, res: any, next: any) {
 	if (expectedSignature === req.headers["x-patreon-signature"]) {
 		log.trace("Webhook signature matches");
 	} else {
-		log.warn("Patreon Webhook: Unexpected Signature", req.headers["x-patreon-signature"], data);
+		log.warn("Patreon Webhook: Unexpected Signature", req.headers["x-patreon-signature"], event, data);
 		res.sendStatus(412);
 		return;
 	}
 
-	log.info("Webhook", event, data);
-	log.info("Webhook", data.included);
-	res.sendStatus(204);
+	log.info("Processing Patreon event:", event);
+
+	let patreonInfo:PatreonInfo;
+	try {
+		const membership = data.data;
+		if (membership && membership.type !== "member") {
+			log.error("ERROR: Expected webhook data to be the membership", data);
+			res.sendStatus(400);
+			return;
+		}
+		patreonInfo = processMembership(membership, null);
+	} catch(e) {
+		log.error("Invalid webhook body:", JSON.stringify(data));
+		return next(e);
+	}
+
+	User.findOne({ "patreon.user_id": patreonInfo.user_id }, (err, user) => {
+		if (err) {
+			return next(err);
+		}
+		if (!user) {
+			log.info("Patreon user does not exist in database:", JSON.stringify(patreonInfo));
+			res.sendStatus(204);
+			return;
+		}
+		log.info("Updating user with Webhook Patreon info", user.consoleText, JSON.stringify(patreonInfo));
+		Object.assign(user.patreon, patreonInfo);
+		user.save().then(() => {
+			res.sendStatus(200);
+		}).catch(next);
+	});
 }
