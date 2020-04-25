@@ -33,6 +33,7 @@ plot-svg-styles()
 	}
 
 #console_output_container {
+	background-color: colorbkg
 
 	pre#console {
 		position: absolute
@@ -40,11 +41,11 @@ plot-svg-styles()
 		right: 0
 		bottom: 0
 		left: 0
-		background-color: colorbkg
 
-		text-align: left
 		overflow: auto
 		-ms-overflow-style: -ms-autohiding-scrollbar
+
+		text-align: left
 		font-size: console_font_size
 		line-height: 1.3em
 		font-family: code_font_family
@@ -117,6 +118,33 @@ plot-svg-styles()
 		font-style: italic
 	}
 
+	#tier_background {
+		position: absolute
+		top: 100px
+		left: 50%
+
+		& > div {
+			position: absolute
+			top: -75px
+			left: -75px
+			width: 150px
+			height: 150px
+			cursor: pointer
+
+			&.root {
+				flaticon(tier-root-sq)
+			}
+			&.plus {
+				flaticon(tier-plus-sq)
+			}
+			&.times {
+				flaticon(tier-times-sq)
+			}
+			&.exp {
+				flaticon(tier-exp-sq)
+			}
+		}
+	}
 }
 
 #console_prompt_container {
@@ -328,7 +356,7 @@ plot-svg-styles()
 				border: none
 
 				.vars_type {
-					color: color3
+					color: colorfg3
 				}
 				&.ko-flash {
 					background-color: color2lt

@@ -97,6 +97,7 @@ export interface IUser extends Mongoose.Document, IUserMethods {
 		currently_entitled_amount_cents: number;
 		currently_entitled_tier: string|null;
 		oauth2: any;
+		tier_name?: string; // virtual
 	};
 	last_activity: Date;
 	program: string;
@@ -172,18 +173,42 @@ userSchema.virtual("consoleText").get(function(this: IUser) {
 // Return the tier for this user, including resource-specific overrides.  These items usually fall back to the default unless a value is explicitly set in the database.  The camel-case name of these fields is for backwards compatibility.
 const validTiers = Object.keys(config.tiers);
 userSchema.virtual("tier").get(function(this: IUser) {
+	// First try: tier_override
 	let candidate: string|undefined = this.tier_override;
 	if (candidate && validTiers.indexOf(candidate) !== -1) {
 		this.logf().trace("Tier from tier_override:", candidate);
 		return candidate;
 	}
+
+	// Second try: Patreon
+	const patreonTier = this.patreon?.currently_entitled_tier;
+	if (patreonTier) {
+		// <any> cast: https://stackoverflow.com/a/35209016/1407170
+		candidate = (config.patreon.tiers as any)[patreonTier].oo_tier;
+		if (candidate && validTiers.indexOf(candidate) !== -1) {
+			this.logf().trace("Tier from Patreon:", candidate);
+			return candidate;
+		}
+	}
+
+	// Third try: program
 	candidate = this._program?.tier_override;
 	if (candidate && validTiers.indexOf(candidate) !== -1) {
 		this.logf().trace("Tier from program:", candidate);
 		return candidate;
 	}
+
 	// Default value:
 	return validTiers[0];
+});
+
+// Returns the Patreon tier name for the user
+userSchema.virtual("patreon.tier_name").get(function(this: IUser) {
+	const patreonTier = this.patreon?.currently_entitled_tier;
+	if (patreonTier) {
+		// <any> cast: https://stackoverflow.com/a/35209016/1407170
+		return (config.patreon.tiers as any)[patreonTier].name;
+	}
 });
 
 // Add all of the resource-specific overrides to work in the same way.

@@ -94,7 +94,7 @@ recaptcha: {
 	secretKey: xxxxxxxxx
 }
 
-# Patreon connection info
+# Patreon info
 patreon: {
 	client_id: xxxxxxxxx
 	client_secret: xxxxxxxxx
@@ -106,6 +106,16 @@ patreon: {
 	state_max_token_age: 1800000
 	# Where to redirect the user if they link Patreon and aren't already a member
 	login_redirect: https://www.patreon.com/bePatron?u=xxxxxxxxx&redirect_uri=http%3A%2F%2Flocalhost%2Fauth%2Fpatreon
+
+	# A mapping from Patreon tiers to Octave Online Server tiers. Multiple Patreon tiers can map to the same Octave Online tier.
+	# Four tier names are supported with icon assets: "root", "plus", "times", and "exp".
+	# Example: Patreon tier with ID "12345" has vanity name "plus" and maps to the Octave Online "vip" tier.
+	tiers: {
+		# "12345": {
+		# 	name: plus
+		# 	oo_tier: vip
+		# }
+	}
 }
 
 # Rackspace connection info

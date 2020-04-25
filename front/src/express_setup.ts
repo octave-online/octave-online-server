@@ -161,6 +161,9 @@ export function init(){
 		.get("/auth/patreon/revoke", Patreon.revoke)
 		.get("/auth/patreon/webhook", Patreon.webhook)
 		.post("/auth/patreon/webhook", Patreon.webhook)
+		.get("/auth/patreon/plans", function(req, res) {
+			res.redirect(config.patreon.login_redirect);
+		})
 		.get("/auth/failure", function(req, res) {
 			res.status(400).render("login_error", { config });
 		})

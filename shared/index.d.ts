@@ -330,6 +330,24 @@ export const config: {
         redirect_url: string;
         state_max_token_age: number;
         state_secret: string;
+        tiers: {
+            "4941716": {
+                name: string;
+                oo_tier: string;
+            };
+            "4941717": {
+                name: string;
+                oo_tier: string;
+            };
+            "4941718": {
+                name: string;
+                oo_tier: string;
+            };
+            "4994534": {
+                name: string;
+                oo_tier: string;
+            };
+        };
         webhook_secret: string;
     };
     postmark: {

@@ -469,6 +469,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				$("#console").scrollTop($("#console")[0].scrollHeight);
 				$("#type_here").hideSafe();
 				$("#agpl_icon").hideSafe();
+				$("#tier_background").hideSafe();
 				$("#plot_opener").showSafe();
 			},
 			clear: function(){
@@ -934,10 +935,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				if (!OctMethods.editor.initialized && data) {
 					OctMethods.editor.initialized = true;
 
-					// Set up the UI
-					onboarding.hideScriptPromo();
-					onboarding.hideBucketPromo();
-
 					// Trigger Knockout
 					data.name = data.name || data.displayName;
 					viewModel.currentUser(data);
@@ -947,6 +944,11 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					OctMethods.prompt.countdownExtraTime = data.countdownExtraTime;
 					OctMethods.prompt.countdownRequestTime = data.countdownRequestTime;
 					viewModel.countdownExtraTimeSeconds(data.countdownExtraTime/1000);
+
+					// Set up the UI
+					onboarding.showUserPromo(data);
+					onboarding.hideScriptPromo();
+					onboarding.hideBucketPromo();
 
 					// Analytics
 					anal.signedin();
