@@ -282,6 +282,8 @@ git: {
 	autoCommitInterval: 300000
 	# Base URL of the HTTP frontend for the Git file server
 	httpUrl: http://localhost/
+	# Set this to false if your git version does not support "--allow-unrelated-histories" (before Git 2.9)
+	supportsAllowUnrelatedHistories: true
 }
 
 # Docker implementation settings

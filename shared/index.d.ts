@@ -294,6 +294,7 @@ export const config: {
         gitDaemonPort: number;
         hostname: string;
         httpUrl: string;
+        supportsAllowUnrelatedHistories: boolean;
     };
     gith: {
         hostname: string;

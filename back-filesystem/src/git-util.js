@@ -126,7 +126,8 @@ class GitUtil {
 			(_next) => {
 				// Resolve merge conflicts by committing all the conflicts into the repository, and let the user manually fix the conflict next time the log in.
 				// This command can fail silently for the case when origin/master does not exist
-				child_process.execFile("git", ["merge", "--no-commit", "origin/master"], this.execOptions, silent(/not something we can merge/, silent(/.*/, _next)));
+				const mergeArgs = config.git.supportsAllowUnrelatedHistories ? ["merge", "--no-commit", "--allow-unrelated-histories", "origin/master"] : ["merge", "--no-commit", "origin/master"];
+				child_process.execFile("git", mergeArgs, this.execOptions, silent(/fix conflicts|not something we can merge/, _next).stdout);
 			},
 			(_next) => {
 				this._commit("Scripted merge", _next);
@@ -155,7 +156,7 @@ class GitUtil {
 				child_process.execFile("git", ["fetch", "--depth=1"], this.execOptions, silent(/no matching remote head/, _next));
 			},
 			(_next) => {
-				child_process.execFile("git", ["merge", "origin/master"], this.execOptions, silent(/not something we can merge/, silent(/.*/, _next)));
+				child_process.execFile("git", ["merge", "origin/master"], this.execOptions, silent(/not something we can merge/, _next));
 			},
 			(_next) => {
 				this._mlog.debug("Finished pull");
@@ -177,7 +178,7 @@ class GitUtil {
 			(_next) => {
 				// This command can safely fail silently for the case when there are no files to commit (in that case, the error is empty)
 				// Note that specifying --author here does not seem to work; I have to do -c ... instead
-				child_process.execFile("git", ["-c", `user.name="${config.git.author.name}"`, "-c", `user.email="${config.git.author.email}"`, "commit", "-m", message], this.execOptions, silent(/.*/, _next));
+				child_process.execFile("git", ["-c", `user.name="${config.git.author.name}"`, "-c", `user.email="${config.git.author.email}"`, "commit", "-m", message], this.execOptions, silent(/nothing to commit/, _next).stdout);
 			}
 		], next);
 	}
