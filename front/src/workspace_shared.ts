@@ -135,6 +135,8 @@ export class SharedWorkspace
 			octaveHelper.sendDestroyD(this.sessCode, message);
 		} else {
 			this.destroyed = true;
+			// Ensure that the files are committed immediately, so that if a user reloads the page, they get their data immediately synced
+			this.emit("back", "commit", { comment: "Scripted Commit on Disconnect" });
 		}
 	}
 

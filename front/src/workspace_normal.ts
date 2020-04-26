@@ -64,10 +64,13 @@ export class NormalWorkspace
 			octaveHelper.sendDestroyD(this.sessCode, message);
 		} else if (config.worker.onDisconnect === "ignore") {
 			this._log.trace("destroyD: Ignore:", message);
-			// no-op
+			// Ensure that the files are committed immediately, so that if a user reloads the page, they get their data immediately synced
+			this.emit("back", "commit", { comment: "Scripted Commit on Disconnect" });
 		} else if (config.worker.onDisconnect === "expireShort") {
 			this._log.trace("destroyD: Expire Short:", message);
 			redisMessenger.touchInput(this.sessCode, true);
+			// Ensure that the files are committed immediately, so that if a user reloads the page, they get their data immediately synced
+			this.emit("back", "commit", { comment: "Scripted Commit on Disconnect" });
 		}
 	}
 

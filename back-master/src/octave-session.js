@@ -558,6 +558,7 @@ class OctaveSession extends OnlineOffline {
 			// Messages to forward to the file manager
 			case "list":
 			case "refresh":
+			case "commit":
 			case "save":
 			case "rename":
 			case "delete":
