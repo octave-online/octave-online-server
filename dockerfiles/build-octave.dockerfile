@@ -92,11 +92,11 @@ RUN cd octave && \
 	mkdir build-oo
 
 ### 4.0.1-rc1 ###
-# RUN	cd build-oo && \
+# RUN	cd octave/build-oo && \
 # 	../configure --disable-readline --disable-gui --disable-docs
 
 ### 4.2.1 ###
-RUN cd build-oo && \
+RUN cd octave/build-oo && \
 	../configure --disable-readline --disable-docs --disable-atomic-refcount --without-qt
 
 # Build Octave
@@ -106,7 +106,12 @@ RUN cd octave/build-oo && make install
 
 # Monkey-patch bug #42352
 # https://savannah.gnu.org/bugs/?42352
-RUN touch /usr/local/share/octave/4.0.1-rc1/etc/macros.texi
+
+### 4.0.1-rc1 ###
+# RUN touch /usr/local/share/octave/4.0.1-rc1/etc/macros.texi
+
+### 4.2.1 ###
+RUN touch /usr/local/share/octave/4.2.1/etc/macros.texi
 
 # Monkey-patch json-c runtime errors
 ENV LD_LIBRARY_PATH /usr/local/lib
@@ -126,21 +131,26 @@ RUN /usr/local/bin/octave -q --eval "\
 	pkg install -forge control; \
 	pkg install -forge signal; \
 	pkg install -forge struct; \
-	pkg install -forge optim; \
-	pkg install -forge io; "
+	pkg install -forge io; \
+	pkg install -forge statistics; \
+	pkg install -forge optim; "
 RUN /usr/local/bin/octave -q --eval "\
 	pkg install -forge image; \
 	pkg install -forge symbolic; \
-	pkg install -forge statistics; \
 	pkg install -forge general; "
 RUN /usr/local/bin/octave -q --eval "\
 	pkg install -forge linear-algebra; \
+	pkg install -forge matgeom; \
 	pkg install -forge geometry; \
 	pkg install -forge data-smoothing; \
 	pkg install -forge nan; \
 	pkg install -forge tsa; "
+# Octave 4.2.1 is too old for the latest financial package.
 RUN /usr/local/bin/octave -q --eval "\
-	pkg install -forge financial; \
+	[fname, success] = urlwrite ('https://packages.octave.org/download/financial-0.5.1.tar.gz', [P_tmpdir '/financial.tar.gz']); \
+	assert(success); \
+	pkg ('install', fname); "
+RUN /usr/local/bin/octave -q --eval "\
 	pkg install -forge miscellaneous; \
 	pkg install -forge interval; \
 	pkg install -forge stk; \
@@ -155,13 +165,14 @@ RUN /usr/local/bin/octave -q --eval "\
 # odepkg - http://wiki.octave.org/Odepkg
 RUN /usr/local/bin/octave -q --eval "\
 	[fname, success] = urlwrite ('https://bitbucket.org/odepkg/odepkg/get/default.tar.gz', [P_tmpdir '/odepkg.tar.gz']); \
-	assert(success)
-	pkg ("install", fname) "
+	assert(success); \
+	pkg ('install', fname); "
 # communications - https://savannah.gnu.org/bugs/?47267
+# https://bitbucket.org/vote539/octave-communications/get/default.tar.gz is no longer available.
 RUN /usr/local/bin/octave -q --eval "\
-	[fname, success] = urlwrite ('https://bitbucket.org/vote539/octave-communications/get/default.tar.gz', [P_tmpdir '/communications.tar.gz']); \
-	assert(success)
-	pkg ("install", fname) "
+	[fname, success] = urlwrite ('https://bitbucket.org/octave-online/octave-communications/get/default.tar.gz', [P_tmpdir '/communications.tar.gz']); \
+	assert(success); \
+	pkg ('install', fname); "
 
 # Generate package metadata, used for warning messages
 RUN cd /usr/local/share/octave/site/m && /usr/local/bin/octave -q --eval "\

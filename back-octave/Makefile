@@ -20,7 +20,7 @@ CC = gcc
 CFLAGS = -Wall -pthread
 DEPS = 
 OBJ = host.o
-LIBS = -Wl,-Bstatic -luv -ljson-c -Wl,-Bdynamic
+LIBS = -Wl,-Bstatic -luv -ljson-c -Wl,-Bdynamic -Wl,--no-as-needed -ldl
 EXE = octave-host
 
 %.o: %.c $(DEPS)

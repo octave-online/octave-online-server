@@ -16,6 +16,6 @@
 # along with Octave Online Server.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-FROM centos:latest
+FROM centos:7
 ENV DIR /root
 WORKDIR $DIR
