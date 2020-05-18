@@ -637,8 +637,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				var cmd = OctMethods.prompt.instance.getValue();
 
 				// Check if this command is a front-end command
-				var enrollRegex = /^enroll\s*\(['"](\w+)['"]\).*$/;
-				var updateStudentsRegex = /^update_students\s*\(['"](\w+)['"]\).*$/;
+				var enrollRegex = /^enroll\s*\(['"]([^'"]+)['"]\).*$/;
+				var updateStudentsRegex = /^update_students\s*\(['"]([^'"]+)['"]\).*$/;
 				var pingRegex = /^ping$/;
 
 				var program;
