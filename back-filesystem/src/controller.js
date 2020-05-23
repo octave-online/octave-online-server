@@ -41,6 +41,7 @@ class FilesController extends EventEmitter {
 		this.workDir = workDir;
 		this.user = null;
 		this.bucketId = null;
+		this.ready = false;
 		this.destroyed = false;
 
 		this.fakeSocket = new FakeSocket();
@@ -48,8 +49,10 @@ class FilesController extends EventEmitter {
 		this._setupUploader();
 	}
 
+	// Returns whether Git operations are safe to perform.
+	// Check this.ready for whether file operations (without git) are safe.
 	_isInitialized() {
-		return this.user !== null || this.bucketId !== null;
+		return this.ready && (this.user !== null || this.bucketId !== null);
 	}
 
 	receiveMessage(name, content) {
@@ -61,6 +64,7 @@ class FilesController extends EventEmitter {
 					this._legalTime = content.legalTime; // FIXME: For backwards compatibility
 				} else {
 					this._log.info("No user this session");
+					this.ready = true;
 					this._sendMessage("files-ready", {});
 					return;
 				}
@@ -70,6 +74,7 @@ class FilesController extends EventEmitter {
 						this.gitUtil.initialize(this.user, this.workDir, _next);
 					},
 					(results, _next) => {
+						this.ready = true;
 						this._sendMessage("files-ready", {});
 						_next(null);
 					},
@@ -108,6 +113,7 @@ class FilesController extends EventEmitter {
 						this.gitUtil.initializeBucket(this.bucketId, this.workDir, content.readonly, _next);
 					},
 					(results, _next) => {
+						this.ready = true;
 						this._sendMessage("files-ready", {});
 						_next(null);
 					},
@@ -128,7 +134,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "list": {
-				if (!this._isInitialized()) return this._mlog.debug("Won't perform action on uninitialized repository");
+				if (!this.ready) return this._mlog.warn("list: not ready");
 				this._mlog.debug("Listing files...");
 				async.waterfall([
 					(_next) => {
@@ -148,7 +154,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "refresh": {
-				if (!this._isInitialized()) return this._mlog.debug("Won't perform action on uninitialized repository");
+				if (!this._isInitialized()) return this._mlog.warn("refresh: not initialized");
 				this._mlog.debug("Refreshing files...");
 				async.waterfall([
 					(_next) => {
@@ -170,7 +176,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "commit": {
-				if (!this._isInitialized()) return this._fail("committed", "debug", "Won't perform action on uninitialized repository");
+				if (!this._isInitialized()) return this._fail("committed", "warn", "Not initialized");
 				// NOTE: In a readonly repository (buckets), this is a no-op.
 				const comment = content.comment;
 				if (!comment) return this._fail("committed", "warn", "Empty comment:", comment);
@@ -188,6 +194,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "save": {
+				if (!this.ready) return this._fail("save", "warn", "Not ready");
 				const filename = content.filename;
 				const value = content.content;
 				this._mlog.debug("Saving file:", filename);
@@ -212,6 +219,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "rename": {
+				if (!this.ready) return this._fail("rename", "warn", "Not ready");
 				const oldname = content.filename;
 				const newname = content.newname;
 				if (!oldname || !newname) return this._fail("renamed", "warn", "Empty file name or new name:", oldname, newname);
@@ -229,6 +237,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "delete": {
+				if (!this.ready) return this._fail("delete", "warn", "Not ready");
 				const filename = content.filename;
 				if (!filename) return this._fail("deleted", "warn", "Empty file name:", filename);
 				this._mlog.debug("Deleting file:", filename);
@@ -251,6 +260,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "binary": {
+				if (!this.ready) return this._mlog.warn("binary: not ready");
 				const filename = content.filename;
 				if (!filename) return this._fail("binary", "warn", "Empty file name:", filename);
 				this._mlog.debug("Loading binary file:", filename);
@@ -272,6 +282,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "read-delete-binary": {
+				if (!this.ready) return this._mlog.warn("read-delete-binary: not ready");
 				const filename = content.filename;
 				if (!filename) return this._fail("deleted-binary", "warn", "Empty file name:", filename);
 				this._mlog.debug("Loading and deleting binary file:", filename);
@@ -297,6 +308,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "multi-binary": {
+				if (!this.ready) return this._mlog.warn("multi-binary: not ready");
 				const filenames = content.filenames;
 				const responseName = "multi-binary:" + content.id;
 				if (!Array.isArray(filenames)) return this._fail(responseName, "warn", "Invalid filename array:", filenames);
@@ -322,6 +334,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "save-multi-binary": {
+				if (!this.ready) return this._mlog.warn("save-multi-binary: not ready");
 				const filenames = content.filenames;
 				const base64datas = content.base64datas;
 				const responseName = "multi-binary-saved:" + content.id;
