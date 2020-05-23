@@ -55,9 +55,18 @@ class FilesController extends EventEmitter {
 		return this.ready && (this.user !== null || this.bucketId !== null);
 	}
 
+	// Returns whether either "user-info" or "bucket-info" has been called
+	_isSetUp() {
+		return this.user || this.bucketId || this.ready;
+	}
+
 	receiveMessage(name, content) {
 		switch (name) {
 			case "user-info": {
+				if (this._isSetUp()) {
+					this._log.error("user-info called, but already set up:", content);
+					return;
+				}
 				this.user = content.user;
 				if (this.user) {
 					this._log.info("Received user:", this.user.consoleText);
@@ -104,6 +113,10 @@ class FilesController extends EventEmitter {
 			}
 
 			case "bucket-info": {
+				if (this._isSetUp()) {
+					this._log.error("bucket-info called, but already set up:", content);
+					return;
+				}
 				this.bucketId = content.id;
 				this._legalTime = content.legalTime; // FIXME: For backwards compatibility
 				// If content.readonly is false, this request is for creating the bucket.  If content.readonly is true, this request is for reading from the bucket.

@@ -523,6 +523,10 @@ class OctaveSession extends OnlineOffline {
 			case "cmd":
 				// FIXME: The following translation (from content to content.data) should be performed in message-translator.js, but we're unable to do so because the data isn't downloaded from Redis until after message-translator is run.  Is there a more elegant place to put this?  Maybe all message translation should happen here in octave-session.js instead?
 				content = content.data || "";
+				if (typeof content !== "string") {
+					this._log.error("content is not a string:", content);
+					break;
+				}
 				this._startCountdown();
 				this.resetTimeout();
 				this._appendToSessionLog(name, content);
