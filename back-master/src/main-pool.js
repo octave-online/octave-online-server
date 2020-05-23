@@ -52,7 +52,13 @@ function startConnectionAcceptLoop(globals, next) {
 			if (!ACCEPT_CONS) return;
 			async.waterfall([
 				(__next) => {
-					let delay = Math.floor(config.worker.clockInterval.min + Math.random()*(config.worker.clockInterval.max-config.worker.clockInterval.min));
+					let fraction;
+					if (config.worker.clockStrategy === "random") {
+						fraction = Math.random();
+					} else {
+						fraction = sessionManager.usagePercent();
+					}
+					let delay = Math.floor(config.worker.clockInterval.min + fraction * (config.worker.clockInterval.max-config.worker.clockInterval.min));
 					setTimeout(__next, delay);
 				},
 				(__next) => {

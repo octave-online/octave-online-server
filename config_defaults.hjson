@@ -178,6 +178,10 @@ worker: {
 		max: 2500
 	}
 	maxSessions: 12
+	# clockStrategy:
+	#   - random = randomly choose a delay between clockInterval.min and clockInterval.max
+	#   - weighted = choose a shorter delay if there are fewer online sessions, and a longer delay if there are more online sessions
+	clockStrategy: random
 
 	# PERMISSIONS
 	# uid to use for file ownership; set this to the uid of the user running Octave.

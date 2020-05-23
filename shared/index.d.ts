@@ -443,6 +443,7 @@ export const config: {
             max: number;
             min: number;
         };
+        clockStrategy: string;
         logDir: string;
         maxSessions: number;
         monitorLogs: {
@@ -466,7 +467,7 @@ export function logger(id: any): any;
 
 export function onceMessage(emitter: any, messageName: any, next: any): void;
 
-export function silent(messageRegex: any, _next: any, ...args: any[]): any;
+export function silent(messageRegex: any, next: any, ...args: any[]): any;
 
 export function timeLimit(milliseconds: any, defaults: any, callback: any, ...args: any[]): any;
 

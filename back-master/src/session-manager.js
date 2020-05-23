@@ -108,6 +108,10 @@ class SessionManager extends EventEmitter {
 		return true;
 	}
 
+	usagePercent() {
+		return this.numActiveSessions() / config.worker.maxSessions;
+	}
+
 	isHealthy() {
 		return this._monitor_session && this._monitor_session.isOnline();
 	}
