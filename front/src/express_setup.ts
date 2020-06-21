@@ -115,6 +115,8 @@ export function init(){
 			res.status(200).render("token_page", { config, query: req.query });
 		})
 		.post("/auth/pwd", function(req, res, next) {
+			// One star to disable ReCAPTCHA; two stars to enable it
+			/*/
 			recaptcha.validateRequest(req, req.ip).then(function(){
 				// validated and secure
 				log.trace("/auth/pwd: ReCAPTCHA OK");
@@ -126,6 +128,9 @@ export function init(){
 				log.info("/auth/pwd: ReCAPTCHA Failure: Query:", JSON.stringify(req.body), "Message:", recaptcha.translateErrors(errorCodes));
 				res.status(400).render("captcha_error", { config });
 			});
+			/*/
+			next();
+			/**/
 		}, function(req, res, next) {
 			Passport.authenticate("local", function(err, user, /* info, status */) {
 				if (err) return next(err);
