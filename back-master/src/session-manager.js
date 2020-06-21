@@ -44,12 +44,17 @@ class SessionManager extends EventEmitter {
 			tiersEnabled = Object.keys(config.tiers);
 			tiersEnabled.splice(tiersEnabled.indexOf("_maxima"), 1);
 		}
-		log.info("Enabled tiers:", tiersEnabled);
-
 		tiersEnabled.forEach((tier) => {
-			this._pool[tier] = {};
-			this._poolSizes[tier] = config2.tier(tier)["sessionManager.poolSize"];
+			if (config2.tier(tier)["sessionManager.poolTier"]) {
+				mlog.info("Skipping tier with poolTier:", tier);
+				// continue
+			} else {
+				mlog.info("Enabling tier:", tier);
+				this._pool[tier] = {};
+				this._poolSizes[tier] = config2.tier(tier)["sessionManager.poolSize"];
+			}
 		});
+		log.info("Enabled tiers:", Object.keys(this._pool));
 
 		this._online = {};
 		this._monitor_session = null;
@@ -157,14 +162,15 @@ class SessionManager extends EventEmitter {
 		// Determine which tier to use
 		const user = content.user;
 		const tier = content.tier ? content.tier : user ? user.tier : Object.keys(this._pool)[0];
+		const poolTier = config2.tier(tier)["sessionManager.poolTier"] || tier;
 		// eslint-disable-next-line no-console
-		console.assert(Object.keys(this._pool).includes(tier), tier);
+		console.assert(Object.keys(this._pool).includes(poolTier), poolTier);
 
 		// Pull from the pool
-		const localCode = Object.keys(this._pool[tier])[0];
-		this._online[remoteCode] = this._pool[tier][localCode];
-		delete this._pool[tier][localCode];
-		log.info("Upgraded pool session", tier, localCode, remoteCode);
+		const localCode = Object.keys(this._pool[poolTier])[0];
+		this._online[remoteCode] = this._pool[poolTier][localCode];
+		delete this._pool[poolTier][localCode];
+		log.info("Upgraded pool session", poolTier, localCode, remoteCode);
 		this.recordMetrics();
 
 		// Convenience references

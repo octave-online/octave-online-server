@@ -116,18 +116,18 @@ class RedisMessenger extends EventEmitter {
 		return this;
 	}
 
-	putSessCode(sessCode, content) {
-		return this._putSessCode(sessCode, redisUtil.chan.needsOctave, content);
+	putSessCode(sessCode, millisecondBoost, content) {
+		return this._putSessCode(sessCode, millisecondBoost, redisUtil.chan.needsOctave, content);
 	}
 
-	putSessCodeFlavor(sessCode, flavor, content) {
-		return this._putSessCode(sessCode, redisUtil.chan.needsOctaveFlavor(flavor), content);
+	putSessCodeFlavor(sessCode, millisecondBoost, flavor, content) {
+		return this._putSessCode(sessCode, millisecondBoost, redisUtil.chan.needsOctaveFlavor(flavor), content);
 	}
 
-	_putSessCode(sessCode, channel, content) {
+	_putSessCode(sessCode, millisecondBoost, channel, content) {
 		this._ensureNotSubscribed();
 
-		let time = new Date().valueOf();
+		let time = new Date().valueOf() - millisecondBoost/1000;
 
 		let multi = this._client.multi();
 		multi.zadd(channel, time, sessCode);

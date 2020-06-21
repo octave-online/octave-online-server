@@ -256,6 +256,10 @@ sessionManager: {
 	poolInterval: 5000
 	# Maximum time that a session can use to start up (ms); above this, the session will be destroyed before it reaches the pool.
 	startupTimeLimit: 30000
+	# Tier-dependent override to select a different pool than the tier name. Set to false to use the tier name as the pool name.
+	poolTier: false
+	# Tier-dependent boost to give sessions in the queue (used on front server).
+	queueBoostTime: 0
 }
 
 # Server auto-maintenance settings
@@ -341,6 +345,8 @@ selinux: {
 # A default tier, named _default, is always available.
 # The following settings are customizable by tier:
 #  - sessionManager.poolSize
+#  - sessionManager.poolTier
+#  - sessionManager.queueBoostTime
 #  - selinux.cgroup.name
 #  - selinux.prlimit.addressSpace
 #  - session.legalTime.user

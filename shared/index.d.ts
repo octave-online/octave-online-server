@@ -419,6 +419,8 @@ export const config: {
         logInterval: number;
         poolInterval: number;
         poolSize: number;
+        poolTier: boolean;
+        queueBoostTime: number;
         startupTimeLimit: number;
     };
     statsd: {
@@ -426,6 +428,10 @@ export const config: {
         port: number;
     };
     tiers: {
+        root: {
+            "sessionManager.poolTier": string;
+            "sessionManager.queueBoostTime": number;
+        };
         vip: {
             "selinux.cgroup.name": string;
             "selinux.prlimit.addressSpace": number;
@@ -436,6 +442,7 @@ export const config: {
             "session.timeoutTime": number;
             "session.timewarnTime": number;
             "sessionManager.poolSize": number;
+            "sessionManager.queueBoostTime": number;
         };
     };
     worker: {

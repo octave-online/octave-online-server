@@ -27,6 +27,8 @@ module.exports = {
 		return Object.assign(
 			{
 				"sessionManager.poolSize": config.sessionManager.poolSize,
+				"sessionManager.poolTier": config.sessionManager.poolTier,
+				"sessionManager.queueBoostTime": config.sessionManager.queueBoostTime,
 				"selinux.cgroup.name": config.selinux.cgroup.name,
 				"selinux.prlimit.addressSpace": config.selinux.prlimit.addressSpace,
 				"session.legalTime.user": config.session.legalTime.user,
