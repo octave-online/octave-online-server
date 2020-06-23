@@ -13,7 +13,7 @@ There are three separate components of Octave Online Server:
 2. **Front Server**: Authentication, client session handling.
 3. **Back Server**: File I/O, Octave process handling.
 
-*Communication:* The Client and Front Server communicate primarilly with WebSockets via [socket.io](https://socket.io); the Front Server and Back Server communicate primarilly with [Redis PubSub](https://redis.io/topics/pubsub).  User account information is stored in [MongoDB](https://www.mongodb.com) and is accessed primarilly from the Front Server.  User files are stored in [Git on the Server](https://git-scm.com/book/en/v1/Git-on-the-Server) and are accessed primarilly from the Back Server.
+*Communication:* The Client and Front Server communicate primarily with WebSockets via [socket.io](https://socket.io); the Front Server and Back Server communicate primarily with [Redis PubSub](https://redis.io/topics/pubsub).  User account information is stored in [MongoDB](https://www.mongodb.com) and is accessed primarily from the Front Server.  User files are stored in [Git on the Server](https://git-scm.com/book/en/v1/Git-on-the-Server) and are accessed primarily from the Back Server.
 
 *Scaling:* Front Servers and Back Servers can be scaled independently (in general, you need more Back Servers than Front Servers).  It is also possible to run both the Front Server and the Back Server on the same computer.
 
@@ -21,7 +21,7 @@ There are three separate components of Octave Online Server:
 
 ## Installation
 
-*Note:* Octave Online Server has a lot of moving parts.  It is recommend that you feel comfortable with basic system administration before attempting an installation.
+*Note:* Octave Online Server has a lot of moving parts.  It is recommended that you feel comfortable with basic system administration before attempting an installation.
 
 For more details on operating each of the three components, see the respective README files:
 
@@ -42,7 +42,7 @@ Every subdirectory of the top-level Octave Online Server directory has a README 
 	$ sudo yum makecache
 	$ sudo yum install nodejs
 
-[Required] *Redis:* Install and run a local Redis instance.  Enable expiration events in redis.conf:
+[Required] *Redis:* Install and run a local Redis instance.  Enable expiration events in `redis.conf`:
 
 	$ sudo yum install redis
 	$ sudo emacs redis.conf
@@ -51,7 +51,7 @@ Every subdirectory of the top-level Octave Online Server directory has a README 
 
 Although it is possible to use a third-party hosted Redis instance, this is not recommended because Redis latency is amplified due to its central role in the Octave Online Server architecture.
 
-[Recommended] *Git Server:* In order to persist user files between sessions, you need to set up a Git file server.  It boils down to a server, which could be the current server, with a low-privilidged user usually named "git".  For more information, see [Git on the Server](https://git-scm.com/book/en/v1/Git-on-the-Server).  Also see [back-master/README.md](back-master/README.md).
+[Recommended] *Git Server:* In order to persist user files between sessions, you need to set up a Git file server.  It boils down to a server, which could be the current server, with a low-privileged user usually named "git".  For more information, see [Git on the Server](https://git-scm.com/book/en/v1/Git-on-the-Server).  Also see [back-master/README.md](back-master/README.md).
 
 [Recommended] *MongoDB:* Install and run a MongoDB instance.  Unlike Redis, MongoDB is not as central of a piece in the infrastructure, so it is possible to use a remotely hosted MongoDB if you do not want to host it locally.  My experience is that it takes some time to correctly configure a fast and secure MongoDB installation.  Keep in mind that MongoDB will contain personally identifiable information for user accounts.
 
