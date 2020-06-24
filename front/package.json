@@ -24,7 +24,7 @@
     "mailgun-js": "^0.20.0",
     "mime": "^1.6.0",
     "mongodb": "^2.2.35",
-    "mongoose": "^4.13.14",
+    "mongoose": "^5.9.20",
     "nomnom": "^1.8.1",
     "ot": "0.0.15",
     "passport": "^0.2.2",
