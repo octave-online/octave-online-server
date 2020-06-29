@@ -107,6 +107,8 @@ To run the code manually, just open up two terminals and run each of the followi
 
 To run the code as a service, you can install the systemd service provided in this repository and enable the code to be automatically run at startup; see *entrypoint/oo.service* and `make install-selinux-bin`.
 
+**Tip:** When debugging, you can modify your hosts file (on macOS, /private/etc/hosts) to create a stable URL that you can add to your Google developer console to allow Google services to work.
+
 ## Contributing
 
 You are welcome to send pull requests for consideration for addition to Octave Online Server.  Pull requests are not guaranteed to be accepted; if in doubt, you should open an issue to discuss your idea before spending time writing your pull request.
