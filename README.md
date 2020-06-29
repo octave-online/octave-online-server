@@ -29,17 +29,24 @@ For more details on operating each of the three components, see the respective R
 - [front/README.md](front/README.md) (front server)
 - [client/README.md](client/README.md) (client)
 
+There are also a few more directories for other components:
+
+- [back-filesystem/README.md](back-filesystem/README.md) for filesystem I/O on the back server
+- [back-octave/README.md](back-octave/README.md) for GNU Octave bindings for the back server
+- [entrypoint/README.md](entrypoint/README.md) for helper scripts to run Octave Online Server
+- [shared/README.md](shared/README.md) for code shared by multiple components
+- [utils-admin/README.md](utils-admin/README.md) for an optional admin panel
+- [utils-auth/README.md](utils-auth/README.md) for an optional standalone user authentication service
+
 Every subdirectory of the top-level Octave Online Server directory has a README file that explains what the contents of the directory is for.
 
 ### Prerequisites
 
-[Required] *Operating System:* Octave Online Server is built and tested exclusively on GNU/Linux.  It is recommended that you use CentOS 7, although other modern distributions should work also.
+[Required] *Operating System:* Octave Online Server is built and tested exclusively on GNU/Linux.  It is recommended that you use CentOS 8, although other modern distributions should work also.  Most of Octave Online Server should work on macOS, but this has not been tested.
 
-[Required] *Node.js:* Octave Online Server is built and tested with Node.js LTS version 6.  I recommend configuring the installation from a [Package Manager](https://nodejs.org/en/download/package-manager/#enterprise-linux-and-fedora).
+[Required] *Node.js:* Octave Online Server is built and tested with Node.js LTS version 10.  This is the default version on CentOS 8.
 
-	# Install Node.js 6.x LTS on CentOS 7:
-	$ curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -
-	$ sudo yum makecache
+	# Install Node.js 10.x LTS on CentOS 8:
 	$ sudo yum install nodejs
 
 [Required] *Redis:* Install and run a local Redis instance.  Enable expiration events in redis.conf:
@@ -76,14 +83,6 @@ In each of the five directories containing Node.js projects, go in and run `npm 
 	$ (cd back-master && npm install)
 	$ (cd front && npm install)
 	$ (cd client && npm install)
-
-Link the shared project into all of the others; this allows all projects to use the code in the shared directory:
-
-	$ (cd shared && npm link)  # might require sudo on npm link
-	$ (cd back-filesystem && npm link @oo/shared)
-	$ (cd back-master && npm link @oo/shared)
-	$ (cd front && npm link @oo/shared)
-	$ (cd client && npm link @oo/shared)
 
 You also need to install the Bower (client-side) dependencies for the client project:
 

@@ -1,0 +1,40 @@
+# Copyright © 2019, Octave Online LLC
+#
+# This file is part of Octave Online Server.
+#
+# Octave Online Server is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# Octave Online Server is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Octave Online Server.  If not, see
+# <https://www.gnu.org/licenses/>.
+
+#########################################################
+# NOTE: All local paths are relative to repository root #
+#########################################################
+
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - build
+    - --build-arg=FULL_BASE_IMAGE=gcr.io/$PROJECT_ID/octave-pkg:$_BASE_REV
+    - --tag=gcr.io/$PROJECT_ID/octave-oo:$_BASE_REV-$SHORT_SHA
+    - --tag=gcr.io/$PROJECT_ID/octave-oo:latest
+    - --file=back-octave/containers/octave-oo/Dockerfile
+    - '.'
+  timeout: 7200s
+timeout: 7200s
+options:
+  machineType: 'N1_HIGHCPU_8'
+substitutions:
+  _BASE_REV: unknown
+images: 
+  - gcr.io/$PROJECT_ID/octave-oo:$_BASE_REV-$SHORT_SHA
+  - gcr.io/$PROJECT_ID/octave-oo:latest
