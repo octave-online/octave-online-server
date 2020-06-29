@@ -34,18 +34,52 @@ steps:
       gcloud source repos clone oo-misc1 &&
       (cd oo-misc1 && git log -n1) &&
       cp oo-misc1/gcp_config.hjson config.hjson &&
+      cp oo-misc1/octave-online-866c0deeb0d1.json . &&
       rm -rf oo-misc1;
 
-# Build the image
-- name: 'gcr.io/cloud-builders/docker'
+# Perform build steps using same distro as the production VM:
+- name: centos:centos8
+  entrypoint: bash
   args:
-    - build
-    - --tag=gcr.io/$PROJECT_ID/oo-gith:latest
-    - --file=containers/oo-gith/Dockerfile
-    - '.'
-  timeout: 7200s
+    - -c
+    - |
+      # Install dependencies, including Node.js
+      yum install -y nodejs gcc-c++ make libicu-devel python2 &&
+      npm config set prefix /workspace &&
+      [[ $? == 0 ]] || exit $?;  # exit if failure
 
-images:
-  - gcr.io/$PROJECT_ID/oo-gith:latest
+      # Build Node.js projects for oo-back
+      # Use npm ci to install deps from lockfiles
+      (
+        cd shared &&
+        npm ci &&
+        npm install ./stackdriver
+      ) && (
+        cd back-filesystem &&
+        npm ci
+      ) && (
+        cd back-master &&
+        npm ci
+      ) && (
+        cd shared/gcp &&
+        npm ci
+      );
+      [[ $? == 0 ]] || exit $?;  # exit if failure
 
-timeout: 7200s
+      # Create exit.js to reboot instance
+      echo 'module.exports = require("../shared/gcp/reboot_or_remove_self.js")' > entrypoint/exit.js
+      [[ $? == 0 ]] || exit $?;  # exit if failure
+
+      # Create tar.gz package
+      tar zcf /tmp/$_OUTPUT_FILENAME . &&
+      mv /tmp/$_OUTPUT_FILENAME . &&
+      ls -ldh `pwd`;
+
+# Save the tar.gz package to storage
+substitutions:
+  _OUTPUT_FILENAME: oo_back_centos8.tar.gz
+artifacts:
+  objects:
+    location: gs://artifacts.octave-online.appspot.com/objects/oo-back/
+    paths:
+      - $_OUTPUT_FILENAME

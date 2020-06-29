@@ -1,4 +1,4 @@
-# Copyright © 2019, Octave Online LLC
+# Copyright © 2020, Octave Online LLC
 #
 # This file is part of Octave Online Server.
 #
@@ -30,22 +30,26 @@ steps:
     - -c
     - |
       # Download config file from private repo
+      # Copy AppEngine files to the root directory
+      # Delete client/app/node_modules since it doesn't point anywhere
       # Log the current commit info in the build log
       gcloud source repos clone oo-misc1 &&
       (cd oo-misc1 && git log -n1) &&
       cp oo-misc1/gcp_config.hjson config.hjson &&
+      find oo-misc1/appengine/utils-admin -type f -exec cp {} . \; &&
+      rm -f package-lock.json &&
+      rm -f client/app/node_modules &&
       rm -rf oo-misc1;
 
-# Build the image
-- name: 'gcr.io/cloud-builders/docker'
+# Deploy to AppEngine
+- name: gcr.io/cloud-builders/gcloud
+  entrypoint: bash
+  timeout: 1800s
   args:
-    - build
-    - --tag=gcr.io/$PROJECT_ID/oo-gith:latest
-    - --file=containers/oo-gith/Dockerfile
-    - '.'
-  timeout: 7200s
+    - -c
+    - |
+      [[ $? == 0 ]] || exit $?;  # exit if failure
 
-images:
-  - gcr.io/$PROJECT_ID/oo-gith:latest
+      gcloud app deploy;
 
-timeout: 7200s
+timeout: 1800s

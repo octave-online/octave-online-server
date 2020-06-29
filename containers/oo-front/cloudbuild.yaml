@@ -30,22 +30,56 @@ steps:
     - -c
     - |
       # Download config file from private repo
+      # Copy AppEngine files to the root directory
       # Log the current commit info in the build log
       gcloud source repos clone oo-misc1 &&
       (cd oo-misc1 && git log -n1) &&
       cp oo-misc1/gcp_config.hjson config.hjson &&
+      find oo-misc1/appengine/oo-front -type f -exec cp {} . \; &&
+      rm -f package-lock.json &&
       rm -rf oo-misc1;
 
-# Build the image
-- name: 'gcr.io/cloud-builders/docker'
+# Build the client project and the front server typescript
+- name: node:10
+  entrypoint: bash
   args:
-    - build
-    - --tag=gcr.io/$PROJECT_ID/oo-gith:latest
-    - --file=containers/oo-gith/Dockerfile
-    - '.'
-  timeout: 7200s
+    - -c
+    - |
+      (
+        cd client &&
+        npm ci &&
+        npm install ../shared &&
+        npm run bower -- --allow-root install &&
+        npm run grunt
+      );
+      [[ $? == 0 ]] || exit $?;  # exit if failure
 
-images:
-  - gcr.io/$PROJECT_ID/oo-gith:latest
+      (
+        cd front &&
+        npm ci &&
+        npm run build
+      );
+      [[ $? == 0 ]] || exit $?;  # exit if failure
+  env:
+    - OO_ANNOUNCEMENT_DISPLAY=$_ANNOUNCEMENT_DISPLAY
+    - OO_ANNOUNCEMENT_HTML=$_ANNOUNCEMENT_HTML
 
-timeout: 7200s
+# Deploy to AppEngine
+- name: gcr.io/cloud-builders/gcloud
+  entrypoint: bash
+  timeout: 1800s
+  args:
+    - -c
+    - |
+      # Copy AppEngine files to the root directory
+      find gcp/appengine/oo-front -type f -exec cp {} . \; &&
+      rm -f package-lock.json;
+      [[ $? == 0 ]] || exit $?;  # exit if failure
+
+      gcloud app deploy $_DEPLOY_OPTS;
+
+timeout: 1800s
+substitutions:
+  _ANNOUNCEMENT_DISPLAY: "off"
+  _ANNOUNCEMENT_HTML: "<p></p>"
+  _DEPLOY_OPTS: "--promote"

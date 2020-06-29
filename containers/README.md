@@ -3,21 +3,24 @@ Containers for Octave Online Server
 
 This directory contains up-to-date container definitions for various pieces of Octave Online Server.
 
-Inside each directory, you will find at least two files:
+Inside most directories, you will find at least two files:
 
 - Dockerfile: The scripts to build the container.
 - cloudbuild.yaml: For hooking up with Google Cloud Build.  You can ignore this file unless you want to use Google Cloud Build to build the containers.
 
 Some directories contain additional assets used for building the respective containers.
 
-**Important:** You should build all of the containers from the repository root and specify the Dockerfile via the `--file` option to `docker build`.
+**Important:** You should build all of the containers from the repository root and specify the Dockerfile via the `--file` option to `docker build`.  Your *config.hjson* file should be present when you run `docker build`.
 
 The containers are:
 
 - octave-\*: GNU Octave containers
+- oo-front: Front server container
+- oo-back: Back server container
 - utils-gitd: Essential Git file server
 - oo-gith: Frontend for the human-friendly file history viewer
 - utils-gith: Backend for the human-friendly file history viewer
+- utils-admin: Optional administration panel
 
 ## Building the GNU Octave Containers
 
