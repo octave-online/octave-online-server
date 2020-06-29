@@ -24,12 +24,10 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args:
     - build
-    - --build-arg=FULL_BASE_IMAGE=gcr.io/$PROJECT_ID/octave-stable:$_BASE_REV
-    - --tag=gcr.io/$PROJECT_ID/octave-pkg:$_BASE_REV-$SHORT_SHA
-    - --file=back-octave/containers/octave-pkg/Dockerfile
+    - --tag=gcr.io/$PROJECT_ID/utils-gitd:latest
+    - --file=containers/utils-gitd/Dockerfile
     - '.'
   timeout: 7200s
 timeout: 7200s
-substitutions:
-  _BASE_REV: unknown
-images: ['gcr.io/$PROJECT_ID/octave-pkg:$_BASE_REV-$SHORT_SHA']
+images: 
+  - gcr.io/$PROJECT_ID/utils-gitd:latest

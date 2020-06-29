@@ -33,6 +33,7 @@ There are also a few more directories for other components:
 
 - [back-filesystem/README.md](back-filesystem/README.md) for filesystem I/O on the back server
 - [back-octave/README.md](back-octave/README.md) for GNU Octave bindings for the back server
+- [containers/README.md](containers/README.md) for Octave Online Server container configurations
 - [entrypoint/README.md](entrypoint/README.md) for helper scripts to run Octave Online Server
 - [shared/README.md](shared/README.md) for code shared by multiple components
 - [utils-admin/README.md](utils-admin/README.md) for an optional admin panel
