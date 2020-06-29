@@ -5,7 +5,11 @@ This directory contains the source code for the Octave Online Server back server
 
 ## Setup
 
-There are three versions of the back server.  One uses Docker and is easier to set up and configure.  The second uses SELinux and is faster, able to handle more concurrent sessions.  The SELinux implementation is the one used on octave-online.net.  In the third option, every Octave process is run without any sandboxing or resource limitations.  This can make it easier to get started, but it is discouraged when using with untrusted users.
+There are three versions of the back server.
+
+1. Docker: Moderately easy to set up and configure.
+2. SELinux: Fast, and able to handle many concurrent sessions.
+3. Unsafe: Fast and easy, but not recommended with untrusted users. Every Octave process is run without any sandboxing or resource limitations.
 
 ### Option 1: Docker Setup
 
