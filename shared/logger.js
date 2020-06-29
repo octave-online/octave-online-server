@@ -25,7 +25,7 @@
 let writeStackdriverLog = function() {};
 
 try {
-	const stackdriver = require("@oo/gcp-stackdriver");
+	const stackdriver = require("@oo/shared_stackdriver");
 	writeStackdriverLog = stackdriver.writeLog;
 } catch(err) {
 	// Don't log to stackdriver
