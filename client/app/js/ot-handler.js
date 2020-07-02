@@ -49,6 +49,12 @@ define(["js/client", "js/ot-client", "ot", "js/polyfill"], function(OctMethods, 
 	};
 
 	var socketListeners = {
+		subscribe: function(socket) {
+			socket.on("ot.doc", socketListeners.doc);
+			socket.on("ot.broadcast", socketListeners.broadcast);
+			socket.on("ot.ack", socketListeners.ack);
+			socket.on("ot.cursor", socketListeners.cursor);
+		},
 		doc: function(obj){
 			var otClient = findDocWithId(obj.docId);
 			if (!otClient) return;

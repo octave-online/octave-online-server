@@ -1,0 +1,85 @@
+# Copyright © 2019, Octave Online LLC
+#
+# This file is part of Octave Online Server.
+#
+# Octave Online Server is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# Octave Online Server is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Octave Online Server.  If not, see
+# <https://www.gnu.org/licenses/>.
+
+#########################################################
+# NOTE: All local paths are relative to repository root #
+#########################################################
+
+steps:
+
+# Pull additional data from GCP, including config.hjson.
+# NOTE: You probably need to change this, depending on how you store your config.hjson.
+- name: gcr.io/cloud-builders/gcloud
+  entrypoint: bash
+  args:
+    - -c
+    - |
+      # Download config file from private repo
+      # Log the current commit info in the build log
+      gcloud source repos clone oo-misc1 &&
+      (cd oo-misc1 && git log -n1) &&
+      cp oo-misc1/gcp_config.hjson config.hjson &&
+      cp oo-misc1/octave-online-866c0deeb0d1.json . &&
+      rm -rf oo-misc1;
+
+# Perform build steps using same distro as the production VM:
+- name: centos:centos8
+  entrypoint: bash
+  args:
+    - -c
+    - |
+      # Install dependencies, including Node.js
+      yum install -y nodejs gcc-c++ make libicu-devel python2 &&
+      npm config set prefix /workspace &&
+      [[ $? == 0 ]] || exit $?;  # exit if failure
+
+      # Build Node.js projects for oo-back
+      # Use npm ci to install deps from lockfiles
+      (
+        cd shared &&
+        npm ci &&
+        npm install ./stackdriver
+      ) && (
+        cd back-filesystem &&
+        npm ci
+      ) && (
+        cd back-master &&
+        npm ci
+      ) && (
+        cd shared/gcp &&
+        npm ci
+      );
+      [[ $? == 0 ]] || exit $?;  # exit if failure
+
+      # Create exit.js to reboot instance
+      echo 'module.exports = require("../shared/gcp/reboot_or_remove_self.js")' > entrypoint/exit.js
+      [[ $? == 0 ]] || exit $?;  # exit if failure
+
+      # Create tar.gz package
+      tar zcf /tmp/$_OUTPUT_FILENAME . &&
+      mv /tmp/$_OUTPUT_FILENAME . &&
+      ls -ldh `pwd`;
+
+# Save the tar.gz package to storage
+substitutions:
+  _OUTPUT_FILENAME: oo_back_centos8.tar.gz
+artifacts:
+  objects:
+    location: gs://artifacts.octave-online.appspot.com/objects/oo-back/
+    paths:
+      - $_OUTPUT_FILENAME

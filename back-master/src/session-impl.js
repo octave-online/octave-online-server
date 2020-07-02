@@ -25,6 +25,7 @@ const CappedFileSystem = require("./capped-file-system");
 const DockerHandler = require("./docker-handler");
 const ProcessHandler = require("./process-handler");
 const config = require("@oo/shared").config;
+const config2 = require("@oo/shared").config2;
 const async = require("async");
 const silent = require("@oo/shared").silent;
 const child_process = require("child_process");
@@ -37,8 +38,10 @@ const onceMessage = require("@oo/shared").onceMessage;
 const FilesController = require("../../back-filesystem/src/controller");
 
 class SessionImpl extends OctaveSession {
-	constructor(sessCode) {
-		super(sessCode);
+	constructor(sessCode, options) {
+		super(sessCode, options);
+		this.options = options;
+
 		this._makeSessions();
 
 		this._cfs = new CappedFileSystem(this.sessCode, config.docker.diskQuotaKiB);
@@ -120,15 +123,27 @@ class SessionImpl extends OctaveSession {
 }
 
 class HostProcessHandler extends ProcessHandler {
-	constructor(sessCode) {
+	constructor(sessCode, options) {
 		super(sessCode);
+		this.options = options;
 
 		// Override default logger with something that says "host"
 		this._log = logger(`host-handler:${sessCode}`);
 		this._mlog = logger(`host-handler:${sessCode}:minor`);
 	}
 
-	_doCreate(next, dataDir, skipSandbox) {
+	_doCreate(next, dataDir) {
+		const tier = this.options.tier;
+		let cgroupName = config2.tier(tier)["selinux.cgroup.name"];
+		let addressSpace = config2.tier(tier)["selinux.prlimit.addressSpace"];
+
+		const envVars = [
+			"env", "GNUTERM=svg",
+			"env", "LD_LIBRARY_PATH=/usr/local/lib",
+			"env", "OO_SESSCODE="+this.sessCode,
+			"env", "OO_TIER="+this.options.tier
+		];
+
 		async.series([
 			(_next) => {
 				temp.mkdir("oo-", (err, tmpdir) => {
@@ -138,12 +153,30 @@ class HostProcessHandler extends ProcessHandler {
 				});
 			},
 			(_next) => {
-				// Spawn sandbox process
-				if (skipSandbox) {
-					super._doCreate(_next, child_process.spawn, "env", ["GNUTERM=svg", "env", "LD_LIBRARY_PATH=/usr/local/lib", "/usr/local/bin/octave-host", config.session.jsonMaxMessageLength], { cwd: dataDir });
+				if (config.session.implementation === "unsafe") {
+					// Spawn un-sandboxed process
+					super._doCreate(_next, child_process.spawn, "env", [].concat(envVars.slice(1)).concat(["/usr/local/bin/octave-host", config.session.jsonMaxMessageLength]), {
+						cwd: dataDir
+					});
 				} else {
+					// Spawn sandboxed process
 					// The CWD is set to /tmp in order to make the child process not hold a reference to the mount that the application happens to be running under.
-					super._doCreate(_next, child_process.spawn, "/usr/bin/prlimit", ["--as="+config.selinux.prlimit.addressSpace, "/usr/bin/cgexec", "-g", "cpu:"+config.selinux.cgroup.name, "/usr/bin/sandbox", "-M", "-H", dataDir, "-T", this.tmpdir, "--level", "s0", "env", "GNUTERM=svg", "env", "LD_LIBRARY_PATH=/usr/local/lib", "/usr/local/bin/octave-host", config.session.jsonMaxMessageLength], { cwd: "/tmp" });
+					super._doCreate(_next, child_process.spawn, "/usr/bin/prlimit", [
+						"--as="+addressSpace,
+						"/usr/bin/cgexec",
+						"-g", "cpu:"+cgroupName,
+						"/usr/bin/sandbox",
+						"-M",
+						"-H", dataDir,
+						"-T", this.tmpdir,
+						"--level", "s0"]
+						.concat(envVars)
+						.concat([
+							"/usr/local/bin/octave-host", config.session.jsonMaxMessageLength
+						]),
+					{
+						cwd: "/tmp"
+					});
 				}
 			},
 			(_next) => {
@@ -188,6 +221,20 @@ class HostProcessHandler extends ProcessHandler {
 				}
 			}
 		], next);
+	}
+
+	_doDestroyProcess() {
+		// Starting with Octave 4.4, sending SIGTERM is insufficient to make Octave exit.
+		this._log.trace("Executing 'exit' in Octave process");
+		this.sendMessage("cmd", "exit");
+		setTimeout(() => {
+			if (!this._spwn) {
+				this._mlog.trace("Not sending SIGKILL: Process is already exited");
+				return;
+			}
+			this._log.trace("Sending SIGKILL");
+			this._signal("SIGKILL");
+		}, 10000);
 	}
 
 	_signal(name) {
@@ -238,6 +285,9 @@ class FilesControllerHandler extends OnlineOffline {
 	_doDestroy(next) {
 		async.series([
 			(_next) => {
+				if (this.controller) {
+					this.controller.destroy();
+				}
 				if (this.gitdir) {
 					this._mlog.trace("Destroying gitdir");
 					child_process.exec(`rm -rf ${this.gitdir}`, _next);
@@ -260,7 +310,7 @@ class FilesControllerHandler extends OnlineOffline {
 class SessionSELinux extends SessionImpl {
 	_makeSessions() {
 		this._filesSession = new FilesControllerHandler(this.sessCode);
-		this._hostSession = new HostProcessHandler(this.sessCode);
+		this._hostSession = new HostProcessHandler(this.sessCode, this.options);
 	}
 
 	_makeNewFileSession(sessCode) {

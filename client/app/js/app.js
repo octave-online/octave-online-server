@@ -22,9 +22,6 @@ define(
 	["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile", "splittr", "SocketIOFileUpload", "js/anal", "js/onboarding", "js/ot-handler", "js/ws-shared", "js/utils", "jquery.purl", "ko-flash", "ace/mode/octave", "ace/ext/language_tools", "js/ko-ace", "js/flex-resize"],
 	function (ko, io, OctMethods, ace, $, isMobile, splittr, SocketIOFileUpload, anal, onboarding, OtHandler, WsShared) {
 
-		// Set OO version for index.html compatibility
-		window.oo$version = 20161230.1;
-
 		// Initial GUI setup
 		splittr.init();
 
@@ -37,49 +34,12 @@ define(
 		ko.applyBindings(viewModel);
 
 		// Make Socket Connection and Add Listeners:
-		var socket = io();
-		socket.on("data", OctMethods.socketListeners.data);
-		socket.on("alert", OctMethods.socketListeners.alert);
-		socket.on("prompt", OctMethods.socketListeners.prompt);
-		socket.on("saved", OctMethods.socketListeners.saved);
-		socket.on("renamed", OctMethods.socketListeners.renamed);
-		socket.on("deleted", OctMethods.socketListeners.deleted);
-		// TODO: Stop this event from operating on everyone in a shared workspace
-		socket.on("binary", OctMethods.socketListeners.binary);
-		// The inconsistent naming convention here ("dir" vs. "user" vs. "userinfo") is for backwards compatibility.  At some point I would like to rename these events all the way through the stack.
-		socket.on("userinfo", OctMethods.socketListeners.user);
-		socket.on("user", OctMethods.socketListeners.dir);
-		socket.on("fileadd", OctMethods.socketListeners.fileadd);
-		socket.on("plotd", OctMethods.socketListeners.plotd);
-		socket.on("plote", OctMethods.socketListeners.plote);
-		socket.on("ctrl", OctMethods.socketListeners.ctrl);
-		socket.on("workspace", OctMethods.socketListeners.vars);
-		socket.on("sesscode", OctMethods.socketListeners.sesscode);
-		socket.on("init", OctMethods.socketListeners.init);
-		socket.on("files-ready", OctMethods.socketListeners.filesReady);
-		socket.on("destroy-u", OctMethods.socketListeners.destroyu);
-		socket.on("disconnect", OctMethods.socketListeners.disconnect);
-		socket.on("reload", OctMethods.socketListeners.reload);
-		socket.on("instructor", OctMethods.socketListeners.instructor);
-		socket.on("bucket-info", OctMethods.socketListeners.bucketInfo);
-		socket.on("bucket-created", OctMethods.socketListeners.bucketCreated);
-		socket.on("bucket-deleted", OctMethods.socketListeners.bucketDeleted);
-		socket.on("all-buckets", OctMethods.socketListeners.allBuckets);
-		socket.on("oo.pong", OctMethods.socketListeners.pong);
-		socket.on("restart-countdown", OctMethods.socketListeners.restartCountdown);
-		socket.on("change-directory", OctMethods.socketListeners.changeDirectory);
-		socket.on("edit-file", OctMethods.socketListeners.editFile);
-		socket.on("payload-paused", OctMethods.socketListeners.payloadPaused);
-		socket.on("ot.doc", OtHandler.listeners.doc);
-		socket.on("ot.broadcast", OtHandler.listeners.broadcast);
-		socket.on("ot.ack", OtHandler.listeners.ack);
-		socket.on("ot.cursor", OtHandler.listeners.cursor);
-		socket.on("ws.command", WsShared.listeners.command);
-		socket.on("ws.save", WsShared.listeners.save);
-		socket.on("ws.promptid", WsShared.listeners.promptid);
-		socket.on("ws.doc", WsShared.listeners.doc);
-		socket.on("ws.rename", WsShared.listeners.renamed);
-		socket.on("ws.delete", WsShared.listeners.deleted);
+		// The first two lines are a hack to make injected configs work
+		var ioPath = "{!socket_io_path!}";
+		var socket = (ioPath[0] === "{") ? io() : io({ path: ioPath });
+		OctMethods.socketListeners.subscribe(socket);
+		OtHandler.listeners.subscribe(socket);
+		WsShared.listeners.subscribe(socket);
 		OctMethods.socket.instance = socket;
 
 		// Autocompletion with filenames:
@@ -273,6 +233,7 @@ define(
 		$("#sign_in_with_email").click(function () {
 			$("#email_token").showSafe();
 			$("#emailField1").focus();
+			$("#passwordField1").hideSafe(); // !! HONEYPOT !!
 		});
 		// Callback for #create-password-btn is in Knockout setup
 		$("#save-password-btn").click(function() {
@@ -293,9 +254,9 @@ define(
 		}
 		updateTheme(viewModel.selectedSkin());
 		viewModel.selectedSkin.subscribe(updateTheme);
-		$("#change-skin").click(function () {
+		function toggleTheme(dark) {
 			var newSkin;
-			if (viewModel.selectedSkin() !== OctMethods.ko.availableSkins[1]) {
+			if (dark) {
 				newSkin = OctMethods.ko.availableSkins[1];
 			} else switch(viewModel.purpose()) {
 				case "student":
@@ -310,8 +271,15 @@ define(
 					break;
 			}
 			viewModel.selectedSkin(newSkin);
+			viewModel.prefersDarkMode(dark);
 			OctMethods.prompt.focus();
 			anal.sitecontrol("theme");
+		}
+		$("#change-skin").click(function () {
+			toggleTheme(!viewModel.prefersDarkMode());
+		});
+		window.matchMedia("(prefers-color-scheme: dark)").addListener(function(updated) {
+			toggleTheme(updated.matches);
 		});
 
 		// Callouts positioned relative to non-top-level elements

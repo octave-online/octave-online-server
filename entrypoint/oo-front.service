@@ -1,0 +1,13 @@
+[Service]
+ExecStart=/srv/oo/projects/front/app.js
+StandardOutput=journal
+StandardError=journal
+#SyslogIdentifier=oo-front
+User=oo
+Group=oo
+WorkingDirectory=/srv/oo/projects/front
+Environment=NODE_ENV=production
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -5,7 +5,11 @@ This directory contains the source code for the Octave Online Server back server
 
 ## Setup
 
-There are two versions of the back server.  One uses Docker and is easier to set up and configure.  The other uses SELinux and is faster, able to handle more concurrent sessions.  The SELinux implementation is the one used on octave-online.net.
+There are three versions of the back server.
+
+1. Docker: Moderately easy to set up and configure.
+2. SELinux: Fast, and able to handle many concurrent sessions.
+3. Unsafe: Fast and easy, but not recommended with untrusted users. Every Octave process is run without any sandboxing or resource limitations.
 
 ### Option 1: Docker Setup
 
@@ -32,11 +36,9 @@ Run all of the following make commands from the projects directory.
 - `sudo make install-selinux-bin`
 - `sudo make install-site-m`
 
-## Additional Setup
+### Option 3: Unsafe
 
-### Git SSH Key
-
-If you use SSH to connect to the Git server containing people's saved files, you need to create a private key, save it at *back-filesystem/git/key.pem*, and export the variable `GIT_SSH=/path/to/back-filesystem/git/key.pem`.  You need to export that variable before you run `DEBUG=* node app.js` as described below.
+Follow the Option 2 instructions to build and install Octave from source.  Stop before installing selinux-policy-devel and other selinux packages.
 
 ## Running the Back Server
 
@@ -47,6 +49,12 @@ Go to the *back-master* directory and run `DEBUG=* node app.js` to start the bac
 ### Production
 
 `node app.js` can be run directly, but consider using `oo.service` in the *entrypoint* directory parallel to this directory.
+
+## Stopping the Back Server
+
+By default, after the back server receives a successful maintenance request, it will wait for all sessions to close, and then cleanup and exit with code 0.
+
+If you wish to cause the back server process to gracefully release all sessions without exiting, you can send the signal SIGUSR1 to the process.
 
 ## To-do list
 

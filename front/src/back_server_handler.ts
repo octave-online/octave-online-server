@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018, Octave Online LLC
+ * Copyright © 2019, Octave Online LLC
  *
  * This file is part of Octave Online Server.
  *
@@ -18,56 +18,61 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-///<reference path='boris-typedefs/node/node.d.ts'/>
-///<reference path='boris-typedefs/node/node.d.ts'/>
-///<reference path='boris-typedefs/redis/redis.d.ts'/>
-///<reference path='boris-typedefs/eventemitter2/eventemitter2.d.ts'/>
+import { EventEmitter } from "events";
 
-import Redis = require("redis");
-import Crypto = require("crypto");
-import EventEmitter2 = require("eventemitter2");
-import IRedis = require("./typedefs/iredis");
-import Config = require("./config");
-import OctaveHelper = require("./octave_session_helper");
-import Fs = require("fs");
-import Attachment = require("./attachment");
+import { config, newRedisMessenger, newRedisQueue, IRedisQueue, logger, ILogger } from "./shared_wrap";
+import { octaveHelper } from "./octave_session_helper";
 
-var outputClient = IRedis.createClient();
-var pushClient = IRedis.createClient();
-var destroyUClient = IRedis.createClient();
-var expireClient = IRedis.createClient();
-outputClient.psubscribe(IRedis.Chan.output("*"));
-destroyUClient.subscribe(IRedis.Chan.destroyU);
-expireClient.subscribe("__keyevent@0__:expired");
+const outputClient = newRedisMessenger();
+outputClient.subscribeToOutput();
+const destroyUClient = newRedisMessenger();
+destroyUClient.subscribeToDestroyU();
+const expireClient = newRedisMessenger();
+expireClient.subscribeToExpired();
+const redisMessenger = newRedisMessenger();
 
 outputClient.setMaxListeners(100);
 destroyUClient.setMaxListeners(100);
 expireClient.setMaxListeners(100);
 
-class BackServerHandler extends EventEmitter2.EventEmitter2 {
-	public sessCode:string = null;
-	private touchInterval;
-	private messageQueue = [];
+export class BackServerHandler extends EventEmitter {
+	public sessCode: string|null = null;
+	private touchInterval: any;
+	private redisQueue: IRedisQueue|null = null;
+	private _log: ILogger;
 
 	constructor() {
 		super();
+		this._log = logger("back-handler:uninitialized");
 	}
 
-	public setSessCode(sessCode:string) {
+	public setSessCode(sessCode: string|null) {
 		this.sessCode = sessCode;
+		if (this.redisQueue) {
+			this.redisQueue.reset();
+			this.redisQueue = null;
+		}
+		if (sessCode) {
+			this.redisQueue = newRedisQueue(sessCode);
+			this.redisQueue.on("message", (name, content) => {
+				this.emit("data", name, content);
+			});
+			this._log = logger("back-handler:" + sessCode);
+		} else {
+			this._log = logger("back-handler:uninitialized");
+		}
 		this.touch();
 	}
 
-	public dataD(name:string, data:any) {
+	public dataD(name: string, data: any) {
 		if (this.sessCode === null) {
 			this.emit("data", "alert", "ERROR: Please reconnect! Your action was not performed: " + name);
 			return;
 		}
 		try {
-			let messageString = Attachment.serializeMessage(name, data);
-			pushClient.publish(IRedis.Chan.input(this.sessCode), messageString);
+			redisMessenger.input(this.sessCode, name, data);
 		} catch(err) {
-			console.log("ATTACHMENT ERROR", err);
+			this._log.error("ATTACHMENT ERROR", err);
 		}
 	}
 
@@ -76,83 +81,58 @@ class BackServerHandler extends EventEmitter2.EventEmitter2 {
 		this.unsubscribe();
 
 		// Create listeners to Redis
-		outputClient.on("pmessage", this.pMessageListener);
-		destroyUClient.on("message", this.destroyUListener);
-		expireClient.on("message", this.expireListener);
+		outputClient.on("message", this.pMessageListener);
+		destroyUClient.on("destroy-u", this.destroyUListener);
+		expireClient.on("expired", this.expireListener);
 		this.touch();
-		this.touchInterval = setInterval(this.touch, Config.redis.expire.interval);
+		this.touchInterval = setInterval(this.touch, config.redis.expire.interval);
 	}
 
 	public unsubscribe() {
-		outputClient.removeListener("pmessage", this.pMessageListener);
-		destroyUClient.removeListener("message", this.destroyUListener);
-		expireClient.removeListener("message", this.expireListener);
+		outputClient.removeListener("message", this.pMessageListener);
+		destroyUClient.removeListener("destroy-u", this.destroyUListener);
+		expireClient.removeListener("expired", this.expireListener);
 		clearInterval(this.touchInterval);
 	}
 
 	private touch = () => {
 		if (!this.depend(["sessCode"])) return;
-
-		var multi = pushClient.multi();
-		multi.expire(IRedis.Chan.input(this.sessCode), Config.redis.expire.timeout/1000);
-		multi.expire(IRedis.Chan.session(this.sessCode), Config.redis.expire.timeout/1000);
-		multi.exec((err)=> {
-			if (err) console.log("REDIS ERROR", err);
-		});
+		redisMessenger.touchInput(this.sessCode, false);
 	};
 
-	private depend(props:string[], log:boolean=false) {
-		for (var i = 0; i < props.length; i++){
-			if (!this[props[i]]) {
-				if (log) console.log("UNMET DEPENDENCY", props[i], arguments.callee.caller);
+	private depend(props: string[], log=false) {
+		for (let i = 0; i < props.length; i++){
+			if (!(this as any)[props[i]]) {
+				if (log) this._log.warn("UNMET DEPENDENCY", props[i], arguments.callee.caller);
 				return false;
 			}
 		}
 		return true;
-	};
+	}
 
-	private pMessageListener = (pattern, channel, message) => {
+	private pMessageListener = (sessCode: string, name: string, getData: any) => {
 		if (!this.depend(["sessCode"])) return;
 
 		// Check if this message is for us.
-		var obj = IRedis.checkPMessage(channel, message, this.sessCode);
-		if (!obj) return;
+		if (sessCode !== this.sessCode) return;
 
 		// Everything from here down will be run only if this instance is associated with the sessCode of the message.
-		let queueObj = { name: obj.name, ready: false, content: null };
-		// Use a "queue" to ensure that messages are processed in the order in which they were sent.  Since loading message content is asynchronous, there would be a possibility that messages could be processed out of order.
-		this.messageQueue.push(queueObj);
-		Attachment.loadMessage(obj, (name, content) => {
-			queueObj.content = content;
-			queueObj.ready = true;
-
-			while (this.messageQueue.length > 0 && this.messageQueue[0].ready) {
-				let _queueObj = this.messageQueue.shift();
-				this.emit("data", _queueObj.name, _queueObj.content);
-			}
-		});
+		this.redisQueue!.enqueueMessage(name, getData);
 	};
 
-	private destroyUListener = (channel, message) => {
+	private destroyUListener = (sessCode: string, message: any) => {
 		if (!this.depend(["sessCode"])) return;
-
-		var _message = IRedis.checkDestroyMessage(message, this.sessCode);
-		if (!_message) return;
-
-		this.emit("destroy-u", _message);
+		if (sessCode !== this.sessCode) return;
+		this.emit("destroy-u", message);
 	};
 
-	private expireListener = (channel, message) => {
+	private expireListener = (sessCode: string, channel: string) => {
 		if (!this.depend(["sessCode"])) return;
-
-		if(IRedis.checkExpired(message, this.sessCode)){
-			// If the session becomes expired, trigger a destroy event
-			// both upstream and downstream.
-			console.log("Detected Expired:", message);
-			OctaveHelper.sendDestroyD(this.sessCode, "Octave Session Expired");
-			this.emit("destroy-u", "Octave Session Expired");
-		}
+		if (sessCode !== this.sessCode) return;
+		// If the session becomes expired, trigger a destroy event
+		// both upstream and downstream.
+		this._log.trace("Detected Expired:", channel);
+		octaveHelper.sendDestroyD(this.sessCode, "Octave Session Expired");
+		this.emit("destroy-u", "Octave Session Expired");
 	};
 }
-
-export = BackServerHandler;

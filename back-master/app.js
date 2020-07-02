@@ -22,32 +22,67 @@
 
 const log = require("@oo/shared").logger("app");
 const mlog = require("@oo/shared").logger("app:minor");
+const hostname = require("@oo/shared").hostname();
 const MessageTranslator = require("./src/message-translator");
 const RedisMessenger = require("@oo/shared").RedisMessenger;
 const SessionManager = require("./src/session-manager");
-const MaintenanceReuestManager = require("./src/maintenance-request-manager");
-const async = require("async");
-const runMaintenance = require("./src/maintenance");
 const config = require("@oo/shared").config;
 const gcStats = (require("gc-stats"))();
-const child_process = require("child_process");
+const fs = require("fs");
+const mkdirp = require("mkdirp");
+const path = require("path");
+const async = require("async");
+const http = require("http");
 
 process.stdout.write("Process ID: " + process.pid + "\n");
 process.stderr.write("Process ID: " + process.pid + "\n");
 log.info("Process ID:", process.pid);
-const hostname = child_process.execSync("hostname").toString("utf8").trim();
 log.info("Hostname:", hostname);
 log.log(process.env);
+
+var sessionManager, mainImpl, personality;
+if (fs.existsSync(config.rackspace.personality_filename)) {
+	personality = JSON.parse(fs.readFileSync(config.rackspace.personality_filename, "utf8"));
+	log.info("Personality:", personality.flavor, personality);
+	sessionManager = new SessionManager(true);
+	mainImpl = require("./src/main-flavor");
+} else if (process.env["OO_FLAVOR_OVERRIDE"]) {
+	personality = { flavor: process.env["OO_FLAVOR_OVERRIDE"] };
+	log.info("Flavor override:", personality.flavor);
+	sessionManager = new SessionManager(true);
+	mainImpl = require("./src/main-flavor");
+} else {
+	log.info("No personality file found");
+	personality = null;
+	sessionManager = new SessionManager(false);
+	mainImpl = require("./src/main-pool");
+}
+
+let sessionLogDirCount = 0;
+function makeSessionLogDir(tokens) {
+	if (tokens.length === config.worker.sessionLogs.depth) {
+		const dirname = path.join(config.worker.logDir, config.worker.sessionLogs.subdir, ...tokens);
+		if (sessionLogDirCount % 1000 === 0) {
+			mlog.trace(dirname);
+		}
+		sessionLogDirCount++;
+		mkdirp.sync(dirname);
+	} else {
+		for (let a of "0123456789abcdef") {
+			makeSessionLogDir(tokens.concat([a]));
+		}
+	}
+}
+log.info("Creating session log dirs…");
+makeSessionLogDir([]);
+log.info(sessionLogDirCount, "dirs touched");
 
 const redisInputHandler = new RedisMessenger().subscribeToInput();
 const redisDestroyDHandler = new RedisMessenger().subscribeToDestroyD();
 const redisExpireHandler = new RedisMessenger().subscribeToExpired();
-const redisScriptHandler = new RedisMessenger().enableScripts();
-const redisMaintenanceHandler = new RedisMessenger().subscribeToRebootRequests();
+const redisScriptHandler = new RedisMessenger().enableSessCodeScriptsSync();
 const redisMessenger = new RedisMessenger();
 const translator = new MessageTranslator();
-const sessionManager = new SessionManager();
-const maintenanceRequestManager = new MaintenanceReuestManager();
 
 redisInputHandler.on("message", translator.fromDownstream.bind(translator));
 sessionManager.on("message", translator.fromUpstream.bind(translator));
@@ -90,8 +125,15 @@ redisExpireHandler.on("expired", (sessCode, channel) => {
 	sessionManager.destroy(sessCode, "Octave Session Expired (downstream)");
 });
 
-sessionManager.on("touch", (sessCode) => {
+sessionManager.on("touch", (sessCode, start) => {
 	redisMessenger.touchOutput(sessCode);
+	if (personality) {
+		redisMessenger.output(sessCode, "oo.touch-flavor", {
+			start,
+			current: new Date().valueOf(),
+			flavor: personality.flavor
+		});
+	}
 });
 
 sessionManager.on("live", (sessCode) => {
@@ -107,107 +149,69 @@ gcStats.on("stats", (stats) => {
 	mlog.trace(`Garbage Collected (type ${stats.gctype}, ${stats.pause/1e6} ms)`);
 });
 
-redisMaintenanceHandler.on("reboot-request", maintenanceRequestManager.onMessage.bind(maintenanceRequestManager));
-maintenanceRequestManager.on("request-maintenance", redisMessenger.requestReboot.bind(redisMessenger));
-maintenanceRequestManager.on("reply-to-maintenance-request", redisMessenger.replyToRebootRequest.bind(redisMessenger));
+const healthServer = http.createServer((req, res) => {
+	if (sessionManager.isHealthy()) {
+		res.writeHead(200);
+	} else {
+		res.writeHead(503);
+	}
+	res.end();
+}).listen(config.gcp.health_check_port);
 
-// Connection-accepting loop
-var ACCEPT_CONS = true;
-async.forever(
-	(next) => {
-		if (!ACCEPT_CONS) return;
-		async.waterfall([
-			(_next) => {
-				let delay = Math.floor(config.worker.clockInterval.min + Math.random()*(config.worker.clockInterval.max-config.worker.clockInterval.min));
-				setTimeout(_next, delay);
-			},
-			(_next) => {
-				if (sessionManager.canAcceptNewSessions())
-					redisScriptHandler.getSessCode((err, sessCode, content) => {
-						if (err) log.error("Error getting sessCode:", err);
-						_next(null, sessCode, content);
-					});
-				else
-					process.nextTick(() => {
-						_next(null, null, null);
-					});
-			},
-			(sessCode, content, _next) => {
-				if (sessCode) {
-					log.info("Received Session:", sessCode);
-					sessionManager.attach(sessCode, content);
-				}
-
-				_next(null);
-			}
-		], next);
-	},
-	() => { log.error("Connection-accepting loop ended"); }
-);
-
-// Request maintenance time every 12 hours
-var maintenanceTimer;
-async.forever(
-	(next) => {
-		async.series([
-			(_next) => {
-				maintenanceTimer = setTimeout(_next, config.maintenance.interval);
-			},
-			(_next) => {
-				maintenanceRequestManager.beginRequestingMaintenance();
-				maintenanceRequestManager.once("maintenance-accepted", _next);
-			},
-			(_next) => {
-				sessionManager.disablePool();
-				async.whilst(
-					() => { return sessionManager.numActiveSessions() > 0; },
-					(__next) => { maintenanceTimer = setTimeout(__next, config.maintenance.pauseDuration); },
-					_next
-				);
-			},
-			(_next) => {
-				sessionManager.terminate();
-				maintenanceTimer = setTimeout(_next, config.maintenance.pauseDuration);
-			},
-			(_next) => {
-				runMaintenance(_next);
-			},
-			(_next) => {
-				sessionManager.restart();
-				maintenanceTimer = setTimeout(_next, config.maintenance.pauseDuration);
-			},
-			(_next) => {
-				maintenanceRequestManager.reset();
-				_next();
-			}
-		], () => {
-			next();
-		});
-	},
-	(err) => { log.error("Maintenance loop ended", err); }
-);
+mainImpl.start({
+	sessionManager,
+	redisScriptHandler,
+	redisMessenger,
+	personality
+}, (err) => {
+	log.error("Main-impl ended", err);
+	doExit();
+});
 
 function doExit() {
-	log.info("RECEIVED SIGNAL.  Terminating gracefully.");
-
 	sessionManager.terminate("Server Maintenance");
-	clearTimeout(maintenanceTimer);
-	maintenanceRequestManager.stop();
-	ACCEPT_CONS = false;
+	mainImpl.doExit();
 
 	setTimeout(() => {
 		redisInputHandler.close();
 		redisDestroyDHandler.close();
 		redisExpireHandler.close();
 		redisScriptHandler.close();
-		redisMaintenanceHandler.close();
 		redisMessenger.close();
+		healthServer.close();
 	}, 5000);
 }
 
-process.on("SIGINT", doExit);
-process.on("SIGHUP", doExit);
-process.on("SIGTERM", doExit);
+function doGracefulExit() {
+	log.info("RECEIVED SIGUSR1.  Will not accept any further sessions.");
+	mainImpl.doExit();
+	sessionManager.disablePool();
+	async.series([
+		(_next) => {
+			async.whilst(
+				() => { return sessionManager.numActiveSessions() > 0; },
+				(next) => { setTimeout(next, config.maintenance.pauseDuration); },
+				_next
+			);
+		},
+		(_next) => {
+			log.info("All user sessions are closed.");
+			_next(null);
+		}
+	], (err) => {
+		if (err) log.error("Error during graceful exit:", err);
+	});
+}
+
+function doFastExit() {
+	log.info("RECEIVED SIGNAL.  Starting exit procedure.");
+	doExit();
+}
+
+process.on("SIGINT", doFastExit);
+process.on("SIGHUP", doFastExit);
+process.on("SIGTERM", doFastExit);
+process.on("SIGUSR1", doGracefulExit);
 
 //const heapdump = require("heapdump");
 //setInterval(() => { heapdump.writeSnapshot("/srv/oo/logs/heap/" + hostname + "." + process.pid + "." + Date.now() + ".heapsnapshot"); }, 30000);

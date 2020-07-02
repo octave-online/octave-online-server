@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018, Octave Online LLC
+ * Copyright © 2019, Octave Online LLC
  *
  * This file is part of Octave Online Server.
  *
@@ -18,14 +18,28 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-///<reference path='boris-typedefs/node/node.d.ts'/>
-
 import Crypto = require("crypto");
 
-module Utils {
-	export function emailHash(email) {
-		return "email:" + Crypto.createHash("md5").update(email).digest("hex").substr(0, 12);
-	}
+
+export function emailHash(email: string): string {
+	return "email:" + Crypto.createHash("md5").update(email).digest("hex").substr(0, 12);
 }
 
-export = Utils
+export interface IDestroyable {
+	destroyed: boolean;
+}
+
+export interface IWorkspace {
+	sessCode: string|null;
+
+	destroyD(message: string): void;
+	destroyU(message: string): void;
+	dataD(name: string, val: any): void;
+	dataU(name: string, val: any): void;
+	beginOctaveRequest(flavor: string|null): void;
+
+	on(event: string, callback: (...args: any[]) => void): void;
+	removeAllListeners(): void;
+	subscribe(): void;
+	unsubscribe(): void;
+}

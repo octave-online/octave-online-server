@@ -1,0 +1,13 @@
+{
+  "name": "@oo/shared_stackdriver",
+  "version": "0.0.0",
+  "description": "GCP Stackdriver bindings for Node.js",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Shane F. Carr",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "@google-cloud/error-reporting": "^1.1.2",
+    "@google-cloud/logging": "^6.0.0"
+  }
+}

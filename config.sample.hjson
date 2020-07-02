@@ -42,9 +42,21 @@ mongo: {
 	db: oo
 }
 
-mailgun: {
-	api_key: xxxxxxxxx
-	domain: localhost
+email: {
+	provider: mailgun
+	mailgun: {
+		api_key: xxxxxxxxx
+		domain: localhost
+	}
+	postmark: {
+		serverToken: xxxx-xxxx-xxxx
+		templateAlias: xxxxxxxxx
+	}
+}
+
+recaptcha: {
+	siteKey: xxxxxxxxx
+	secretKey: xxxxxxxxx
 }
 
 # # # # # # # # # # # # # # # #
@@ -75,6 +87,12 @@ auth: {
 	easy: {
 		### Make up a long random string! ###
 		secret: xxxxxxxxx
+	}
+	utils_admin: {
+		users: {
+			### Make up a long random string! ###
+			admin: xxxxxxxxx
+		}
 	}
 }
 

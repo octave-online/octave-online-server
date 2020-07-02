@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018, Octave Online LLC
+ * Copyright © 2019, Octave Online LLC
  *
  * This file is part of Octave Online Server.
  *
@@ -18,27 +18,30 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-///<reference path='boris-typedefs/node/node.d.ts'/>
-///<reference path='boris-typedefs/mime/mime.d.ts'/>
+import { logger } from "./shared_wrap";
+import * as Mongo from "./mongo";
+import * as Passport from "./passport_setup";
+import * as Middleware from "./session_middleware";
+import * as ExpressApp from "./express_setup";
+import * as SocketIoApp from "./socketio";
 
-import Mime = require("mime");
-import Config = require("./config");
-import Mongo = require("./mongo");
-import Passport = require("./passport_setup");
-import ExpressApp = require("./express_setup");
-import Middleware = require("./session_middleware");
-import SocketIoApp = require("./socketio");
+const log = logger("app");
 
-Mongo.connect((err)=>{
-	if (err) {
-		console.log("Error Connecting to Mongo", err);
-		return;
+async function main() {
+	try {
+		log.trace("Connecting to Mongo...");
+		await Mongo.connect();
+		log.info("Connected to Mongo");
+	} catch(err) {
+		log.warn("Could not connect to Mongo:", err);
 	}
-
-	console.log("Connected to Mongo");
 
 	Passport.init();
 	Middleware.init();
 	ExpressApp.init();
 	SocketIoApp.init();
+}
+
+main().catch((err) => {
+	log.error(err);
 });

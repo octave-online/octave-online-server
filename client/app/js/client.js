@@ -43,6 +43,61 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		new Skin("sun", "crimson_editor", "black"),
 	];
 
+	// Initialization for skin and dark mode.
+	// April 2019: This has to be done this way for backwards compatibility. Eventually, oldSelectedSkin can be deleted.
+	var oldSelectedSkin = ko.observable();
+	oldSelectedSkin.extend({ localStorage: "selected-skin" });
+	var prefersDarkMode = ko.observable(false);
+	if (oldSelectedSkin() && oldSelectedSkin().name === "lava") {
+		prefersDarkMode(true);
+	} else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+		prefersDarkMode(true);
+	}
+	prefersDarkMode.extend({ localStorage: "prefers-dark-mode" });
+	var defaultSkin;
+	if (prefersDarkMode()) {
+		defaultSkin = availableSkins[1];
+	} else {
+		defaultSkin = availableSkins[0];
+	}
+
+	// Flavors
+	function FlavorObject(details){
+		var self = this;
+
+		// Main Bindings
+		self.details = details;
+		self.start = ko.observable();
+		self.current = ko.observable();
+
+		// Functions
+		self.minutes = ko.computed(function() {
+			var start = Number(self.start());
+			var end = Number(self.current());
+			if (Number.isNaN(start) || Number.isNaN(end)) {
+				return "";
+			}
+			return "(" + Math.ceil((end - start) / 60000) + "m)";
+		});
+	}
+	// TODO: Generate this from config.hjson
+	var availableFlavors = {
+		"basic": {
+			id: "basic",
+			displayName: "4GB",
+			longName: "4 cores, 4 GB memory"
+		},
+		"memory": {
+			id: "memory",
+			displayName: "15GB",
+			longName: "2 cores, 15 GB memory"
+		}
+	};
+	var availableFlavorsArray = [];
+	for (var flavorId in availableFlavors) {
+		availableFlavorsArray.push(availableFlavors[flavorId]);
+	}
+
 	// Plot MVVM class
 	function PlotObject(id){
 		var self = this;
@@ -86,9 +141,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 			download(blob, filename);
 		};
-		self.zoom = function(){
-			$("#plot_figure_container").toggleClass("fullscreen");
-		};
 		self.completeData = ko.computed(function(){
 			if (self.complete()) {
 				return self.data;
@@ -109,11 +161,14 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 	// Initialize MVVM variables
 	var allOctFiles = ko.observableArray([]);
-	var selectedSkin = ko.observable(availableSkins[0]);
+	var selectedSkin = ko.observable(defaultSkin);
 	var purpose = ko.observable("default");
 	var vars = ko.observableArray([]);
 	var plotHistory = ko.observableArray([]);
 	var currentPlotIdx = ko.observable(-1);
+	var flavorTester = ko.observable(false);
+	var activeFlavor = ko.observable();
+	var currentUser = ko.observable();
 	var viewModel = window.viewModel = {
 		files: allOctFiles,
 		openFile: ko.observable(),
@@ -121,14 +176,22 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			OctMethods.editor.close();
 		},
 		selectedSkin: selectedSkin,
+		prefersDarkMode: prefersDarkMode,
 		purpose: purpose,
 		vars: vars,
 		plots: plotHistory,
 		currentPlotIdx: currentPlotIdx,
 		inlinePlots: ko.observable(true),
+		consoleWhiteSpaceWrap: ko.observable(true),
 		instructorPrograms: ko.observableArray(),
 		allBuckets: ko.observableArray(),
 		newBucket: ko.observable(),
+		countdownExtraTimeSeconds: ko.observable(),
+		flavorTester: flavorTester,
+		activeFlavor: activeFlavor,
+		flavorList: ko.observableArray(),
+		availableFlavorsArray: availableFlavorsArray,
+		selectedFlavor: ko.observable(),
 
 		// More for UI
 		logoSrc: ko.computed(function() {
@@ -177,14 +240,19 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			if (idx+1 >= len) return null;
 			currentPlotIdx(idx + 1);
 		},
+		plotZoomed: ko.observable(false),
+		zoomPlot: function(){
+			viewModel.plotZoomed(!viewModel.plotZoomed());
+		},
 
 		// Sign In / Sign Out
-		currentUser: ko.observable(),
+		currentUser: currentUser,
 		doLogout: function(){
 			onboarding.reset();
 			window.location.href = "/logout";
 		},
 		showChangePassword: function() {
+			anal.sitecontrol("changepwdbtn");
 			$("#change_password").showSafe();
 			$("#new_pwd").focus();
 		},
@@ -215,6 +283,30 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			} else {
 				OctMethods.socket.toggleSharing(!shareKey);
 			}
+		},
+
+		canUseFlavors: ko.computed(function() {
+			return currentUser() && (activeFlavor() || flavorTester());
+		}),
+		desiredFlavorId: ko.computed(function() {
+			return activeFlavor() && activeFlavor().details.id;
+		}),
+		hasFlavorsAvailable: function() {
+			return viewModel.flavorList().length > 0;
+		},
+		showUpgradeBox: function() {
+			anal.sitecontrol("upgradeflavorbtn");
+			$("#upgrade_to_flavor").showSafe();
+		},
+		upgradeNow: function() {
+			var flavorId = viewModel.selectedFlavor();
+			viewModel.activeFlavor(new FlavorObject(availableFlavors[flavorId]));
+			OctMethods.load.stopPatience();
+			OctMethods.socket.flavorUpgrade(flavorId);
+		},
+		showUpgradeTier: function() {
+			anal.sitecontrol("upgradetierbtn");
+			$("#upgrade_to_tier").showSafe();
 		},
 
 		getOctFileFromName: function(filename){
@@ -262,6 +354,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 	});
 	viewModel.flex.sizes.extend({ localStorage: "flex:h" });
 	viewModel.inlinePlots.extend({ localStorage: "inline-plots" });
+	viewModel.consoleWhiteSpaceWrap.extend({ localStorage: "console-white-space-wrap" });
+	viewModel.flavorTester.extend({ localStorage: "flavor-tester" });
 	// Keep the console output visible when the plot window opens
 	viewModel.showPlot.subscribe(function(){
 		setTimeout(OctMethods.console.scroll, 0);
@@ -375,6 +469,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				$("#console").scrollTop($("#console")[0].scrollHeight);
 				$("#type_here").hideSafe();
 				$("#agpl_icon").hideSafe();
+				$("#tier_background").hideSafe();
 				$("#plot_opener").showSafe();
 			},
 			clear: function(){
@@ -413,8 +508,10 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			currentLine: 0,
 			history: [""],
 			index: 0,
-			legalTime: 5000,  // config.session.legalTime.guest
+			legalTime: parseInt("5000!config.session.legalTime.guest"),
 			extraTime: 0,
+			countdownExtraTime: parseInt("15000!config.session.countdownExtraTime"),
+			countdownRequestTime: parseInt("3000!config.session.countdownRequestTime"),
 			countdownInterval: null,
 			payloadTimerInterval: null,
 			payloadDelay: -1,
@@ -464,7 +561,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				}else{
 					$("#seconds_remaining").text((remaining/1000).toFixed(2));
 				}
-				if (remaining <= 3000) {
+				if (remaining <= OctMethods.prompt.countdownRequestTime) {
 					$("#add_time_container").showSafe();
 				} else {
 					$("#add_time_container").hideSafe();
@@ -521,7 +618,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				}
 			},
 			addTime: function() {
-				OctMethods.prompt.extraTime += parseInt("15000!config.session.countdownExtraTime");
+				OctMethods.prompt.extraTime += OctMethods.prompt.countdownExtraTime;
 				OctMethods.socket.addTime();
 				anal.extraTime();
 			},
@@ -540,8 +637,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				var cmd = OctMethods.prompt.instance.getValue();
 
 				// Check if this command is a front-end command
-				var enrollRegex = /^enroll\s*\(['"](\w+)['"]\).*$/;
-				var updateStudentsRegex = /^update_students\s*\(['"](\w+)['"]\).*$/;
+				var enrollRegex = /^enroll\s*\(['"]([^'"]+)['"]\).*$/;
+				var updateStudentsRegex = /^update_students\s*\(['"]([^'"]+)['"]\).*$/;
 				var pingRegex = /^ping$/;
 
 				var program;
@@ -554,6 +651,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					OctMethods.socket.updateStudents(program);
 					OctMethods.prompt.clear();
 				}else if(pingRegex.test(cmd)) {
+					OctMethods.console.command(cmd, true);
 					OctMethods.socket.ping();
 					OctMethods.prompt.clear();
 				}else{
@@ -693,6 +791,11 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					bucket_id: bucket.id()
 				});
 			},
+			flavorUpgrade: function(flavor){
+				return OctMethods.socket.emit("oo.flavor_upgrade", {
+					flavor: flavor
+				});
+			},
 			emit: function(message, data){
 				if (!OctMethods.socket.instance
 					|| !OctMethods.socket.instance.connected) {
@@ -713,6 +816,42 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 		// Socket Callback Functions
 		socketListeners: {
+			subscribe: function(socket) {
+				socket.on("data", OctMethods.socketListeners.data);
+				socket.on("alert", OctMethods.socketListeners.alert);
+				socket.on("prompt", OctMethods.socketListeners.prompt);
+				socket.on("saved", OctMethods.socketListeners.saved);
+				socket.on("renamed", OctMethods.socketListeners.renamed);
+				socket.on("deleted", OctMethods.socketListeners.deleted);
+				// TODO: Stop this event from operating on everyone in a shared workspace
+				socket.on("binary", OctMethods.socketListeners.binary);
+				socket.on("userinfo", OctMethods.socketListeners.userinfo);
+				// The inconsistent naming convention here ("user" vs. "filelist") is for backwards compatibility.  At some point I would like to rename this and other events all the way through the stack.
+				socket.on("user", OctMethods.socketListeners.filelist);
+				socket.on("fileadd", OctMethods.socketListeners.fileadd);
+				socket.on("plotd", OctMethods.socketListeners.plotd);
+				socket.on("plote", OctMethods.socketListeners.plote);
+				socket.on("ctrl", OctMethods.socketListeners.ctrl);
+				socket.on("workspace", OctMethods.socketListeners.vars);
+				socket.on("sesscode", OctMethods.socketListeners.sesscode);
+				socket.on("init", OctMethods.socketListeners.init);
+				socket.on("files-ready", OctMethods.socketListeners.filesReady);
+				socket.on("destroy-u", OctMethods.socketListeners.destroyu);
+				socket.on("disconnect", OctMethods.socketListeners.disconnect);
+				socket.on("reload", OctMethods.socketListeners.reload);
+				socket.on("instructor", OctMethods.socketListeners.instructor);
+				socket.on("bucket-info", OctMethods.socketListeners.bucketInfo);
+				socket.on("bucket-created", OctMethods.socketListeners.bucketCreated);
+				socket.on("bucket-deleted", OctMethods.socketListeners.bucketDeleted);
+				socket.on("all-buckets", OctMethods.socketListeners.allBuckets);
+				socket.on("oo.pong", OctMethods.socketListeners.pong);
+				socket.on("oo.flavor-list", OctMethods.socketListeners.flavorList);
+				socket.on("oo.touch-flavor", OctMethods.socketListeners.touchFlavor);
+				socket.on("restart-countdown", OctMethods.socketListeners.restartCountdown);
+				socket.on("change-directory", OctMethods.socketListeners.changeDirectory);
+				socket.on("edit-file", OctMethods.socketListeners.editFile);
+				socket.on("payload-paused", OctMethods.socketListeners.payloadPaused);
+			},
 			data: function(data){
 				switch(data.type){
 					case "stdout":
@@ -791,27 +930,31 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				var blob = b64ToBlob(data.base64data, data.mime);
 				return download(blob, octfile.filename());
 			},
-			user: function(data){
+			userinfo: function(data){
 				// One-time methods
 				if (!OctMethods.editor.initialized && data) {
 					OctMethods.editor.initialized = true;
-
-					// Set up the UI
-					onboarding.hideScriptPromo();
-					onboarding.hideBucketPromo();
 
 					// Trigger Knockout
 					data.name = data.name || data.displayName;
 					viewModel.currentUser(data);
 
-					// Legal runtime
+					// Legal runtime and other user settings
 					OctMethods.prompt.legalTime = data.legalTime;
+					OctMethods.prompt.countdownExtraTime = data.countdownExtraTime;
+					OctMethods.prompt.countdownRequestTime = data.countdownRequestTime;
+					viewModel.countdownExtraTimeSeconds(data.countdownExtraTime/1000);
+
+					// Set up the UI
+					onboarding.showUserPromo(data);
+					onboarding.hideScriptPromo();
+					onboarding.hideBucketPromo();
 
 					// Analytics
 					anal.signedin();
 				}
 			},
-			dir: function(data){
+			filelist: function(data){
 				// Load files
 				if (!data.success) {
 					OctMethods.load.callback();
@@ -958,6 +1101,18 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				var startTime = parseInt(data.startTime);
 				var endTime = new Date().valueOf();
 				OctMethods.console.write("Ping time: " + (endTime-startTime) + "ms\n");
+				OctMethods.prompt.enable();
+				OctMethods.prompt.focus();
+			},
+			flavorList: function(data) {
+				viewModel.flavorList(data.servers);
+			},
+			touchFlavor: function(data) {
+				if (!viewModel.activeFlavor()) {
+					viewModel.activeFlavor(new FlavorObject(availableFlavors[data.flavor]));
+				}
+				viewModel.activeFlavor().start(data.start);
+				viewModel.activeFlavor().current(data.current);
 			},
 			restartCountdown: function(){
 				// TODO: Is this method dead?
@@ -995,14 +1150,16 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					OctMethods.socket.emit("init", {
 						action: "workspace",
 						info: OctMethods.vars.wsId,
-						skipCreate: OctMethods.socket.isExited
+						skipCreate: OctMethods.socket.isExited,
+						flavor: viewModel.desiredFlavorId()
 					});
 
 				}else if(OctMethods.vars.studentId){
 					OctMethods.socket.emit("init", {
 						action: "student",
 						info: OctMethods.vars.studentId,
-						skipCreate: OctMethods.socket.isExited
+						skipCreate: OctMethods.socket.isExited,
+						flavor: viewModel.desiredFlavorId()
 					});
 
 				}else if (OctMethods.vars.bucketId){
@@ -1010,14 +1167,16 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 						action: "bucket",
 						info: OctMethods.vars.bucketId,
 						sessCode: OctMethods.socket.sessCode,
-						skipCreate: OctMethods.socket.isExited
+						skipCreate: OctMethods.socket.isExited,
+						flavor: viewModel.desiredFlavorId()
 					});
 
 				}else{
 					OctMethods.socket.emit("init", {
 						action: "session",
 						sessCode: OctMethods.socket.sessCode,
-						skipCreate: OctMethods.socket.isExited
+						skipCreate: OctMethods.socket.isExited,
+						flavor: viewModel.desiredFlavorId()
 					});
 				}
 
@@ -1032,13 +1191,19 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			},
 			destroyu: function(message){
 				OctMethods.console.writeError("Octave Exited. Message: "+message+"\n");
-				OctMethods.console.writeRestartBtn();
-				OctMethods.socket.isExited = true;
+
+				// TODO: It is bad practice to do string comparison here.
+				if (message === "Flavor Upgrade") {
+					OctMethods.load.showLoader();
+				} else {
+					OctMethods.console.writeRestartBtn();
+					OctMethods.socket.isExited = true;
+					OctMethods.load.hideLoader();
+				}
 
 				// Clean up UI
 				OctMethods.prompt.disable();
 				OctMethods.prompt.endCountdown();
-				OctMethods.load.hideLoader();
 			},
 			disconnect: function(){
 				if (!OctMethods.socket.isExited) {
@@ -1216,7 +1381,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				var currentUser = window.viewModel.currentUser();
 				var parametrized = currentUser ? currentUser.parametrized : "unknown";
 				var email = currentUser ? currentUser.email : "";
-				window.open("https://git.octave-online.net/?next=" + parametrized + ".git&user=" + email);
+				window.open("{!file_history_url!}?next=" + parametrized + ".git&user=" + email);
 			},
 			run: function(){
 				OctMethods.editor.run(viewModel.openFile());
@@ -1306,6 +1471,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			bucketInfo: null
 		}
 	};
+
+	viewModel.countdownExtraTimeSeconds(OctMethods.prompt.countdownExtraTime/1000);
 
 	// Expose
 	exports.console = OctMethods.console;

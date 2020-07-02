@@ -27,23 +27,49 @@ const impls = require("./session-impl");
 const uuid = require("uuid");
 const Queue = require("@oo/shared").Queue;
 const config = require("@oo/shared").config;
+const config2 = require("@oo/shared").config2;
+const metrics = require("@oo/shared").metrics;
 const timeLimit = require("@oo/shared").timeLimit;
 
 class SessionManager extends EventEmitter {
-	constructor() {
+	constructor(maxOnly) {
 		super();
 		this._pool = {};
+		this._poolSizes = {};
+
+		let tiersEnabled;
+		if (maxOnly) {
+			tiersEnabled = ["_maxima"];
+		} else {
+			tiersEnabled = Object.keys(config.tiers);
+			tiersEnabled.splice(tiersEnabled.indexOf("_maxima"), 1);
+		}
+		tiersEnabled.forEach((tier) => {
+			if (config2.tier(tier)["sessionManager.poolTier"]) {
+				mlog.info("Skipping tier with poolTier:", tier);
+				// continue
+			} else {
+				mlog.info("Enabling tier:", tier);
+				this._pool[tier] = {};
+				this._poolSizes[tier] = config2.tier(tier)["sessionManager.poolSize"];
+			}
+		});
+		log.info("Enabled tiers:", Object.keys(this._pool));
+
 		this._online = {};
 		this._monitor_session = null;
 		this._setup();
 		this.startPool();
+		this.recordMetrics();
 	}
 
 	_setup() {
 		// Log the session index on a fixed interval
 		this._logInterval = setInterval(() => {
-			log.debug("Current Number of Pooled Sessions:", Object.keys(this._pool).length);
-			log.trace(Object.keys(this._pool).join("; "));
+			Object.keys(this._pool).forEach((tier) => {
+				log.debug("Current Number of Pooled Sessions, tier " + tier + ":", Object.keys(this._pool[tier]).length);
+				log.trace(Object.keys(this._pool[tier]).join("; "));
+			});
 			log.debug("Current Number of Online Sessions:", Object.keys(this._online).length);
 			log.trace(Object.keys(this._online).join("; "));
 
@@ -59,8 +85,10 @@ class SessionManager extends EventEmitter {
 
 		// Keep pool sessions alive
 		this._keepAliveInterval = setInterval(() => {
-			Object.keys(this._pool).forEach((localCode) => {
-				this._pool[localCode].session.resetTimeout();
+			Object.keys(this._pool).forEach((tier) => {
+				Object.keys(this._pool[tier]).forEach((localCode) => {
+					this._pool[tier][localCode].session.resetTimeout();
+				});
 			});
 		}, config.session.timewarnTime/2);
 	}
@@ -70,17 +98,36 @@ class SessionManager extends EventEmitter {
 	}
 
 	canAcceptNewSessions() {
-		return this._poolVar.enabled && Object.keys(this._pool).length > 0 && this.numActiveSessions() < config.worker.maxSessions;
+		if (!this._poolVar.enabled) {
+			return false;
+		}
+		if (this.numActiveSessions() >= config.worker.maxSessions) {
+			return false;
+		}
+		for (let tier of Object.keys(this._pool)) {
+			// Require every tier to have at least 1 session in the pool
+			if (Object.keys(this._pool[tier]).length === 0) {
+				return false;
+			}
+		}
+		return true;
 	}
 
-	_create(next) {
+	usagePercent() {
+		return this.numActiveSessions() / config.worker.maxSessions;
+	}
+
+	isHealthy() {
+		return this._monitor_session && this._monitor_session.isOnline();
+	}
+
+	_create(next, options) {
 		// Get the correct implementation
-		const SessionImpl = impls[config.session.implementation];
-		if (!SessionImpl) return log.error("Please set a valid entry for config.session.implementation.");
+		const SessionImpl = config.session.implementation === "docker" ? impls.docker : impls.selinux;
 
 		// Create the session object
 		const localCode = uuid.v4(null, new Buffer(16)).toString("hex");
-		const session = new SessionImpl(localCode);
+		const session = new SessionImpl(localCode, options);
 
 		// Add messages to a cache when they are created
 		const cache = new Queue();
@@ -98,30 +145,37 @@ class SessionManager extends EventEmitter {
 			}
 
 			// Call the callback
-			next(localCode, session, cache);
+			next(localCode, session, cache, options);
 		}));
 	}
 
 	attach(remoteCode, content) {		// Move pool session to online session
 		if (!this.canAcceptNewSessions()) return log.warn("Cannot accept any new sessions right now");
 
-		// FIXME: Backwards compatibility with old front server: the message content can be the user itself; if null, it is a guest user.
+		// TODO: Backwards compatibility with old front server: the message content can be the user itself; if null, it is a guest user.
 		if (!content) {
 			content = { user: null };
 		} else if (content.parametrized) {
 			content = { user: content };
 		}
 
+		// Determine which tier to use
+		const user = content.user;
+		const tier = content.tier ? content.tier : user ? user.tier : Object.keys(this._pool)[0];
+		const poolTier = config2.tier(tier)["sessionManager.poolTier"] || tier;
+		// eslint-disable-next-line no-console
+		console.assert(Object.keys(this._pool).includes(poolTier), poolTier);
+
 		// Pull from the pool
-		const localCode = Object.keys(this._pool)[0];
-		this._online[remoteCode] = this._pool[localCode];
-		delete this._pool[localCode];
-		log.info("Upgraded pool session", localCode, remoteCode);
+		const localCode = Object.keys(this._pool[poolTier])[0];
+		this._online[remoteCode] = this._pool[poolTier][localCode];
+		delete this._pool[poolTier][localCode];
+		log.info("Upgraded pool session", poolTier, localCode, remoteCode);
+		this.recordMetrics();
 
 		// Convenience references
 		const session = this._online[remoteCode].session;
 		const cache = this._online[remoteCode].cache;
-		const user = content.user;
 
 		// Reset the session timeout to leave the user with a full allotment of time
 		session.resetTimeout();
@@ -135,9 +189,12 @@ class SessionManager extends EventEmitter {
 			this.emit("message", remoteCode, message[0], message[1]);
 		});
 
+		// Save the start time to keep a record of the time spent on flavor servers
+		var startTime = new Date().valueOf();
+
 		// Create touch interval for Redis and save reference
 		const touchInterval = setInterval(() => {
-			this.emit("touch", remoteCode);
+			this.emit("touch", remoteCode, startTime);
 		}, config.redis.expire.interval);
 
 		// Emit an event to set to live in Redis (required for OT)
@@ -176,7 +233,12 @@ class SessionManager extends EventEmitter {
 
 		// Destroy the session
 		const session = meta.session;
-		session.destroy(session._handleError.bind(session), reason);
+		session.destroy((err) => {
+			if (err) {
+				log.error("Error destroying session:", sessCode, err);
+			}
+			this.emit("destroy-done", sessCode);
+		}, reason);
 
 		// Send destroy-u message
 		this.emit("destroy-u", sessCode, reason);
@@ -190,6 +252,7 @@ class SessionManager extends EventEmitter {
 		// Remove it from the index
 		delete this._online[sessCode];
 		log.debug("Removed session from index", sessCode);
+		this.recordMetrics();
 	}
 
 	startPool() {
@@ -201,7 +264,7 @@ class SessionManager extends EventEmitter {
 		let poolVar = { enabled: true };
 		this._poolVar = poolVar;
 
-		let _poolCb = (localCode, session, cache) => {
+		let _poolCb = (localCode, session, cache, options) => {
 			// If we need to disable the pool...
 			if (!poolVar.enabled) {
 				if (session) session.destroy(null, "Pool Disabled");
@@ -216,16 +279,22 @@ class SessionManager extends EventEmitter {
 					cache.enabled = false;
 					cache.removeAll();
 				} else {
-					this._pool[localCode] = { session, cache };
+					this._pool[options.tier][localCode] = { session, cache };
+					this.recordMetrics();
 				}
 			}
 
 			// If we need to put another session in our pool...
-			if (Object.keys(this._pool).length < config.sessionManager.poolSize) {
-				this._create(_poolCb);
-			} else {
-				setTimeout(_poolCb, config.sessionManager.poolInterval);
+			for (let tier of Object.keys(this._pool)) {
+				if (Object.keys(this._pool[tier]).length < this._poolSizes[tier]) {
+					log.trace("Creating new session in tier", tier);
+					this._create(_poolCb, { tier });
+					return;
+				}
 			}
+
+			// No more sessions were required.
+			setTimeout(_poolCb, config.sessionManager.poolInterval);
 		};
 		process.nextTick(_poolCb);
 	}
@@ -233,12 +302,15 @@ class SessionManager extends EventEmitter {
 	disablePool() {
 		if (!this._poolVar || !this._poolVar.enabled) return;
 		this._poolVar.enabled = false;
-		Object.keys(this._pool).forEach((localCode) => {
-			this._pool[localCode].session.destroy(null, "Pool Disabled");
-			this._pool[localCode].session = null;
-			this._pool[localCode].cache = null;
-			delete this._pool[localCode];
+		Object.keys(this._pool).forEach((tier) => {
+			Object.keys(this._pool[tier]).forEach((localCode) => {
+				this._pool[tier][localCode].session.destroy(null, "Pool Disabled");
+				this._pool[tier][localCode].session = null;
+				this._pool[tier][localCode].cache = null;
+				delete this._pool[tier][localCode];
+			});
 		});
+		this.recordMetrics();
 	}
 
 	terminate(reason) {
@@ -259,6 +331,13 @@ class SessionManager extends EventEmitter {
 	restart() {
 		this.startPool();
 		this._setup();
+	}
+
+	recordMetrics() {
+		metrics.gauge("oo.online_sessions", Object.keys(this._online).length);
+		Object.keys(this._pool).forEach((tier) => {
+			metrics.gauge(`oo.pool_sessions.${tier}`, Object.keys(this._pool[tier]).length);
+		});
 	}
 }
 

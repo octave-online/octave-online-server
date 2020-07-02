@@ -1,0 +1,110 @@
+# HG changeset patch
+# User Shane F. Carr <shane@sffc.xyz>
+# Date 1578122988 21600
+#      Sat Jan 04 01:29:48 2020 -0600
+# Branch oo-5.2
+# Node ID e61d7b8918e2632d23f537cd679e1f532ed317d7
+# Parent  d6b5ffb8e4cc940b7337575d0194d025c7385b24
+Removing UTF-8 logic from json-util.cc
+
+diff -r d6b5ffb8e4cc -r e61d7b8918e2 libinterp/corefcn/json-util.cc
+--- a/libinterp/corefcn/json-util.cc	Fri Jan 03 04:27:38 2020 -0600
++++ b/libinterp/corefcn/json-util.cc	Sat Jan 04 01:29:48 2020 -0600
+@@ -15,95 +15,8 @@
+ #include "json-util.h"
+ 
+ JSON_OBJECT_T json_util::from_string(const std::string& str) {
+-	const char* snowflake = "\xEF\xBF\xBD";
+-
+-	// Ensure that the string is valid UTF-8
+-	std::string sanitized;
+-	size_t state = 0;
+-	size_t cpLength = 0;
+-	for (size_t i=0; i<str.length(); i++) {
+-		unsigned char c = str[i];
+-		switch (state) {
+-		case 0:
+-			if (c < 0x80) {
+-				// 1-byte character
+-				sanitized.push_back(c);
+-			} else if (c >= 0xC2 && c <= 0xDF) {
+-				// 2-byte character
+-				state = 1;
+-				cpLength = 2;
+-			} else if (c >= 0xE0 && c <= 0xEF) {
+-				// 3-byte character
+-				state = 1;
+-				cpLength = 3;
+-			} else if (c >= 0xF0 && c <= 0xF4) {
+-				// 4-byte character
+-				state = 1;
+-				cpLength = 4;
+-			} else {
+-				// Invalid byte
+-				sanitized.append(snowflake);
+-			}
+-			break;
+-
+-		case 1:
+-			if (c < 0x80 || c > 0xBF) {
+-				// Invalid byte
+-				sanitized.append(snowflake);
+-				state = 0;
+-			} else if (cpLength == 2) {
+-				// Final byte in 2-byte character
+-				sanitized.push_back(str[i-1]);
+-				sanitized.push_back(c);
+-				state = 0;
+-			} else {
+-				// 3-byte or 4-byte character
+-				state = 2;
+-			}
+-			break;
+-
+-		case 2:
+-			if (c < 0x80 || c > 0xBF) {
+-				// Invalid byte
+-				sanitized.append(snowflake);
+-				state = 0;
+-			} else if (cpLength == 3) {
+-				// Final byte in 3-byte character
+-				sanitized.push_back(str[i-2]);
+-				sanitized.push_back(str[i-1]);
+-				sanitized.push_back(c);
+-				state = 0;
+-			} else {
+-				// 4-byte character
+-				state = 3;
+-			}
+-			break;
+-
+-		case 3:
+-			if (c < 0x80 || c > 0xBF) {
+-				// Invalid byte
+-				sanitized.append(snowflake);
+-				state = 0;
+-			} else {
+-				assert(cpLength == 4);
+-				sanitized.push_back(str[i-3]);
+-				sanitized.push_back(str[i-2]);
+-				sanitized.push_back(str[i-1]);
+-				sanitized.push_back(c);
+-				state = 0;
+-			}
+-			break;
+-
+-		}
+-	}
+-
+-	if (state != 0) {
+-		// Last character is invalid
+-		sanitized.append(snowflake);
+-		state = 0;
+-	}
+-
+-	return json_object_new_string_len(sanitized.c_str(), sanitized.length());
++	// Note: the string is not necesarilly valid UTF-8. The consumers of this stream must be able to handle that situation and substitute replacement characters, etc., where necessary.
++	return json_object_new_string_len(str.c_str(), str.length());
+ }
+ 
+ JSON_OBJECT_T json_util::from_int(int i) {

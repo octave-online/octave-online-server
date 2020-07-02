@@ -20,18 +20,15 @@ SHELL := /bin/bash
 NODE = node
 
 # Read options from config file
-get_config = ${shell $(NODE) -e "console.log(require('./shared').config.$(1))"}
+# \n is replaced with \1 because gnumake removes \n from ${shell}. See: https://stackoverflow.com/q/54067438/1407170
+get_config = ${shell $(NODE) -e "console.log(require('./shared').config.$(1))" | tr '\n' '\1'}
 GIT_HOST      = $(call get_config,git.hostname)
 GIT_DIR       = $(call get_config,docker.gitdir)
 WORK_DIR      = $(call get_config,docker.cwd)
 OCTAVE_SUFFIX = $(call get_config,docker.images.octaveSuffix)
 FILES_SUFFIX  = $(call get_config,docker.images.filesystemSuffix)
 JSON_MAX_LEN  = $(call get_config,session.jsonMaxMessageLength)
-CGROUP_NAME   = $(call get_config,selinux.cgroup.name)
-CPU_SHARES    = $(call get_config,selinux.cgroup.cpuShares)
-CPU_QUOTA     = $(call get_config,selinux.cgroup.cpuQuota)
-CGROUP_UID    = $(call get_config,selinux.cgroup.uid)
-CGROUP_GID    = $(call get_config,selinux.cgroup.gid)
+CGROUP_CONF   = $(call get_config,selinux.cgroup.conf)
 
 
 docker-octave:
@@ -73,26 +70,6 @@ docker-master-docker:
 docker-master-selinux:
 	echo "It is not currently possible to install SELinux inside of a Docker container."
 
-install-cgroup:
-	systemctl enable cgconfig
-	echo "group $(CGROUP_NAME) {" >> /etc/cgconfig.conf
-	echo "  perm {" >> /etc/cgconfig.conf
-	echo "    admin {" >> /etc/cgconfig.conf
-	echo "      uid = root;" >> /etc/cgconfig.conf
-	echo "      gid = root;" >> /etc/cgconfig.conf
-	echo "    }" >> /etc/cgconfig.conf
-	echo "    task {" >> /etc/cgconfig.conf
-	echo "      uid = $(CGROUP_UID);" >> /etc/cgconfig.conf
-	echo "      gid = $(CGROUP_GID);" >> /etc/cgconfig.conf
-	echo "    }" >> /etc/cgconfig.conf
-	echo "  }" >> /etc/cgconfig.conf
-	echo "  cpu {" >> /etc/cgconfig.conf
-	echo "    cpu.shares = $(CPU_SHARES);" >> /etc/cgconfig.conf
-	echo "    cpu.cfs_period_us = 1000000;" >> /etc/cgconfig.conf
-	echo "    cpu.cfs_quota_us = $(CPU_QUOTA);" >> /etc/cgconfig.conf
-	echo "  }" >> /etc/cgconfig.conf
-	echo "}" >> /etc/cgconfig.conf
-
 install-selinux-policy:
 	# yum install -y selinux-policy-devel policycoreutils-sandbox selinux-policy-sandbox
 	cd entrypoint/policy && make -f /usr/share/selinux/devel/Makefile octave_online.pp
@@ -104,21 +81,22 @@ install-selinux-policy:
 
 install-selinux-bin:
 	cp entrypoint/back-selinux.js /usr/local/bin/oo-back-selinux
+	# TODO: Put in /etc instead of /usr/lib?
 	cp entrypoint/oo.service /usr/lib/systemd/system/oo.service
-	cp entrypoint/oo-install-host.service /usr/lib/systemd/system/oo-install-host.service
 	systemctl daemon-reload
-	systemctl enable oo
-	systemctl enable oo-install-host
-	ln -sf $$PWD /usr/local/share/oo
-
-install-utils-auth:
-	cp entrypoint/oo_utils_auth.service /usr/lib/systemd/system/oo_utils_auth.service
-	systemctl daemon-reload
-	systemctl enable oo_utils_auth
+	echo "$(CGROUP_CONF)" | tr '\1' '\n' > /etc/cgconfig.d/oo.conf
+	echo "Run `systemctl restart cgconfig.service` to load changes to cgroup configurations."
+	systemctl enable cgconfig
 	ln -sf $$PWD /usr/local/share/oo
 
 install-site-m:
 	cp back-octave/octaverc.m /usr/local/share/octave/site/m/startup/octaverc
+
+enable-graceful-shutdown:
+	cp entrypoint/oo-no-restart.service /usr/lib/systemd/system/oo.service;
+	systemctl daemon-reload;
+	echo "Tip 1: Consider removing entrypoint/exit.js if it could cause disruption";
+	echo "Tip 2: Consider sending SIGUSR1 to the server process to start a graceful shutdown";
 
 docker: docker-octave docker-files
 

@@ -3,14 +3,14 @@
   "version": "0.0.0",
   "description": "Authenticates users accessing git repos on the back server",
   "main": "app.js",
-  "scripts": {
-  },
+  "scripts": {},
   "author": "Octave Online LLC",
   "license": "AGPL-3.0",
   "private": true,
   "dependencies": {
+    "@oo/shared": "file:../shared",
     "basic-auth": "^1.1.0",
-    "bcrypt": "^2.0.1",
-    "mongoose": "^4.0.6"
+    "bcrypt": "^3.0.6",
+    "mongoose": "^5.8.3"
   }
 }

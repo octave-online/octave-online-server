@@ -3,6 +3,8 @@ Octave Online Server: GNU Octave Utilities
 
 This directory contains machinery for talking to the GNU Octave process.
 
+See [containers/README.md](../containers/README.md) for instructions on how to build the custom GNU Octave for Octave Online Server.
+
 The *oo-changesets* directory contains patches against GNU Octave to add features required for Octave Online.  The primary feature added is a new flag `--json-sock`, which uses a UNIX Socket for passing messages back and forth between the Octave process and the outside world.
 
 The file *host.c* is a thin GNU Octave wrapper process that creates the UNIX Socket for talking to GNU Octave.  It reads messages from STDIN and marshals them into the UNIX Socket, and when it receives a message from the socket, it prints the message to STDOUT.

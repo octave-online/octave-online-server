@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018, Octave Online LLC
+ * Copyright © 2019, Octave Online LLC
  *
  * This file is part of Octave Online Server.
  *
@@ -18,25 +18,27 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-///<reference path='boris-typedefs/node/node.d.ts'/>
-///<reference path='boris-typedefs/mongoose/mongoose.d.ts'/>
-
 // Mongoose Bucket: stores metadata about a bucket.
 
 import Mongoose = require("mongoose");
-import Config = require("./config");
-
-// Patch for https://github.com/Automattic/mongoose/issues/4951
-Mongoose.Promise = <any> global.Promise
 
 // Initialize the schema
-var bucketSchema = new Mongoose.Schema({
+const bucketSchema = new Mongoose.Schema({
 	bucket_id: String,
 	user_id: Mongoose.Schema.Types.ObjectId,
 	main: String
 });
 
-bucketSchema.virtual("createdTime").get(function () {
+export interface IBucket extends Mongoose.Document {
+	_id: Mongoose.Types.ObjectId;
+	bucket_id: string;
+	user_id: Mongoose.Types.ObjectId;
+	main: string;
+
+	createdTime: Date;
+}
+
+bucketSchema.virtual("createdTime").get(function (this: IBucket) {
 	return this._id.getTimestamp();
 });
 
@@ -44,6 +46,4 @@ bucketSchema.set("toJSON", {
 	virtuals: true
 });
 
-// See comment in user_model.ts about the casting.
-var Bucket = <any> Mongoose.model("Bucket", bucketSchema);
-export = Bucket;
+export const Bucket = Mongoose.model<IBucket>("Bucket", bucketSchema);

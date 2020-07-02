@@ -31,6 +31,10 @@ class Queue extends EventEmitter {
 		this._items = [];
 	}
 
+	size() {
+		return this._items.length;
+	}
+
 	enqueue(item) {
 		if (this.enabled) {
 			this._items.push(item);

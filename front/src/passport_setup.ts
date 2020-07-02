@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018, Octave Online LLC
+ * Copyright © 2019, Octave Online LLC
  *
  * This file is part of Octave Online Server.
  *
@@ -18,65 +18,60 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-///<reference path='boris-typedefs/node/node.d.ts'/>
-///<reference path='boris-typedefs/passport/passport.d.ts'/>
-///<reference path='boris-typedefs/passport-local/passport-local.d.ts'/>
-///<reference path='typedefs/passport-google.d.ts'/>
-///<reference path='typedefs/easy-no-password.d.ts'/>
-///<reference path='typedefs/mailgun.d.ts'/>
-///<reference path='typedefs/iuser.ts'/>
-
-import Passport = require("passport");
-import Config = require("./config");
 import EasyNoPassword = require("easy-no-password");
 import GoogleOAuth = require("passport-google-oauth");
 import Local = require("passport-local");
 import Mailgun = require("mailgun-js");
-import Persona = require("passport-persona");
-import User = require("./user_model");
-import Utils = require("./utils");
+import Passport = require("passport");
+import Postmark = require("postmark");
 
-var baseUrl = Config.front.protocol + "://" + Config.front.hostname
-	+ ":" + Config.front.port + "/";
-var googCallbackUrl = baseUrl + "auth/google/callback";
+import * as Utils from "./utils";
+import { config, logger } from "./shared_wrap";
+import { User, IUser } from "./user_model";
 
-var mailgun = Mailgun({
-	apiKey: Config.mailgun.api_key,
-	domain: Config.mailgun.domain
-});
+type Err = Error | null;
 
-function findOrCreateUser(email:string, profile:any,
-		done:(err:Error, user?:IUser)=>void) {
-	User.findOne({
-		email: email
-	}, (err, user) => {
-		if (err) {
-			return done(err);
-		}
+const log = logger("passport-setup");
 
-		if (user) {
-			// Returning user
-			console.log("Returning User", user.consoleText);
-			done(null, user);
+const baseUrl = `${config.front.protocol}://${config.front.hostname}:${config.front.port}/`;
+const googCallbackUrl = baseUrl + "auth/google/callback";
 
-		} else {
-			// Make a new user
-			console.log("Creating New User");
-			User.create({
-				email: email,
-				profile: profile
-			}, (err, user) => {
-				console.log("New User", user.consoleText);
-				done(err, user);
-			});
-		}
+let mailgunClient: Mailgun.Mailgun|null = null;
+let postmarkClient: Postmark.ServerClient|null = null;
+
+if (config.email.provider === "mailgun") {
+	mailgunClient = Mailgun({
+		apiKey: config.mailgun.api_key,
+		domain: config.mailgun.domain
 	});
+} else {
+	postmarkClient = new Postmark.ServerClient(config.postmark.serverToken);
+}
+
+async function findOrCreateUser(email: string, profile: any) {
+	let user = await User.findOne({
+		email: email
+	});
+
+	// Returning user
+	if (user) {
+		log.info("Returning User", user.consoleText);
+		return user;
+	}
+
+	// Make a new user
+	log.trace("Creating New User");
+	user = await User.create({
+		email: email,
+		profile: profile
+	});
+	log.info("New User", user.consoleText);
+	return user;
 }
 
 enum PasswordStatus { UNKNOWN, INCORRECT, VALID }
 
-function findWithPassword(email:string, password:string,
-		done:(err:Error, status?:PasswordStatus, user?:IUser)=>void) {
+function findWithPassword(email: string, password: string, done: (err: Err, status?: PasswordStatus, user?: IUser) => void) {
 	User.findOne({
 		email: email
 	}, (err, user) => {
@@ -89,7 +84,7 @@ function findWithPassword(email:string, password:string,
 				if (valid) {
 					return done(null, PasswordStatus.VALID, user);
 				} else {
-					return done(null, PasswordStatus.INCORRECT);
+					return done(null, PasswordStatus.INCORRECT, user);
 				}
 			});
 
@@ -100,91 +95,114 @@ function findWithPassword(email:string, password:string,
 	});
 }
 
-var googleStrategy = new (GoogleOAuth.OAuth2Strategy)({
-		callbackURL: googCallbackUrl,
-		clientID: Config.auth.google.oauth_key,
-		clientSecret: Config.auth.google.oauth_secret
-	},
-	function (accessToken, refreshToken, profile, done) {
-		const email = profile.emails[0].value;
-		console.log("Google Login", Utils.emailHash(email));
-		findOrCreateUser(email, profile._json, done);
-	});	
-
-var personaStrategy = new (Persona.Strategy)({
-		audience: baseUrl
-	},
-	function (email, done) {
-		console.log("Persona Callback", Utils.emailHash(email));
-		findOrCreateUser(email, { method: "persona" }, done);
+const googleStrategy = new (GoogleOAuth.OAuth2Strategy)({
+	callbackURL: googCallbackUrl,
+	clientID: config.auth.google.oauth_key,
+	clientSecret: config.auth.google.oauth_secret,
+	userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
+},
+function (accessToken, refreshToken, profile, done) {
+	const email = profile.emails?.[0].value;
+	if (!email) {
+		log.warn("No email returned from Google", profile);
+		return done(new Error("No email returned from Google"));
+	}
+	log.info("Google Login", Utils.emailHash(email));
+	findOrCreateUser(email, profile._json).then((user) => {
+		done(null, user);
+	}, (err) => {
+		done(err);
 	});
+});
 
-var easyStrategy = new (EasyNoPassword.Strategy)({
-		secret: Config.auth.easy.secret
-	},
-	function (req) {
-		if (req.body && req.body.s) {
-			return { stage: 1, username: req.body.s };
-		} else if (req.query && req.query.u && req.query.t) {
-			return { stage: 2, username: req.query.u, token: req.query.t };
-		} else {
-			return null;
-		}
-	},
-	function (email, token, done) {
-		var url = `${baseUrl}auth/tok?u=${encodeURIComponent(email)}&t=${token}`;
-		mailgun.messages().send({
-			from: "Octave Online <webmaster@octave-online.net>",
+const easyStrategy = new (EasyNoPassword.Strategy)({
+	secret: config.auth.easy.secret,
+	maxTokenAge: config.auth.easy.max_token_age
+},
+function (req) {
+	if (req.body && req.body.s) {
+		return { stage: 1, username: req.body.s };
+	} else if (req.query && req.query.u && req.query.t) {
+		return { stage: 2, username: req.query.u, token: req.query.t };
+	} else {
+		return null;
+	}
+},
+function (email, token, done) {
+	const url = `${baseUrl}auth/tok?u=${encodeURIComponent(email)}&t=${token}`;
+	if (mailgunClient) {
+		mailgunClient.messages().send({
+			from: config.email.from,
 			to: email,
 			subject: "Octave Online Login",
 			text: `Your login token for Octave Online is: ${token}\n\nYou can also click the following link.\n\n${url}\n\nOnce you have signed into your account, you may optionally set a password to speed up the sign-in process.  To do this, open the menu and click Change Password.`
 		}, (err, info) => {
 			if (err) {
-				console.error("Failed sending email:", email, info);
+				log.warn("Failed sending email:", email, info);
 			} else {
-				console.log("Sent token email:", Utils.emailHash(email));
+				log.trace("Sent token email:", Utils.emailHash(email));
 			}
 			done(null);
 		});
-	},
-	function (email, done) {
-		console.log("Easy Callback", Utils.emailHash(email));
-		findOrCreateUser(email, { method: "easy" }, done);
-	});
-
-var passwordStrategy = new (Local.Strategy)({
-		usernameField: "s",
-		passwordField: "p"
-	},
-	function(username, password, done) {
-		findWithPassword(username, password, function(err, status, user) {
-			if (err) return done(err);
-			if (status === PasswordStatus.UNKNOWN || status == PasswordStatus.INCORRECT) {
-				console.log("Password Callback Failure", status);
-				return done(null, false);
-			} else {
-				console.log("Password Callback Success", status, user.consoleText);
-				return done(null, user);
+	} else if (postmarkClient) {
+		postmarkClient.sendEmailWithTemplate({
+			TemplateAlias: config.postmark.templateAlias,
+			From: config.email.from,
+			To: email,
+			TemplateModel: {
+				product_name: config.email.productName,
+				token_string: token,
+				action_url: url,
+				support_url: config.email.supportUrl
 			}
+		}).then((response) => {
+			log.trace(response);
+			done(null);
+		}).catch((err) => {
+			log.error("Failed sending email:", email, err);
+			done(err);
 		});
 	}
+},
+function (email: string, done: (err: Err, user?: unknown, info?: any) => void) {
+	log.info("Easy Callback", Utils.emailHash(email));
+	findOrCreateUser(email, { method: "easy" }).then((user) => {
+		done(null, user);
+	}, (err) => {
+		done(err);
+	});
+});
+
+const passwordStrategy = new (Local.Strategy)({
+	usernameField: "s",
+	passwordField: "p"
+},
+function(username, password, done) {
+	findWithPassword(username, password, function(err, status, user) {
+		if (err) return done(err);
+		if (status === PasswordStatus.UNKNOWN) {
+			log.info("Password Callback Unknown User", status, username);
+			return done(null, false);
+		} else if (status === PasswordStatus.INCORRECT) {
+			log.info("Password Callback Incorrect", status, (user as IUser).consoleText);
+		} else {
+			log.info("Password Callback Success", status, (user as IUser).consoleText);
+			return done(null, user);
+		}
+	});
+}
 );
 
-module PassportSetup {
-	export function init(){
-		Passport.use(googleStrategy);
-		Passport.use(personaStrategy);
-		Passport.use(easyStrategy);
-		Passport.use(passwordStrategy);
-		Passport.serializeUser((user, cb) => {
-			cb(null, user.id);
-		});
-		Passport.deserializeUser((user, cb) => {
-			User.findById(user, cb);
-		});
+export function init(){
+	Passport.use(googleStrategy);
+	Passport.use(easyStrategy);
+	Passport.use(passwordStrategy);
+	Passport.serializeUser((user: IUser, cb) => {
+		cb(null, user.id);
+	});
+	Passport.deserializeUser((user: IUser, cb) => {
+		User.findById(user, cb);
+	});
 
-		console.log("Initialized Passport");
-	}
+	log.info("Initialized Passport");
 }
-
-export = PassportSetup

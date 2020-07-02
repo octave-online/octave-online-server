@@ -25,24 +25,42 @@ const EventEmitter = require("events");
 const log = require("@oo/shared").logger("maint-req-manager");
 const config = require("@oo/shared").config;
 
-class MaintenanceReuestManager extends EventEmitter {
-	constructor() {
+class MaintenanceRequestFlavorManager extends EventEmitter {
+	constructor(clusterSize) {
 		super();
+		if (clusterSize) {
+			this._forFlavor = true;
+			this._clusterSize = clusterSize;
+			this._priority = Math.random();
+			log.debug("Flavor Priority:", this._priority);
+		}
 		this.reset();
 	}
 
 	reset() {
-		this._priority = 0;
 		this._responses = {};
+		this._ignoreAll = false;
+		if (!this._forFlavor) {
+			this._priority = 0;
+		}
 	}
 
-	beginRequestingMaintenance() {
+	ignoreAll() {
+		this._ignoreAll = true;
+	}
+
+	beginRequesting(intervalTime) {
 		log.info("Beginning maintenance requests");
 		this.reset();
-		this._requestInterval = setInterval(this._requestMaintenance.bind(this), config.maintenance.requestInterval);
+		this._requestInterval = setInterval(this._requestMaintenance.bind(this), intervalTime);
 	}
 
 	onMessage(id, isRequest, message) {
+		// Has the server has removed itself from the actively responding cluster?
+		if (this._ignoreAll) {
+			return;
+		}
+
 		let isOwnRequest = Object.keys(this._responses).indexOf(id) !== -1;
 
 		if (isRequest && !isOwnRequest) {
@@ -56,12 +74,19 @@ class MaintenanceReuestManager extends EventEmitter {
 	}
 
 	stop() {
-		if (this._requestInterval) clearInterval(this._requestInterval);
+		if (this._requestInterval) {
+			clearInterval(this._requestInterval);
+		}
+		this._requestInterval = null;
 	}
 
 	_requestMaintenance() {
 		let id = uuid.v4();
-		this._priority += 1;
+		if (!this._forFlavor) {
+			// In flavor status mode, keep a fixed priority at all times. This creates stability and uniqueness that is easy to reason about.
+			// In maintenance request mode, make the priority grow as time goes on. This means older servers get first priority to maintenance.
+			this._priority += 1;
+		}
 		this._responses[id] = [];
 		this.emit("request-maintenance", id, this._priority);
 		log.trace("Sent maintenance request:", id, this._priority);
@@ -73,8 +98,14 @@ class MaintenanceReuestManager extends EventEmitter {
 			}, 0);
 			let numNo = this._responses[id].length - numYes;
 
-			// Policy: Guarantee at least minNodesInCluster online nodes and no more than maxNodesInMaintenance maintenance nodes.
-			let success = numNo < config.maintenance.maxNodesInMaintenance && numYes >= config.maintenance.minNodesInCluster;
+			let success;
+			if (this._forFlavor) {
+				// Policy: Guarantee at least _clusterSize online nodes
+				success = numYes >= this._clusterSize;
+			} else {
+				// Policy: Guarantee at least minNodesInCluster online nodes and no more than maxNodesInMaintenance maintenance nodes.
+				success = numNo < config.maintenance.maxNodesInMaintenance && numYes >= config.maintenance.minNodesInCluster;
+			}
 
 			// Were we successful?
 			if (success) {
@@ -93,4 +124,4 @@ class MaintenanceReuestManager extends EventEmitter {
 	}
 }
 
-module.exports = MaintenanceReuestManager;
+module.exports = MaintenanceRequestFlavorManager;

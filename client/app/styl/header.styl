@@ -72,7 +72,13 @@ header {
 	}
 }
 
-#main_menu {
+#main_menu_content {
+	position: absolute
+	top: 0
+	right: 0
+	bottom: 0
+	left: 0
+
 	padding: 5px
 	overflow: auto
 	-ms-overflow-style: -ms-autohiding-scrollbar
@@ -129,13 +135,13 @@ header {
 		}
 		
 		a {
-			color: color1
+			color: colorfg1
 			text-decoration: underline
 			cursor: pointer
 		}
 	}
 	
-	#show-plots-inline-item {
+	.preference-inline-item {
 		text-align: center
 		font-size: 1.0em
 		margin: 1ex auto
@@ -153,7 +159,7 @@ header {
 		padding: 1ex
 		text-align: center
 		border-radius: 5px
-		background-color: color1
+		background-color: colorfg2
 
 		& > * {
 			text-decoration: underline
@@ -168,10 +174,10 @@ header {
 		}
 		
 		&:hover{
-			background-color: color2
+			background-color: colorfg1
 		}
 		&:active{
-			background-color: color3
+			background-color: colorfg4
 		}
 	}
 
@@ -179,7 +185,7 @@ header {
 		strong {
 			display: block
 			margin-top: 8px
-			border-bottom: 2px solid color2
+			border-bottom: 2px solid colorfg2
 			padding-left: 4px
 			font-size: 1.2em
 		}
@@ -192,11 +198,11 @@ header {
 		
 		li {
 			clear: both
-			border-bottom: 1px solid color2
+			border-bottom: 1px solid colorfg2
 		}
 
 		.bucket-name {
-			color: color1
+			color: colorfg1
 		}
 		
 		.bucket-time {
@@ -215,7 +221,7 @@ header {
 		margin-top: 20px
 		font-size: 0.8em
 		font-style: italic
-		color: color2
+		color: colorfg1
 
 		& > * {
 			color: inherit

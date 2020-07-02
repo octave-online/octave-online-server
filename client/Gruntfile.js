@@ -41,6 +41,10 @@ function getFileUtf8(filepath) {
 	};
 }
 
+const announcement_display = process.env.OO_ANNOUNCEMENT_DISPLAY ? process.env.OO_ANNOUNCEMENT_DISPLAY : config.client.announcement_display;
+
+const announcement_html = process.env.OO_ANNOUNCEMENT_HTML ? process.env.OO_ANNOUNCEMENT_HTML : config.client.announcement_html;
+
 module.exports = function (grunt) {
 	grunt.loadNpmTasks("grunt-contrib-requirejs");
 	grunt.loadNpmTasks("grunt-contrib-stylus");
@@ -173,9 +177,21 @@ module.exports = function (grunt) {
 						flags: "g"
 					},
 					{
+						name: "config-session-legalTime",
+						search: "parseInt\\(\"\\d+!config.session.legalTime.guest\"\\)",
+						replace: "" + config.session.legalTime.guest,
+						flags: "g"
+					},
+					{
 						name: "config-session-countdownExtraTime",
 						search: "parseInt\\(\"\\d+!config.session.countdownExtraTime\"\\)",
 						replace: "" + config.session.countdownExtraTime,
+						flags: "g"
+					},
+					{
+						name: "config-session-countdownRequestTime",
+						search: "parseInt\\(\"\\d+!config.session.countdownRequestTime\"\\)",
+						replace: "" + config.session.countdownRequestTime,
 						flags: "g"
 					},
 					{
@@ -188,6 +204,18 @@ module.exports = function (grunt) {
 						name: "uservoice",
 						search: "\\{!uservoice!\\}",
 						replace: config.client.uservoice,
+						flags: "g"
+					},
+					{
+						name: "socket_io_path",
+						search: "\\{!socket_io_path!\\}",
+						replace: config.front.socket_io_path,
+						flags: "g"
+					},
+					{
+						name: "file_history_url",
+						search: "\\{!file_history_url!\\}",
+						replace: config.git.httpUrl,
 						flags: "g"
 					},
 				]
@@ -258,13 +286,19 @@ module.exports = function (grunt) {
 					{
 						name: "announcement-display",
 						search: "\\{!announcement-display!\\}",
-						replace: config.client.announcement_display,
+						replace: announcement_display,
 						flags: "g"
 					},
 					{
 						name: "announcement-html",
 						search: "\\{!announcement-html!\\}",
-						replace: config.client.announcement_html,
+						replace: announcement_html,
+						flags: "g"
+					},
+					{
+						name: "recaptcha-sitekey",
+						search: "\\{!recaptcha-sitekey!\\}",
+						replace: config.recaptcha.siteKey,
 						flags: "g"
 					},
 					{

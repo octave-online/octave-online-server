@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018, Octave Online LLC
+ * Copyright © 2019, Octave Online LLC
  *
  * This file is part of Octave Online Server.
  *
@@ -18,31 +18,68 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-///<reference path='boris-typedefs/node/node.d.ts'/>
-///<reference path='boris-typedefs/socket.io/socket.io.d.ts'/>
-///<reference path='boris-typedefs/express/express.d.ts'/>
-///<reference path='typedefs/socketio-wildcard.d.ts'/>
-
-import SocketIO = require("socket.io");
-import Http = require("http");
-import SocketIOWildcard = require("socketio-wildcard");
-import Middleware = require("./session_middleware");
-import SocketConnect = require("./socket_connect");
-import ExpressApp = require("./express_setup");
+import Async = require("async");
 import Express = require("express");
+import SocketIO = require("socket.io");
+import SocketIOWildcard = require("socketio-wildcard");
 
-module S {
-	export function init(){
-		var io = SocketIO(ExpressApp.app)
-			.use(SocketIOWildcard())
-			.use((socket,next)=>{
-				// Parse the session using middleware
-				Middleware.middleware(socket.request, <Express.Response>{}, next);
-			})
-			.on("connection", SocketConnect.onConnection);
+import * as ExpressApp from "./express_setup";
+import * as Middleware from "./session_middleware";
+import { SocketHandler } from "./socket_connect";
+import { config, rack, logger } from "./shared_wrap";
 
-		console.log("Initialized Socket.IO Server");
+type Err = Error|null|undefined;
+
+const ALL_FLAVORS = Object.keys(config.flavors);
+const log = logger("oo-socketio");
+
+export function init(){
+	const io = SocketIO(ExpressApp.app, {
+			path: config.front.socket_io_path
+		})
+		.use(SocketIOWildcard())
+		.use((socket,next)=>{
+			// Parse the session using middleware
+			Middleware.middleware(socket.request, {} as Express.Response, next);
+		})
+		.on("connection", SocketHandler.onConnection);
+
+	if (config.rackspace.username !== "xxxxxxxxx") {
+		// eslint-disable-next-line @typescript-eslint/no-use-before-define
+		watchFlavorServers(io);
 	}
+
+	log.info("Initialized Socket.IO Server", config.front.socket_io_path);
 }
 
-export = S;
+export function watchFlavorServers(io: SocketIO.Namespace) {
+	Async.forever(
+		(next: () => void) => {
+			Async.map(ALL_FLAVORS, (flavor, _next) => {
+				// TODO: Move this call somewhere it could be configurable.
+				rack.getFlavorServers(flavor, _next);
+			}, (err, results) => {
+				if (err) {
+					log.error("RACKSPACE ERROR", err);
+				} else {
+					results = results as any[];
+					const rawServers = Array.prototype.concat.apply([], results.map((data) => { return (data as any).servers; }));
+					const servers = rawServers.map((server) => {
+						const { name, created, status } = server;
+						return { name, created, status };
+					});
+					io.emit("oo.flavor-list", { servers });
+
+					log.debug("Flavor Servers:");
+					servers.forEach(({ name, created, status }) => {
+						log.debug(name + " " + status + " " + created);
+					});
+				}
+				setTimeout(next, config.front.flavor_log_interval);
+			});
+		},
+		(err: Err) => {
+			log.error("FOREVER ERROR", err);
+		}
+	);
+}

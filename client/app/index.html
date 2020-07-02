@@ -49,16 +49,6 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	[aria-hidden="true"] { display: none !important; }
 	</style>
 
-	<!-- Browser Compatibility Check -->
-	<script type="text/javascript">
-	var flexSupported = (function(){for(var b=document.createElement("div"),d=["","-webkit-","-moz-","-o-","-ms-"],c=0;5>c;c++)if(b.style.cssText+=d[c]+"flex-basis:1px",b.style.length)return!0;return!1})();
-
-	if (!flexSupported) {
-		// Send to the non-flexbox version of the site for additional tests
-		window.location.href = "v1/";
-	}
-	</script>
-
 	<!-- Pre-Load Spinner Image -->
 	<script>
 	new Image().src = "images/spinner.svg";
@@ -193,9 +183,9 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		</div>
 		<div id="output_panel" data-bind="attr:{ style: flex.outputCss }">
 			<div id="plot_container" aria-hidden="true" data-bind="vizSafe: showPlot, with: currentPlot">
-				<div id="plot_figure_container" title="Click to zoom" data-bind="click: zoom">
-					<div id="plot_svg_container" data-bind="fadeIn: complete, html: completeData"></div>
-					<div id="plot_loading" data-bind="fadeOut: !complete()">
+				<div id="plot_figure_container" title="Click to zoom" data-bind="click: $root.zoomPlot, css: { fullscreen: $root.plotZoomed }">
+					<div id="plot_svg_container" data-bind="visible: complete, html: completeData"></div>
+					<div id="plot_loading" data-bind="visible: !complete()">
 						<img src="images/spinner.svg" alt="Loading&hellip;"/>
 					</div>
 					<div id="plot_canvas_container">
@@ -230,7 +220,10 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				</div>
 				<div id="console_container" data-bind="resizeFlex:{ group: flex.sizes, index: 3 }">
 					<div id="console_output_container">
-						<pre id="console"></pre>
+						<pre id="console" data-bind="css: { 'console-wrap': consoleWhiteSpaceWrap }"></pre>
+						<!-- ko if: currentUser() && currentUser().patreon && currentUser().patreon.tier_name -->
+						<div id="tier_background"><div data-bind="class: currentUser().patreon.tier_name, click: showUpgradeTier" title="Upgraded session"></div></div>
+						<!-- /ko -->
 						<!--ONBOARDING
 						<div id="instructor-promo" aria-hidden="true">
 							<span class="l1">Did you know you can use {!app-name!} in your class?</span>
@@ -238,9 +231,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 							<span class="l3" data-purpose="close">dismiss</span>
 						</div>
 						ONBOARDING-->
-						<!-- ko if: window.oo$version >= 20161218.2 -->
 						<div id="cwd_box" style="display: none" data-bind="visible: !!cwd()">cwd: <span data-bind="text: cwd"></span></div>
-						<!-- /ko -->
 						<div id="type_here" aria-hidden="true">
 							<span class="l1">Octave Command Prompt</span>
 							<span class="l2">Type expressions here and press enter.</span>
@@ -250,6 +241,20 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 						</div>
 						<span id="plot_opener" aria-hidden="true" title="Expand Plot Window" data-bind="click: togglePlot"></span>
 						<a id="agpl_icon" title="Octave Online Server on GitHub" href="https://github.com/octave-online/octave-online-server" target="_blank"><img src="images/agpl-logo.svg" alt="AGPL Free Software" /></a>
+						<div id="flavor_upgrade_div" style="display: none" data-bind="visible: !!canUseFlavors()">
+							<!-- ko ifnot: activeFlavor -->
+							<!--
+							<button id="upgrade_btn" data-bind="click: showUpgradeBox" title="Request dedicated server">
+								<span class="disk" data-bind="css: { available: hasFlavorsAvailable() }"></span> UPGRADE
+							</button>
+							-->
+							<!-- /ko -->
+							<!-- ko with: activeFlavor -->
+							<div id="flavor_status">
+								Running on: <span data-bind="text: details.displayName"></span> <span data-bind="text: minutes"></span>
+							</div>
+							<!-- /ko -->
+						</div>
 					</div>
 					<div id="console_prompt_container">
 
@@ -267,14 +272,19 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 								Seconds Remaining:
 								<span id="seconds_remaining">0</span>
 							</span>
-							<span id="add_time_container" class="clickable" data-bind="click: addTime">Add 15 Seconds</span>
+							<span id="add_time_container">
+								<span class="clickable" data-bind="click: addTime">Add <span data-bind="text: countdownExtraTimeSeconds"></span> Seconds</span>
+								<!-- ko if: (currentUser() && (!currentUser().patreon || !currentUser().patreon.currently_entitled_tier)) -->
+								or <span class="clickable" data-bind="click: showUpgradeTier">Upgrade</span>
+								<!-- /ko -->
+							</span>
 							<span id="payload_acknowledge_container" class="clickable" data-bind="click: acknowledgePayload">Resume Execution</span>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div id="main_menu" aria-hidden="true">
+		<div id="main_menu" aria-hidden="true"><div id="main_menu_content">
 			<!-- ko if: (!currentUser() && !showUserInHeader()) -->
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
 					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="Sign in with Google" />
@@ -286,9 +296,6 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					<image xlink:href="images/sign-in-with-email.svg" src="images/sign-in-with-email.png" width="200" height="40" alt="Sign in with Email" />
 				</svg>
 				<p class="login_bottom">
-					Looking for Persona? It was discontinued by Mozilla in 2016. Please sign in using your same email address with one of the other methods.
-				</p>
-				<p class="login_bottom">
 					Signed in before but need to change your email address? Click "Feedback" and create a ticket. We will change it for you.
 				</p>
 			<!-- /ko -->
@@ -296,6 +303,9 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				<div id="userbox">
 					<span data-bind="text: currentUser().name"></span>
 					<a id="logout_icon" href="javascript:void(0)" title="Sign Out" data-bind="click: doLogout">Sign&nbsp;Out</a>
+				</div>
+				<div class="site-control-item" data-bind="click: showUpgradeTier">
+					<a href="javascript:void(0)">Upgrade with Patreon</a>
 				</div>
 				<div class="share-url-box">
 					<!-- ko if: currentUser().share_key -->
@@ -306,17 +316,14 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 						</div>
 					<!-- /ko -->
 					<!-- ko ifnot: currentUser().share_key -->
-						<em>Sharing is currently disabled.  If you enable it, you get a link that you can use for real-time collaboration with colleagues.</em>
 						<div class="site-control-item" data-bind="click: toggleSharing">
-							<a href="javascript:void(0)">Enable Sharing</a>
+							<a href="javascript:void(0)">Share Workspace</a>
 						</div>
 					<!-- /ko -->
 				</div>
-				<!-- ko if: window.oo$version >= 20161230.1 -->
 				<div class="site-control-item" id="create-password-btn" data-bind="click: showChangePassword">
 					<a href="javascript:void(0)">Change Password</a>
 				</div>
-				<!-- /ko -->
 			<!-- /ko -->
 			<!-- ko foreach: instructorPrograms -->
 				<div class="instructor-programs">
@@ -352,12 +359,28 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				<a href="https://twitter.com/OctaveOnline" class="twitter-follow-button" data-show-count="false"
 				data-lang="en" data-size="large" data-show-screen-name="false" target="_blank">Follow on Twitter</a>
 			</div>
-			<div id="show-plots-inline-item">
+			<div class="preference-inline-item">
 				<label>
 					<input type="checkbox" data-bind="checked: inlinePlots" />
 					Render New Plots Inline
 				</label>
 			</div>
+			<div class="preference-inline-item">
+				<label>
+					<input type="checkbox" data-bind="checked: consoleWhiteSpaceWrap" />
+					Wrap Long Lines in Console
+				</label>
+			</div>
+			<!-- ko if: currentUser -->
+			<!--
+				<div class="preference-inline-item">
+					<label>
+						<input type="checkbox" data-bind="checked: flavorTester" />
+						Beta Test Dedicated Servers
+					</label>
+				</div>
+			-->
+			<!-- /ko -->
 			<!-- ko if: allBuckets().length > 0 -->
 				<div class="all-buckets">
 					<strong>Your Buckets:</strong>
@@ -375,7 +398,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 			<div id="footnotes">
 				Icons made by <a href="http://www.flaticon.com/authors/bogdan-rosu" title="Bogdan Rosu" target="_blank">Bogdan Rosu</a>, <a href="http://www.flaticon.com/authors/daniel-bruce" title="Daniel Bruce" target="_blank">Daniel Bruce</a>, <a href="http://www.flaticon.com/authors/sarfraz-shoukat" title="Sarfraz Shoukat" target="_blank">Sarfraz Shoukat</a>, <a href="http://www.flaticon.com/authors/icomoon" title="Icomoon" target="_blank">Icomoon</a>, <a href="http://www.flaticon.com/authors/freepik" title="Freepik" target="_blank">Freepik</a>, <a href="http://www.flaticon.com/authors/icon-works" title="Icon Works" target="_blank">Icon Works</a>, <a href="http://www.flaticon.com/authors/plainicon" title="Plainicon" target="_blank">Plainicon</a>, and <a href="http://www.flaticon.com/authors/simpleicon" title="SimpleIcon" target="_blank">SimpleIcon</a> are from <a href="http://www.flaticon.com" title="Flaticon" target="_blank">www.flaticon.com</a> and licensed by <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank" title="Creative Commons BY 3.0">CC BY 3.0</a>.
 			</div>
-		</div>
+		</div></div>
 	</section>
 </div>
 
@@ -398,7 +421,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 			Plot charts and graphs.
 		</figcaption>
 		<img src="images/demo/sombrero-prompt.png" alt="sombrero()" style="max-width: 150px;"/>
-		<img src="images/demo/sombrero-result.png" alt="plot showing a sombrero" style="max-width: 531px;"/>
+		<img src="images/demo/sombrero-result.jpg" alt="plot showing a sombrero" style="max-width: 531px;"/>
 	</figure>
 	<figure>
 		<figcaption>
@@ -425,9 +448,12 @@ ONBOARDING-->
 	<label for="emailField">Enter your email address:</label>
 	<form action="./auth/tok" method="post">
 		<input type="email" id="emailField1" name="s" placeholder="email address" />
+		<input type="password" id="passwordField1" name="p" />
+		<div class="g-recaptcha" data-sitekey="{!recaptcha-sitekey!}"></div>
 		<input type="submit" value="Submit" />
 	</form>
 	<p>You will be emailed an 11-digit code that you will need to enter on the next screen.</p>
+	<p><em>Notice:</em> If you do not receive your code, please open a support ticket for assistance.</p>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
@@ -436,6 +462,7 @@ ONBOARDING-->
 	<form action="./auth/pwd" method="post">
 		<input type="email" id="emailField2" name="s" placeholder="email address" />
 		<input type="password" name="p" placeholder="password" />
+		<!-- <div class="g-recaptcha" data-sitekey="{!recaptcha-sitekey!}"></div> -->
 		<!-- ko if: window.location.protocol === "http:" -->
 		<p><strong>Caution:</strong>  You are using an unsecured connection (http).  People might be able to see what you submit.  <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }">Switch to a secured connection (https)</a></p>
 		<!-- /ko -->
@@ -445,6 +472,9 @@ ONBOARDING-->
 </div></div></div>
 
 <div id="change_password" data-purpose="popover" aria-hidden="true"><div><div>
+	<h2 class="popover-title-bar">
+		Change Password
+	</h2>
 	<p>Enter your new password below.  To remove your password and disable password-based logins, leave the password field blank and click "Save Password".</p>
 	<input type="password" id="new_pwd" placeholder="password" />
 	<!-- ko if: window.location.protocol === "http:" -->
@@ -455,11 +485,11 @@ ONBOARDING-->
 </div></div></div>
 
 <div id="create_bucket" data-purpose="popover" aria-hidden="true"><div><div>
+	<h2 class="popover-title-bar">
+		Customize Bucket
+	</h2>
 	<!-- ko with: newBucket -->
 	<div id="create-bucket-content">
-		<h2 class="popover-title-bar">
-			Customize Bucket
-		</h2>
 		<p>A "bucket" is how to publicly share snapshots of {!app-name!} script or data files.</p>
 		<h3>Optional: Add More Files</h3>
 		<p>Select files and click the right arrow button.</p>
@@ -489,6 +519,51 @@ ONBOARDING-->
 	<img id="create-bucket-spinner" src="images/spinner.svg" width="40" data-bind="visible: !showCreateButton()" />
 	<!-- /ko -->
 	<span class="closebtn" data-purpose="close" data-bind="click: clearBucket"></span>
+</div></div></div>
+
+<div id="upgrade_to_flavor" data-purpose="popover" aria-hidden="true"><div><div>
+	<p><strong>Upgrade to Dedicated Server</strong></p>
+	<p>Choose your server configuration:</p>
+	<p>
+		<select id="flavor_select" data-bind="foreach: availableFlavorsArray, value: selectedFlavor">
+			<option data-bind="value: id, text: longName"></option>
+		</select>
+	</p>
+	<!-- ko if: flavorList().length -->
+	<p><em>There are currently <span data-bind="text: flavorList().length"></span> dedicated servers available!</em></p>
+	<!-- /ko -->
+	<p><button data-purpose="close" data-bind="click: upgradeNow">Upgrade Now</button></p>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
+
+<div id="upgrade_to_tier" data-purpose="popover" aria-hidden="true"><div><div>
+	<!-- ko with: currentUser -->
+	<h2 class="popover-title-bar">
+		Upgrade Account
+	</h2>
+	<!-- ko ifnot: $data.patreon -->
+	<p class="action-links">
+		<a href="/auth/patreon/plans" target="_blank">View Plans</a> or <a href="/auth/patreon">Link Patreon Account</a>
+	</p>
+	<!-- /ko -->
+	<!-- ko if: $data.patreon -->
+	<!-- ko if: patreon.currently_entitled_amount_cents -->
+	<p class="bigger">
+		Thank you for your <span data-bind="text: (patreon.currently_entitled_amount_cents/100).toLocaleString(undefined, { style: 'currency', currency: 'usd' })"></span> pledge!
+	</p>
+	<!-- /ko -->
+	<p class="action-links">
+		<a href="/auth/patreon/plans" target="_blank">Change on Patreon</a>
+	</p>
+	<p class="minor-action-links">
+		Want to transfer your pledge? <a href="/auth/patreon/revoke">Unlink Patreon Account</a>
+	</p>
+	<!-- /ko -->
+	<p>
+		Each week, Octave Online connects tens of thousands of students, educators, and researchers in over 100 countries.  We have <strong>no ads</strong> and <strong>no paywall</strong>.  If you believe in our mission to provide educational software free of charge, please join us by supporting Octave Online on Patreon.
+	</p>
+	<!-- /ko -->
+	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
 <div id="site_loading">
@@ -532,11 +607,13 @@ ONBOARDING-->
 //<!-- End RequireJS -->
 <script type="text/javascript">
 require.config({
-	urlArgs: "{!js-timestamp!}"
+	urlArgs: "{!js-timestamp!}",
+	waitSeconds: 0
 });
 require(["js/app"], function(){
 	require(["js/runtime"]);
 //var OctMethods = require("js/client"); OctMethods.console.writeError("NOTICE: Announcement Here\n\n\n\n\n\n\n\n\n\n");
+// var OctMethods = require("js/client"); OctMethods.console.writeUrl("/auth/patreon"); OctMethods.console.write("\n\n\n\n\n\n\n\n\n\n");
 });
 </script>
 </body>

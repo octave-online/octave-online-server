@@ -51,12 +51,40 @@ module.exports = {
 		},
 		attachment: (id) => {
 			return "attachment:" + id;
-		}
+		},
+		needsOctaveFlavor: (flavor) => {
+			return "oo:needs-flavor:" + flavor;
+		},
+		flavorStatus: (flavor) => {
+			return "oo:flavor-status-" + flavor;
+		},
+		otOps: (docId) => {
+			return "ot:" + docId + ":ops";
+		},
+		otDoc: (docId) => {
+			return "ot:" + docId + ":doc";
+		},
+		otSub: (docId) => {
+			return "ot:" + docId + ":sub";
+		},
+		otCnt: (docId) => {
+			return "ot:" + docId + ":cnt";
+		},
+		wsSess: (wsId) => {
+			return "oo:workspace:" + wsId + ":sess";
+		},
+		wsSub: (wsId) => {
+			return "oo:workspace:" + wsId + ":sub";
+		},
 	},
 
 	getSessCodeFromChannel: (channel) => {
 		const match = /^oo:(\w+):(\w+)$/.exec(channel);
 		if (!match) throw new Error("Can't extract sessCode from channel name");
 		return match[2];
+	},
+
+	isValidSessCode: (sessCode) => {
+		return /^\w{24}$/.test(sessCode);
 	}
 };

@@ -18,6 +18,9 @@
  * <https://www.gnu.org/licenses/>.
  */
 
+modal_content_padding = 20px
+modal_header_height = 30px
+
 // Popover Box
 popover(_width, _height, _zindex){
 	position: fixed
@@ -44,13 +47,14 @@ popover(_width, _height, _zindex){
 			overflow: auto
 			-ms-overflow-style: -ms-autohiding-scrollbar
 			box-sizing: border-box
-			padding: 20px
+			padding: modal_content_padding
 			background-color: colorbkg
+			outline: 2px solid colorfgd
 
 			h2.popover-title-bar {
 				position: relative
-				margin: 0
-				height: 30px
+				margin: -1*modal_content_padding -1*modal_content_padding modal_content_padding
+				height: modal_header_height
 				background-color: color2
 
 				font-size: 20px
@@ -78,7 +82,7 @@ popover(_width, _height, _zindex){
 // Privacy Policy
 #privacy {
 	popover(90%, 90%, 310)
-	
+
 	article {
 		white-space: pre-wrap
 	}
@@ -86,12 +90,12 @@ popover(_width, _height, _zindex){
 
 // Email Token
 #email_token {
-	popover(50%, 50%, 320)
-	
+	popover(50%, 60%, 320)
+
 	text-align: center
 	font-size: 1.3em
 	line-height: 1.4em
-	
+
 	input[type="email"] {
 		font-size: 1.4em
 		display: block
@@ -106,43 +110,51 @@ popover(_width, _height, _zindex){
 			background-color: #94E0D4
 		}
 	}
+
+	.g-recaptcha > div {
+		margin: 10px auto
+	}
 }
 
 // Email Password
 #email_password {
-	popover(50%, 50%, 320)
-	
+	popover(50%, 60%, 320)
+
 	text-align: center
 	font-size: 1.3em
 	line-height: 1.4em
-	
+
 	input[type="email"], input[type="password"] {
 		font-size: 1.3em
 		display: block
 		width: 95%
 		margin: 10px auto
 	}
-	
+
 	p {
 		margin: 0 auto 1em
+	}
+
+	.g-recaptcha > div {
+		margin: 10px auto
 	}
 }
 
 // Change Password
 #change_password {
 	popover(50%, 50%, 320)
-	
+
 	text-align: center
 	font-size: 1.3em
 	line-height: 1.4em
-	
+
 	input[type="password"] {
 		font-size: 1.3em
 		display: block
 		width: 95%
 		margin: 10px auto
 	}
-	
+
 	p {
 		margin: 0 auto 1em
 	}
@@ -152,10 +164,10 @@ popover(_width, _height, _zindex){
 #create_bucket {
 	popover(80%, 80%, 310)
 	bucket_bar_height = 40px
-	
+
 	#create-bucket-content {
 		position: absolute
-		top: 0
+		top: modal_header_height
 		left: 0
 		right: 0
 		bottom: bucket_bar_height
@@ -241,10 +253,64 @@ popover(_width, _height, _zindex){
 	}
 }
 
+// Upgrade to Flavor
+#upgrade_to_flavor {
+	popover(50%, 50%, 320)
+
+	text-align: center
+	font-size: 1.3em
+	line-height: 1.4em
+
+	p {
+		margin: 0 auto 1em
+	}
+}
+
+// Upgrade to Tier
+#upgrade_to_tier {
+	popover(50%, 50%, 320)
+
+	text-align: center
+	font-size: 1.3em
+	line-height: 1.4em
+
+	p {
+		margin: 0 auto 1em
+	}
+
+	.action-links a {
+		background-color: color2
+		color: colorfgd
+		padding: 0.5em
+		border-radius: 0.5em
+
+		&:hover{
+			background-color: colorfg1
+		}
+		&:active{
+			background-color: colorfg4
+		}
+	}
+
+	.minor-action-links {
+		font-size: 0.9em
+		color: colorfg1
+		font-style: italic
+
+		a {
+			color: inherit
+		}
+	}
+
+	.bigger {
+		font-size: 1.5em
+	}
+}
+
 // Onboarding Div
 #onboarding {
 	popover(80%, 80%, 300)
-	
+
 	font-size: 1.3em
 	line-height: 1.3em
 
@@ -270,6 +336,7 @@ popover(_width, _height, _zindex){
 	}
 
 	#onboarding-start{
+		color: colorbtn
 		background-color: color1
 		background-image: linear-gradient(color2, color1, to bottom);
 		background-image: radial-gradient(ellipse at center,
@@ -296,7 +363,7 @@ popover(_width, _height, _zindex){
 
 #announcement-box {
 	popover(60%, 60%, 250)
-	
+
 	font-size: 1.3em
 	line-height: 1.3em
 }
@@ -308,7 +375,7 @@ popover(_width, _height, _zindex){
 	width: 100%
 	height: 100%
 	pointer-events: none
-	
+
 	#cosine-pulse {
 		background-image: inline-image("cosine.svg")
 		background-repeat: repeat-x
@@ -324,7 +391,7 @@ popover(_width, _height, _zindex){
 		width: 100%
 		height: 40%
 	}
-	
+
 	@keyframes cosine-width {
 		from {
 			background-size: 2000px 100%
@@ -333,7 +400,7 @@ popover(_width, _height, _zindex){
 			background-size: 50px 100%
 		}
 	}
-	
+
 	@keyframes cosine-position {
 		from {
 			background-position-x: -3000px

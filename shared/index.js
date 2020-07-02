@@ -21,13 +21,19 @@
 "use strict";
 
 module.exports = {
+	asyncCache: require("./async-cache"),
 	config: require("./config"),
+	config2: require("./config-helper"),
+	hostname: require("./hostname"),
 	JSONStreamSafe: require("./json-stream-safe"),
 	logger: require("./logger"),
+	metrics: require("./metrics"),
 	onceMessage: require("./once-message"),
 	OnlineOffline: require("./online-offline"),
 	Queue: require("./queue"),
+	rack: require("./rack/operations"),
 	RedisMessenger: require("./redis-messenger"),
+	RedisQueue: require("./redis-queue"),
 	redisUtil: require("./redis-util"),
 	silent: require("./silent"),
 	StdioMessenger: require("./stdio-messenger"),

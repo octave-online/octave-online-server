@@ -21,21 +21,43 @@
 var mlog = require("./logger")("silent:minor");
 
 // Callback wrapper that catches errors and prevents them from propagating.
-function silent(messageRegex, _next) {
+function silent(messageRegex, next) {
+
+	function pass() {
+		var args = Array.prototype.slice.call(arguments, 1);
+		mlog.log("Suppressed additional output (regex: " + messageRegex + "): ", JSON.stringify(args));
+		args.unshift(null);
+		next.apply(this, args);
+	}
+
+	function logNext() {
+		var args = Array.prototype.slice.call(arguments, 1);
+		mlog.log("Pass-through additional output (regex: " + messageRegex + "): ", JSON.stringify(args));
+		next.apply(this, arguments);
+	}
 
 	// The following function needs to be an ES5-style function in order for "arguments" to work.  Note: At the time of writing, the ES6 spread operator is not supported in Node.JS.
-	return function() {
+	function checkError() {
 		var err = arguments[0];
-		if (err && !messageRegex.test(err.message)) {
-			return _next.apply(this, arguments);
-		} else if (err) {
-			// May 2018: The message could contain email-based identifiers. Do not log the full message.
+		if (err && messageRegex.test(err.message)) {
 			mlog.trace("Message suppressed (regex: " + messageRegex + ")");
+			return pass.apply(this, arguments);
+		} else {
+			return logNext.apply(this, arguments);
 		}
-		var args = Array.prototype.slice.call(arguments, 1);
-		args.unshift(null);
-		_next.apply(this, args);
-	};
+	}
+
+	function checkStdout(err, stdout, stderr) {
+		if (stdout && messageRegex.test(stdout)) {
+			mlog.trace("Message suppressed from stdout (regex: " + messageRegex + ")");
+			return pass.apply(this, arguments);
+		} else {
+			return checkError.apply(this, arguments);
+		}
+	}
+
+	checkError.stdout = checkStdout;
+	return checkError;
 }
 
 module.exports = silent;

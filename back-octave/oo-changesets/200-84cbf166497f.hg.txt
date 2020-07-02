@@ -1,0 +1,2116 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1577968674 21600
+#      Thu Jan 02 06:37:54 2020 -0600
+# Branch oo-5.2
+# Node ID 84cbf166497fa3d942be6a0b026ec24521301d16
+# Parent  56dd7419d7aa197340040f914d8ea69aa948710e
+# Parent  80081f9d8ff7179f1d5d82293f4c83030b8e0357
+Merge oo-4.2.1 onto stable (5.2-rc)
+
+diff -r 56dd7419d7aa -r 84cbf166497f configure.ac
+--- a/configure.ac	Tue Dec 24 04:01:33 2019 +0100
++++ b/configure.ac	Thu Jan 02 06:37:54 2020 -0600
+@@ -2752,7 +2752,7 @@
+ AC_SUBST(LIBOCTAVE_LINK_DEPS)
+ AC_SUBST(LIBOCTAVE_LINK_OPTS)
+ 
+-LIBOCTINTERP_LINK_DEPS="$FT2_LIBS $HDF5_LIBS $MAGICK_LIBS $Z_LIBS $FFTW_XLIBS $OPENGL_LIBS $FONTCONFIG_LIBS $FREETYPE_LIBS $X11_LIBS $CARBON_LIBS $GL2PS_LIBS $LLVM_LIBS $JAVA_LIBS $LAPACK_LIBS"
++LIBOCTINTERP_LINK_DEPS="$FT2_LIBS $HDF5_LIBS $MAGICK_LIBS $Z_LIBS $FFTW_XLIBS $OPENGL_LIBS $FONTCONFIG_LIBS $FREETYPE_LIBS $X11_LIBS $CARBON_LIBS $GL2PS_LIBS $LLVM_LIBS $JAVA_LIBS $LAPACK_LIBS -ljson-c"
+ 
+ LIBOCTINTERP_LINK_OPTS="$FT2_LDFLAGS $HDF5_LDFLAGS $MAGICK_LDFLAGS $Z_LDFLAGS $FFTW_XLDFLAGS $LLVM_LDFLAGS"
+ 
+diff -r 56dd7419d7aa -r 84cbf166497f libgui/src/octave-qt-link.cc
+--- a/libgui/src/octave-qt-link.cc	Tue Dec 24 04:01:33 2019 +0100
++++ b/libgui/src/octave-qt-link.cc	Thu Jan 02 06:37:54 2020 -0600
+@@ -62,6 +62,16 @@
+     qRegisterMetaType<symbol_info_list> ("symbol_info_list");
+   }
+ 
++  std::string octave_qt_link::do_request_input (const std::string&)
++  {
++    return {};
++  }
++
++  std::string octave_qt_link::do_request_url (const std::string&, const std::list<std::string>&, const std::string&, bool&)
++  {
++    return {};
++  }
++
+   bool octave_qt_link::do_confirm_shutdown (void)
+   {
+     // Lock the mutex before emitting signal.
+@@ -470,6 +480,9 @@
+     emit clear_history_signal ();
+   }
+ 
++  void octave_qt_link::do_clear_screen (void)
++  { }
++
+   void octave_qt_link::do_pre_input_event (void)
+   { }
+ 
+@@ -645,4 +658,10 @@
+   {
+     emit delete_debugger_pointer_signal (QString::fromStdString (file), line);
+   }
++
++  void
++  octave_qt_link::do_show_static_plot (const std::string&, const std::string&)
++  {
++    return;
++  }
+ }
+diff -r 56dd7419d7aa -r 84cbf166497f libgui/src/octave-qt-link.h
+--- a/libgui/src/octave-qt-link.h	Tue Dec 24 04:01:33 2019 +0100
++++ b/libgui/src/octave-qt-link.h	Thu Jan 02 06:37:54 2020 -0600
+@@ -67,6 +67,9 @@
+ 
+     ~octave_qt_link (void) = default;
+ 
++    std::string do_request_input (const std::string&);
++    std::string do_request_url (const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success);
++
+     bool do_confirm_shutdown (void);
+ 
+     bool do_copy_image_to_clipboard (const std::string& file);
+@@ -126,6 +129,8 @@
+     void do_append_history (const std::string& hist_entry);
+     void do_clear_history (void);
+ 
++    void do_clear_screen (void);
++
+     void do_pre_input_event (void);
+     void do_post_input_event (void);
+ 
+@@ -148,6 +153,8 @@
+ 
+     void do_edit_variable (const std::string& name, const octave_value& val);
+ 
++    void do_show_static_plot (const std::string& term, const std::string& content);
++
+     void shutdown_confirmation (bool sd) { m_shutdown_confirm_result = sd; }
+ 
+     void lock (void) { m_mutex.lock (); }
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/input.cc
+--- a/libinterp/corefcn/input.cc	Tue Dec 24 04:01:33 2019 +0100
++++ b/libinterp/corefcn/input.cc	Thu Jan 02 06:37:54 2020 -0600
+@@ -740,7 +740,11 @@
+ 
+     eof = false;
+ 
+-    std::string retval = octave::command_editor::readline (s, eof);
++    std::string retval;
++    if (octave_link::request_input_enabled ())
++      retval = octave_link::request_input (s);
++    else
++      retval = octave::command_editor::readline (s, eof);
+ 
+     if (! eof && retval.empty ())
+       retval = "\n";
+@@ -1674,3 +1678,32 @@
+ }
+ 
+ // #endif
++
++DEFUN (current_command_number, args, ,
++       doc: /* -*- texinfo -*-
++@deftypefn  {} {@var{val} =} current_command_number ()
++@deftypefnx {} {@var{old_val} =} current_command_number (@var{new_val})
++Sets the current command number, which appears in the prompt string.
++For example, if the prompt says "octave:1>", then the current command
++number is 1.
++
++This is a custom function in Octave Online.
++
++@example
++current_command_number(1)
++@end example
++@end deftypefn */)
++{
++  int nargin = args.length ();
++  if (nargin == 0) {
++    int n = octave::command_editor::current_command_number();
++    return ovl(n);
++  } else if (nargin > 1) {
++    print_usage ();
++    return ovl();
++  } else {
++    int n = args(0).int_value ();
++    octave::command_editor::reset_current_command_number(n);
++    return ovl(n);
++  }
++}
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/interpreter.cc
+--- a/libinterp/corefcn/interpreter.cc	Tue Dec 24 04:01:33 2019 +0100
++++ b/libinterp/corefcn/interpreter.cc	Thu Jan 02 06:37:54 2020 -0600
+@@ -51,6 +51,7 @@
+ #include "input.h"
+ #include "interpreter-private.h"
+ #include "interpreter.h"
++#include "json-main.h"
+ #include "load-path.h"
+ #include "load-save.h"
+ #include "octave-link.h"
+@@ -518,6 +519,11 @@
+ 
+     initialize_version_info ();
+ 
++    if (!options.json_sock_path().empty ()) {
++      static json_main _json_main (options.json_sock_path(), options.json_max_message_length());
++      _json_main.run_loop_on_new_thread();
++    }
++
+     // This should be done before initializing the load path because
+     // some PKG_ADD files might need --traditional behavior.
+ 
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/json-main.cc
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/libinterp/corefcn/json-main.cc	Thu Jan 02 06:37:54 2020 -0600
+@@ -0,0 +1,93 @@
++#ifdef HAVE_CONFIG_H
++#include <config.h>
++#endif
++
++#include "json-main.h"
++
++#include <iostream>
++#include <sys/un.h>
++#include <sys/socket.h>
++#include <unistd.h>
++
++
++// Analog of main-window.cc
++// TODO: Think more about concurrency and null pointer exceptions
++
++void* run_loop_pthread(void* arg) {
++  json_main* _json_main = static_cast<json_main*>(arg);
++  _json_main->run_loop();
++  return NULL;
++}
++
++void json_object_cb(std::string name, JSON_OBJECT_T jobj, void* arg) {
++  json_main* _json_main = static_cast<json_main*>(arg);
++  _json_main->process_json_object(name, jobj);
++}
++
++json_main::json_main(const std::string& json_sock_path, int max_message_length)
++  : _json_sock_path (json_sock_path),
++    _max_message_length (max_message_length),
++    _loop_thread_active (false),
++    _octave_json_link (this)
++{
++  // Enable octave_json_link instance
++	octave_link::connect_link(&_octave_json_link);
++
++  // Open UNIX socket file descriptor
++  sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
++  struct sockaddr_un addr;
++  memset(&addr, 0, sizeof(addr));
++  addr.sun_family = AF_UNIX;
++  memcpy(&addr.sun_path, _json_sock_path.c_str(), sizeof(addr.sun_path)-1);
++  connect(
++    sockfd,
++    reinterpret_cast<struct sockaddr*>(&addr),
++    sizeof(addr));
++}
++
++json_main::~json_main(void) {
++  close(sockfd);
++
++  // TODO: Stop the _loop_thread
++}
++
++void json_main::publish_message(const std::string& name, JSON_OBJECT_T jobj) {
++  std::string jstr = json_util::to_message(name, jobj);
++
++  // Do not send any messages over the socket that exceed the user-specified max length.  Instead, send an error message.  If max_length is 0 (default), do not suppress any messages.
++  // In stress testing, Node may be able to handle as much as 10-20 MB, but I'd prefer to stay on the safe side.  Before this safeguard was implemented, fewer than 5% of plots exceeded 1 MB.
++  int length = jstr.length();
++  int max_length = _max_message_length;
++  if (max_length > 0 && length > max_length) {
++    JSON_MAP_T m;
++    JSON_MAP_SET(m, name, string);
++    JSON_MAP_SET(m, length, int);
++    JSON_MAP_SET(m, max_length, int);
++    jstr = json_util::to_message("message-too-long", json_util::from_map(m));
++  }
++
++  send(sockfd, jstr.c_str(), jstr.length(), 0);
++}
++
++void json_main::run_loop_on_new_thread(void) {
++  if (_loop_thread_active)
++    perror("won't run JSON socket loop multiple times");
++  _loop_thread_active = true;
++
++  pthread_create(
++    &_loop_thread,
++    NULL,
++    run_loop_pthread,
++    static_cast<void*>(this));
++}
++
++void json_main::run_loop(void) {
++  json_util::read_stream(
++    sockfd,
++    json_object_cb,
++    static_cast<void*>(this));
++}
++
++void json_main::process_json_object(std::string name, JSON_OBJECT_T jobj) {
++  _octave_json_link.receive_message(name, jobj);
++}
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/json-main.h
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/libinterp/corefcn/json-main.h	Thu Jan 02 06:37:54 2020 -0600
+@@ -0,0 +1,30 @@
++#ifndef json_main_h
++#define json_main_h
++
++#include <queue>
++#include <pthread.h>
++#include <stdio.h>
++
++#include "octave-json-link.h"
++#include "json-util.h"
++
++class json_main {
++public:
++	json_main(const std::string& json_sock_path, int max_message_length);
++	~json_main(void);
++
++	void publish_message(const std::string& name, JSON_OBJECT_T jobj);
++	void run_loop_on_new_thread(void);
++	void run_loop(void);
++	void process_json_object(std::string name, JSON_OBJECT_T jobj);
++
++private:
++	std::string _json_sock_path;
++	int _max_message_length;
++	int sockfd;
++	bool _loop_thread_active;
++	pthread_t _loop_thread;
++	octave_json_link _octave_json_link;
++};
++
++#endif
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/json-util.cc
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/libinterp/corefcn/json-util.cc	Thu Jan 02 06:37:54 2020 -0600
+@@ -0,0 +1,242 @@
++#ifdef HAVE_CONFIG_H
++#include <config.h>
++#endif
++
++#include <cstdlib>
++#include <sys/un.h>
++#include <sys/socket.h>
++#include <stdio.h>
++#include <json-c/arraylist.h>
++
++#include "str-vec.h"
++
++#include "json-util.h"
++
++JSON_OBJECT_T json_util::from_string(const std::string& str) {
++	return json_object_new_string(str.c_str());
++}
++
++JSON_OBJECT_T json_util::from_int(int i) {
++	return json_object_new_int(i);
++}
++
++JSON_OBJECT_T json_util::from_float(float flt) {
++	return json_object_new_double(flt);
++}
++
++JSON_OBJECT_T json_util::from_boolean(bool b) {
++	return json_object_new_boolean(b);
++}
++
++JSON_OBJECT_T json_util::empty() {
++	return json_object_new_object();
++}
++
++template<typename T>
++JSON_OBJECT_T json_object_from_list(const std::list<T>& list, JSON_OBJECT_T (*convert)(T)) {
++	JSON_OBJECT_T jobj = json_object_new_array();
++	for (
++		typename std::list<T>::const_iterator it = list.begin();
++		it != list.end();
++		++it
++	){
++		json_object_array_add(jobj, convert(*it));
++	}
++	return jobj;
++}
++
++JSON_OBJECT_T json_util::from_string_list(const std::list<std::string>& list) {
++	return json_object_from_list(list, json_util::from_value_string);
++}
++
++JSON_OBJECT_T json_util::from_string_vector(const string_vector& vect) {
++	// TODO: Make sure this function does what it's supposed to do
++	std::list<std::string> list;
++	for (int i = 0; i < vect.numel(); ++i) {
++		list.push_back(vect[i]);
++	}
++
++	return json_object_from_list(list, json_util::from_value_string);
++}
++
++JSON_OBJECT_T json_util::from_int_list(const std::list<int>& list) {
++	return json_object_from_list(list, json_util::from_int);
++}
++
++JSON_OBJECT_T json_util::from_float_list(const std::list<float>& list) {
++	return json_object_from_list(list, json_util::from_float);
++}
++
++JSON_OBJECT_T json_util::from_workspace_list(const std::list<workspace_element>& list) {
++	return json_object_from_list(list, json_util::from_workspace_element);
++}
++
++JSON_OBJECT_T json_util::from_filter_list(const octave_link::filter_list& list) {
++	return json_object_from_list(list, json_util::from_pair);
++}
++
++JSON_OBJECT_T json_util::from_value_string(const std::string str) {
++	return json_util::from_string(str);
++}
++
++JSON_OBJECT_T json_util::from_workspace_element(workspace_element element) {
++	JSON_MAP_T m;
++	m["scope"] = json_util::from_int(element.scope());
++	m["symbol"] = json_util::from_string(element.symbol());
++	m["class_name"] = json_util::from_string(element.class_name());
++	m["dimension"] = json_util::from_string(element.dimension());
++	m["value"] = json_util::from_string(element.value());
++	m["complex_flag"] = json_util::from_boolean(element.complex_flag());
++	return json_util::from_map(m);
++}
++
++JSON_OBJECT_T json_util::from_pair(std::pair<std::string, std::string> pair) {
++	JSON_OBJECT_T jobj = json_object_new_array();
++	json_object_array_add(jobj, json_object_new_string(pair.first.c_str()));
++	json_object_array_add(jobj, json_object_new_string(pair.second.c_str()));
++	return jobj;
++}
++
++JSON_OBJECT_T json_util::from_map(JSON_MAP_T m) {
++	JSON_OBJECT_T jobj = json_object_new_object();
++	for(
++		std::map<std::string, JSON_OBJECT_T>::iterator it = m.begin();
++		it != m.end();
++		++it
++	){
++		json_object_object_add(jobj, it->first.c_str(), it->second);
++	}
++	return jobj;
++}
++
++std::string json_util::to_message(const std::string& name, JSON_OBJECT_T jobj) {
++  JSON_OBJECT_T jmsg = json_object_new_array();
++  json_object_array_add(jmsg, json_util::from_string(name));
++  json_object_array_add(jmsg, jobj);
++  std::string str (json_object_to_json_string(jmsg));
++  return str;
++}
++
++std::string json_util::to_string(JSON_OBJECT_T jobj) {
++  return std::string(json_object_get_string(jobj));
++}
++
++template<typename T>
++std::list<T> json_object_to_list(JSON_OBJECT_T jobj, T (*convert)(JSON_OBJECT_T)) {
++	std::list<T> ret;
++
++	struct array_list* arr = json_object_get_array(jobj);
++	if (arr == NULL)
++		return ret;
++
++	for (int i = 0; i < array_list_length(arr); ++i) {
++		JSON_OBJECT_T jsub = static_cast<JSON_OBJECT_T> (array_list_get_idx(arr, i));
++		ret.push_back(convert(jsub));
++	}
++	return ret;
++}
++
++std::pair<std::list<int>, int> json_util::to_int_list_int_pair(JSON_OBJECT_T jobj) {
++	std::pair<std::list<int>, int> ret;
++
++	struct array_list* arr = json_object_get_array(jobj);
++	if (arr == NULL)
++		return ret;
++
++	JSON_OBJECT_T first = static_cast<JSON_OBJECT_T> (array_list_get_idx(arr, 0));
++	JSON_OBJECT_T second = static_cast<JSON_OBJECT_T> (array_list_get_idx(arr, 1));
++
++	ret.first = json_object_to_list<int>(first, json_util::to_int);
++	ret.second = json_object_get_int(second);
++
++	return ret;
++}
++
++std::pair<bool, std::string> json_util::to_bool_string_pair(JSON_OBJECT_T jobj) {
++	std::pair<bool, std::string> ret;
++
++	struct array_list* arr = json_object_get_array(jobj);
++	if (arr == NULL)
++		return ret;
++
++	JSON_OBJECT_T first = static_cast<JSON_OBJECT_T> (array_list_get_idx(arr, 0));
++	JSON_OBJECT_T second = static_cast<JSON_OBJECT_T> (array_list_get_idx(arr, 1));
++
++	ret.first = json_object_get_boolean(first);
++	ret.second = json_object_get_string(second);
++
++	return ret;
++}
++
++std::list<std::string> json_util::to_string_list(JSON_OBJECT_T jobj) {
++	return json_object_to_list<std::string>(jobj, json_util::to_string);
++}
++
++int json_util::to_int(JSON_OBJECT_T jobj) {
++	return json_object_get_int(jobj);
++}
++
++bool json_util::to_boolean(JSON_OBJECT_T jobj) {
++	return json_object_get_boolean(jobj);
++}
++
++void json_util::read_stream(int sockfd, void (*cb)(std::string, JSON_OBJECT_T, void*), void* arg) {
++
++	// Make some local variables
++	int BUF_LEN = 24;
++	char* buf = new char[BUF_LEN];  // buffer for socket read
++	int buf_len;  // length of new bytes in the buffer
++	int buf_offset;  // offset of the JSON parser in the buffer
++	JSON_OBJECT_T jobj;  // pointer to parsed JSON object
++	json_tokener* tok = json_tokener_new();  // JSON tokenizer instance
++	enum json_tokener_error jerr;  // status of JSON tokenizer
++
++	// Start the blocking I/O loop
++	while( (buf_len=recv(sockfd, buf, BUF_LEN, 0)) > 0) {
++		buf_offset = 0;
++		while(buf_offset < buf_len){
++			jobj = json_tokener_parse_ex(tok, buf + buf_offset, buf_len - buf_offset);
++			jerr = json_tokener_get_error(tok);
++			buf_offset += tok->char_offset;
++
++			// Do we need more material in order to make JSON?
++			if (jerr == json_tokener_continue) {
++				continue;
++			}
++
++			// Make a new tokenizer
++			json_tokener_free(tok);
++			tok = json_tokener_new();
++
++			// Did we encounter a malformed JSON object?
++			if (jerr != json_tokener_success) {
++				fprintf(stderr,
++					"JSON parse error: %s: '%.*s'\n",
++					json_tokener_error_desc(jerr),
++					1,
++					buf + buf_offset);
++				fflush(stderr);
++				break;
++			}
++
++			// Our object is ready
++			process_message(jobj, cb, arg);
++		}
++	}
++
++	json_tokener_free(tok);
++	delete buf;
++}
++
++void json_util::process_message(JSON_OBJECT_T jobj, void (*cb)(std::string, JSON_OBJECT_T, void*), void* arg) {
++  if (!json_object_is_type(jobj, json_type_array))
++    return;
++  if (json_object_array_length(jobj) != 2)
++    return;
++
++  cb(
++  	json_util::to_string(json_object_array_get_idx(jobj, 0)),
++  	json_object_array_get_idx(jobj, 1),
++  	arg
++  );
++}
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/json-util.h
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/libinterp/corefcn/json-util.h	Thu Jan 02 06:37:54 2020 -0600
+@@ -0,0 +1,60 @@
++#ifndef json_util_h
++#define json_util_h
++
++#include <json-c/json.h>
++#include <map>
++#include <list>
++
++#include "workspace-element.h"
++#include "octave-link.h"
++
++class string_vector;
++
++// All of the code interacting with the external JSON library should be in
++// the json-util.h and json-util.cc files.  This way, if we want to change
++// the external JSON library, we can do it all in one place.
++
++#define JSON_OBJECT_T json_object*
++#define JSON_MAP_T std::map<std::string, JSON_OBJECT_T>
++
++#define JSON_MAP_SET(M, FIELD, TYPE){ \
++	m[#FIELD] = json_util::from_##TYPE (FIELD); \
++}
++
++class json_util {
++public:
++	static JSON_OBJECT_T from_string(const std::string& str);
++	static JSON_OBJECT_T from_int(int i);
++	static JSON_OBJECT_T from_float(float flt);
++	static JSON_OBJECT_T from_boolean(bool b);
++	static JSON_OBJECT_T empty();
++
++	static JSON_OBJECT_T from_string_list(const std::list<std::string>& list);
++	static JSON_OBJECT_T from_string_vector(const string_vector& list);
++	static JSON_OBJECT_T from_int_list(const std::list<int>& list);
++	static JSON_OBJECT_T from_float_list(const std::list<float>& list);
++	static JSON_OBJECT_T from_workspace_list(const std::list<workspace_element>& list);
++	static JSON_OBJECT_T from_filter_list(const octave_link::filter_list& list);
++
++	static JSON_OBJECT_T from_value_string(const std::string str);
++	static JSON_OBJECT_T from_workspace_element(workspace_element element);
++	static JSON_OBJECT_T from_pair(std::pair<std::string, std::string> pair);
++
++	static JSON_OBJECT_T from_map(JSON_MAP_T m);
++
++	static std::string to_message(const std::string& name, JSON_OBJECT_T jobj);
++
++	static std::string to_string(JSON_OBJECT_T jobj);
++	static std::pair<std::list<int>, int> to_int_list_int_pair(JSON_OBJECT_T jobj);
++	static std::pair<bool, std::string> to_bool_string_pair(JSON_OBJECT_T jobj);
++	static std::list<std::string> to_string_list(JSON_OBJECT_T jobj);
++	static int to_int(JSON_OBJECT_T jobj);
++	static bool to_boolean(JSON_OBJECT_T jobj);
++
++	static void read_stream(int sockfd, void (*cb)(std::string, JSON_OBJECT_T, void*), void* arg);
++
++private:
++	static void process_message(JSON_OBJECT_T jobj, void (*cb)(std::string, JSON_OBJECT_T, void*), void* arg);
++};
++
++#endif
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/module.mk
+--- a/libinterp/corefcn/module.mk	Tue Dec 24 04:01:33 2019 +0100
++++ b/libinterp/corefcn/module.mk	Thu Jan 02 06:37:54 2020 -0600
+@@ -45,6 +45,8 @@
+   %reldir%/help.h \
+   %reldir%/hook-fcn.h \
+   %reldir%/input.h \
++  %reldir%/json-main.h \
++  %reldir%/json-util.h \
+   %reldir%/interpreter.h \
+   %reldir%/load-path.h \
+   %reldir%/load-save.h \
+@@ -73,6 +75,7 @@
+   %reldir%/oct-strstrm.h \
+   %reldir%/oct.h \
+   %reldir%/octave-default-image.h \
++  %reldir%/octave-json-link.h \
+   %reldir%/octave-link.h \
+   %reldir%/pager.h \
+   %reldir%/pr-flt-fmt.h \
+@@ -175,6 +178,8 @@
+   %reldir%/hex2num.cc \
+   %reldir%/hook-fcn.cc \
+   %reldir%/input.cc \
++  %reldir%/json-main.cc \
++  %reldir%/json-util.cc \
+   %reldir%/inv.cc \
+   %reldir%/interpreter-private.cc \
+   %reldir%/interpreter.cc \
+@@ -210,6 +215,7 @@
+   %reldir%/oct-tex-lexer.ll \
+   %reldir%/oct-tex-parser.h \
+   %reldir%/oct-tex-parser.yy \
++  %reldir%/octave-json-link.cc \
+   %reldir%/octave-link.cc \
+   %reldir%/ordschur.cc \
+   %reldir%/pager.cc \
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/octave-json-link.cc
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/libinterp/corefcn/octave-json-link.cc	Thu Jan 02 06:37:54 2020 -0600
+@@ -0,0 +1,365 @@
++/*
++
++Copyright (C) 2015-2016 Shane Carr
++
++This file is part of Octave.
++
++Octave is free software; you can redistribute it and/or modify it
++under the terms of the GNU General Public License as published by the
++Free Software Foundation; either version 3 of the License, or (at your
++option) any later version.
++
++Octave is distributed in the hope that it will be useful, but WITHOUT
++ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++for more details.
++
++You should have received a copy of the GNU General Public License
++along with Octave; see the file COPYING.  If not, see
++<http://www.gnu.org/licenses/>.
++
++*/
++
++#ifdef HAVE_CONFIG_H
++#include <config.h>
++#endif
++
++#include <iostream>
++#include "octave-json-link.h"
++#include "workspace-element.h"
++#include "cmd-edit.h"
++#include "json-main.h"
++#include "json-util.h"
++
++octave_json_link::octave_json_link(json_main* __json_main)
++	: octave_link (),
++		_json_main (__json_main)
++{
++	_request_input_enabled = true;
++	_plot_destination = STATIC_ONLY;
++}
++
++octave_json_link::~octave_json_link(void) { }
++
++std::string octave_json_link::do_request_input(const std::string& prompt) {
++	// Triggered whenever the console prompts for user input
++
++	std::string value;
++	if (!request_input_queue.dequeue_to(&value)) {
++		_publish_message("request-input", json_util::from_string(prompt));
++		value = request_input_queue.dequeue();
++	}
++	return value;
++}
++
++std::string octave_json_link::do_request_url(const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success) {
++	// Triggered on urlread/urlwrite
++
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, url, string);
++	JSON_MAP_SET(m, param, string_list);
++	JSON_MAP_SET(m, action, string);
++
++	_publish_message("request-url", json_util::from_map(m));
++	std::pair<bool, std::string> result = request_url_queue.dequeue();
++	success = result.first;
++	return result.second;
++}
++
++bool octave_json_link::do_confirm_shutdown(void) {
++	// Triggered when the kernel tries to exit
++	_publish_message("confirm-shutdown", json_util::empty());
++
++	return confirm_shutdown_queue.dequeue();
++}
++
++bool octave_json_link::do_exit(int status) {
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, status, int);
++	_publish_message("exit", json_util::from_map(m));
++
++	// It is our responsibility in octave_link to call exit. If we don't, then
++	// the kernel waits for 24 hours expecting us to do something.
++	::exit(status);
++
++	return true;
++}
++
++bool octave_json_link::do_copy_image_to_clipboard(const std::string& file) {
++	// This endpoint might be unused?  (References appear only in libgui)
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, file, string);
++	_publish_message("copy-image-to-clipboard", json_util::from_map(m));
++
++	return true;
++}
++
++bool octave_json_link::do_edit_file(const std::string& file) {
++	// Triggered in "edit" for existing files
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, file, string);
++	_publish_message("edit-file", json_util::from_map(m));
++
++	return true;
++}
++
++bool octave_json_link::do_prompt_new_edit_file(const std::string& file) {
++	// Triggered in "edit" for new files
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, file, string);
++	_publish_message("prompt-new-edit-file", json_util::from_map(m));
++
++	return prompt_new_edit_file_queue.dequeue();
++}
++
++int octave_json_link::do_message_dialog(const std::string& dlg, const std::string& msg, const std::string& title) {
++	// Triggered in "msgbox", "helpdlg", and "errordlg", among others
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, dlg, string); // i.e., m["dlg"] = json_util::from_string(dlg);
++	JSON_MAP_SET(m, msg, string);
++	JSON_MAP_SET(m, title, string);
++	_publish_message("message-dialog", json_util::from_map(m));
++
++	return message_dialog_queue.dequeue();
++}
++
++std::string octave_json_link::do_question_dialog(const std::string& msg, const std::string& title, const std::string& btn1, const std::string& btn2, const std::string& btn3, const std::string& btndef) {
++	// Triggered in "questdlg"
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, msg, string);
++	JSON_MAP_SET(m, title, string);
++	JSON_MAP_SET(m, btn1, string);
++	JSON_MAP_SET(m, btn2, string);
++	JSON_MAP_SET(m, btn3, string);
++	JSON_MAP_SET(m, btndef, string);
++	_publish_message("question-dialog", json_util::from_map(m));
++
++	return question_dialog_queue.dequeue();
++}
++
++std::pair<std::list<int>, int> octave_json_link::do_list_dialog(const std::list<std::string>& list, const std::string& mode, int width, int height, const std::list<int>& initial_value, const std::string& name, const std::list<std::string>& prompt, const std::string& ok_string, const std::string& cancel_string) {
++	// Triggered in "listdlg"
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, list, string_list);
++	JSON_MAP_SET(m, mode, string);
++	JSON_MAP_SET(m, width, int);
++	JSON_MAP_SET(m, height, int);
++	JSON_MAP_SET(m, initial_value, int_list);
++	JSON_MAP_SET(m, name, string);
++	JSON_MAP_SET(m, prompt, string_list);
++	JSON_MAP_SET(m, ok_string, string);
++	JSON_MAP_SET(m, cancel_string, string);
++	_publish_message("list-dialog", json_util::from_map(m));
++
++	return list_dialog_queue.dequeue();
++}
++
++std::list<std::string> octave_json_link::do_input_dialog(const std::list<std::string>& prompt, const std::string& title, const std::list<float>& nr, const std::list<float>& nc, const std::list<std::string>& defaults) {
++	// Triggered in "inputdlg"
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, prompt, string_list);
++	JSON_MAP_SET(m, title, string);
++	JSON_MAP_SET(m, nr, float_list);
++	JSON_MAP_SET(m, nc, float_list);
++	JSON_MAP_SET(m, defaults, string_list);
++	_publish_message("input-dialog", json_util::from_map(m));
++
++	return input_dialog_queue.dequeue();
++}
++
++std::list<std::string> octave_json_link::do_file_dialog(const filter_list& filter, const std::string& title, const std::string &filename, const std::string &pathname, const std::string& multimode) {
++	// Triggered in "uiputfile", "uigetfile", and "uigetdir"
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, filter, filter_list);
++	JSON_MAP_SET(m, title, string);
++	JSON_MAP_SET(m, filename, string);
++	JSON_MAP_SET(m, pathname, string);
++	JSON_MAP_SET(m, multimode, string);
++	_publish_message("file-dialog", json_util::from_map(m));
++	
++	return file_dialog_queue.dequeue();
++}
++
++int octave_json_link::do_debug_cd_or_addpath_error(const std::string& file, const std::string& dir, bool addpath_option) {
++	// This endpoint might be unused?  (No references)
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, file, string);
++	JSON_MAP_SET(m, dir, string);
++	JSON_MAP_SET(m, addpath_option, boolean);
++	_publish_message("debug-cd-or-addpath-error", json_util::from_map(m));
++
++	return debug_cd_or_addpath_error_queue.dequeue();
++}
++
++void octave_json_link::do_change_directory(const std::string& dir) {
++	// This endpoint might be unused?  (References appear only in libgui)
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, dir, string);
++	_publish_message("change-directory", json_util::from_map(m));
++}
++
++void octave_json_link::do_execute_command_in_terminal(const std::string& command) {
++	// This endpoint might be unused?  (References appear only in libgui)
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, command, string);
++	_publish_message("execute-command-in-terminal", json_util::from_map(m));
++}
++
++void octave_json_link::do_set_workspace(bool top_level, bool debug, const std::list<workspace_element>& ws /*, const bool& variable_editor_too */) {
++	// Triggered on every new line entry
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, top_level, boolean);
++	JSON_MAP_SET(m, debug, boolean);
++	JSON_MAP_SET(m, ws, workspace_list);
++	// variable_editor_too?
++	_publish_message("set-workspace", json_util::from_map(m));
++}
++
++void octave_json_link::do_clear_workspace(void) {
++	// Triggered on "clear" command (but not "clear all" or "clear foo")
++	_publish_message("clear-workspace", json_util::empty());
++}
++
++void octave_json_link::do_set_history(const string_vector& hist) {
++	// Called at startup, possibly more?
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, hist, string_vector);
++	_publish_message("set-history", json_util::from_map(m));
++}
++
++void octave_json_link::do_append_history(const std::string& hist_entry) {
++	// Appears to be tied to readline, if available
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, hist_entry, string);
++	_publish_message("append-history", json_util::from_map(m));
++}
++
++void octave_json_link::do_clear_history(void) {
++	// Appears to be tied to readline, if available
++	_publish_message("clear-history", json_util::empty());
++}
++
++void octave_json_link::do_clear_screen(void) {
++	// Triggered by clc
++	_publish_message("clear-screen", json_util::empty());
++}
++
++void octave_json_link::do_pre_input_event(void) {
++	// noop
++}
++
++void octave_json_link::do_post_input_event(void) {
++	// noop
++}
++
++void octave_json_link::do_enter_debugger_event(const std::string& file, int line) {
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, file, string);
++	JSON_MAP_SET(m, line, int);
++	_publish_message("enter-debugger-event", json_util::from_map(m));
++}
++
++void octave_json_link::do_execute_in_debugger_event(const std::string& file, int line) {
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, file, string);
++	JSON_MAP_SET(m, line, int);
++	_publish_message("execute-in-debugger-event", json_util::from_map(m));
++}
++
++void octave_json_link::do_exit_debugger_event(void) {
++	_publish_message("exit-debugger-event", json_util::empty());
++}
++
++void octave_json_link::do_update_breakpoint(bool insert, const std::string& file, int line, const std::string& cond) {
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, insert, boolean);
++	JSON_MAP_SET(m, file, string);
++	JSON_MAP_SET(m, line, int);
++	JSON_MAP_SET(m, cond, string);
++	_publish_message("update-breakpoint", json_util::from_map(m));
++}
++
++void octave_json_link::do_set_default_prompts(std::string& ps1, std::string& ps2, std::string& ps4) {
++	// Triggered upon interpreter startup
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, ps1, string);
++	JSON_MAP_SET(m, ps2, string);
++	JSON_MAP_SET(m, ps4, string);
++	_publish_message("set-default-prompts", json_util::from_map(m));
++}
++
++void octave_json_link::do_show_preferences(void) {
++	// Triggered on "preferences" command
++	_publish_message("show-preferences", json_util::empty());
++}
++
++void octave_json_link::do_show_doc(const std::string& file) {
++	// Triggered on "doc" command
++	_publish_message("show-doc", json_util::from_string(file));
++}
++
++// void octave_json_link::do_openvar(const std::string& name) {
++// 	// Triggered on "openvar" command
++// 	_publish_message("openvar", json_util::from_string(name));
++// }
++
++void octave_json_link::do_show_static_plot(const std::string& term, const std::string& content) {
++	// Triggered on all plot commands with setenv("GNUTERM","svg")
++	int command_number = octave::command_editor::current_command_number();
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, term, string);
++	JSON_MAP_SET(m, content, string);
++	JSON_MAP_SET(m, command_number, int);
++	_publish_message("show-static-plot", json_util::from_map(m));
++}
++
++void octave_json_link::receive_message (const std::string& name, JSON_OBJECT_T jobj) {
++	if (name == "cmd" || name == "request-input-answer") {
++		std::string answer = json_util::to_string(jobj);
++		request_input_queue.enqueue(answer);
++	}
++	else if (name == "request-url-answer") {
++		std::pair<bool, std::string> answer = json_util::to_bool_string_pair(jobj);
++		request_url_queue.enqueue(answer);
++	}
++	else if (name == "confirm-shutdown-answer"){
++		bool answer = json_util::to_boolean(jobj);
++		confirm_shutdown_queue.enqueue(answer);
++	}
++	else if (name == "prompt-new-edit-file-answer"){
++		bool answer = json_util::to_boolean(jobj);
++		prompt_new_edit_file_queue.enqueue(answer);
++	}
++	else if (name == "message-dialog-answer"){
++		int answer = json_util::to_int(jobj);
++		message_dialog_queue.enqueue(answer);
++	}
++	else if (name == "question-dialog-answer") {
++		std::string answer = json_util::to_string(jobj);
++		question_dialog_queue.enqueue(answer);
++	}
++	else if (name == "list-dialog-answer") {
++		std::pair<std::list<int>, int> answer = json_util::to_int_list_int_pair(jobj);
++		list_dialog_queue.enqueue(answer);
++	}
++	else if (name == "input-dialog-answer") {
++		std::list<std::string> answer = json_util::to_string_list(jobj);
++		input_dialog_queue.enqueue(answer);
++	}
++	else if (name == "file-dialog-answer") {
++		std::list<std::string> answer = json_util::to_string_list(jobj);
++		file_dialog_queue.enqueue(answer);
++	}
++	else if (name == "debug-cd-or-addpath-error-answer") {
++		int answer = json_util::to_int(jobj);
++		debug_cd_or_addpath_error_queue.enqueue(answer);
++	}
++	else {
++		std::cerr << "warning: received unknown message: " << name << std::endl;
++	}
++}
++
++void octave_json_link::_publish_message(const std::string& name, JSON_OBJECT_T jobj) {
++	_json_main->publish_message(name, jobj);
++}
++
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/octave-json-link.h
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/libinterp/corefcn/octave-json-link.h	Thu Jan 02 06:37:54 2020 -0600
+@@ -0,0 +1,209 @@
++/*
++
++Copyright (C) 2015-2016 Shane Carr
++
++This file is part of Octave.
++
++Octave is free software; you can redistribute it and/or modify it
++under the terms of the GNU General Public License as published by the
++Free Software Foundation; either version 3 of the License, or (at your
++option) any later version.
++
++Octave is distributed in the hope that it will be useful, but WITHOUT
++ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++for more details.
++
++You should have received a copy of the GNU General Public License
++along with Octave; see the file COPYING.  If not, see
++<http://www.gnu.org/licenses/>.
++
++*/
++
++#ifndef octave_json_link_h
++#define octave_json_link_h
++
++#include <list>
++#include <string>
++
++#include "octave-link.h"
++#include "json-util.h"
++#include "oct-mutex.h"
++
++// Circular reference
++class json_main;
++
++// Thread-safe queue
++template<typename T> class json_queue {
++public:
++  json_queue();
++  ~json_queue();
++
++  void enqueue(const T& value);
++  T dequeue();
++  bool dequeue_to(T* destination);
++
++private:
++  std::queue<T> _queue;
++  octave_mutex _mutex;
++};
++
++class octave_json_link : public octave_link
++{
++
++public:
++
++  octave_json_link (json_main* __json_main);
++
++  ~octave_json_link (void);
++
++  std::string do_request_input (const std::string& prompt) override;
++  std::string do_request_url (const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success) override;
++
++  bool do_confirm_shutdown (void) override;
++  bool do_exit (int status) override;
++
++  bool do_copy_image_to_clipboard (const std::string& file) override;
++
++  bool do_edit_file (const std::string& file) override;
++  bool do_prompt_new_edit_file (const std::string& file) override;
++
++  int do_message_dialog (const std::string& dlg, const std::string& msg,
++                         const std::string& title) override;
++
++  std::string
++  do_question_dialog (const std::string& msg, const std::string& title,
++                      const std::string& btn1, const std::string& btn2,
++                      const std::string& btn3, const std::string& btndef) override;
++
++  std::pair<std::list<int>, int>
++  do_list_dialog (const std::list<std::string>& list,
++                  const std::string& mode,
++                  int width, int height,
++                  const std::list<int>& initial_value,
++                  const std::string& name,
++                  const std::list<std::string>& prompt,
++                  const std::string& ok_string,
++                  const std::string& cancel_string) override;
++
++  std::list<std::string>
++  do_input_dialog (const std::list<std::string>& prompt,
++                   const std::string& title,
++                   const std::list<float>& nr,
++                   const std::list<float>& nc,
++                   const std::list<std::string>& defaults) override;
++
++  std::list<std::string>
++  do_file_dialog (const filter_list& filter, const std::string& title,
++                  const std::string &filename, const std::string &pathname,
++                  const std::string& multimode) override;
++
++  int
++  do_debug_cd_or_addpath_error (const std::string& file,
++                                const std::string& dir,
++                                bool addpath_option) override;
++
++  void do_change_directory (const std::string& dir) override;
++
++  void do_execute_command_in_terminal (const std::string& command) override;
++
++  void do_set_workspace (bool top_level, bool debug,
++                         const std::list<workspace_element>& ws
++                         // Added on head but not yet in stable:
++                         // , const bool& variable_editor_too = true
++                         ) override;
++
++  void do_clear_workspace (void) override;
++
++  void do_set_history (const string_vector& hist) override;
++  void do_append_history (const std::string& hist_entry) override;
++  void do_clear_history (void) override;
++
++  void do_clear_screen (void) override;
++
++  void do_pre_input_event (void) override;
++  void do_post_input_event (void) override;
++
++  void do_enter_debugger_event (const std::string& file, int line) override;
++  void do_execute_in_debugger_event (const std::string& file, int line) override;
++  void do_exit_debugger_event (void) override;
++
++  void do_update_breakpoint (bool insert,
++                             const std::string& file, int line,
++                             const std::string& cond) override;
++
++  void do_set_default_prompts (std::string& ps1, std::string& ps2,
++                               std::string& ps4) override;
++
++  void do_show_preferences (void) override;
++
++  void do_show_doc (const std::string& file) override;
++
++  // Added on head but not yet in stable:
++  // void do_openvar (const std::string& name) override;
++
++  void do_show_static_plot (const std::string& term,
++                            const std::string& content) override;
++
++  // Custom methods
++  void receive_message (const std::string& name, JSON_OBJECT_T jobj);
++
++private:
++  json_main* _json_main;
++  void _publish_message (const std::string& name, JSON_OBJECT_T jobj);
++
++  // Queues
++  json_queue<std::string> request_input_queue;
++  json_queue<std::pair<bool, std::string> > request_url_queue;
++  json_queue<bool> confirm_shutdown_queue;
++  json_queue<bool> prompt_new_edit_file_queue;
++  json_queue<int> message_dialog_queue;
++  json_queue<std::string> question_dialog_queue;
++  json_queue<std::pair<std::list<int>, int> > list_dialog_queue;
++  json_queue<std::list<std::string> > input_dialog_queue;
++  json_queue<std::list<std::string> > file_dialog_queue;
++  json_queue<int> debug_cd_or_addpath_error_queue;
++};
++
++// Template classes require definitions in the header file...
++
++template<typename T>
++json_queue<T>::json_queue() { }
++
++template<typename T>
++json_queue<T>::~json_queue() { }
++
++template<typename T>
++void json_queue<T>::enqueue(const T& value) {
++  _mutex.lock();
++  _queue.push(value);
++  _mutex.cond_signal();
++  _mutex.unlock();
++}
++
++template<typename T>
++T json_queue<T>::dequeue() {
++  _mutex.lock();
++  while (_queue.empty()) {
++    _mutex.cond_wait();
++  }
++  T value = _queue.front();
++  _queue.pop();
++  _mutex.unlock();
++  return value;
++}
++
++template<typename T>
++bool json_queue<T>::dequeue_to(T* destination) {
++  _mutex.lock();
++  bool retval = false;
++  if (!_queue.empty()) {
++    retval = true;
++    *destination = _queue.front();
++    _queue.pop();
++  }
++  _mutex.unlock();
++  return retval;
++}
++
++#endif
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/octave-link.cc
+--- a/libinterp/corefcn/octave-link.cc	Tue Dec 24 04:01:33 2019 +0100
++++ b/libinterp/corefcn/octave-link.cc	Thu Jan 02 06:37:54 2020 -0600
+@@ -525,3 +525,28 @@
+ 
+   return ovl (octave_link::unregister_doc (file));
+ }
++
++DEFUN (__octave_link_plot_destination__, , ,
++       doc: /* -*- texinfo -*-
++@deftypefn {} {} __octave_link_plot_destination__ ()
++Undocumented internal function.
++@end deftypefn*/)
++{
++  return ovl (octave_link::plot_destination ());
++}
++
++DEFUN (__octave_link_show_static_plot__, args, ,
++       doc: /* -*- texinfo -*-
++@deftypefn {} {} __octave_link_show_static_plot__ (@var{term}, @var{content})
++Undocumented internal function.
++@end deftypefn*/)
++{
++  if (args.length () != 2) {
++    return ovl ();
++  }
++
++  std::string term = args(0).string_value();
++  std::string content = args(1).string_value();
++  return ovl (octave_link::show_static_plot (term, content));
++}
++
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/octave-link.h
+--- a/libinterp/corefcn/octave-link.h	Tue Dec 24 04:01:33 2019 +0100
++++ b/libinterp/corefcn/octave-link.h	Thu Jan 02 06:37:54 2020 -0600
+@@ -278,6 +278,12 @@
+       instance->do_clear_history ();
+   }
+ 
++  static void clear_screen (void)
++  {
++    if (enabled ())
++      instance->do_clear_screen ();
++  }
++
+   static void pre_input_event (void)
+   {
+     if (enabled ())
+@@ -290,6 +296,20 @@
+       instance->do_post_input_event ();
+   }
+ 
++  static std::string request_input (const std::string& prompt)
++  {
++    return request_input_enabled ()
++      ? instance->do_request_input (prompt)
++      : std::string ();
++  }
++
++  static std::string request_url (const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success)
++  {
++    return request_input_enabled ()
++      ? instance->do_request_url (url, param, action, success)
++      : std::string ();
++  }
++
+   static void enter_debugger_event (const std::string& file, int line)
+   {
+     if (enabled ())
+@@ -371,6 +391,34 @@
+     return instance_ok () ? instance->link_enabled : false;
+   }
+ 
++  static bool request_input_enabled (void)
++  {
++    return enabled () ? instance->_request_input_enabled : false;
++  }
++
++  enum plot_destination_t {
++    TERMINAL_ONLY = 0,
++    STATIC_ONLY = 1,
++    TERMINAL_AND_STATIC = 2
++  };
++
++  static plot_destination_t plot_destination (void)
++  {
++    return enabled () ? instance->_plot_destination : TERMINAL_ONLY;
++  }
++
++  static bool
++  show_static_plot (const std::string& term, const std::string& content)
++  {
++    if (enabled ())
++      {
++        instance->do_show_static_plot (term, content);
++        return true;
++      }
++    else
++      return false;
++  }
++
+   static bool
+   show_preferences ()
+   {
+@@ -486,6 +534,10 @@
+   void do_entered_readline_hook (void) { }
+   void do_finished_readline_hook (void) { }
+ 
++  bool _request_input_enabled;
++  virtual std::string do_request_input (const std::string&) = 0;
++  virtual std::string do_request_url (const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success) = 0;
++
+   virtual bool do_confirm_shutdown (void) = 0;
+ 
+   virtual bool do_copy_image_to_clipboard (const std::string& file) = 0;
+@@ -546,6 +598,8 @@
+   virtual void do_append_history (const std::string& hist_entry) = 0;
+   virtual void do_clear_history (void) = 0;
+ 
++  virtual void do_clear_screen (void) = 0;
++
+   virtual void do_pre_input_event (void) = 0;
+   virtual void do_post_input_event (void) = 0;
+ 
+@@ -574,6 +628,10 @@
+ 
+   virtual void
+   do_edit_variable (const std::string& name, const octave_value& val) = 0;
++
++  plot_destination_t _plot_destination;
++  virtual void do_show_static_plot (const std::string& term,
++                                    const std::string& content) = 0;
+ };
+ 
+ #endif
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/syscalls.cc
+--- a/libinterp/corefcn/syscalls.cc	Tue Dec 24 04:01:33 2019 +0100
++++ b/libinterp/corefcn/syscalls.cc	Thu Jan 02 06:37:54 2020 -0600
+@@ -146,9 +146,8 @@
+ @deftypefn {} {[@var{err}, @var{msg}] =} exec (@var{file}, @var{args})
+ Replace current process with a new process.
+ 
+-Calling @code{exec} without first calling @code{fork} will terminate your
+-current Octave process and replace it with the program named by @var{file}.
+-For example,
++Calling @code{exec} will terminate your current Octave process and replace
++it with the program named by @var{file}. For example,
+ 
+ @example
+ exec ("ls", "-l")
+@@ -458,44 +457,6 @@
+   return ovl (status, msg);
+ }
+ 
+-DEFMETHODX ("fork", Ffork, interp, args, ,
+-            doc: /* -*- texinfo -*-
+-@deftypefn {} {[@var{pid}, @var{msg}] =} fork ()
+-Create a copy of the current process.
+-
+-Fork can return one of the following values:
+-
+-@table @asis
+-@item > 0
+-You are in the parent process.  The value returned from @code{fork} is the
+-process id of the child process.  You should probably arrange to wait for
+-any child processes to exit.
+-
+-@item 0
+-You are in the child process.  You can call @code{exec} to start another
+-process.  If that fails, you should probably call @code{exit}.
+-
+-@item < 0
+-The call to @code{fork} failed for some reason.  You must take evasive
+-action.  A system dependent error message will be waiting in @var{msg}.
+-@end table
+-@end deftypefn */)
+-{
+-  if (args.length () != 0)
+-    print_usage ();
+-
+-  octave::symbol_table& symtab = interp.get_symbol_table ();
+-
+-  if (symtab.at_top_level ())
+-    error ("fork: cannot be called from command line");
+-
+-  std::string msg;
+-
+-  pid_t pid = octave::sys::fork (msg);
+-
+-  return ovl (pid, msg);
+-}
+-
+ DEFUNX ("getpgrp", Fgetpgrp, args, ,
+         doc: /* -*- texinfo -*-
+ @deftypefn {} {pgid =} getpgrp ()
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/sysdep.cc
+--- a/libinterp/corefcn/sysdep.cc	Tue Dec 24 04:01:33 2019 +0100
++++ b/libinterp/corefcn/sysdep.cc	Thu Jan 02 06:37:54 2020 -0600
+@@ -74,6 +74,7 @@
+ #include "errwarn.h"
+ #include "input.h"
+ #include "octave.h"
++#include "octave-link.h"
+ #include "ov.h"
+ #include "ovl.h"
+ #include "pager.h"
+@@ -549,7 +550,7 @@
+ 
+   // Read one character from the terminal.
+ 
+-  int kbhit (bool wait)
++  int kbhit (const std::string& prompt, bool wait)
+   {
+ #if defined (HAVE__KBHIT) && defined (HAVE__GETCH)
+     // This essentially means we are on a Windows system.
+@@ -576,13 +577,23 @@
+ 
+     octave::set_interrupt_handler (saved_interrupt_handler, false);
+ 
+-    int c = std::cin.get ();
++    int c;
++    if (octave_link::request_input_enabled ()) {
++      std::string line = octave_link::request_input (prompt);
++      if (line.length() >= 1) {
++        c = line.at(0);
++      } else {
++        c = '\n';
++      }
++    } else {
++      c = std::cin.get ();
+ 
+-    if (std::cin.fail () || std::cin.eof ())
+-      {
+-        std::cin.clear ();
+-        clearerr (stdin);
+-      }
++      if (std::cin.fail () || std::cin.eof ())
++        {
++          std::cin.clear ();
++          clearerr (stdin);
++        }
++    }
+ 
+     // Restore it, enabling system call restarts (if possible).
+     octave::set_interrupt_handler (saved_interrupt_handler, true);
+@@ -641,6 +652,8 @@
+ {
+   bool skip_redisplay = true;
+ 
++  octave_link::clear_screen ();
++
+   octave::command_editor::clear_screen (skip_redisplay);
+ 
+   return ovl ();
+@@ -1060,7 +1073,7 @@
+ 
+   Fdrawnow ();
+ 
+-  int c = octave::kbhit (args.length () == 0);
++  int c = octave::kbhit ("kbhit>", args.length () == 0);
+ 
+   if (c == -1)
+     c = 0;
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/sysdep.h
+--- a/libinterp/corefcn/sysdep.h	Tue Dec 24 04:01:33 2019 +0100
++++ b/libinterp/corefcn/sysdep.h	Thu Jan 02 06:37:54 2020 -0600
+@@ -46,7 +46,7 @@
+ 
+   extern OCTINTERP_API int pclose (FILE *f);
+ 
+-  extern OCTINTERP_API int kbhit (bool wait = true);
++  extern OCTINTERP_API int kbhit (const std::string& prompt, bool wait);
+ 
+   extern OCTINTERP_API std::string get_P_tmpdir (void);
+ 
+@@ -102,7 +102,7 @@
+ inline int
+ octave_kbhit (bool wait = true)
+ {
+-  return octave::kbhit (wait);
++  return octave::kbhit ("", wait);
+ }
+ 
+ OCTAVE_DEPRECATED (5, "use 'octave::get_P_tmpdir' instead")
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/corefcn/utils.cc
+--- a/libinterp/corefcn/utils.cc	Tue Dec 24 04:01:33 2019 +0100
++++ b/libinterp/corefcn/utils.cc	Thu Jan 02 06:37:54 2020 -0600
+@@ -1301,7 +1301,7 @@
+             if (do_graphics_events)
+               gh_manager::process_events ();
+ 
+-            c = octave::kbhit (false);
++            c = octave::kbhit ("press enter to continue", false);
+           }
+       }
+     else
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/octave.cc
+--- a/libinterp/octave.cc	Tue Dec 24 04:01:33 2019 +0100
++++ b/libinterp/octave.cc	Thu Jan 02 06:37:54 2020 -0600
+@@ -44,6 +44,7 @@
+ #include "octave.h"
+ #include "oct-hist.h"
+ #include "oct-map.h"
++#include "octave-link.h"
+ #include "ovl.h"
+ #include "options-usage.h"
+ #include "ov.h"
+@@ -184,6 +185,16 @@
+           case LINE_EDITING_OPTION:
+             m_forced_line_editing = m_line_editing = true;
+             break;
++ 
++          case JSON_SOCK_OPTION:
++            if (octave_optarg_wrapper ())
++              m_json_sock_path = octave_optarg_wrapper ();
++            break;
++
++          case JSON_MAX_LEN_OPTION:
++            if (octave_optarg_wrapper ())
++              m_json_max_message_length = strtol(octave_optarg_wrapper (), NULL, 10);
++            break;
+ 
+           case NO_GUI_OPTION:
+             m_gui = false;
+@@ -431,7 +442,7 @@
+   // FIXME: This isn't quite right, it just says that we intended to
+   // start the GUI, not that it is actually running.
+ 
+-  return ovl (octave::application::is_gui_running ());
++  return ovl (octave_link::enabled ());
+ }
+ 
+ /*
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/octave.h
+--- a/libinterp/octave.h	Tue Dec 24 04:01:33 2019 +0100
++++ b/libinterp/octave.h	Thu Jan 02 06:37:54 2020 -0600
+@@ -84,6 +84,8 @@
+     std::string info_file (void) const { return m_info_file; }
+     std::string info_program (void) const { return m_info_program; }
+     std::string texi_macros_file (void) const {return m_texi_macros_file; }
++    std::string json_sock_path (void) const { return m_json_sock_path; }
++    int json_max_message_length (void) const { return m_json_max_message_length; }
+     string_vector all_args (void) const { return m_all_args; }
+     string_vector remaining_args (void) const { return m_remaining_args; }
+ 
+@@ -120,6 +122,8 @@
+     void info_file (const std::string& arg) { m_info_file = arg; }
+     void info_program (const std::string& arg) { m_info_program = arg; }
+     void texi_macros_file (const std::string& arg) { m_texi_macros_file = arg; }
++    void json_sock_path (const std::string& arg) { m_json_sock_path = arg; }
++    void json_max_message_length (int arg) { m_json_max_message_length = arg; }
+     void all_args (const string_vector& arg) { m_all_args = arg; }
+     void remaining_args (const string_vector& arg) { m_remaining_args = arg; }
+ 
+@@ -226,6 +230,14 @@
+     // (--texi-macros-file)
+     std::string m_texi_macros_file;
+ 
++    // The value for "JSON_SOCK" specified on the command line.
++    // (--json-sock)
++    std::string m_json_sock_path;
++
++    // The maximum message length; valid only if "JSON_SOCK" is specified.
++    // (--json-max-len)
++    int m_json_max_message_length = 0;
++
+     // All arguments passed to the argc, argv constructor.
+     string_vector m_all_args;
+ 
+diff -r 56dd7419d7aa -r 84cbf166497f libinterp/options-usage.h
+--- a/libinterp/options-usage.h	Tue Dec 24 04:01:33 2019 +0100
++++ b/libinterp/options-usage.h	Thu Jan 02 06:37:54 2020 -0600
+@@ -35,10 +35,10 @@
+        [--echo-commands] [--eval CODE] [--exec-path path]\n\
+        [--gui] [--help] [--image-path path]\n\
+        [--info-file file] [--info-program prog] [--interactive]\n\
+-       [--jit-compiler] [--line-editing] [--no-gui] [--no-history]\n\
+-       [--no-init-file] [--no-init-path] [--no-line-editing]\n\
+-       [--no-site-file] [--no-window-system] [--norc] [-p path]\n\
+-       [--path path] [--persist] [--silent] [--traditional]\n\
++       [--jit-compiler] [--json-sock] [--json-max-len] [--line-editing]\n\
++       [--no-gui] [--no-history][--no-init-file] [--no-init-path]\n\
++       [--no-line-editing] [--no-site-file] [--no-window-system] [--norc]\n\
++       [-p path] [--path path] [--persist] [--silent] [--traditional]\n\
+        [--verbose] [--version] [file]";
+ 
+ // This is here so that it's more likely that the usage message and
+@@ -67,15 +67,17 @@
+ #define INFO_PROG_OPTION 8
+ #define DEBUG_JIT_OPTION 9
+ #define JIT_COMPILER_OPTION 10
+-#define LINE_EDITING_OPTION 11
+-#define NO_GUI_OPTION 12
+-#define NO_INIT_FILE_OPTION 13
+-#define NO_INIT_PATH_OPTION 14
+-#define NO_LINE_EDITING_OPTION 15
+-#define NO_SITE_FILE_OPTION 16
+-#define PERSIST_OPTION 17
+-#define TEXI_MACROS_FILE_OPTION 18
+-#define TRADITIONAL_OPTION 19
++#define JSON_SOCK_OPTION 11
++#define JSON_MAX_LEN_OPTION 12
++#define LINE_EDITING_OPTION 13
++#define NO_GUI_OPTION 14
++#define NO_INIT_FILE_OPTION 15
++#define NO_INIT_PATH_OPTION 16
++#define NO_LINE_EDITING_OPTION 17
++#define NO_SITE_FILE_OPTION 18
++#define PERSIST_OPTION 19
++#define TEXI_MACROS_FILE_OPTION 20
++#define TRADITIONAL_OPTION 21
+ struct octave_getopt_options long_opts[] =
+ {
+   { "braindead",                octave_no_arg,       0, TRADITIONAL_OPTION },
+@@ -94,6 +96,8 @@
+   { "info-program",             octave_required_arg, 0, INFO_PROG_OPTION },
+   { "interactive",              octave_no_arg,       0, 'i' },
+   { "jit-compiler",             octave_no_arg,       0, JIT_COMPILER_OPTION },
++  { "json-sock",                octave_required_arg, 0, JSON_SOCK_OPTION },
++  { "json-max-len",             octave_required_arg, 0, JSON_MAX_LEN_OPTION },
+   { "line-editing",             octave_no_arg,       0, LINE_EDITING_OPTION },
+   { "no-gui",                   octave_no_arg,       0, NO_GUI_OPTION },
+   { "no-history",               octave_no_arg,       0, 'H' },
+@@ -145,6 +149,8 @@
+   --info-program PROGRAM  Use PROGRAM for reading info files.\n\
+   --interactive, -i       Force interactive behavior.\n\
+   --jit-compiler          Enable the JIT compiler.\n\
++  --json-sock PATH        Listen to and publish events on this UNIX socket.\n\
++  --json-max-len LEN      Suppress JSON messages greater than LEN bytes.\n\
+   --line-editing          Force readline use for command-line editing.\n\
+   --no-gui                Disable the graphical user interface.\n\
+   --no-history, -H        Don't save commands to the history list\n\
+diff -r 56dd7419d7aa -r 84cbf166497f liboctave/util/oct-mutex.cc
+--- a/liboctave/util/oct-mutex.cc	Tue Dec 24 04:01:33 2019 +0100
++++ b/liboctave/util/oct-mutex.cc	Thu Jan 02 06:37:54 2020 -0600
+@@ -55,6 +55,18 @@
+     return false;
+   }
+ 
++  void
++  base_mutex::cond_wait (void)
++  {
++    (*current_liboctave_error_handler) ("mutex not supported on this platform");
++  }
++
++  void
++  base_mutex::cond_signal (void)
++  {
++    (*current_liboctave_error_handler) ("mutex not supported on this platform");
++  }
++
+ #if defined (OCTAVE_USE_WINDOWS_API)
+ 
+   class
+@@ -65,11 +77,13 @@
+       : base_mutex ()
+     {
+       InitializeCriticalSection (&cs);
++      InitializeConditionVariable (&cv);
+     }
+ 
+     ~w32_mutex (void)
+     {
+       DeleteCriticalSection (&cs);
++      // no need to delete cv: http://stackoverflow.com/a/28981408/1407170
+     }
+ 
+     void lock (void)
+@@ -87,8 +101,19 @@
+       return (TryEnterCriticalSection (&cs) != 0);
+     }
+ 
++    void cond_wait (void)
++    {
++      SleepConditionVariableCS (&cv, &cs, INFINITE);
++    }
++
++    void cond_signal (void)
++    {
++      WakeConditionVariable (&cv);
++    }
++
+   private:
+     CRITICAL_SECTION cs;
++    CONDITION_VARIABLE cv;
+   };
+ 
+   static DWORD thread_id = 0;
+@@ -120,11 +145,18 @@
+       pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
+       pthread_mutex_init (&pm, &attr);
+       pthread_mutexattr_destroy (&attr);
++
++      pthread_condattr_t condattr;
++
++      pthread_condattr_init (&condattr);
++      pthread_cond_init (&condv, &condattr);
++      pthread_condattr_destroy (&condattr);
+     }
+ 
+     ~pthread_mutex (void)
+     {
+       pthread_mutex_destroy (&pm);
++      pthread_cond_destroy (&condv);
+     }
+ 
+     void lock (void)
+@@ -142,8 +174,19 @@
+       return (pthread_mutex_trylock (&pm) == 0);
+     }
+ 
++    void cond_wait (void)
++    {
++      pthread_cond_wait (&condv, &pm);
++    }
++
++    void cond_signal (void)
++    {
++      pthread_cond_signal (&condv);
++    }
++
+   private:
+     pthread_mutex_t pm;
++    pthread_cond_t condv;
+   };
+ 
+   static pthread_t thread_id = 0;
+diff -r 56dd7419d7aa -r 84cbf166497f liboctave/util/oct-mutex.h
+--- a/liboctave/util/oct-mutex.h	Tue Dec 24 04:01:33 2019 +0100
++++ b/liboctave/util/oct-mutex.h	Thu Jan 02 06:37:54 2020 -0600
+@@ -47,6 +47,10 @@
+ 
+     virtual bool try_lock (void);
+ 
++    virtual void cond_wait (void);
++
++    virtual void cond_signal (void);
++
+   private:
+     refcount<int> count;
+   };
+@@ -99,6 +103,16 @@
+       return rep->try_lock ();
+     }
+ 
++    void cond_wait (void)
++    {
++      rep->cond_wait ();
++    }
++
++    void cond_signal (void)
++    {
++      rep->cond_signal ();
++    }
++
+   protected:
+     base_mutex *rep;
+   };
+diff -r 56dd7419d7aa -r 84cbf166497f liboctave/util/url-transfer.cc
+--- a/liboctave/util/url-transfer.cc	Tue Dec 24 04:01:33 2019 +0100
++++ b/liboctave/util/url-transfer.cc	Thu Jan 02 06:37:54 2020 -0600
+@@ -38,6 +38,8 @@
+ #include "file-stat.h"
+ #include "lo-sysdep.h"
+ #include "oct-env.h"
++#include "libinterp/corefcn/octave-link.h"
++#include "gnulib/lib/base64.h"
+ #include "unwind-prot.h"
+ #include "url-transfer.h"
+ 
+@@ -237,6 +239,86 @@
+     return file_list;
+   }
+ 
++
++class link_transfer : public base_url_transfer
++{
++public:
++
++  link_transfer (void)
++      : base_url_transfer () {
++    valid = true;
++  }
++
++  link_transfer (const std::string& host, const std::string& user_arg,
++                 const std::string& passwd, std::ostream& os)
++      : base_url_transfer (host, user_arg, passwd, os) {
++    valid = true;
++    // url = "ftp://" + host;
++  }
++
++  link_transfer (const std::string& url_str, std::ostream& os)
++      : base_url_transfer (url_str, os) {
++    valid = true;
++  }
++
++  ~link_transfer (void) {}
++
++  void http_get (const Array<std::string>& param) {
++    perform (param, "get");
++  }
++
++  void http_post (const Array<std::string>& param) {
++    perform (param, "post");
++  }
++
++  void http_action (const Array<std::string>& param, const std::string& action) {
++    perform (param, action);
++  }
++
++private:
++  void perform(const Array<std::string>& param, const std::string& action) {
++    std::string url = host_or_url;
++
++    // Convert from Array to std::list
++    std::list<std::string> paramList;
++    for (int i = 0; i < param.numel(); i ++) {
++      std::string value = param(i);
++      paramList.push_back(value);
++    }
++
++    if (octave_link::request_input_enabled ()) {
++      bool success;
++      std::string result = octave_link::request_url (url, paramList, action, success);
++      if (success) {
++        process_success(result);
++      } else {
++        ok = false;
++        errmsg = result;
++      }
++    } else {
++      ok = false;
++      errmsg = "octave_link not connected for link_transfer";
++    }
++  }
++
++  void process_success(const std::string& result) {
++    // If success, the result is returned as a base64 string, and we need to decode it.
++    // Use the base64 implementation from gnulib, which is already an Octave dependency.
++    const char *inc = &(result[0]);
++    char *out;
++    size_t outlen;
++    bool b64_ok = base64_decode_alloc(inc, result.length(), &out, &outlen);
++    if (!b64_ok) {
++      ok = false;
++      errmsg = "failed decoding base64 from octave_link";
++    } else {
++      curr_ostream->write(out, outlen);
++      ::free(out);
++    }
++  }
++};
++
++
+ #if defined (HAVE_CURL)
+ 
+   static int
+@@ -806,17 +888,30 @@
+ #  define REP_CLASS base_url_transfer
+ #endif
+ 
+-  url_transfer::url_transfer (void) : rep (new REP_CLASS ())
+-  { }
++  url_transfer::url_transfer (void) {
++    if (octave_link::request_input_enabled()) {
++      rep = new link_transfer();
++    } else {
++      rep = new REP_CLASS();
++    }
++  }
+ 
+   url_transfer::url_transfer (const std::string& host, const std::string& user,
+-                              const std::string& passwd, std::ostream& os)
+-    : rep (new REP_CLASS (host, user, passwd, os))
+-  { }
++                              const std::string& passwd, std::ostream& os) {
++    if (octave_link::request_input_enabled()) {
++      rep = new link_transfer(host, user, passwd, os);
++    } else {
++      rep = new REP_CLASS(host, user, passwd, os);
++    }
++  }
+ 
+-  url_transfer::url_transfer (const std::string& url, std::ostream& os)
+-    : rep (new REP_CLASS (url, os))
+-  { }
++  url_transfer::url_transfer (const std::string& url, std::ostream& os) {
++    if (octave_link::request_input_enabled()) {
++      rep = new link_transfer(url, os);
++    } else {
++      rep = new REP_CLASS(url, os);
++    }
++  }
+ 
+ #undef REP_CLASS
+ 
+diff -r 56dd7419d7aa -r 84cbf166497f scripts/help/__unimplemented__.m
+--- a/scripts/help/__unimplemented__.m	Tue Dec 24 04:01:33 2019 +0100
++++ b/scripts/help/__unimplemented__.m	Thu Jan 02 06:37:54 2020 -0600
+@@ -40,7 +40,30 @@
+ 
+   is_matlab_function = true;
+ 
++  ## First look at the package metadata
++  # To generate package_metadata.mat, run: packages={}; for p=pkg('list'); packages={packages{:} pkg('describe', '-verbose', p{1}.name){:}}; endfor; save('/usr/local/share/octave/site/m/package_metadata.mat', 'packages');
++  found_in_package_metadata = false;
++  try
++    vars = load("/usr/local/share/octave/site/m/package_metadata.mat");
++    for lvl1 = vars.packages
++      for lvl2 = lvl1{1}.provides
++        for lvl3 = lvl2{1}.functions
++          if strcmp(fcn, lvl3{1})
++            txt = check_package(fcn, lvl1{1}.name);
++            found_in_package_metadata = true;
++            break;
++          endif
++        endfor
++        if found_in_package_metadata, break; endif
++      endfor
++      if found_in_package_metadata, break; endif
++    endfor
++  catch err
++    warning(err)
++  end_try_catch
++
+   ## Some smarter cases, add more as needed.
++  if !found_in_package_metadata
+   switch (fcn)
+     case {"avifile", "aviinfo", "aviread"}
+       txt = ["Basic video file support is provided in the video package.  ", ...
+@@ -514,6 +537,7 @@
+         txt = "";
+       endif
+   endswitch
++  endif
+ 
+   if (is_matlab_function)
+     txt = [txt, "\n\n@noindent\nPlease read ", ...
+@@ -556,13 +580,13 @@
+       endfor
+       txt = sprintf ("%s but has not yet been implemented.", txt);
+     case "not loaded",
+-      txt = sprintf (["%s which you have installed but not loaded.  To ", ...
+-                      "load the package, run `pkg load %s' from the ", ...
+-                      "Octave prompt."], txt, name);
++      txt = sprintf (["%s, which you have installed but not loaded.\n\n", ...
++                      "Run `pkg load %s' to use `%s'."], ...
++                     txt, name, fcn);
+     otherwise
+       ## this includes "not installed" and anything else if pkg changes
+       ## the output of describe
+-      txt = sprintf ("%s which seems to not be installed in your system.", txt);
++      txt = sprintf ("%s, which seems to not be installed in your system.", txt);
+   endswitch
+ 
+ endfunction
+diff -r 56dd7419d7aa -r 84cbf166497f scripts/plot/util/__gnuplot_drawnow__.m
+--- a/scripts/plot/util/__gnuplot_drawnow__.m	Tue Dec 24 04:01:33 2019 +0100
++++ b/scripts/plot/util/__gnuplot_drawnow__.m	Thu Jan 02 06:37:54 2020 -0600
+@@ -27,9 +27,84 @@
+ 
+   if (nargin < 1 || nargin > 4 || nargin == 2)
+     print_usage ();
++
++  elseif (nargin >= 3 && nargin <= 4)
++    ## Write the plot to the given file (e.g., via the "print" command)
++    if (nargin == 5)
++      __gnuplot_draw_to_file__ (h, term, file, debug_file);
++    else
++      __gnuplot_draw_to_file__ (h, term, file);
++    endif
++
++  else  # nargin == 1
++    ##  Plot to terminal and/or static (e.g., via the "plot" command)
++    plot_stream = get (h, "__plot_stream__");
++    if (isempty (plot_stream))
++      plot_stream = __gnuplot_open_stream__ (2, h);
++      new_stream = true;
++    else
++      new_stream = false;
++    endif
++    term = gnuplot_default_term (plot_stream);
++
++    ## There are a few options for how we can proceed.
++    ## In most cases, we will tell GNUPLOT to put the plot in its terminal.
++    ## If we have no display, we want to use the "dumb" terminal.
++    ## Octave Link may request that we send the plot as an event.
++    ## The latter two cases require plotting to a temp file.
++
++    should_plot_to_terminal = (
++      !strcmp (term, "dumb") && (
++        __octave_link_plot_destination__ () == 0 ||
++        __octave_link_plot_destination__ () == 2
++      )
++    );
++
++    if (should_plot_to_terminal)
++      enhanced = gnuplot_set_term (plot_stream(1), new_stream, h, term);
++      __gnuplot_draw_figure__ (h, plot_stream(1), enhanced);
++      fflush (plot_stream(1));
++    endif
++
++    should_plot_to_temp_file = (
++      strcmp (term, "dumb") ||
++      __octave_link_plot_destination__ () == 1 ||
++      __octave_link_plot_destination__ () == 2
++    );
++
++    if (should_plot_to_temp_file)
++      tmp_file = tempname ();
++      __gnuplot_draw_to_file__ (h, term, tmp_file);
++      fflush (plot_stream(1));
++
++      ## Read the temp file into memory and then delete it
++      fid = fopen (tmp_file, 'r');
++      while (fid < 0)
++        fprintf (stderr, "🛈 Waiting for plot to finish… ⏳\n");
++        pause (0.5);
++        fid = fopen (tmp_file, 'r');
++      endwhile
++      [a, count] = fscanf (fid, '%c', Inf);
++      fclose (fid);
++      unlink (tmp_file);
++
++      ## What to do with the plot data?
++      if (count > 0)
++        if (a(1) == 12)
++          a = a(2:end);  # avoid ^L at the beginning
++        endif
++        if strcmp (term, "dumb")
++          puts (a);
++        else
++          __octave_link_show_static_plot__ (term, a);
++        endif
++      endif
++    endif
++
+   endif
++endfunction
+ 
+-  if (nargin >= 3 && nargin <= 4)
++function __gnuplot_draw_to_file__ (h, term, file, debug_file)
+     ## Produce various output formats, or redirect gnuplot stream to a
+     ## debug file.
+     plot_stream = [];
+@@ -65,44 +140,6 @@
+         fclose (fid);
+       endif
+     end_unwind_protect
+-  else  # nargin == 1
+-    ##  Graphics terminal for display.
+-    plot_stream = get (h, "__plot_stream__");
+-    if (isempty (plot_stream))
+-      plot_stream = __gnuplot_open_stream__ (2, h);
+-      new_stream = true;
+-    else
+-      new_stream = false;
+-    endif
+-    term = gnuplot_default_term (plot_stream);
+-    if (strcmp (term, "dumb"))
+-      ## popen2 eats stdout of gnuplot, use temporary file instead
+-      dumb_tmp_file = tempname ();
+-      enhanced = gnuplot_set_term (plot_stream(1), new_stream, h,
+-                                   term, dumb_tmp_file);
+-    else
+-      enhanced = gnuplot_set_term (plot_stream(1), new_stream, h, term);
+-    endif
+-    __gnuplot_draw_figure__ (h, plot_stream(1), enhanced);
+-    fflush (plot_stream(1));
+-    if (strcmp (term, "dumb"))
+-      fid = -1;
+-      while (fid < 0)
+-        pause (0.1);
+-        fid = fopen (dumb_tmp_file, 'r');
+-      endwhile
+-      ## reprint the plot on screen
+-      [a, count] = fscanf (fid, '%c', Inf);
+-      fclose (fid);
+-      if (count > 0)
+-        if (a(1) == 12)
+-          a = a(2:end);  # avoid ^L at the beginning
+-        endif
+-        puts (a);
+-      endif
+-      unlink (dumb_tmp_file);
+-    endif
+-  endif
+ 
+ endfunction
+ 

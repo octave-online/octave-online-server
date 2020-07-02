@@ -23,6 +23,14 @@ define(["js/client", "js/ot-handler", "js/polyfill"], function(OctMethods, OtHan
 	var documentClients = {};
 
 	var socketListeners = {
+		subscribe: function(socket) {
+			socket.on("ws.command", socketListeners.command);
+			socket.on("ws.save", socketListeners.save);
+			socket.on("ws.promptid", socketListeners.promptid);
+			socket.on("ws.doc", socketListeners.doc);
+			socket.on("ws.rename", socketListeners.renamed);
+			socket.on("ws.delete", socketListeners.deleted);
+		},
 		command: function(cmd){
 			OctMethods.console.command(cmd, true);
 		},

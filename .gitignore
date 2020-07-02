@@ -19,7 +19,9 @@
 # Directory names that should not be tracked
 _old/
 bundle/
+dist/
 node_modules/
+node_modules_1/
 vendor/
 tmp/
 
@@ -27,6 +29,7 @@ tmp/
 *.bak
 *.log
 *.o
+*.out
 *.pem
 *.pub
 *.pp

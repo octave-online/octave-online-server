@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018, Octave Online LLC
+ * Copyright © 2019, Octave Online LLC
  *
  * This file is part of Octave Online Server.
  *
@@ -18,120 +18,133 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-///<reference path='boris-typedefs/node/node.d.ts'/>
-///<reference path='boris-typedefs/redis/redis.d.ts'/>
-///<reference path='boris-typedefs/eventemitter2/eventemitter2.d.ts'/>
-///<reference path='typedefs/uuid.d.ts'/>
-///<reference path='boris-typedefs/async/async.d.ts'/>
-///<reference path='typedefs/iworkspace.ts'/>
-
-import User = require("./user_model");
-import Redis = require("redis");
-import EventEmitter2 = require("eventemitter2");
-import IRedis = require("./typedefs/iredis");
-import Config = require("./config");
-import OctaveHelper = require("./octave_session_helper");
-import OtDocument = require("./ot_document");
-import Uuid = require("uuid");
-import Async = require("async");
+import { EventEmitter } from "events";
 import Crypto = require("crypto");
 
+import Async = require("async");
+import Uuid = require("uuid");
+
+import { config, newRedisMessenger, logger, ILogger } from "./shared_wrap";
+import { IWorkspace } from "./utils";
+import { octaveHelper, SessionState } from "./octave_session_helper";
+import { OtDocument } from "./ot_document";
+import { User, IUser } from "./user_model";
+
+interface BeginOctaveRequestAsyncAuto {
+	user: IUser|null;
+	ready: void;
+}
+
+type Err = Error|null;
+
+
 // Make Redis connections for Shared Workspace
-var wsPushClient = IRedis.createClient();
-var wsSessClient = IRedis.createClient();
-wsSessClient.psubscribe(IRedis.Chan.wsSub("*"));
+const redisMessenger = newRedisMessenger();
+const wsSessClient = newRedisMessenger();
+wsSessClient.subscribeToWorkspaceMsgs();
 
 wsSessClient.setMaxListeners(30);
 
-class SharedWorkspace
-extends EventEmitter2.EventEmitter2
-implements IWorkspace {
-	public wsId:string;
-	public sessCode:string;
-	public destroyed:boolean = false;
-	private shareKey:string = null;
-	private user:IUser = null;
-	private docs:any = {};
-	private msgIds:string[] = [];
+export class SharedWorkspace
+	extends EventEmitter
+	implements IWorkspace {
+	public wsId: string|null = null;
+	public safeWsId: string|null = null;  // ID with no username
+	public sessCode: string|null = null;
+	public destroyed = false;
+	private shareKey: string|null = null;
+	private user: IUser|null = null;
+	private docs: { [key: string]: OtDocument } = {};
+	private msgIds: string[] = [];
 	private otEventCounter = 0;
 	private wsMessageCounter = 0;
-	private statsInterval;
-	private touchInterval;
+	private statsInterval: any;
+	private touchInterval: any;
+	private _log: ILogger;
+	private logId: string;
 
-	constructor(type:string, info:any) {
+	constructor(type: string, info: any, logId: string) {
 		super();
+
+		this._log = logger(`workspace-shr:${logId}:uninitialized`);
+		this.logId = logId;
 
 		switch(type){
 			case "student":
-				this.shareKey = <string> info;
+				this.shareKey = info as string;
 				break;
 
 			case "host":
-				this.setWsId(<string> info.parametrized);
-				this.user = info;
+				this.user = info as IUser;
+				this.setWsId(this.user.parametrized);
 				break;
 
 			case "default":
 			default:
-				this.setWsId(<string> info);
+				this.setWsId(info as string);
 				break;
 		}
+
 
 		this.subscribe();
 	}
 
-	private log(..._args:any[]):void {
-		var args = Array.prototype.slice.apply(arguments);
-		// May 2018: remove email-based IDs from log
-		const safeWsId = this.wsId && this.wsId.substr(0, 8);
-		args.unshift("<" + safeWsId + ">");
-		this.emit("log", args);
-	}
-
-	private setWsId(wsId:string) {
+	private setWsId(wsId: string) {
 		if (this.wsId) {
 			if (this.wsId !== wsId)
-				console.log("SHARED WORKSPACE ERROR: Trying to set wsId to",
-					wsId, "when it was already set to", this.wsId);
+				this._log.error("SHARED WORKSPACE ERROR: Trying to set wsId to", wsId, "when it was already set to", this.wsId);
 			return;
 		}
 
 		this.wsId = wsId;
 
+		// May 2018: remove email-based IDs from log
+		const safeWsId = this.wsId && this.wsId.substr(0, 8);
+		this.safeWsId = safeWsId;
+		this._log = logger(`workspace-shr:${this.logId}:${safeWsId}`);
+
 		// Create the prompt's OtDocument (every session)
 		// Never emit from constructors since there are no listeners yet;
 		// use process.nextTick() instead
-		var promptId = "prompt." + this.wsId;
-		process.nextTick(function(){
+		const promptId = "prompt." + this.wsId;
+		process.nextTick(() => {
 			this.emit("data", "ws.promptid", promptId);
-			this.docs[promptId] = new OtDocument(promptId);
+			this.docs[promptId] = new OtDocument(promptId, `${this.logId}:prompt.${safeWsId}`);
 			this.subscribe();
-		}.bind(this));
+		});
 	}
 
-	private forEachDoc(fn:(docId:string,doc:OtDocument)=>void){
-		Object.getOwnPropertyNames(this.docs).forEach(function(docId){
+	private forEachDoc(fn: (docId: string,doc: OtDocument) => void){
+		Object.getOwnPropertyNames(this.docs).forEach((docId) => {
 			fn(docId, this.docs[docId]);
-		}.bind(this));
+		});
 	}
 
-	public destroyD(message:string){
-		this.destroyed = true;
-
+	public destroyD(message: string){
 		// The Octave session will be destroyed by expiring keys once all
 		// users have disconnected.  There is no need to destroy it here.
-
-		// Special case: when sharing is disabled
+		// Special case: when sharing is disabled or flavor upgraded
 		// TODO: It's poor style to do a string comparison here
-		if (message === "Sharing Disabled" && this.sessCode) {
-			OctaveHelper.sendDestroyD(this.sessCode, message);
+		if (!this.sessCode) {
+			this.destroyed = true;
+		} else if (message === "Sharing Disabled") {
+			this.destroyed = true;
+			octaveHelper.sendDestroyD(this.sessCode, message);
+		} else if (message === "Flavor Upgrade") {
+			// Don't set this.destroyed here because the workspace will get a new sessCode
+			octaveHelper.sendDestroyD(this.sessCode, message);
+		} else {
+			this.destroyed = true;
+			// Ensure that the files are committed immediately, so that if a user reloads the page, they get their data immediately synced
+			this.emit("back", "commit", { comment: "Scripted Commit on Disconnect" });
 		}
 	}
 
-	public destroyU(message:string){
+	// eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+	public destroyU(message: string){
 	}
 
-	public dataD(name:string, value:any) {
+	public dataD(name: string, value: any) {
 		if (!name) name = "";
 		if (!value) value = {};
 
@@ -140,7 +153,7 @@ implements IWorkspace {
 
 		// Pass OT events down to the OT instances
 		if (name.substr(0,3) === "ot.") {
-			this.forEachDoc(function(docId,doc){ doc.dataD(name, value) });
+			this.forEachDoc(function(docId,doc){ doc.dataD(name, value); });
 			this.otEventCounter++;
 			return;
 		}
@@ -155,7 +168,7 @@ implements IWorkspace {
 		this.onUserAction(name, value);
 	}
 
-	public dataU(name:string, value:any) {
+	public dataU(name: string, value: any) {
 		if (!name) name = "";
 		if (!value) value = {};
 
@@ -181,70 +194,72 @@ implements IWorkspace {
 		}
 	}
 
-	private resolveFileList(files:any, update:boolean, overwrite:boolean){
-		var files = files || {};
-		for(var filename in files){
+	private resolveFileList(files: any, update: boolean, overwrite: boolean){
+		files = files || {};
+		for(const filename in files){
 			if (!files.hasOwnProperty(filename)) continue;
-			var file = files[filename];
+			const file = files[filename];
 			if (!file.isText) continue;
-			var content = new Buffer(file.content, "base64").toString();
+			const content = new Buffer(file.content, "base64").toString();
 			this.resolveFile(filename, content, update, overwrite);
 		}
 	}
 
-	private resolveFileAdd(file:any, update:boolean, overwrite:boolean){
+	private resolveFileAdd(file: any, update: boolean, overwrite: boolean){
 		if (!file.isText) return;
 
-		this.log("Resolving File Add", file.filename, update, overwrite);
+		this._log.trace("Resolving File Add", file.filename, update, overwrite);
 
-		var content = new Buffer(file.content, "base64").toString();
+		const content = new Buffer(file.content, "base64").toString();
 		this.resolveFile(file.filename, content, update, overwrite);
 	}
 
-	private resolveFileSave(file:any, update:boolean, overwrite:boolean){
-		this.log("Resolving File Save", file.filename, update, overwrite);
+	private resolveFileSave(file: any, update: boolean, overwrite: boolean){
+		this._log.trace("Resolving File Save", file.filename, update, overwrite);
 		this.resolveFile(file.filename, file.content, update, overwrite);
 	}
 
-	private resolveFile(filename:string, content:string,
-			update:boolean, overwrite:boolean) {
-		var hash = Crypto.createHash("md5").update(filename).digest("hex");
-		var docId = "doc." + this.wsId + "." + hash;
+	private resolveFile(filename: string, content: string,
+		update: boolean, overwrite: boolean) {
+		// Note: hash.copy() was added in Node.js 13; we could use that here instead of converting via Buffer.from()
+		const hexHash = Crypto.createHash("md5").update(filename).digest("hex");
+		const shortHash = Buffer.from(hexHash, "hex").toString("base64").replace(/=/g, "");
+		const docId = `doc.${this.wsId}.${hexHash}`;
 
 		if (!this.docs[docId]) {
-			this.docs[docId] = new OtDocument(docId);
+			this.docs[docId] = new OtDocument(docId, `${this.logId}:doc.${this.safeWsId}.${shortHash}`);
+			this.docs[docId].logFilename(filename);
 			this.subscribe();
-			process.nextTick(function(){
+			process.nextTick(() => {
 				this.emit("data", "ws.doc", {
 					docId: docId,
 					filename: filename
 				});
-			}.bind(this));
+			});
 		}
 
 		if (update) this.docs[docId].setContent(content, overwrite);
 	}
 
-	private resolveFileRename(oldname:string, newname:string) {
-		var oldhash = Crypto.createHash("md5").update(oldname).digest("hex");
-		var newhash = Crypto.createHash("md5").update(newname).digest("hex");
+	private resolveFileRename(oldname: string, newname: string) {
+		const oldhash = Crypto.createHash("md5").update(oldname).digest("hex");
+		const newhash = Crypto.createHash("md5").update(newname).digest("hex");
 
-		var oldDocId = "doc." + this.wsId + "." + oldhash;
-		var newDocId = "doc." + this.wsId + "." + newhash;
+		const oldDocId = "doc." + this.wsId + "." + oldhash;
+		const newDocId = "doc." + this.wsId + "." + newhash;
 
-		// May 2018: do not log email-based identifiers
 		if (!this.docs[oldDocId]) {
-			this.log("WARNING: Attempted to resolve file rename, but couldn't find old file in shared workspace:", oldname, newname, this.wsId.substr(0, 8));
+			this._log.trace("Attempted to resolve file rename, but couldn't find old file in shared workspace (non-text file?)", oldname, newname, oldhash);
 			return;
 		}
 		if (this.docs[newDocId]) {
-			this.log("WARNING: Attempted to resolve file rename, but the new name already exists in the workspace:", oldname, newname, this.wsId.substr(0, 8));
+			this._log.warn("WARNING: Attempted to resolve file rename, but the new name already exists in the workspace", oldname, newname, newhash);
 			return;
 		}
 
-		this.log("Resolving File Remame", oldname, newname);
+		this._log.trace("Resolving File Remame", oldname, newname, oldhash, newhash);
 
-		var doc = this.docs[oldDocId];
+		const doc = this.docs[oldDocId];
 		delete this.docs[oldDocId];
 		this.docs[newDocId] = doc;
 
@@ -258,19 +273,18 @@ implements IWorkspace {
 		});
 	}
 
-	private resolveFileDelete(filename:string) {
-		var hash = Crypto.createHash("md5").update(filename).digest("hex");
-		var docId = "doc." + this.wsId + "." + hash;
+	private resolveFileDelete(filename: string) {
+		const hash = Crypto.createHash("md5").update(filename).digest("hex");
+		const docId = "doc." + this.wsId + "." + hash;
 
-		// May 2018: do not log email-based identifiers
 		if (!this.docs[docId]) {
-			this.log("WARNING: Attempted to resolve file delete, but couldn't find file in shared workspace:", filename, this.wsId.substr(0, 8));
+			this._log.trace("Attempted to resolve file delete, but couldn't find file in shared workspace (non-text file?)", filename, hash);
 			return;
 		}
 
-		this.log("Resolving File Delete", filename);
+		this._log.trace("Resolving File Delete", filename);
 
-		var doc = this.docs[docId];
+		const doc = this.docs[docId];
 		delete this.docs[docId];
 		doc.destroy();
 
@@ -280,10 +294,10 @@ implements IWorkspace {
 		});
 	}
 
-	public beginOctaveRequest() {
+	public beginOctaveRequest(flavor: string) {
 		// Before actually performing the Octave request, ensure that
 		// pre-conditions are satisfied.
-		Async.auto({
+		Async.auto<BeginOctaveRequestAsyncAuto>({
 			user: (next) => {
 				if (this.shareKey && !this.user) {
 					User.findOne({ share_key: this.shareKey }, next);
@@ -293,50 +307,49 @@ implements IWorkspace {
 					});
 				}
 			},
-			ready: ["user", (next, {user}) => {
+			ready: ["user", ({user}, next) => {
 				this.user = user;
 				if (user) {
 					this.setWsId(user.parametrized);
-					this.log("Connecting to student:", user.consoleText);
+					this._log.info("Connecting to student:", user.consoleText);
 					this.emit("data", "userinfo", user);
 				} else if (!this.wsId) {
-					this.log("WARNING: Could not find student with share key", this.shareKey);
+					this._log.warn("WARNING: Could not find student with share key", this.shareKey);
 					this.emit("message", "Could not find the specified workspace.  Please check your URL and try again.");
 					this.emit("data", "destroy-u", "No Such Workspace");
 					return;
 				}
-				this.doBeginOctaveRequest();
+				this.doBeginOctaveRequest(flavor);
+				next(null);
 			}]
+		}, (err) => {
+			if (err) this._log.error("ASYNC ERROR", err);
 		});
 	}
 
-	private doBeginOctaveRequest() {
+	private doBeginOctaveRequest(flavor: string) {
 		Async.waterfall([
-			(next) => {
+			(next: (err: Err, sessCode: string) => void) => {
 				// Check if there is a sessCode in Redis already.
-				wsPushClient.get(IRedis.Chan.wsSess(this.wsId), next);
+				redisMessenger.getWorkspaceSessCode(this.wsId, next);
 			},
-			(sessCode: string, next) => {
+			(sessCode: string, next: (err: Err, sessCode: string, state: SessionState) => void) => {
 				if (this.destroyed) return;
 				this.sessCode = sessCode;
 
 				// Make sure that sessCode is still live.
-				OctaveHelper.getNewSessCode(sessCode, next);
+				octaveHelper.getNewSessCode(sessCode, next);
 			},
-			(sessCode:string, state:IRedis.SessionState, next) => {
+			(sessCode: string, state: SessionState, next: (err: Err, result: any) => void) => {
 				if (this.destroyed) return;
-				this.log("SessCode State:", state);
+				this._log.trace("SessCode State:", state);
 
 				// Ask Octave for a session if we need one.
-				if (state === IRedis.SessionState.Needed) {
-					// Perform a Compare-And-Swap operation (this is oddly not
-					// in core Redis, so a Lua script is required)
-					var casScript = 'local k=redis.call("GET",KEYS[1]); print(k); if k==false or k==ARGV[2] then redis.call("SET",KEYS[1],ARGV[1]); return {true,ARGV[1]}; end; return {false,k};';
-					wsPushClient.eval(casScript, 1, IRedis.Chan.wsSess(this.wsId),
-						sessCode, this.sessCode, next);
+				if (state === SessionState.Needed) {
+					redisMessenger.setWorkspaceSessCode(this.wsId, sessCode, this.sessCode, next);
 
 				// Request a file listing if we need one
-				} else if (state === IRedis.SessionState.Live) {
+				} else if (state === SessionState.Live) {
 					this.emit("sesscode", sessCode);
 					this.emit("data", "prompt", {});
 					this.emit("data", "files-ready", {});
@@ -347,87 +360,84 @@ implements IWorkspace {
 					this.emit("sesscode", sessCode);
 				}
 			},
-			([saved, sessCode], next) => {
+			(results: any[], next: (err: Err) => void) => {
+				const saved: boolean = results[0];
+				const sessCode: string = results[1];
 				if (!saved) return;
 				this.sessCode = sessCode;
 
 				// Our sessCode was accepted.
 				// Broadcast the new sessCode.
-				wsPushClient.publish(IRedis.Chan.wsSub(this.wsId),
-					JSON.stringify({
-						type: "sesscode",
-						data: sessCode
-					}), next);
+				redisMessenger.workspaceMsg(this.wsId, "sesscode", sessCode);
 				this.touch();
-			},
-			(_, next) => {
+
 				// Start the new Octave session.
-				this.log("Sending Octave Request for Shared Workspace");
-				OctaveHelper.askForOctave(this.sessCode, this.user, next);
+				this._log.info("Sending Octave Request for Shared Workspace");
+				octaveHelper.askForOctave(this.sessCode, {
+					user: this.user,
+					flavor
+				}, next);
 			}
 		], (err) => {
-			if (err) console.log("REDIS ERROR", err);
+			if (err) this._log.error("REDIS ERROR", err);
 		});
-	};
+	}
 
 	public subscribe() {
 		this.unsubscribe();
 
-		wsSessClient.on("pmessage", this.wsMessageListener);
+		wsSessClient.on("ws-sub", this.wsMessageListener);
 		this.touch();
-		this.touchInterval = setInterval(this.touch, Config.redis.expire.interval);
-		this.statsInterval = setInterval(this.recordStats, Config.ot.stats_interval);
+		this.touchInterval = setInterval(this.touch, config.redis.expire.interval);
+		this.statsInterval = setInterval(this.recordStats, config.ot.stats_interval);
 
-		var self = this;
-		this.forEachDoc(function(docId,doc){
+		this.forEachDoc((docId, doc) => {
 			doc.subscribe();
-			doc.on("data", self.onDataO);
+			doc.on("data", this.onDataO);
 		});
-	};
+	}
 
 	public unsubscribe() {
-		wsSessClient.removeListener("pmessage", this.wsMessageListener);
+		wsSessClient.removeListener("ws-sub", this.wsMessageListener);
 		clearInterval(this.touchInterval);
 		clearInterval(this.statsInterval);
 
-		var self = this;
-		this.forEachDoc(function(docId,doc){
+		this.forEachDoc((docId, doc) => {
 			doc.unsubscribe();
-			doc.off("data", self.onDataO);
+			doc.removeListener("data", this.onDataO);
 		});
-	};
+	}
 
 	private touch = () => {
 		if (!this.wsId) return;
-		// TODO: These "expire" calls on intervals should be buffered and sent to the server in batches, both here and in back_server_handler.ts
-		wsPushClient.expire(IRedis.Chan.wsSess(this.wsId), Config.redis.expire.timeout/1000, (err)=> {
-			if (err) console.log("REDIS ERROR", err);
-		});
+		redisMessenger.touchWorkspace(this.wsId);
 	};
 
 	//// SHARED WORKSPACE HANDLERS ////
 
-	private wsMessageListener = (pattern, channel, message) => {
-		var obj = IRedis.checkWsMessage(channel, message, this.wsId);
-		if (!obj || !obj.data) return;
+	private wsMessageListener = (wsId: string, type: string, data: any) => {
+		if (wsId !== this.wsId) return;
+		if (!data) return;
 
 		this.wsMessageCounter++;
 
-		switch(obj.type){
+		let i;
+
+		switch(type){
 			case "sesscode":
-				this.emit("sesscode", obj.data);
+				this.emit("sesscode", data);
 				break;
 
 			case "user-action":
-				var i = this.msgIds.indexOf(obj.data.id);
+				i = this.msgIds.indexOf(data.id);
 				if (i > -1) this.msgIds.splice(i, 1);
 				else {
-					this.emit("data", obj.data.name, obj.data.data);
+					this.emit("data", data.name as string, data.data);
 
 					// Special handlers for a few user actions
-					switch(obj.data.name){
+					switch(data.name){
 						case "ws.save":
-							this.resolveFileSave(obj.data.data, false, false);
+							this.resolveFileSave(data.data, false, false);
 							break;
 					}
 				}
@@ -441,8 +451,8 @@ implements IWorkspace {
 	// This function publishes selected actions into the Redis channel.
 	// Clients on the same channel will resolve those messages in their
 	// "wsMessageListener" function.
-	private onUserAction = (name, value) => {
-		var eventName, data;
+	private onUserAction = (name: string, value: any) => {
+		let eventName, data;
 
 		switch(name){
 			case "data":
@@ -459,35 +469,30 @@ implements IWorkspace {
 				return;
 		}
 
-		var msgId = Uuid.v4();
+		const msgId = Uuid.v4();
 		this.msgIds.push(msgId);
 
-		wsPushClient.publish(IRedis.Chan.wsSub(this.wsId), JSON.stringify({
-			type: "user-action",
-			data: {
-				id: msgId,
-				name: eventName,
-				data: data
-			}
-		}));
+		redisMessenger.workspaceMsg(this.wsId, "user-action", {
+			id: msgId,
+			name: eventName,
+			data: data
+		});
 	};
 
-	private onDataO = (name, value) => {
+	private onDataO = (name: string, value: any) => {
 		this.emit("data", name, value);
 	};
 
 	private recordStats = () => {
-		var opsReceivedTotal = 0, setContentTotal = 0;
+		let opsReceivedTotal = 0, setContentTotal = 0;
 		this.forEachDoc(function(docId,doc){
 			opsReceivedTotal += doc.opsReceivedCounter;
 			setContentTotal += doc.setContentCounter;
 		});
-		this.log("STATS:",
+		this._log.debug("STATS:",
 			this.otEventCounter, "OT events and",
 			this.wsMessageCounter, "WS messages and",
 			opsReceivedTotal, "operations received and",
 			setContentTotal, "calls to setContent");
 	}
-};
-
-export = SharedWorkspace;
+}

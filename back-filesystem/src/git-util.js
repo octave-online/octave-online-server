@@ -22,12 +22,10 @@
 
 const async = require("async");
 const child_process = require("child_process");
+const got = require("got");
 const logger = require("@oo/shared").logger;
-const path = require("path");
 const config = require("@oo/shared").config;
 const silent = require("@oo/shared").silent;
-
-const GIT_SSH_FILE = path.join(__dirname, "..", "git", "git_ssh.sh");
 
 class GitUtil {
 	constructor(gitDir, logMemo) {
@@ -128,7 +126,8 @@ class GitUtil {
 			(_next) => {
 				// Resolve merge conflicts by committing all the conflicts into the repository, and let the user manually fix the conflict next time the log in.
 				// This command can fail silently for the case when origin/master does not exist
-				child_process.execFile("git", ["merge", "--no-commit", "origin/master"], this.execOptions, silent(/not something we can merge/, silent(/.*/, _next)));
+				const mergeArgs = config.git.supportsAllowUnrelatedHistories ? ["merge", "--no-commit", "--allow-unrelated-histories", "origin/master"] : ["merge", "--no-commit", "origin/master"];
+				child_process.execFile("git", mergeArgs, this.execOptions, silent(/fix conflicts|not something we can merge/, _next).stdout);
 			},
 			(_next) => {
 				this._commit("Scripted merge", _next);
@@ -157,7 +156,7 @@ class GitUtil {
 				child_process.execFile("git", ["fetch", "--depth=1"], this.execOptions, silent(/no matching remote head/, _next));
 			},
 			(_next) => {
-				child_process.execFile("git", ["merge", "origin/master"], this.execOptions, silent(/not something we can merge/, silent(/.*/, _next)));
+				child_process.execFile("git", ["merge", "origin/master"], this.execOptions, silent(/not something we can merge/, _next));
 			},
 			(_next) => {
 				this._mlog.debug("Finished pull");
@@ -179,7 +178,7 @@ class GitUtil {
 			(_next) => {
 				// This command can safely fail silently for the case when there are no files to commit (in that case, the error is empty)
 				// Note that specifying --author here does not seem to work; I have to do -c ... instead
-				child_process.execFile("git", ["-c", `user.name="${config.git.author.name}"`, "-c", `user.email="${config.git.author.email}"`, "commit", "-m", message], this.execOptions, silent(/.*/, _next));
+				child_process.execFile("git", ["-c", `user.name="${config.git.author.name}"`, "-c", `user.email="${config.git.author.email}"`, "commit", "-m", message], this.execOptions, silent(/nothing to commit/, _next).stdout);
 			}
 		], next);
 	}
@@ -191,8 +190,14 @@ class GitUtil {
 				_next();
 			},
 			(_next) => {
-				// This command can safely fail silently for the case when the remote repo already exists
-				child_process.execFile(GIT_SSH_FILE, [`${config.git.helperUser}@${config.git.hostname}`, `./create_repo.sh '${user.parametrized}'`], this.execOptions, silent(/File exists/, _next));
+				got(`http://${config.git.hostname}:${config.git.createRepoPort}`, {
+					searchParams: {
+						type: "repos",
+						name: user.parametrized
+					}
+				}).then(() => {
+					_next();
+				}).catch(_next);
 			}
 		], next);
 	}
@@ -204,18 +209,24 @@ class GitUtil {
 				_next();
 			},
 			(_next) => {
-				// In this case, the command failing is desirable behavior, right?
-				child_process.execFile(GIT_SSH_FILE, [`${config.git.helperUser}@${config.git.hostname}`, `./create_bucket.sh '${bucketId}'`], this.execOptions, _next);
+				got(`http://${config.git.hostname}:${config.git.createRepoPort}`, {
+					searchParams: {
+						type: "buckets",
+						name: bucketId
+					}
+				}).then(() => {
+					_next();
+				}).catch(_next);
 			}
 		], next);
 	}
 
 	_userToRemote(user) {
-		return `git@${config.git.hostname}:repos/${user.parametrized}.git`;
+		return `git://${config.git.hostname}:${config.git.gitDaemonPort}/repos/${user.parametrized}.git`;
 	}
 
 	_bucketToRemote(bucketId) {
-		return `git@${config.git.hostname}:buckets/${bucketId}.git`;
+		return `git://${config.git.hostname}:${config.git.gitDaemonPort}/buckets/${bucketId}.git`;
 	}
 }
 

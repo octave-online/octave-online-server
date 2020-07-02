@@ -42,8 +42,7 @@ require.config({
 		"analytics": [
 			"https://www.google-analytics.com/analytics",
 			"http://www.google-analytics.com/analytics",
-			"https://cdn.octave-online.com/analytics-dummy",
-			"http://cdn.octave-online.com/analytics-dummy"
+			"/js-default/analytics"
 		],
 		"webfont": [
 			"https://ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont",
@@ -53,7 +52,11 @@ require.config({
 		"persona": [
 			"https://login.persona.org/include",
 			"/js-default/persona"
-		]
+		],
+		"recaptcha": [
+			"https://www.recaptcha.net/recaptcha/api",
+			"/js-default/recaptcha"
+		],
 	},
 	shim:{
 		"twitter": {
@@ -98,6 +101,11 @@ require(["js/anal"], function(anal){
 // Load DejaVu Sans Mono (lower priority)
 setTimeout(function(){
 	require.css("fonts/dejavusansmono_book/stylesheet.css");
+}, 250);
+
+// Load ReCAPTCHA (lower priority)
+setTimeout(function(){
+	require(["recaptcha"]);
 }, 250);
 
 // Load Social Bloatware (lowest priority)

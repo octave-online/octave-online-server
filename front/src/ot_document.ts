@@ -18,62 +18,58 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-///<reference path='typedefs/ot.d.ts'/>
+import { EventEmitter } from "events";
 
-import Redis = require("redis");
-import EventEmitter2 = require("eventemitter2");
 import Ot = require("ot");
-import IRedis = require("./typedefs/iredis");
 import Uuid = require("uuid");
-import Crypto = require("crypto");
-import Fs = require("fs");
-import Config = require("./config");
 
-// Load the Lua scripts
-var otApplyScript = Fs.readFileSync("src/ot.lua", { encoding: "utf8" });
-otApplyScript += Fs.readFileSync("src/ot_apply.lua", { encoding: "utf8" });
-otApplyScript = otApplyScript.replace(/function/g, "local function");
-var otApplySha1 = Crypto.createHash("sha1").update(otApplyScript).digest("hex");
+import { config, newRedisMessenger, logger, ILogger } from "./shared_wrap";
 
-var otSetScript = Fs.readFileSync("src/ot_set.lua", { encoding: "utf8" });
-var otSetSha1 = Crypto.createHash("sha1").update(otSetScript).digest("hex");
+type Err = Error|null;
 
 // Make Redis connections for OT
-var otOperationClient = IRedis.createClient();
-var otListenClient = IRedis.createClient();
-otListenClient.psubscribe(IRedis.Chan.otSub("*"));
+const redisMessenger = newRedisMessenger();
+redisMessenger.enableOtScriptsSync();
+const otListenClient = newRedisMessenger();
+otListenClient.subscribeToOtMsgs();
 
 // A single workspace could account for 50 or more listeners, because each document listens on the same connection.
 otListenClient.setMaxListeners(200);
 
-class OtDocument extends EventEmitter2.EventEmitter2{
-	private id:string;
-	private chgIds:string[] = [];
-	private crsIds:string[] = [];
-	private touchInterval;
+export class OtDocument extends EventEmitter {
+	private id: string;
+	private chgIds: string[] = [];
+	private crsIds: string[] = [];
+	private touchInterval: any;
+	private _log: ILogger;
 	public opsReceivedCounter = 0;
 	public setContentCounter = 0;
 
-	constructor (id:string) {
+	constructor (id: string, safeId: string) {
 		super();
 		this.id = id;
+		this._log = logger("ot-doc:" + safeId) as ILogger;
 		this.load();
+	}
+
+	public logFilename(filename: string) {
+		this._log.trace("Filename:", filename);
 	}
 
 	public subscribe() {
 		this.unsubscribe();
 
-		otListenClient.on("pmessage", this.otMessageListener);
+		otListenClient.on("ot-sub", this.otMessageListener);
 		this.touch();
-		this.touchInterval = setInterval(this.touch, Config.ot.document_expire.interval);
+		this.touchInterval = setInterval(this.touch, config.ot.document_expire.interval);
 	}
 
 	public unsubscribe() {
-		otListenClient.removeListener("pmessage", this.otMessageListener);
+		otListenClient.removeListener("ot-sub", this.otMessageListener);
 		clearInterval(this.touchInterval);
 	}
 
-	public dataD(name:string, value:any) {
+	public dataD(name: string, value: any) {
 		if (this.id !== value.docId) return;
 
 		switch(name){
@@ -90,69 +86,47 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 		}
 	}
 
-	public changeDocId(newDocId:string) {
+	public changeDocId(newDocId: string) {
 		if (this.id === newDocId) return;
 
-		var oldDocId = this.id;
+		const oldDocId = this.id;
 		this.id = newDocId;
 
 		// Note that multiple clients may all demand the rename simultaneously.
 		// This shouldn't be a problem, as long as at least one of them succeeds.
-		var multi = otOperationClient.multi();
-		multi.rename(IRedis.Chan.otOps(oldDocId), IRedis.Chan.otOps(newDocId));
-		multi.rename(IRedis.Chan.otDoc(oldDocId), IRedis.Chan.otDoc(newDocId));
-		multi.rename(IRedis.Chan.otSub(oldDocId), IRedis.Chan.otSub(newDocId));
-		multi.rename(IRedis.Chan.otCnt(oldDocId), IRedis.Chan.otCnt(newDocId));
-		multi.exec((err) => {
-			if (err) console.log("REDIS ERROR in changeDocId", err);
-		});
+		redisMessenger.changeOtDocId(oldDocId, newDocId);
 	}
 
 	public destroy() {
 		// Same note as above about (many clients performing this simultaneously)
-		var multi = otOperationClient.multi();
-		multi.del(IRedis.Chan.otOps(this.id));
-		multi.del(IRedis.Chan.otDoc(this.id));
-		multi.del(IRedis.Chan.otSub(this.id));
-		multi.del(IRedis.Chan.otCnt(this.id));
-		multi.exec((err) => {
-			if (err) console.log("REDIS ERROR in changeDocId", err);
-		});
+		redisMessenger.destroyOtDoc(this.id);
 	}
 
 	private load() {
-		var multi = otOperationClient.multi();
-		multi.get(IRedis.Chan.otCnt(this.id));
-		multi.get(IRedis.Chan.otDoc(this.id));
-		multi.exec((err, res) => {
-			if (err) console.log("REDIS ERROR", err);
+		redisMessenger.loadOtDoc(this.id, (err: Err, rev: number, content: string) => {
+			if (err) this._log.error("REDIS ERROR", err);
 			else {
 				this.emit("data", "ot.doc", {
 					docId: this.id,
-					rev: res[0] || 0,
-					content: res[1] || ""
+					rev,
+					content
 				});
 			}
 		});
-	};
+	}
 
 	private touch() {
-		var multi = otOperationClient.multi();
-		multi.expire(IRedis.Chan.otCnt(this.id), Config.ot.document_expire.timeout/1000);
-		multi.expire(IRedis.Chan.otDoc(this.id), Config.ot.document_expire.timeout/1000);
-		multi.exec((err) => {
-			if (err) console.log("REDIS ERROR", err);
-		});
-	};
+		redisMessenger.touchOtDoc(this.id);
+	}
 
-	private otMessageListener = (pattern, channel, message) => {
-		var obj = IRedis.checkOtMessage(channel, message, this.id);
-		if (!obj) return;
+	private otMessageListener = (docId: string, obj: any) => {
+		if (docId !== this.id) return;
 
+		let i;
 		switch(obj.type){
 			case "cursor":
 				if (!obj.data) return;
-				var i = this.crsIds.indexOf(obj.data.id);
+				i = this.crsIds.indexOf(obj.data.id);
 				if (i > -1) this.crsIds.splice(i, 1);
 				else this.emit("data", "ot.cursor", {
 					docId: this.id,
@@ -162,7 +136,7 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 
 			case "operation":
 				if (!obj.chgId || !obj.ops) return;
-				var i = this.chgIds.indexOf(obj.chgId);
+				i = this.chgIds.indexOf(obj.chgId);
 				if (i > -1) {
 					this.chgIds.splice(i, 1);
 					this.emit("data", "ot.ack", {
@@ -174,107 +148,67 @@ class OtDocument extends EventEmitter2.EventEmitter2{
 						ops: obj.ops
 					});
 				}
+				break;
 
 			default:
 				break;
 		}
 	};
 
-	private onOtChange = (obj) => {
+	private onOtChange = (obj: any) => {
 		if (!obj
 			|| typeof obj.op === "undefined"
 			|| typeof obj.rev === "undefined")
 			return;
 
-		var op = Ot.TextOperation.fromJSON(obj.op);
+		const op = Ot.TextOperation.fromJSON(obj.op);
 		this.receiveOperation(obj.rev, op);
 	};
 
-	private onOtCursor = (obj) => {
+	private onOtCursor = (obj: any) => {
 		if (!obj || !obj.cursor) return;
 
-		var crsId = Uuid.v4();
+		const crsId = Uuid.v4();
 		this.crsIds.push(crsId);
-		otOperationClient.publish(IRedis.Chan.otSub(this.id), JSON.stringify({
+		redisMessenger.otMsg(this.id, {
 			type: "cursor",
 			data: {
 				id: crsId,
 				cursor: obj.cursor
 			}
-		}));
+		});
 	};
 
-	private receiveOperation(rev:number, op:Ot.ITextOperation) {
-		var ops_key = IRedis.Chan.otOps(this.id);
-		var doc_key = IRedis.Chan.otDoc(this.id);
-		var sub_key = IRedis.Chan.otSub(this.id);
-		var cnt_key = IRedis.Chan.otCnt(this.id);
-		var chgId = Uuid.v4();
+	private receiveOperation(rev: number, op: Ot.ITextOperation) {
+		const chgId = Uuid.v4();
 
-		var message: IRedis.OtMessage = {
+		this._log.trace("Applying operation", rev, chgId);
+
+		const message = {
 			type: "operation",
 			docId: this.id,
 			chgId: chgId,
 			ops: op.toJSON()
-		}
+		};
 
 		this.chgIds.push(chgId);
-		this.runRedisScript(otApplyScript, otApplySha1, [
-			4, ops_key, doc_key, sub_key, cnt_key,
-			rev, JSON.stringify(message), Config.ot.operation_expire/1000,
-			Config.ot.document_expire.timeout/1000
-		]);
+		redisMessenger.applyOtOperation(this.id, rev, message);
 		this.opsReceivedCounter++;
 	}
 
-	public setContent(content:string, overwrite:boolean) {
-		var ops_key = IRedis.Chan.otOps(this.id);
-		var doc_key = IRedis.Chan.otDoc(this.id);
-		var sub_key = IRedis.Chan.otSub(this.id);
-		var cnt_key = IRedis.Chan.otCnt(this.id);
-		var chgId = Uuid.v4();
+	public setContent(content: string, overwrite: boolean) {
+		const chgId = Uuid.v4();
 
-		var message: IRedis.OtMessage = {
+		this._log.trace("Setting content", content.length, overwrite);
+
+		const message = {
 			type: "operation",
 			docId: this.id,
 			chgId: chgId
-		}
+		};
 
-		// note: don't push chgId to this.chgIds so that the operation reply gets
-		// sent to our own client
-		this.runRedisScript(otSetScript, otSetSha1, [
-			4, ops_key, doc_key, sub_key, cnt_key,
-			content, JSON.stringify(message), Config.ot.operation_expire/1000,
-			Config.ot.document_expire.timeout/1000, (overwrite?"overwrite":"retain")
-		]);
+		// note: don't push chgId to this.chgIds so that the operation reply gets sent to our own client
+		redisMessenger.setOtDocContent(this.id, content, overwrite, message);
 		this.setContentCounter++;
 	}
-
-	private runRedisScript(script:string, sha1:string, args:any[], cb?:(res:any)=>void) {
-
-		var cb2 = function(err2, res2){
-			if (err2) return console.log("REDIS ERROR", err2);
-			if (cb) return cb(res2);
-		}
-
-		var args2 = (<any[]>[script]).concat(args).concat([cb2]);
-
-		var cb1 = function(err1, res1){
-			if (!err1) {
-				if (cb) return cb(res1);
-				else return;
-			}
-			if (!/NOSCRIPT/.test(err1.message)) {
-				return console.log("REDIS ERROR", err1);
-			}
-			console.log("Falling back to EVAL");
-			otOperationClient.eval.apply(otOperationClient, args2);
-		}
-
-		var args1 = (<any[]>[sha1]).concat(args).concat([cb1]);
-
-		otOperationClient.evalsha.apply(otOperationClient, args1);
-	}
 }
-
-export = OtDocument;

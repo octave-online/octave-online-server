@@ -36,7 +36,9 @@ class ProcessHandler extends StdioMessenger {
 		async.series([
 			(_next) => {
 				// Spawn the process
-				this._spwn = fn.apply(this, Array.prototype.slice.call(arguments, 2));
+				let args = Array.prototype.slice.call(arguments, 2);
+				this._mlog.trace("Spawning process:", args[0], args[1].join(" "), args[2]);
+				this._spwn = fn.apply(this, args);
 
 				// Create all unexpected error listeners
 				this._spwn.on("error", (err) => { this._log.error("spwn:", err); });
@@ -74,11 +76,16 @@ class ProcessHandler extends StdioMessenger {
 		});
 	}
 
-	_doDestroy(/* next */) {
+	_doDestroy(next) {
 		// This method wont't be called unless the process state is ONLINE, so we don't need to check.
-		// We can ignore the "next" callback because it will be implicitly called by _handleExit()
-		this._log.trace("Sending SIGTERM");
-		this._signal("SIGTERM");
+		if (this._spwn) {
+			// We can ignore the "next" callback because it will be implicitly called by _handleExit()
+			this._mlog.trace("this._spwn exists");
+			this._doDestroyProcess();
+		} else {
+			this._mlog.trace("this._spwn does not exist");
+			next(null);
+		}
 	}
 
 	signal(name) {
@@ -101,6 +108,7 @@ class ProcessHandler extends StdioMessenger {
 
 	_handleExit(code, signal) {
 		this._log.debug("Process Exit:", code, signal);
+		this._spwn = null;
 		this.emit("message", "process-exit", { code, signal });
 		this._internalDestroyed(null);
 

@@ -1,0 +1,50 @@
+<%#
+Copyright © 2020, Octave Online LLC
+
+This file is part of Octave Online Server.
+
+Octave Online Server is free software: you can redistribute it and/or
+modify it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the License,
+or (at your option) any later version.
+
+Octave Online Server is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with Octave Online Server.  If not, see
+<https://www.gnu.org/licenses/>.
+%>
+
+<%- include("partials/header"); -%>
+
+<h2>Search for User</h2>
+
+<form action="/users/" class="pure-form">
+	<p>
+		<textarea name="mq" class="pure-input-1">{ "email": { "$regex": "___" } }</textarea>
+	</p>
+	<p>
+		<input type="submit" class="pure-button" value="Search" />
+	</p>
+</form>
+
+<hr/>
+
+<form action="/create.do" method="post" class="pure-form">
+	<p>
+		<textarea name="document" class="pure-input-1" rows="7">{
+	"email": "___",
+	"profile": {
+		"method": "administrative"
+	}
+}</textarea>
+	</p>
+	<p>
+		<input type="submit" class="pure-button" value="Create New User" />
+	</p>
+</form>
+
+<%- include("partials/footer"); -%>

@@ -50,6 +50,7 @@ redis: {
 	expire: {
 		interval: 5000
 		timeout: 16000
+		timeoutShort: 6000
 	}
 	maxPayload: 10000
 }
@@ -61,10 +62,92 @@ mongo: {
 	db: oo
 }
 
+# Email SaaS settings
+email: {
+	# The email provider should be either "mailgun" or "postmark".
+	provider: mailgun
+
+	# Default headers for sending email
+	from: Octave Online Server <example@example.com>
+
+	# productName and supportUrl are used only for postmark
+	productName: Octave Online Server
+	supportUrl: http://localhost/
+}
+
 # Mailgun connection info
 mailgun: {
 	api_key: xxxxxxxxx
 	domain: localhost
+}
+
+# Postmark connection info
+postmark: {
+	serverToken: xxxx-xxxx-xxxx
+	# Postmark is configured to send email using a template. Please create a template in Postmark with the fields product_name, token_string, action_url, and support_url.
+	templateAlias: xxxxxxxxx
+}
+
+# ReCAPTCHA connection info
+recaptcha: {
+	siteKey: xxxxxxxxx
+	secretKey: xxxxxxxxx
+}
+
+# Patreon info
+patreon: {
+	client_id: xxxxxxxxx
+	client_secret: xxxxxxxxx
+	redirect_url: http://localhost/auth/patreon/callback
+	# Send webhooks to /auth/patreon/webhook
+	webhook_secret: xxxxxxxxx
+	# A secret used for encoding the state to authenticate OAuth requests (make up a custom string)
+	state_secret: xxxxxxxxx
+	state_max_token_age: 1800000
+	# Where to redirect the user if they link Patreon and aren't already a member
+	login_redirect: https://www.patreon.com/bePatron?u=xxxxxxxxx&redirect_uri=http%3A%2F%2Flocalhost%2Fauth%2Fpatreon
+
+	# A mapping from Patreon tiers to Octave Online Server tiers. Multiple Patreon tiers can map to the same Octave Online tier.
+	# Four tier names are supported with icon assets: "root", "plus", "times", and "exp".
+	# Example: Patreon tier with ID "12345" has vanity name "plus" and maps to the Octave Online "vip" tier.
+	tiers: {
+		# "12345": {
+		# 	name: plus
+		# 	oo_tier: vip
+		# }
+	}
+}
+
+# Rackspace connection info
+rackspace: {
+	username: xxxxxxxxx
+	api_key: xxxxxxxxx
+	identity_base_url: https://identity.api.rackspacecloud.com/v2.0/
+	# Fill in the following with the region as xxx and the tenant ID as yyy
+	servers_base_url: https://xxx.servers.api.rackspacecloud.com/v2/yyy/
+	# The personality filename to send metadata to the instance
+	personality_filename: /etc/oo-personality.json
+}
+
+# GCP connection info
+gcp: {
+	key_filename: false
+	zone: us-central1-f
+	instance_group_name: xxxxxxxxx
+	instance_group_removal_method: abandon
+	health_check_port: 3030
+}
+
+# StatsD connection info
+statsd: {
+	hostname: localhost
+	port: 8125
+}
+
+# Gith server connection info (for git-http-backend and php-fpm)
+# TODO: Consider making the service ports configurable.
+gith: {
+	hostname: localhost
 }
 
 # # # # # # # # # # # # # # # #
@@ -95,10 +178,18 @@ worker: {
 		max: 2500
 	}
 	maxSessions: 12
+	# clockStrategy:
+	#   - random = randomly choose a delay between clockInterval.min and clockInterval.max
+	#   - weighted = choose a shorter delay if there are fewer online sessions, and a longer delay if there are more online sessions
+	clockStrategy: random
 
 	# PERMISSIONS
 	# uid to use for file ownership; set this to the uid of the user running Octave.
 	uid: 1000
+
+	# SESSION HANDLING
+	# When set to "destroy" (default), destroy sessions immediately when the client disconnects.  When set to "ignore", don't destroy sessions immediately, and let them be cleaned up when they expire (see redis.expire).  When set to "expireShort", set the expire timeout to config.redis.expire.timeoutShort and then ignore.
+	onDisconnect: destroy
 }
 
 # Octave session settings
@@ -117,10 +208,11 @@ session: {
 	countdownExtraTime: 15000
 	countdownRequestTime: 3000
 	countdownRequestTimeBuffer: 1000
-	# timeoutTime is the amount of time a session is allowed to be idle before it is terminated by the server due to inactivity.
 	# timewarnTime is when to display the warning message in timewarnMessage that the session will be terminated soon.
-	timeoutTime: 1200000
-	timewarnTime: 900000
+	# timeoutTime is the amount of time a session is allowed to be idle before it is terminated by the server due to inactivity.
+	# 10 min, 15 min
+	timewarnTime: 600000
+	timeoutTime: 900000
 	timewarnMessage: 'NOTICE: Due to inactivity, your session will expire in five minutes.'
 
 	# DATA SIZE LIMITS
@@ -139,15 +231,17 @@ session: {
 	# jsonMaxMessageLength is a hard ceiling on the amount of data that the GNU Octave process can send per message to the Octave Online session host process.  This sometimes manifests itself in errors involving plot images that are oversize.
 	jsonMaxMessageLength: 1000000
 
-	# URLREAD DOMAIN WHITELISTING
+	# URLREAD
 	# For security, all HTTP requests from Octave processes (e.g., via the function urlread) are blocked by Octave Online Server by default.  This whitelist determines regular expression patterns to match against domain names to allow requests to those domains to pass through.
 	urlreadPatterns: [
 		^example\.com$
 		^(.*\.)?coursera\.org$
 	]
+	# urlreadMaxBytes is the maximum file size of URLs read from urlread/urlwrite. These bytes have to be piped between Node and Octave, similar to plot images but in the other direction.
+	urlreadMaxBytes: 5000000
 
 	# OCTAVE SESSION HOST IMPLEMENTATION
-	# Choices: "selinux" or "docker".
+	# Choices: "selinux", "docker", and "unsafe".
 	# Refer to the README file for more details.
 	implementation: docker
 }
@@ -162,6 +256,10 @@ sessionManager: {
 	poolInterval: 5000
 	# Maximum time that a session can use to start up (ms); above this, the session will be destroyed before it reaches the pool.
 	startupTimeLimit: 30000
+	# Tier-dependent override to select a different pool than the tier name. Set to false to use the tier name as the pool name.
+	poolTier: false
+	# Tier-dependent boost to give sessions in the queue (used on front server).
+	queueBoostTime: 0
 }
 
 # Server auto-maintenance settings
@@ -177,19 +275,23 @@ maintenance: {
 
 # Git file server settings
 git: {
-	# Hostname for the git file server; the user running the process should have SSH access to the Git repositories.  You may need to do SSH configurations outside of Octave Online Server for this to work.
+	# Hostname for the git file server; it is expected that this server exposes a Git daemon (git:// protocol) on default port 9418 and the create-repo service on default port 3003 (see back-filesystem/README.md).
 	hostname: localhost
 	# Author as shown in commit messages.
 	author: {
 		name: Octave Online Server
 		email: localhost@localhost
 	}
-	# User on the Git server with permissions to create new repositories.
-	helperUser: git
+	gitDaemonPort: 9418
+	createRepoPort: 3003
 	# Time limit for committing to Git; if the time limit is exceeded, the commit is aborted.
 	commitTimeLimit: 30000
 	# Interval (in ms) for committing without the user having to request; behaves like an "auto-save" where changes to script files are persisted to the Git server.
 	autoCommitInterval: 300000
+	# Base URL of the HTTP frontend for the Git file server
+	httpUrl: http://localhost/
+	# Set this to false if your git version does not support "--allow-unrelated-histories" (before Git 2.9)
+	supportsAllowUnrelatedHistories: true
 }
 
 # Docker implementation settings
@@ -208,15 +310,92 @@ docker: {
 # SELinux implementation settings
 selinux: {
 	cgroup: {
+		# Name of the CGroup to create and use for Octave processes
 		name: oo/octave
-		cpuShares: 128
-		cpuQuota: 800000
-		uid: oo
-		gid: oo
+		# Configuration to mirror in /etc/cgconfig.d/oo.conf
+		conf:
+			'''
+			group oo/octave {
+				perm {
+					admin {
+						uid = root;
+						gid = root;
+					}
+					task {
+						uid = oo;
+						gid = oo;
+					}
+				}
+				cpu {
+					cpu.shares = 128;
+					cpu.cfs_period_us = 10000;
+					cpu.cfs_quota_us = 8000;
+				}
+			}
+			'''
 	}
 	prlimit: {
+		# The amount of memory (address space) available to an Octave process. The default is 1GB. Note that the Octave runtime counts against the address space; it consumes in the ballpark of ~250MB, leaving the other 750MB to the user.
 		addressSpace: 1000000000
 	}
+}
+
+# Tier settings
+# Tiers allow you to customize a number of different settings for different groups of users.  For example, this could be used to implement a free tier and a paid tier, where the paid tier gets more resources.
+# A default tier, named _default, is always available.
+# The following settings are customizable by tier:
+#  - sessionManager.poolSize
+#  - sessionManager.poolTier
+#  - sessionManager.queueBoostTime
+#  - selinux.cgroup.name
+#  - selinux.prlimit.addressSpace
+#  - session.legalTime.user
+#  - session.payloadLimit.user
+#  - session.countdownExtraTime
+#  - session.countdownRequestTime
+#  - session.timewarnTime
+#  - session.timeoutTime
+tiers: {
+	# Default tier: no settings need to be customized.
+	_default: {}
+
+	# Maxima tier: set limits to very high values.
+	_maxima: {
+		sessionManager.poolSize: 1
+		selinux.prlimit.addressSpace: -1
+		# 15 min, 10 min, 5 min, 16 min, 21 min
+		session.legalTime.user: 900000
+		session.countdownExtraTime: 600000
+		session.countdownRequestTime: 300000
+		session.timewarnTime: 960000
+		session.timeoutTime: 1260000
+	}
+
+	# Example custom tier: a tier named "vip" that gets additional memory (4GB)
+	# vip: {
+	# 	selinux.prlimit.addressSpace: 4000000000
+	# }
+}
+
+# Flavor settings
+# Flavors are different server configurations where an entire custom server spins up to handle a session.  The code currently handles this feature only on the Rackspace cloud.
+flavors: {
+	# Example custom flavor: named "basic" and mapped to the Rackspace flavor "memory1-15"
+	# basic: {
+	# 	rackspaceFlavor: memory1-15
+	# 	# The image UUID to use when spinning up flavor servers
+	# 	image_uuid: xxxx-xxxx-xxxx
+	# 	# The UUID of the private network to which to add this server
+	# 	network_uuid: xxxx-xxxx-xxxx
+	# }
+}
+
+# Settings common to all flavors; may be overriden by custom flavors
+flavorCommon: {
+	defaultClusterSize: 2
+	idleTime: 600000
+	statusInterval: 300000
+	blockVolume: true
 }
 
 # # # # # # # # # # # # # # # #
@@ -231,9 +410,14 @@ auth: {
 	}
 	easy: {
 		secret: xxxxxxxxx
+		max_token_age: 900000
 	}
 	password: {
 		salt_rounds: 10
+	}
+	utils_admin: {
+		users: {
+		}
 	}
 }
 
@@ -258,6 +442,14 @@ front: {
 		secret: xxxxxxxxx
 		max_age: 7889231400  # (3 months)
 	}
+
+	# OTHER OPTIONS
+	# Timeout (in ms) for logging status of flavor servers.
+	flavor_log_interval: 60000
+	# Socket.io path. There may be situations where you need to change this, such as when performing server upgrades.
+	socket_io_path: /socket.io
+	# Whether to redirect HTTP to HTTPS in Express
+	require_https: false
 }
 
 # Operational Transformation settings
@@ -298,6 +490,7 @@ client: {
 	#   - "returning" => show the message to returning users only (those who have dismissed the onboarding screen); this could announce new feature to existing users, for example.  This setting only works if onboarding is set to true
 	#   - "off" => disable the announcement screen
 	# Tip: the announcement can be enabled or disabled using the "grunt index" command, which is faster than a full "grunt" and also does not invalidate JS/CSS caching.
+	# Note: If the environment variables OO_ANNOUNCEMENT_DISPLAY and OO_ANNOUNCEMENT_HTML are set during the grunt build, they will be used instead of the settings below.
 	announcement_display: "off"
 	# Use the following variable to control the HTML shown in the announcement box.
 	announcement_html:

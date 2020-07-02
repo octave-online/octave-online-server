@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018, Octave Online LLC
+ * Copyright © 2019, Octave Online LLC
  *
  * This file is part of Octave Online Server.
  *
@@ -22,8 +22,17 @@
 
 // Centralized logger definition for most OO projects.
 
+let writeStackdriverLog = function() {};
+
+try {
+	const stackdriver = require("@oo/shared_stackdriver");
+	writeStackdriverLog = stackdriver.writeLog;
+} catch(err) {
+	// Don't log to stackdriver
+}
+
 // Use debug-logger with all logs going to stderr
-const logger = require("debug-logger").config({
+const debugLogger = require("debug-logger").config({
 	levels: {
 		trace: { fd: 2 },
 		debug: { fd: 2 },
@@ -34,4 +43,43 @@ const logger = require("debug-logger").config({
 	}
 });
 
-module.exports = logger;
+module.exports = function(id) {
+	const impl = debugLogger("oo:" + id);
+	return {
+		/** Trace: low-level operational details */
+		trace: (...args) => {
+			impl.trace(...args);
+			// don't log to stackdriver
+		},
+
+		/** Debug: information related to app health */
+		debug: (...args) => {
+			impl.debug(...args);
+			writeStackdriverLog("debug", id, args);
+		},
+
+		/** Log: uncategorized messages from another source */
+		log: (...args) => {
+			impl.log(...args);
+			// don't log to stackdriver
+		},
+
+		/** Info: changes to an application state */
+		info: (...args) => {
+			impl.info(...args);
+			writeStackdriverLog("info", id, args);
+		},
+
+		/** Warn: unusual state, but not an error */
+		warn: (...args) => {
+			impl.warn(...args);
+			writeStackdriverLog("warning", id, args);
+		},
+
+		/** Error: unexpected state */
+		error: (...args) => {
+			impl.error(...args);
+			writeStackdriverLog("error", id, args);
+		},
+	};
+};

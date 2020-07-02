@@ -107,6 +107,17 @@ define(["jquery", "js/anal", "jquery.cookie", "js/utils"], function($, anal){
 			// Delete the cookie
 			$.cookie("oo_onboarding_complete", null);
 		},
+		showUserPromo: function(data) {
+			// Show tier upgrade screen the first time the user makes a pledge
+			if (data.patreon && data.patreon.currently_entitled_amount_cents > 0) {
+				if(!$.cookie("oo_new_upgrade_dismissed")){
+					$("#upgrade_to_tier").showSafe();
+					$.cookie("oo_new_upgrade_dismissed", "true", {
+						expires: MIN_TIME
+					});
+				}
+			}
+		},
 		showSyncPromo: function(){
 			// Set up the Octave Online Sync onboarding
 			if(!$.cookie("oo_sync_promo_dismissed")){

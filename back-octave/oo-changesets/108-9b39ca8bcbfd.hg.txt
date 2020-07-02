@@ -1,0 +1,35 @@
+# HG changeset patch
+# User Octave Online <webmaster@octave-online.net>
+# Date 1555656254 0
+#      Fri Apr 19 06:44:14 2019 +0000
+# Branch stable
+# Node ID 9b39ca8bcbfd5398e342a6d8f9f81ac06069307b
+# Parent  abdfdd6f14cc4063475c5968c4623b3ebd0cddde
+Minor gnuplot plotting fixes.
+
+diff -r abdfdd6f14cc -r 9b39ca8bcbfd scripts/plot/appearance/legend.m
+--- a/scripts/plot/appearance/legend.m	Thu Jan 04 05:39:01 2018 -0600
++++ b/scripts/plot/appearance/legend.m	Fri Apr 19 06:44:14 2019 +0000
+@@ -563,8 +563,8 @@
+           old_hplots = [ get(hlegend, "deletefcn"){6:end} ];
+         endif
+         if (addprops)
+-          addproperty ("edgecolor", hlegend, "color", [0, 0, 0]);
+-          addproperty ("textcolor", hlegend, "color", [0, 0, 0]);
++          addproperty ("edgecolor", hlegend, "color", get(0, "defaultaxesxcolor"));
++          addproperty ("textcolor", hlegend, "color", get(0, "defaulttextcolor"));
+           locations = {"north", "south", "east", "west", ...
+                        "{northeast}", "southeast", "northwest", "southwest", ...
+                        "northoutside", "southoutside", ...
+diff -r abdfdd6f14cc -r 9b39ca8bcbfd scripts/plot/util/private/__gnuplot_draw_axes__.m
+--- a/scripts/plot/util/private/__gnuplot_draw_axes__.m	Thu Jan 04 05:39:01 2018 -0600
++++ b/scripts/plot/util/private/__gnuplot_draw_axes__.m	Fri Apr 19 06:44:14 2019 +0000
+@@ -2880,6 +2880,8 @@
+     else
+       cdata(:) = fix (255 / 2);
+     endif
++    ## OO PATCH
++    cdata = 1 + cdata * (cmap_sz-1)/255;
+   else
+     if (islogical (cdata))
+       cdata += 1;

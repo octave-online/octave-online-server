@@ -41,25 +41,39 @@ class FilesController extends EventEmitter {
 		this.workDir = workDir;
 		this.user = null;
 		this.bucketId = null;
+		this.ready = false;
+		this.destroyed = false;
 
 		this.fakeSocket = new FakeSocket();
 		this.fakeSocket.on("_emit", this._sendMessage.bind(this));
 		this._setupUploader();
 	}
 
+	// Returns whether Git operations are safe to perform.
+	// Check this.ready for whether file operations (without git) are safe.
 	_isInitialized() {
-		return this.user !== null || this.bucketId !== null;
+		return this.ready && (this.user !== null || this.bucketId !== null);
+	}
+
+	// Returns whether either "user-info" or "bucket-info" has been called
+	_isSetUp() {
+		return this.user || this.bucketId || this.ready;
 	}
 
 	receiveMessage(name, content) {
 		switch (name) {
 			case "user-info": {
+				if (this._isSetUp()) {
+					this._log.error("user-info called, but already set up:", content);
+					return;
+				}
 				this.user = content.user;
 				if (this.user) {
 					this._log.info("Received user:", this.user.consoleText);
 					this._legalTime = content.legalTime; // FIXME: For backwards compatibility
 				} else {
 					this._log.info("No user this session");
+					this.ready = true;
 					this._sendMessage("files-ready", {});
 					return;
 				}
@@ -69,6 +83,7 @@ class FilesController extends EventEmitter {
 						this.gitUtil.initialize(this.user, this.workDir, _next);
 					},
 					(results, _next) => {
+						this.ready = true;
 						this._sendMessage("files-ready", {});
 						_next(null);
 					},
@@ -80,8 +95,10 @@ class FilesController extends EventEmitter {
 						if (/unable to write file/.test(err.message)) {
 							return this._fail("filelist", "warn", `Whoops! You are currently exceeding your space limit of ${config.docker.diskQuotaKiB} KiB.\nPlease open a support ticket and we will help you resolve the\nissue. Sorry for the inconvenience!`);
 						} else {
-							this._log.error("Git Initialize Error:", err);
-							return this._fail("filelist", "warn", "Unable to load your files from the server: please try again.");
+							if (this._logError("initialize", err)) {
+								this._fail("filelist", "warn", "Unable to load your files from the server: please try again.");
+							}
+							return;
 						}
 					}
 					this._mlog.debug("User successfully initialized");
@@ -96,6 +113,10 @@ class FilesController extends EventEmitter {
 			}
 
 			case "bucket-info": {
+				if (this._isSetUp()) {
+					this._log.error("bucket-info called, but already set up:", content);
+					return;
+				}
 				this.bucketId = content.id;
 				this._legalTime = content.legalTime; // FIXME: For backwards compatibility
 				// If content.readonly is false, this request is for creating the bucket.  If content.readonly is true, this request is for reading from the bucket.
@@ -105,6 +126,7 @@ class FilesController extends EventEmitter {
 						this.gitUtil.initializeBucket(this.bucketId, this.workDir, content.readonly, _next);
 					},
 					(results, _next) => {
+						this.ready = true;
 						this._sendMessage("files-ready", {});
 						_next(null);
 					},
@@ -112,7 +134,7 @@ class FilesController extends EventEmitter {
 						this.workingUtil.listAll(_next);
 					}
 				], (err, fileData) => {
-					if (err) return this._log.error(err);
+					if (err) return this._logError("bucket", err);
 					this._mlog.debug("Bucket successfully initialized");
 					this._sendMessage("filelist", {
 						success: true,
@@ -125,14 +147,14 @@ class FilesController extends EventEmitter {
 			}
 
 			case "list": {
-				if (!this._isInitialized()) return this._mlog.debug("Won't perform action on uninitialized repository");
+				if (!this.ready) return this._mlog.warn("list: not ready");
 				this._mlog.debug("Listing files...");
 				async.waterfall([
 					(_next) => {
 						this.workingUtil.listAll(_next);
 					}
 				], (err, fileData) => {
-					if (err) return this._log.error(err);
+					if (err) return this._logError("list", err);
 					this._log.debug("Files successfully listed");
 					this._sendMessage("filelist", {
 						success: true,
@@ -145,7 +167,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "refresh": {
-				if (!this._isInitialized()) return this._mlog.debug("Won't perform action on uninitialized repository");
+				if (!this._isInitialized()) return this._mlog.warn("refresh: not initialized");
 				this._mlog.debug("Refreshing files...");
 				async.waterfall([
 					(_next) => {
@@ -155,7 +177,7 @@ class FilesController extends EventEmitter {
 						this.workingUtil.listAll(_next);
 					}
 				], (err, fileData) => {
-					if (err) return this._log.error(err);
+					if (err) return this._logError("refresh", err);
 					this._log.debug("Files successfully refreshed");
 					this._sendMessage("filelist", {
 						success: true,
@@ -167,7 +189,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "commit": {
-				if (!this._isInitialized()) return this._fail("committed", "debug", "Won't perform action on uninitialized repository");
+				if (!this._isInitialized()) return this._fail("committed", "warn", "Not initialized");
 				// NOTE: In a readonly repository (buckets), this is a no-op.
 				const comment = content.comment;
 				if (!comment) return this._fail("committed", "warn", "Empty comment:", comment);
@@ -185,6 +207,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "save": {
+				if (!this.ready) return this._fail("save", "warn", "Not ready");
 				const filename = content.filename;
 				const value = content.content;
 				this._mlog.debug("Saving file:", filename);
@@ -209,6 +232,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "rename": {
+				if (!this.ready) return this._fail("rename", "warn", "Not ready");
 				const oldname = content.filename;
 				const newname = content.newname;
 				if (!oldname || !newname) return this._fail("renamed", "warn", "Empty file name or new name:", oldname, newname);
@@ -226,6 +250,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "delete": {
+				if (!this.ready) return this._fail("delete", "warn", "Not ready");
 				const filename = content.filename;
 				if (!filename) return this._fail("deleted", "warn", "Empty file name:", filename);
 				this._mlog.debug("Deleting file:", filename);
@@ -248,6 +273,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "binary": {
+				if (!this.ready) return this._mlog.warn("binary: not ready");
 				const filename = content.filename;
 				if (!filename) return this._fail("binary", "warn", "Empty file name:", filename);
 				this._mlog.debug("Loading binary file:", filename);
@@ -269,6 +295,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "read-delete-binary": {
+				if (!this.ready) return this._mlog.warn("read-delete-binary: not ready");
 				const filename = content.filename;
 				if (!filename) return this._fail("deleted-binary", "warn", "Empty file name:", filename);
 				this._mlog.debug("Loading and deleting binary file:", filename);
@@ -294,6 +321,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "multi-binary": {
+				if (!this.ready) return this._mlog.warn("multi-binary: not ready");
 				const filenames = content.filenames;
 				const responseName = "multi-binary:" + content.id;
 				if (!Array.isArray(filenames)) return this._fail(responseName, "warn", "Invalid filename array:", filenames);
@@ -319,6 +347,7 @@ class FilesController extends EventEmitter {
 			}
 
 			case "save-multi-binary": {
+				if (!this.ready) return this._mlog.warn("save-multi-binary: not ready");
 				const filenames = content.filenames;
 				const base64datas = content.base64datas;
 				const responseName = "multi-binary-saved:" + content.id;
@@ -343,6 +372,20 @@ class FilesController extends EventEmitter {
 				this.fakeSocket.trigger(name, content);
 				break;
 			}
+		}
+	}
+
+	destroy() {
+		this.destroyed = true;
+	}
+
+	_logError(context, err) {
+		if (this.destroyed) {
+			this._mlog.trace("Ignoring git error:", context, err);
+			return false;
+		} else {
+			this._log.error(context, err);
+			return true;
 		}
 	}
 

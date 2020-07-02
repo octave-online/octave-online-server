@@ -29,17 +29,25 @@ For more details on operating each of the three components, see the respective R
 - [front/README.md](front/README.md) (front server)
 - [client/README.md](client/README.md) (client)
 
+There are also a few more directories for other components:
+
+- [back-filesystem/README.md](back-filesystem/README.md) for filesystem I/O on the back server
+- [back-octave/README.md](back-octave/README.md) for GNU Octave bindings for the back server
+- [containers/README.md](containers/README.md) for Octave Online Server container configurations
+- [entrypoint/README.md](entrypoint/README.md) for helper scripts to run Octave Online Server
+- [shared/README.md](shared/README.md) for code shared by multiple components
+- [utils-admin/README.md](utils-admin/README.md) for an optional admin panel
+- [utils-auth/README.md](utils-auth/README.md) for an optional standalone user authentication service
+
 Every subdirectory of the top-level Octave Online Server directory has a README file that explains what the contents of the directory is for.
 
 ### Prerequisites
 
-[Required] *Operating System:* Octave Online Server is built and tested exclusively on GNU/Linux.  It is recommended that you use CentOS 7, although other modern distributions should work also.
+[Required] *Operating System:* Octave Online Server is built and tested exclusively on GNU/Linux.  It is recommended that you use CentOS 8, although other modern distributions should work also.  Most of Octave Online Server should work on macOS, but this has not been tested.
 
-[Required] *Node.js:* Octave Online Server is built and tested with Node.js LTS version 6.  I recommend configuring the installation from a [Package Manager](https://nodejs.org/en/download/package-manager/#enterprise-linux-and-fedora).
+[Required] *Node.js:* Octave Online Server is built and tested with Node.js LTS version 10.  This is the default version on CentOS 8.
 
-	# Install Node.js 6.x LTS on CentOS 7:
-	$ curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -
-	$ sudo yum makecache
+	# Install Node.js 10.x LTS on CentOS 8:
 	$ sudo yum install nodejs
 
 [Required] *Redis:* Install and run a local Redis instance.  Enable expiration events in `redis.conf`:
@@ -51,11 +59,13 @@ Every subdirectory of the top-level Octave Online Server directory has a README 
 
 Although it is possible to use a third-party hosted Redis instance, this is not recommended because Redis latency is amplified due to its central role in the Octave Online Server architecture.
 
-[Recommended] *Git Server:* In order to persist user files between sessions, you need to set up a Git file server.  It boils down to a server, which could be the current server, with a low-privileged user usually named "git".  For more information, see [Git on the Server](https://git-scm.com/book/en/v1/Git-on-the-Server).  Also see [back-master/README.md](back-master/README.md).
+[Recommended] *Git Server:* In order to persist user files between sessions, you need to set up a Git file server.  It boils down to a server, which could be the current server, with a low-privileged user usually named "git".  For more information, see [Git on the Server](https://git-scm.com/book/en/v1/Git-on-the-Server).  Also see [back-filesystem/README.md](back-filesystem/README.md) for instructions on how to configure a Git file server for Octave Online Server.
 
 [Recommended] *MongoDB:* Install and run a MongoDB instance.  Unlike Redis, MongoDB is not as central of a piece in the infrastructure, so it is possible to use a remotely hosted MongoDB if you do not want to host it locally.  My experience is that it takes some time to correctly configure a fast and secure MongoDB installation.  Keep in mind that MongoDB will contain personally identifiable information for user accounts.
 
-[Recommended] *Mailgun:* If you want Octave Online Server to be able to send emails, such as for email-based login, you need a [Mailgun](https://www.mailgun.com) account.  The free tier should cover most experimental and low-traffic usage.
+[Recommended] *Email SaaS:* If you want Octave Online Server to be able to send transactional emails, such as for email-based login, you need a [Mailgun](https://www.mailgun.com) or [Postmark](https://postmarkapp.com) account.  Mailgun has a free tier that should cover most experimental and low-traffic usage.
+
+[Recommended] *ReCAPTCHA:* Certain actions, such as when email is sent, require a CAPTCHA to prevent abuse. You should register for a [ReCAPTCHA](https://www.google.com/recaptcha/) v2 Checkbox and put your credentials into your config.hjson file.
 
 [Optional] *Google Analytics:* For aggregated statistics about traffic to your site, you can enable [Google Analytics](https://www.google.com/analytics/) integration.
 
@@ -74,14 +84,6 @@ In each of the five directories containing Node.js projects, go in and run `npm 
 	$ (cd back-master && npm install)
 	$ (cd front && npm install)
 	$ (cd client && npm install)
-
-Link the shared project into all of the others; this allows all projects to use the code in the shared directory:
-
-	$ (cd shared && npm link)  # might require sudo on npm link
-	$ (cd back-filesystem && npm link @oo/shared)
-	$ (cd back-master && npm link @oo/shared)
-	$ (cd front && npm link @oo/shared)
-	$ (cd client && npm link @oo/shared)
 
 You also need to install the Bower (client-side) dependencies for the client project:
 
@@ -105,9 +107,15 @@ To run the code manually, just open up two terminals and run each of the followi
 
 To run the code as a service, you can install the systemd service provided in this repository and enable the code to be automatically run at startup; see *entrypoint/oo.service* and `make install-selinux-bin`.
 
+**Tip:** When debugging, you can modify your hosts file (on macOS, /private/etc/hosts) to create a stable URL that you can add to your Google developer console to allow Google services to work.
+
 ## Contributing
 
 You are welcome to send pull requests for consideration for addition to Octave Online Server.  Pull requests are not guaranteed to be accepted; if in doubt, you should open an issue to discuss your idea before spending time writing your pull request.
+
+### Contributor License Agreement
+
+Like many projects distributed with copyleft licenses such as AGPL, contributors to Octave Online Server must sign a Contributor License Agreement (CLA).  The terms of the [Octave Online CLA](cla-assistant.io/octave-online/octave-online-server) are taken from [The Apache Software Foundation CLA](https://www.apache.org/licenses/contributor-agreements.html).  Having a CLA in place enables Octave Online Server to be distributed with alternate licensing schemes, including commercial licenses that help keep the project afloat.
 
 ### Style
 
@@ -180,10 +188,14 @@ Here are some critical user journeys that test a fairly wide cross-section of th
 1. Small interpreter features
 	1. Run a few lines of code and then run `clc`; it should clear all output from the console window
 	1. Run `doc fplot`; it should produce a working link
+	1. Run `char(randi(256, 1000, 1)' .- 1)`; it should print a nonsense string with a lot of replacement characters
 	1. Run `O = urlread("http://example.com")`; it should finish without error and print the HTML content of that page
 	1. Run `O = urlread("https://example.com")`; it should print the same HTML as the previous line (http vs https)
 	1. Run `O = urlread("http://cnn.com")`; it should print an error saying that the domain is not in the whitelist (unless you added that domain to your custom whitelist)
 	1. Run `ping`; you should see a response like "Ping time: 75ms"
+1. Octave feature coverage
+	1. Run `pkg load communications` and then `help gf`; you should get a help page (skip this if you don't install the communications package)
+	1. Run `audioread("dummy.wav")`; you should get an error that the file does not exist (but you should NOT get an error that says libsndfile was not installed)
 1. Student / instructor features
 	1. Create two accounts if you do not already have two accounts
 	1. In one account, add a string to the `instructor` field in mongodb; for example, `"test-course"`
@@ -206,6 +218,13 @@ Here are some critical user journeys that test a fairly wide cross-section of th
 	1. The loading animation should appear on the browser window, and the animation should go away once the front server has finished restarting.  However, you should NOT get the "Connection lost" message printed to the console, and you should NOT get an active prompt automatically after the animation goes away
 	1. Press the "Click Here to Reconnect" button; you should now get an active command prompt.  Run a command or two to make sure the session is working normally
 	1. For an exhaustive test, repeate this section as (i) a signed-in user, (ii) a session with sharing enabled, and (iii) a bucket session.
+1. Reconnecting to and expiring collaborative workspaces
+	1. Sign in to a user that has sharing enabled
+	1. *Ensure that no one else is viewing the user's workspace* (for example, there should be no red cursors at the command prompt)
+	1. Set a variable like `x = 99`
+	1. Reload the browser window; it should be the same session.  Check that `x` is still `99`
+	1. Close the browser window without exiting explicitly
+	1. Wait for `config.redis.expire.timeout` milliseconds to ellapse, then open up a new tab for that user; it should be a new session.  Check that `x` is no longer set to `99`
 1. GUI: Flexbox panels and CSS
 	1. Hover over the border between panels; a slider should appear.  Drag the slider around to resize the panels
 	1. Open the menu and click "Change/Reset Layout"; the panel sizes should reset to the defaults
@@ -245,7 +264,7 @@ Here are some critical user journeys that test a fairly wide cross-section of th
 	1. Run the following command line; it should finish without any errors and produce a busy line plot:
 	```plot(rand(100));```
 	1. Run the following command line; it should produce the error "Warning: Suppressed a large plot", due to hitting the 1 MB limit on message size and therefore plot size:
-	```plot(rand(200));```
+	```plot(rand(300));```
 1. Pushing the limits: Countdown / Time Limit
 	1. Run the following command:
 	```pause(12)```

@@ -33,6 +33,7 @@ plot-svg-styles()
 	}
 
 #console_output_container {
+	background-color: colorbkg
 
 	pre#console {
 		position: absolute
@@ -40,20 +41,24 @@ plot-svg-styles()
 		right: 0
 		bottom: 0
 		left: 0
-		background-color: colorbkg
 
-		text-align: left
 		overflow: auto
 		-ms-overflow-style: -ms-autohiding-scrollbar
+
+		text-align: left
 		font-size: console_font_size
 		line-height: 1.3em
 		font-family: code_font_family
 		padding: 1ex
 		margin: 0
 
+		&.console-wrap{
+			white-space: pre-wrap
+		}
+
 		span.prompt_row{
 			font-weight: bold;
-			color: color1;
+			color: colorfg1;
 		}
 		span.prompt_error{
 			color: colorerr
@@ -113,6 +118,33 @@ plot-svg-styles()
 		font-style: italic
 	}
 
+	#tier_background {
+		position: absolute
+		top: 100px
+		left: 50%
+
+		& > div {
+			position: absolute
+			top: -75px
+			left: -75px
+			width: 150px
+			height: 150px
+			cursor: pointer
+
+			&.root {
+				flaticon(tier-root-sq)
+			}
+			&.plus {
+				flaticon(tier-plus-sq)
+			}
+			&.times {
+				flaticon(tier-times-sq)
+			}
+			&.exp {
+				flaticon(tier-exp-sq)
+			}
+		}
+	}
 }
 
 #console_prompt_container {
@@ -176,6 +208,48 @@ plot-svg-styles()
 	top: 5px
 	right: 5px
 	width: 120px
+}
+
+#flavor_upgrade_div {
+	position: absolute
+	right: 8px
+	bottom: 8px
+	text-align: right
+
+	font-size: 12px
+	
+	#upgrade_btn {
+		display: inline-block
+		padding: 5px 10px
+		border-radius: 11px
+		border: 1px solid colorfgd
+		box-shadow: 0px 0px 5px color3
+		vertical-align: middle
+		background-color: colorfg2
+		color: colorfgd
+		// border: none
+		cursor: pointer
+
+		.disk {
+			&::before {
+				content: "⦾"
+			}
+
+			&.available {
+				&::before {
+					content: "⦿"
+				}
+			}
+
+			font-size: 1.2em
+		}
+	}
+	
+	#flavor_status {
+		display: inline-block
+		padding: 3px 5px
+		background-color: color2
+	}
 }
 		
 #plot_container {
@@ -259,6 +333,12 @@ plot-svg-styles()
 	}
 
 	#vars_content {
+		position: absolute
+		top: toolbar_height
+		right: 0
+		bottom: 0
+		left: 0
+
 		font-size: 1.2em
 		line-height: 1.2em
 		overflow: auto
@@ -273,11 +353,10 @@ plot-svg-styles()
 				cursor: pointer
 				padding: 0.1em
 				white-space: nowrap
-				overflow: hidden
 				border: none
 
 				.vars_type {
-					color: color3
+					color: colorfg3
 				}
 				&.ko-flash {
 					background-color: color2lt

@@ -27,6 +27,7 @@
 const child_process = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const stream = require("stream");
 
 // Print basic information about the process
 console.log("Daemon PID:", process.pid);
@@ -34,9 +35,8 @@ console.log("Date:", new Date().toISOString());
 
 // What files will we be loading?
 const prefix = (__dirname === "/usr/local/bin") ? "/usr/local/share/oo" : path.join(__dirname, "..");
-const configFile = path.join(prefix, "config.json");
+const configFile = path.join(prefix, "shared/config.js");
 const exitFile = path.join(prefix, "entrypoint/exit.js");
-const gitSshFile = path.join(prefix, "back-filesystem/git/git_ssh.sh");
 const spawnDirectory = path.join(prefix, "back-master");
 const spawnFile = path.join(prefix, "back-master/app.js");
 
@@ -45,7 +45,6 @@ const spawnFile = path.join(prefix, "back-master/app.js");
 while (true) {
 	try {
 		fs.statSync(configFile);
-		fs.statSync(gitSshFile);
 		fs.statSync(spawnDirectory);
 		fs.statSync(spawnFile);
 		break;
@@ -59,16 +58,19 @@ while (true) {
 const config = require(configFile);
 
 // Load exit routine
-var exit;
-try {
-	exit = require(exitFile);
-	console.log("Will use exit routine from exit.js");
-} catch(err) {
-	if (/Cannot find module/.test(err.message)) {
-		// If exit.js is not provided, set a no-op.
-		exit = function(){};
-		console.log("Will use no-op exit routine");
-	} else throw err;
+function getExitFunction() {
+	var exit;
+	try {
+		exit = require(exitFile);
+		console.log("Will use exit routine from exit.js");
+	} catch(err) {
+		if (/Cannot find module/.test(err.message)) {
+			// If exit.js is not provided, set a no-op.
+			exit = function(){};
+			console.log("Will use no-op exit routine");
+		} else throw err;
+	}
+	return exit;
 }
 
 // Make log directories
@@ -107,17 +109,52 @@ let logFd = fs.openSync(logPath, "a", "0640");
 let logStream = fs.createWriteStream(null, { fd: logFd });
 console.log("Logging to:", logPath);
 
+// Filter the log stream to remove noisy http2 messages: workaround for https://bugs.centos.org/view.php?id=17047
+const illegalLineStarts = [
+	Buffer.from("send"),
+	Buffer.from("recv"),
+	Buffer.from("stream"),
+	Buffer.from("inflatehd"),
+	Buffer.from("deflatehd"),
+];
+const transformStream = new stream.Transform({
+	transform(chunk, encoding, callback) {
+		// Note: assumes that chunks always start at a line boundary
+		let i = 0;
+		outer:
+		for (let j = 0; j < chunk.length; j++) {
+			// Check for newline (Unix-style)
+			if (chunk[j] == 0x0A) {
+				let line = chunk.slice(i, j+1);
+				i = j+1;
+				for (let illegal of illegalLineStarts) {
+					if (line.length < illegal.length) {
+						continue;
+					}
+					if (illegal.compare(line, 0, illegal.length) === 0) {
+						// Found a match; skip to the next line.
+						continue outer;
+					}
+				}
+				// No match found; send this line to the log file.
+				this.push(line, encoding);
+			}
+		}
+		callback();
+	}
+});
+transformStream.pipe(logStream);
+
 // Prepare child process environment and copy all environment variables
 const spawnOptions = {
 	cwd: spawnDirectory,
 	env: {
-		"GIT_SSH": gitSshFile,
 		"GNUTERM": "svg",
 		"DEBUG": "*"
 	},
 	uid: config.worker.uid,
 	gid: config.worker.uid,
-	stdio: ["inherit", "inherit", logStream]
+	stdio: ["inherit", "inherit", "pipe"]
 };
 for (var name in process.env) {
 	if (!(name in spawnOptions.env)) {
@@ -150,13 +187,14 @@ function runOnce() {
 	console.log(spawnOptions);
 	spwn = child_process.spawn("/usr/bin/env", ["node", spawnFile], spawnOptions);
 	console.log(`Starting child (${spawnFile}) with PID ${spwn.pid}`);
+	spwn.stderr.pipe(transformStream);
 	spwn.once("exit", (code, signal) => {
 		console.log(`Process exited with code ${code}, signal ${signal}`);
 		if (code !== 0) {
 			setTimeout(runOnce, 500);
 		} else {
+			getExitFunction()();
 			logStream.close(); // also closes the logFd file descriptor
-			exit();
 		}
 	});
 }

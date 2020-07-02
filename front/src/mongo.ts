@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018, Octave Online LLC
+ * Copyright © 2019, Octave Online LLC
  *
  * This file is part of Octave Online Server.
  *
@@ -18,26 +18,16 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-///<reference path='boris-typedefs/node/node.d.ts'/>
-///<reference path='boris-typedefs/mongoose/mongoose.d.ts'/>
-
 import Mongoose = require("mongoose");
-import Config = require("./config");
 
-module Mongo {
-	export function connect(next:(err:Error)=>void) {
-		var url = "mongodb://" + Config.mongo.hostname
-			+ "/" + Config.mongo.db;
+import { config } from "./shared_wrap";
 
-		console.log("Connecting to Mongo...");
+export function connect() {
+	const url = `mongodb://${config.mongo.hostname}:${config.mongo.port}/${config.mongo.db}`;
 
-		// Cast to <any> below because mongoose.d.ts is not up-to-date
-		Mongoose.connect(url, <any> {
-			useMongoClient: true
-		}, next);
-	}
-
-	export var connection = Mongoose.connection;
+	return Mongoose.connect(url, {
+		useNewUrlParser: true,
+	});
 }
 
-export = Mongo;
+export const connection = Mongoose.connection;

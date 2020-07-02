@@ -43,21 +43,36 @@ function clear (varargin)
   endif
 endfunction
 
+% Set environment variables
+setenv("PYTHON", "python3")
+
 % Auto-load packages (no more pkg-auto since 4.2.1)
 % Packages that are installed but not auto-loaded have a reason, such as shadows.
+
 pkg load control;
+pkg load divand;
+pkg load general;
+pkg load geometry;
+pkg load image;
+pkg load interval;
+pkg load linear-algebra;
+pkg load mapping;
+pkg load miscellaneous;
 pkg load signal;
 pkg load struct;
-pkg load optim;
-pkg load io;
-pkg load image;
 pkg load symbolic;
-pkg load general;
-pkg load odepkg;
-pkg load geometry;
-pkg load data-smoothing;
-pkg load financial;
-pkg load interval;
-pkg load fuzzy-logic-toolkit;
-pkg load divand;
-pkg load mapping;
+
+% Packages not auto-loaded because of the JVM dependency:
+% pkg load data-smoothing;
+% pkg load financial;
+% pkg load io;
+% pkg load optim;
+% pkg load statistics;
+
+% Packages not auto-loaded for performance or other reasons:
+% pkg load communications;
+% pkg load ltfat;
+% pkg load mechanics;
+% pkg load nan;
+% pkg load stk;
+% pkg load tsa;

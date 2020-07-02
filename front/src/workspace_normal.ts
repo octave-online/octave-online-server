@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018, Octave Online LLC
+ * Copyright © 2019, Octave Online LLC
  *
  * This file is part of Octave Online Server.
  *
@@ -18,70 +18,91 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-///<reference path='boris-typedefs/node/node.d.ts'/>
-///<reference path='boris-typedefs/eventemitter2/eventemitter2.d.ts'/>
-///<reference path='boris-typedefs/async/async.d.ts'/>
-///<reference path='typedefs/idestroyable.d.ts'/>
-///<reference path='typedefs/iuser.ts'/>
-///<reference path='typedefs/iworkspace.ts'/>
+import { EventEmitter } from "events";
 
-import EventEmitter2 = require("eventemitter2");
-import Config = require("./config");
-import OctaveHelper = require("./octave_session_helper");
 import Async = require("async");
-import IRedis = require("./typedefs/iredis");
 
-class NormalWorkspace
-extends EventEmitter2.EventEmitter2
-implements IWorkspace, IDestroyable {
-	public sessCode:string;
-	public destroyed:boolean = false;
-	private user:IUser;
-	private bucketId:string;
+import { IDestroyable, IWorkspace } from "./utils";
+import { IUser } from "./user_model";
+import { config, newRedisMessenger, logger, ILogger } from "./shared_wrap";
+import { octaveHelper, SessionState } from "./octave_session_helper";
 
-	constructor(sessCode:string, user:IUser, bucketId:string){
+type Err = Error|null;
+
+
+const redisMessenger = newRedisMessenger();
+
+export class NormalWorkspace
+	extends EventEmitter
+	implements IWorkspace, IDestroyable {
+	public sessCode: string|null;
+	public destroyed = false;
+	private user: IUser|null;
+	private bucketId: string|null;
+	private _log: ILogger;
+
+	constructor(sessCode: string|null, user: IUser|null, bucketId: string|null){
 		super();
 		this.sessCode = sessCode;
 		this.user = user;
 		this.bucketId = bucketId;
+		this._log = logger("workspace-nrm:uninitialized");
 
 		process.nextTick(()=>{
 			this.emit("data", "userinfo", user);
 		});
 	}
 
-	private log(..._args:any[]):void {
-		this.emit("log", arguments);
-	}
-
-	public destroyD(message:string){
+	public destroyD(message: string){
 		this.destroyed = true;
-		if (this.sessCode) {
-			OctaveHelper.sendDestroyD(this.sessCode, message);
+		if (!this.sessCode) {
+			return;
+		}
+		// TODO: It's poor style to do a string comparison here
+		if (message !== "Client Disconnect" || config.worker.onDisconnect === "destroy") {
+			this._log.trace("destroyD: Destroy Now:", message);
+			octaveHelper.sendDestroyD(this.sessCode, message);
+		} else if (config.worker.onDisconnect === "ignore") {
+			this._log.trace("destroyD: Ignore:", message);
+			// Ensure that the files are committed immediately, so that if a user reloads the page, they get their data immediately synced
+			this.emit("back", "commit", { comment: "Scripted Commit on Disconnect" });
+		} else if (config.worker.onDisconnect === "expireShort") {
+			this._log.trace("destroyD: Expire Short:", message);
+			redisMessenger.touchInput(this.sessCode, true);
+			// Ensure that the files are committed immediately, so that if a user reloads the page, they get their data immediately synced
+			this.emit("back", "commit", { comment: "Scripted Commit on Disconnect" });
 		}
 	}
 
-	public beginOctaveRequest() {
+	public beginOctaveRequest(flavor: string) {
 		Async.waterfall([
-			(next) => {
+			(next: (err: Err, sessCode: string, state: SessionState) => void) => {
 				// Check with Redis about the status of the desired sessCode
-				OctaveHelper.getNewSessCode(this.sessCode, next);
+				octaveHelper.getNewSessCode(this.sessCode, next);
 			},
-			(sessCode:string, state:IRedis.SessionState, next) => {
+			(sessCode: string, state: SessionState, next: (err: Err) => void) => {
 				if (this.destroyed) {
-					if (state !== IRedis.SessionState.Needed)
-						OctaveHelper.sendDestroyD(sessCode, "Client Gone 1");
+					if (state !== SessionState.Needed)
+						octaveHelper.sendDestroyD(sessCode, "Client Gone 1");
 					return;
 				}
 
 				this.sessCode = sessCode;
+				this._log = logger(`workspace-nrm:${sessCode}`) as ILogger;
+				if (this.user) {
+					this._log.info("User", this.user.consoleText);
+				}
+				if (this.bucketId) {
+					this._log.info("Bucket", this.bucketId);
+				}
 
 				// Ask for an Octave session if we need one.
 				// Otherwise, inform the client.
-				if (state === IRedis.SessionState.Needed) {
-					OctaveHelper.askForOctave(sessCode, {
+				if (state === SessionState.Needed) {
+					octaveHelper.askForOctave(sessCode, {
 						user: this.user,
-						bucketId: this.bucketId
+						bucketId: this.bucketId,
+						flavor
 					}, next);
 				} else {
 					this.emit("sesscode", sessCode);
@@ -89,33 +110,38 @@ implements IWorkspace, IDestroyable {
 					this.emit("data", "files-ready", {});
 				}
 			},
-			(next) => {
+			(next: (err: Err) => void) => {
 				if (this.destroyed) {
-					OctaveHelper.sendDestroyD(this.sessCode, "Client Gone 2");
+					octaveHelper.sendDestroyD(this.sessCode!, "Client Gone 2");
 					return;
 				}
 
-				this.emit("sesscode", this.sessCode);
+				this.emit("sesscode", this.sessCode!);
+
+				next(null);
 			}
 		], (err) => {
-			if (err) console.log("REDIS ERROR", err);
+			if (err) this._log.error("REDIS ERROR", err);
 		});
 	}
 
-	public destroyU(message:string){
+	// eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+	public destroyU(message: string){
 	}
 
-	public dataD(name:string, val:any){
+	// eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+	public dataD(name: string, val: any){
 	}
 
-	public dataU(name:string, val:any){
+	// eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+	public dataU(name: string, val: any){
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public subscribe() {
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public unsubscribe() {
 	}
-};
-
-export = NormalWorkspace;
+}

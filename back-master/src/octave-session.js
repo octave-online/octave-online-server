@@ -25,6 +25,7 @@
 const logger = require("@oo/shared").logger;
 const OnlineOffline = require("@oo/shared").OnlineOffline;
 const config = require("@oo/shared").config;
+const config2 = require("@oo/shared").config2;
 const timeLimit = require("@oo/shared").timeLimit;
 const fs = require("fs");
 const path = require("path");
@@ -34,20 +35,25 @@ const http = require("http");
 const https = require("https");
 const querystring = require("querystring");
 const uuid = require("uuid");
-const Queue = require("@oo/shared").Queue;
+const RedisQueue = require("@oo/shared").RedisQueue;
 const base58 = require("base-x")("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz");
 const temp = require("temp");
 const onceMessage = require("@oo/shared").onceMessage;
 const child_process = require("child_process");
 
 class OctaveSession extends OnlineOffline {
-	constructor(sessCode) {
+	constructor(sessCode, options) {
 		super();
 		this.sessCode = sessCode;
+		this._options = options;
 		this._log = logger("octave-session:" + sessCode);
 		this._mlog = logger("octave-session:" + sessCode + ":minor");
 
+		this._log.debug("Tier:", this._options.tier);
+
 		this._extraTime = 0;
+		this._countdownExtraTime = config2.tier(this._options.tier)["session.countdownExtraTime"];
+		this._countdownRequestTime = config2.tier(this._options.tier)["session.countdownRequestTime"];
 
 		this._legalTime = config.session.legalTime.guest;
 		this._payloadLimit = config.session.payloadLimit.guest;
@@ -56,7 +62,8 @@ class OctaveSession extends OnlineOffline {
 		this._plotPngStore = {};
 		this._plotSvgStore = {};
 
-		this._messageQueue = new Queue();
+		this._redisQueue = new RedisQueue(sessCode);
+		this._redisQueue.on("message", this.sendMessage.bind(this));
 
 		this._throttleCounter = 0;
 		this._throttleTime = process.hrtime();
@@ -100,6 +107,10 @@ class OctaveSession extends OnlineOffline {
 		this._signal("SIGINT");
 	}
 
+	enqueueMessage(name, getData) {
+		this._redisQueue.enqueueMessage(name, getData);
+	}
+
 	// COUNTDOWN METHODS: For interrupting the Octave kernel after a fixed number of seconds to ensure a fair distribution of CPU time.
 	// Use an interval to signal Octave once after the first timeout and then repeatedly after that, until the kernel sends us a "request-input" event to signal that it is done processing commands.
 	_startCountdown() {
@@ -115,10 +126,10 @@ class OctaveSession extends OnlineOffline {
 		}
 	}
 	_onCountdownEnd() {
-		if (new Date().valueOf() - this._extraTime < config.session.countdownRequestTime + config.session.countdownRequestTimeBuffer) {
+		if (new Date().valueOf() - this._extraTime < this._countdownRequestTime + config.session.countdownRequestTimeBuffer) {
 			// Add 15 seconds and don't send an interrupt signal
 			this._log.trace("Extending countdown with extra time");
-			this._countdownTimer = setTimeout(this._onCountdownEnd.bind(this), config.session.countdownExtraTime);
+			this._countdownTimer = setTimeout(this._onCountdownEnd.bind(this), this._countdownExtraTime);
 		} else {
 			// Send an interrupt signal now and again in 5 seconds
 			this._log.trace("Interrupting execution due to countdown");
@@ -137,13 +148,16 @@ class OctaveSession extends OnlineOffline {
 		if (this._state !== "ONLINE") return;
 		if (this._timewarnTimer) clearTimeout(this._timewarnTimer);
 		if (this._timeoutTimer) clearTimeout(this._timeoutTimer);
+		const timewarnTime = config2.tier(this._options.tier)["session.timewarnTime"];
+		const timeoutTime = config2.tier(this._options.tier)["session.timeoutTime"];
+		this._mlog.trace("Resetting timeout:", timewarnTime, timeoutTime);
 		this._timewarnTimer = setTimeout(() => {
 			this.emit("message", "err", config.session.timewarnMessage+"\n");
-		}, config.session.timewarnTime);
+		}, timewarnTime);
 		this._timeoutTimer = setTimeout(() => {
 			this._log.info("Session Timeout");
 			this.emit("message", "destroy", "Session Timeout");
-		}, config.session.timeoutTime);
+		}, timeoutTime);
 	}
 
 	// PAYLOAD METHODS: For interrupting the Octave kernel after a large amount of stdout/stderr data to prevent infinite loops from using too much bandwidth.
@@ -338,6 +352,7 @@ class OctaveSession extends OnlineOffline {
 				urlObj.href = urlObj.protocol  + "//" + (urlObj.auth ? urlObj.auth + "@" : "") + urlObj.hostname + (urlObj.port ? ":" + urlObj.port : "") + urlObj.path;
 			}
 
+			this._log.info("Successfully matched URL", content.url, urlObj);
 			this._log.trace("Sending URL request:", urlObj.href);
 			let httpLib = (urlObj.protocol === "https:") ? https : http;
 			let req = httpLib.request(urlObj, (res) => {
@@ -346,8 +361,8 @@ class OctaveSession extends OnlineOffline {
 				let fullResult = "";
 				let errmsg = "";
 				res.on("data", (chunk) => {
-					if (chunk.length + fullResult.length > config.session.jsonMaxMessageLength) {
-						errmsg = `Requested URL exceeds maximum of ${config.session.jsonMaxMessageLength} bytes`;
+					if (chunk.length + fullResult.length > config.session.urlreadMaxBytes) {
+						errmsg = `Requested URL exceeds maximum of ${config.session.urlreadMaxBytes} bytes`;
 					} else {
 						fullResult += chunk;
 					}
@@ -466,25 +481,6 @@ class OctaveSession extends OnlineOffline {
 		});
 	}
 
-	// Use a queue to handle incoming messages to ensure that messages are processed in order.  The loading of data via attachments is asynchronous and may cause messages to change order.
-	enqueueMessage(name, getData) {
-		let message = { name, ready: false };
-		this._messageQueue.enqueue(message);
-		getData((err, content) => {
-			if (err) this._log.error(err);
-			message.content = content;
-			message.ready = true;
-			this._flushMessageQueue();
-		});
-	}
-	_flushMessageQueue() {
-		while (!this._messageQueue.isEmpty() && this._messageQueue.peek().ready) {
-			let message = this._messageQueue.dequeue();
-			this._log.trace("Sending Upstream:", message.name);
-			this.sendMessage(message.name, message.content);
-		}
-	}
-
 	// Prevent spammy messages from clogging up the server.
 	// TODO: It would be better if this were done deeper in the stack, such as host.c, so that message spamming doesn't reach all the way into the main event loop.
 	_checkThrottle() {
@@ -527,6 +523,10 @@ class OctaveSession extends OnlineOffline {
 			case "cmd":
 				// FIXME: The following translation (from content to content.data) should be performed in message-translator.js, but we're unable to do so because the data isn't downloaded from Redis until after message-translator is run.  Is there a more elegant place to put this?  Maybe all message translation should happen here in octave-session.js instead?
 				content = content.data || "";
+				if (typeof content !== "string") {
+					this._log.error("content is not a string:", content);
+					break;
+				}
 				this._startCountdown();
 				this.resetTimeout();
 				this._appendToSessionLog(name, content);
@@ -541,14 +541,8 @@ class OctaveSession extends OnlineOffline {
 					this._startAutoCommitLoop();
 					this._legalTime = content.user.legalTime;
 					this._payloadLimit = content.user.payloadLimit;
-
-					// FIXME: For backwards compatibility with old front server:
-					if (!content.user.legalTime) {
-						this._log.debug("Consuming fallback legalTime/payloadLimit");
-						this._legalTime = config.session.legalTime.user;
-						this._payloadLimit = config.session.payloadLimit.user;
-						content.legalTime = this._legalTime; // For sending to files controller
-					}
+					this._countdownExtraTime = content.user.countdownExtraTime;
+					this._countdownRequestTime = content.user.countdownRequestTime;
 				}
 				if (content.bucketId) {
 					this._sendMessageToFiles("bucket-info", {
@@ -568,6 +562,7 @@ class OctaveSession extends OnlineOffline {
 			// Messages to forward to the file manager
 			case "list":
 			case "refresh":
+			case "commit":
 			case "save":
 			case "rename":
 			case "delete":
