@@ -25,46 +25,41 @@
 #########################################################
 
 version: '3'
-env_file: docker-compose.env
 services:
   utils-gitd:
     image: octaveonline/utils-gitd:v1.0.0
     build:
-      context: "."
+      context: "../.."
       dockerfile: containers/utils-gitd/Dockerfile
     ports:
       - "3003:3003"
       - "9418:9418"
     volumes:
-      - $OOS_GIT_VOLUME:/srv/oo/git
+      - ${OOS_GIT_VOLUME}:/srv/oo/git
     read_only: true
     tmpfs:
       - /run
       - /tmp
-    logging:
-      driver: gcplogs
   utils-gith:
     image: octaveonline/utils-gith:v1.0.0
     build:
-      context: "."
+      context: "../.."
       dockerfile: containers/utils-gith/Dockerfile
     ports:
       - "3013:3013"
       - "3023:3023"
     volumes:
-      - $OOS_GIT_VOLUME:/srv/oo/git
+      - ${OOS_GIT_VOLUME}:/srv/oo/git
     read_only: true
     tmpfs:
       - /run
       - /tmp
       - /run/php
       - /srv/oo/gitlist-oo/cache:uid=33
-    logging:
-      driver: gcplogs
   oo-gith:
     image: octaveonline/oo-gith:v1.0.0
     build:
-      context: "."
+      context: "../.."
       dockerfile: containers/oo-gith/Dockerfile
     ports:
       - "3033:80"
@@ -75,20 +70,16 @@ services:
       - /run/oosocks
       - /var/log/nginx
       - /var/lib/nginx
-    logging:
-      driver: gcplogs
   mongod:
     image: docker.io/library/mongo:latest
     ports:
       - "27017:27017"
     volumes:
-      - $OOS_MONGODB_VOLUME:/data/db
+      - ${OOS_MONGODB_VOLUME}:/data/db
     read_only: true
     # Log all commands. (TODO: consider the performance penalty?)
     command: --slowms=1
     tmpfs:
       - /run
       - /tmp
-    logging:
-      driver: gcplogs
 

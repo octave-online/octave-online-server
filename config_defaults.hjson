@@ -57,8 +57,8 @@ redis: {
 
 # MongoDB connection info
 mongo: {
-	hostname: localhost
-	port: 27019
+	hostname: mongod
+	port: 27017
 	db: oo
 }
 
@@ -147,7 +147,7 @@ statsd: {
 # Gith server connection info (for git-http-backend and php-fpm)
 # TODO: Consider making the service ports configurable.
 gith: {
-	hostname: localhost
+	hostname: utils-gith
 }
 
 # # # # # # # # # # # # # # # #
@@ -276,7 +276,7 @@ maintenance: {
 # Git file server settings
 git: {
 	# Hostname for the git file server; it is expected that this server exposes a Git daemon (git:// protocol) on default port 9418 and the create-repo service on default port 3003 (see back-filesystem/README.md).
-	hostname: localhost
+	hostname: utils-gitd
 	# Author as shown in commit messages.
 	author: {
 		name: Octave Online Server
