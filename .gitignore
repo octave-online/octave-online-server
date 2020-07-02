@@ -39,3 +39,4 @@ config.hjson
 back-octave/octave-host
 back-octave/bin/cwd/
 entrypoint/exit.js
+docker-compose.env

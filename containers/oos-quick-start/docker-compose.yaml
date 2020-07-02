@@ -1,0 +1,94 @@
+# Copyright © 2020, Octave Online LLC
+#
+# This file is part of Octave Online Server.
+#
+# Octave Online Server is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# Octave Online Server is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Octave Online Server.  If not, see
+# <https://www.gnu.org/licenses/>.
+
+##################################################################
+# This is a docker-compose.yaml for a "quick start" installation #
+##################################################################
+
+#########################################################
+# NOTE: All local paths are relative to repository root #
+#########################################################
+
+version: '3'
+env_file: docker-compose.env
+services:
+  utils-gitd:
+    image: octaveonline/utils-gitd:v1.0.0
+    build:
+      context: "."
+      dockerfile: containers/utils-gitd/Dockerfile
+    ports:
+      - "3003:3003"
+      - "9418:9418"
+    volumes:
+      - $OOS_GIT_VOLUME:/srv/oo/git
+    read_only: true
+    tmpfs:
+      - /run
+      - /tmp
+    logging:
+      driver: gcplogs
+  utils-gith:
+    image: octaveonline/utils-gith:v1.0.0
+    build:
+      context: "."
+      dockerfile: containers/utils-gith/Dockerfile
+    ports:
+      - "3013:3013"
+      - "3023:3023"
+    volumes:
+      - $OOS_GIT_VOLUME:/srv/oo/git
+    read_only: true
+    tmpfs:
+      - /run
+      - /tmp
+      - /run/php
+      - /srv/oo/gitlist-oo/cache:uid=33
+    logging:
+      driver: gcplogs
+  oo-gith:
+    image: octaveonline/oo-gith:v1.0.0
+    build:
+      context: "."
+      dockerfile: containers/oo-gith/Dockerfile
+    ports:
+      - "3033:80"
+    read_only: true
+    tmpfs:
+      - /run
+      - /tmp
+      - /run/oosocks
+      - /var/log/nginx
+      - /var/lib/nginx
+    logging:
+      driver: gcplogs
+  mongod:
+    image: docker.io/library/mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - $OOS_MONGODB_VOLUME:/data/db
+    read_only: true
+    # Log all commands. (TODO: consider the performance penalty?)
+    command: --slowms=1
+    tmpfs:
+      - /run
+      - /tmp
+    logging:
+      driver: gcplogs
+
