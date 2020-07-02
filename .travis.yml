@@ -2,6 +2,7 @@ language: node_js
 node_js:
   - "10"
 install:
+  - touch config.hjson
   - npm ci
   - (cd test && npm ci)
 script:
