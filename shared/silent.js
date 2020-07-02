@@ -47,7 +47,7 @@ function silent(messageRegex, next) {
 		}
 	}
 
-	function checkStdout(err, stdout, stderr) {
+	function checkStdout(err, stdout /*, stderr*/) {
 		if (stdout && messageRegex.test(stdout)) {
 			mlog.trace("Message suppressed from stdout (regex: " + messageRegex + ")");
 			return pass.apply(this, arguments);

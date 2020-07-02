@@ -35,7 +35,6 @@ router.get("/", function(req, res) {
 router.postAsync("/create.do", async function(req, res) {
 	const newDoc = JSON.parse(req.body.document);
 	const result = await db.createDocument("users", newDoc);
-	console.log(result);
 	res.redirect(`users/${result.ops[0]._id}`);
 });
 
