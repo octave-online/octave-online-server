@@ -92,6 +92,20 @@ $ docker volume create --driver local \
 	oosquickstart_git
 ```
 
+### Configuration File with Docker Compose
+
+Octave Online Server should run out of the box on Docker Compose without a custom configuration file.  To customize settings, create a config.hjson file as usual and rebuild the images.
+
+When creating a custom config.hjson file, do *not* overwrite the various "hostname" and "port" settings for services that run in containers.  The default settings are required for the Docker containers to talk to each other.
+
+Examples of settings that you may want to configure:
+
+- session.legalTime.\* (amount of time allocated to running commands)
+- mailgun.\* (Mailgun settings for email)
+- auth.google.\* (Google OAuth settings)
+- auth.easy.secret (salt for encrypting email tokens)
+- front.cookie.secret (salt for encrypting session cookies)
+
 ## About the GNU Octave Containers
 
 There are four containers that are intended to be built in sequence, each one depending on the previous one.  The order is:
