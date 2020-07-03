@@ -61,7 +61,10 @@ RUN mkdir pkg-downloads && \
 	wget $PKG_BASE_URL/financial-0.5.3.tar.gz && \
 	wget $PKG_BASE_URL/symbolic-2.8.0.tar.gz
 
-# TODO: https://github.com/apjanke/octave-tablicious
+# TODO: Package to consider adding:
+# - https://github.com/apjanke/octave-tablicious
+# - fuzzy-logic-toolkit (present in older versions)
+# - matgeom (see #14)
 
 RUN export LC_ALL=C && \
 	cd pkg-downloads && \
@@ -88,8 +91,6 @@ RUN export LC_ALL=C && \
 		pkg install mapping-1.2.1.tar.gz; \
 		pkg install financial-0.5.3.tar.gz; \
 		pkg install symbolic-2.8.0.tar.gz; "
-
-# TODO: add back fuzzy-logic-toolkit?
 
 # Some packages do not install correctly from Octave-Forge!
 
