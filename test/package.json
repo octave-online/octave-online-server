@@ -3,7 +3,12 @@
   "version": "0.0.0",
   "description": "Unit tests for Octave Online (incomplete)",
   "scripts": {
-    "test": "ava *.js"
+    "test": "ava"
+  },
+  "ava": {
+    "files": [
+      "*.js"
+    ]
   },
   "author": "Shane F. Carr",
   "license": "AGPL-3.0",
