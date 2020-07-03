@@ -19,7 +19,11 @@ There are three separate components of Octave Online Server:
 
 *Languages:* All code is written with JavaScript technologies, although for historical reasons, the three components use different flavors of JavaScript.  The Client uses ES5; the Front Server uses TypeScript; and the Back Server uses ES6.
 
-## Installation
+## Quick Start
+
+Read [containers/README.md](containers/README.md) for details on running a containerized version of all of Octave Online Server for use with trusted users.  This is the fastest way to get off the ground.
+
+## Manual Installation
 
 *Note:* Octave Online Server has a lot of moving parts.  It is recommended that you feel comfortable with basic system administration before attempting an installation.
 
@@ -33,7 +37,6 @@ There are also a few more directories for other components:
 
 - [back-filesystem/README.md](back-filesystem/README.md) for filesystem I/O on the back server
 - [back-octave/README.md](back-octave/README.md) for GNU Octave bindings for the back server
-- [containers/README.md](containers/README.md) for Octave Online Server container configurations
 - [entrypoint/README.md](entrypoint/README.md) for helper scripts to run Octave Online Server
 - [shared/README.md](shared/README.md) for code shared by multiple components
 - [utils-admin/README.md](utils-admin/README.md) for an optional admin panel

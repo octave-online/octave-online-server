@@ -31,45 +31,6 @@ JSON_MAX_LEN  = $(call get_config,session.jsonMaxMessageLength)
 CGROUP_CONF   = $(call get_config,selinux.cgroup.conf)
 
 
-docker-octave:
-	if [[ -e bundle ]]; then rm -rf bundle; fi
-	mkdir bundle
-	cat dockerfiles/base.dockerfile \
-		>> bundle/Dockerfile
-	cat dockerfiles/build-octave.dockerfile \
-		>> bundle/Dockerfile
-	cat dockerfiles/entrypoint-octave.dockerfile \
-		| sed -e "s;%JSON_MAX_LEN%;$(JSON_MAX_LEN);g" \
-		>> bundle/Dockerfile
-	cp -rL back-octave/* bundle
-	docker build -t oo/$(OCTAVE_SUFFIX) bundle
-	rm -rf bundle
-
-docker-files:
-	if [[ -e bundle ]]; then rm -rf bundle; fi
-	mkdir bundle
-	cat dockerfiles/base.dockerfile \
-		>> bundle/Dockerfile
-	cat dockerfiles/install-node.dockerfile \
-		>> bundle/Dockerfile
-	cat dockerfiles/filesystem.dockerfile \
-		| sed -e "s;%GIT_DIR%;$(GIT_DIR);g" \
-		| sed -e "s;%GIT_HOST%;$(GIT_HOST);g" \
-		>> bundle/Dockerfile
-	cat dockerfiles/entrypoint-filesystem.dockerfile \
-		| sed -e "s;%GIT_DIR%;$(GIT_DIR);g" \
-		| sed -e "s;%WORK_DIR%;$(WORK_DIR);g" \
-		>> bundle/Dockerfile
-	cp -rL back-filesystem bundle
-	docker build -t oo/$(FILES_SUFFIX) bundle
-	rm -rf bundle
-
-docker-master-docker:
-	echo "This image would require using docker-in-docker.  A pull request is welcome."
-
-docker-master-selinux:
-	echo "It is not currently possible to install SELinux inside of a Docker container."
-
 install-selinux-policy:
 	# yum install -y selinux-policy-devel policycoreutils-sandbox selinux-policy-sandbox
 	cd entrypoint/policy && make -f /usr/share/selinux/devel/Makefile octave_online.pp
@@ -97,8 +58,6 @@ enable-graceful-shutdown:
 	systemctl daemon-reload;
 	echo "Tip 1: Consider removing entrypoint/exit.js if it could cause disruption";
 	echo "Tip 2: Consider sending SIGUSR1 to the server process to start a graceful shutdown";
-
-docker: docker-octave docker-files
 
 lint:
 	cd back-filesystem && npm run lint

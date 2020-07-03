@@ -55,6 +55,12 @@ $ docker-compose -f containers/oos-quick-start/docker-compose.yaml run -d oo-bac
 
 Octave Online Server should now be running on port 8080.
 
+To run the file history server on port 8008:
+
+```bash
+$ docker-compose -f containers/oos-quick-start/docker-compose.yaml run --publish 8008:8008 -d oo-gith
+```
+
 ### Optional: Create custom volumes for application data
 
 By default, Docker will create volumes under */var/lib/docker/volumes* for Octave Online Server application data.  If you want to customize where application data is stored, you can create your own volumes in Docker.

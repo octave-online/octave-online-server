@@ -5,19 +5,14 @@ This directory contains the source code for the Octave Online Server back server
 
 ## Setup
 
-There are three versions of the back server.
+There are three modes for the back server.
 
-1. Docker: Moderately easy to set up and configure.
-2. SELinux: Fast, and able to handle many concurrent sessions.
-3. Unsafe: Fast and easy, but not recommended with untrusted users. Every Octave process is run without any sandboxing or resource limitations.
+1. SELinux: Fast, and able to handle many concurrent sessions.
+2. Unsafe: Fast and easy, but not recommended with untrusted users. Every Octave process is run without any sandboxing or resource limitations.
 
-### Option 1: Docker Setup
+Previously, a third mode, "docker", worked by creating a new Docker container for each session. This is no longer supported. Instead, if running with trusted users, you can use a single Docker container and Unsafe mode.
 
-Download and install [Docker](https://www.docker.com).
-
-Run `make docker` from the project directory to build the required Docker images.  Building the images, especially the *docker-octave* image, will take time, so be patient.  You may want to let this step run overnight.
-
-### Option 2: SELinux
+### Option 1: SELinux
 
 Ensure that you are running on CentOS or another distribution of Linux that supports SELinux.  SELinux should come pre-installed on CentOS.
 
@@ -36,7 +31,7 @@ Run all of the following make commands from the projects directory.
 - `sudo make install-selinux-bin`
 - `sudo make install-site-m`
 
-### Option 3: Unsafe
+### Option 2: Unsafe
 
 Follow the Option 2 instructions to build and install Octave from source.  Stop before installing selinux-policy-devel and other selinux packages.
 
