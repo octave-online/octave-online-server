@@ -9,6 +9,6 @@
   "license": "AGPL-3.0",
   "devDependencies": {
     "@oo/shared": "file:../shared",
-    "ava": "^2.4.0"
+    "ava": "^3.9.0"
   }
 }
