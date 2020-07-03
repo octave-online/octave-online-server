@@ -61,6 +61,20 @@ To run the file history server on port 8008:
 $ docker-compose -f containers/oos-quick-start/docker-compose.yaml run --publish 8008:8008 -d oo-gith
 ```
 
+### Configuration File with Docker Compose
+
+Octave Online Server should run out of the box on Docker Compose without a custom configuration file.  To customize settings, create a config.hjson file as usual and rebuild the images.
+
+When creating a custom config.hjson file, do *not* overwrite the various "hostname" and "port" settings for services that run in containers.  The default settings are required for the Docker containers to talk to each other.
+
+Examples of settings that you may want to configure:
+
+- session.legalTime.\* (amount of time allocated to running commands)
+- mailgun.\* (Mailgun settings for email)
+- auth.google.\* (Google OAuth settings)
+- auth.easy.secret (salt for encrypting email tokens)
+- front.cookie.secret (salt for encrypting session cookies)
+
 ### Optional: Create custom volumes for application data
 
 By default, Docker will create volumes under */var/lib/docker/volumes* for Octave Online Server application data.  If you want to customize where application data is stored, you can create your own volumes in Docker.
@@ -91,20 +105,6 @@ $ docker volume create --driver local \
 	--opt device=/dev/loop1 \
 	oosquickstart_git
 ```
-
-### Configuration File with Docker Compose
-
-Octave Online Server should run out of the box on Docker Compose without a custom configuration file.  To customize settings, create a config.hjson file as usual and rebuild the images.
-
-When creating a custom config.hjson file, do *not* overwrite the various "hostname" and "port" settings for services that run in containers.  The default settings are required for the Docker containers to talk to each other.
-
-Examples of settings that you may want to configure:
-
-- session.legalTime.\* (amount of time allocated to running commands)
-- mailgun.\* (Mailgun settings for email)
-- auth.google.\* (Google OAuth settings)
-- auth.easy.secret (salt for encrypting email tokens)
-- front.cookie.secret (salt for encrypting session cookies)
 
 ## About the GNU Octave Containers
 
