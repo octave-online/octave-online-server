@@ -128,10 +128,24 @@ services:
     depends_on:
       - octave-oo
       - redis
-      - mongod
     volumes:
       - logs:/srv/logs
     read_only: true
+    tmpfs:
+      - /run
+      - /tmp
+  oo-front:
+    image: octaveonline/oo-front:v1.0.0
+    build:
+      context: "../.."
+      dockerfile: containers/oo-front/Dockerfile
+    depends_on:
+      - mongod
+      - redis
+    read_only: true
+    tmpfs:
+      - /run
+      - /tmp
 volumes:
   git:
   mongodb:
