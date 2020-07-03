@@ -108,6 +108,8 @@ $ docker volume create --driver local \
 	oosquickstart_git
 ```
 
+A third volume, `oosquickstart_logs`, is used to save session logs (input/output on a per-session basis).  If you don't wish to save that information, you can mount a tmpfs as `oosquickstart_logs`.  If you do wish to save that information, you can create devices as shown above for `oosquickstart_mongodb` and `oosquickstart_git`.
+
 ## About the GNU Octave Containers
 
 There are four containers that are intended to be built in sequence, each one depending on the previous one.  The order is:
