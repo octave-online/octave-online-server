@@ -26,6 +26,8 @@ The containers are:
 
 [Docker Compose](https://docs.docker.com/compose/) lets you configure and run multiple containers from a single configuration file.  Octave Online Server ships with *containers/oos-quick-start/docker-compose.yml* to get you off the ground quickly.
 
+:bangbang: **Important:** With this installation method, Octave sessions are sandboxed from the host machine, but they are *not* sandboxed from each other or from the network!  You ***should not*** use this installation method if you plan to make Octave Online Server open to untrusted users.  The intended audience for the Docker Compose version of Octave Online Server are research labs and other environments where users are known and trusted.
+
 ### Installing Docker Compose
 
 1. [Install Docker Engine](https://docs.docker.com/engine/install/)
@@ -65,7 +67,7 @@ $ docker-compose -f containers/oos-quick-start/docker-compose.yaml run --publish
 
 Octave Online Server should run out of the box on Docker Compose without a custom configuration file.  To customize settings, create a config.hjson file as usual and rebuild the images.
 
-When creating a custom config.hjson file, do *not* overwrite the various "hostname" and "port" settings for services that run in containers.  The default settings are required for the Docker containers to talk to each other.
+When creating a custom config.hjson file, do *not* overwrite the various "hostname" and "port" settings for services that run in containers.  The default settings are required for the Docker containers to talk to each other.  Additionally, the "unsafe" mode for session.implementation is the only option known to work when the back server is running inside a container.
 
 Examples of settings that you may want to configure:
 
