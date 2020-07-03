@@ -22,7 +22,71 @@ The containers are:
 - utils-gith: Backend for the human-friendly file history viewer
 - utils-admin: Optional administration panel
 
-## Building the GNU Octave Containers
+## Running with Docker Compose
+
+[Docker Compose](https://docs.docker.com/compose/) lets you configure and run multiple containers from a single configuration file.  Octave Online Server ships with *containers/oos-quick-start/docker-compose.yml* to get you off the ground quickly.
+
+### Installing Docker Compose
+
+1. [Install Docker Engine](https://docs.docker.com/engine/install/)
+2. [Install Docker Compose](https://docs.docker.com/compose/install/)
+3. Optional: [Set up Docker with a non-root user](https://docs.docker.com/engine/install/linux-postinstall/)
+
+### Building All Images
+
+From the repository root:
+
+```bash
+$ docker-compose -f containers/oos-quick-start/docker-compose.yaml build
+```
+
+It takes approximately one hour to build from scratch.
+
+If you see an error such as "npm ERR! code ENOENT", please run the command again until it succeeds.
+
+### Running Octave Online Server
+
+From the repository root:
+
+```bash
+$ docker-compose -f containers/oos-quick-start/docker-compose.yaml run --publish 8080:8080 -d oo-front
+$ docker-compose -f containers/oos-quick-start/docker-compose.yaml run -d oo-back
+```
+
+Octave Online Server should now be running on port 8080.
+
+### Optional: Create custom volumes for application data
+
+By default, Docker will create volumes under */var/lib/docker/volumes* for Octave Online Server application data.  If you want to customize where application data is stored, you can create your own volumes in Docker.
+
+```bash
+# Loopback device to store MongoDB data (2 GB)
+$ sudo dd if=/dev/zero of=/mnt/docker_mongodb.img bs=100M count=20
+$ sudo mkfs.xfs /mnt/docker_mongodb.img
+$ sudo losetup -fP /mnt/docker_mongodb.img
+
+# Loopback device to store Git user data (4 GB)
+$ sudo dd if=/dev/zero of=/mnt/docker_git.img bs=100M count=40
+$ sudo mkfs.xfs /mnt/docker_git.img
+$ sudo losetup -fP /mnt/docker_git.img
+
+# Check the loopback mount locations:
+$ losetup -a
+/dev/loop0: []: (/mnt/docker_mongodb.img)
+/dev/loop1: []: (/mnt/docker_git.img)
+
+# Create the volumes in Docker; set the device paths according to `losetup -a`
+$ docker volume create --driver local \
+	--opt type=xfs \
+	--opt device=/dev/loop0 \
+	oosquickstart_mongodb
+$ docker volume create --driver local \
+	--opt type=xfs \
+	--opt device=/dev/loop1 \
+	oosquickstart_git
+```
+
+## About the GNU Octave Containers
 
 There are four containers that are intended to be built in sequence, each one depending on the previous one.  The order is:
 
@@ -31,7 +95,7 @@ There are four containers that are intended to be built in sequence, each one de
 3. octave-pkg (build packages)
 4. octave-oo (build extensions for Octave Online Server)
 
-Example commands to build these four containers in sequence:
+Example commands to build these four containers in sequence (**Note: You do not need to run these commands if you are using docker-compose**)
 
 ```bash
 # Run these commands from the top level directory
@@ -58,4 +122,3 @@ $ docker build \
 ```
 
 There are also *cloudbuild.yaml* files in each directory in case you want to use the Google Cloud Build service to build the Docker images.  With these files, you build each image in sequence, and when you get a clean build, set that image's tag as the `_BASE_REV` substitution on the subsequent image.  Each tag gets built based on the previous tag, so the tag in the end will have four short SHAs in sequence: "octave-oo:aaaaaaa-bbbbbbb-ccccccc-ddddddd"
-

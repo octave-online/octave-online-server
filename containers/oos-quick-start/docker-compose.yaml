@@ -65,6 +65,7 @@ services:
       - "8008:80"
     depends_on:
       - mongod
+      - utils-gith
     read_only: true
     tmpfs:
       - /run
@@ -126,6 +127,7 @@ services:
       dockerfile: containers/oo-back/Dockerfile
       args: ["FULL_BASE_IMAGE=octaveonline/octave-oo:v1.0.0"]
     depends_on:
+      - utils-gitd
       - octave-oo
       - redis
     volumes:
