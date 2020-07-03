@@ -111,6 +111,13 @@ services:
       dockerfile: containers/octave-oo/Dockerfile
       args: ["FULL_BASE_IMAGE=octaveonline/octave-pkg:v1.0.0"]
     depends_on: ["octave-pkg"]
+  oo-back:
+    image: octaveonline/oo-back:v1.0.0
+    build:
+      context: "../.."
+      dockerfile: containers/oo-back/Dockerfile
+      args: ["FULL_BASE_IMAGE=octaveonline/octave-oo:v1.0.0"]
+    depends_on: ["octave-oo"]
 volumes:
   git:
   mongodb:
