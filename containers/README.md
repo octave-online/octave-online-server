@@ -10,7 +10,7 @@ Inside most directories, you will find at least two files:
 
 Some directories contain additional assets used for building the respective containers.
 
-**Important:** You should build all of the containers from the repository root and specify the Dockerfile via the `--file` option to `docker build`.  Your *config.hjson* file should be present when you run `docker build`.
+**Important:** You should build all of the containers from the repository root and specify the Dockerfile via the `--file` option to `docker build` or `docker-compose`.  If necessary, your *config.hjson* file should be present when you run `docker build`.
 
 The containers are:
 
