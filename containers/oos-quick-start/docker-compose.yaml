@@ -62,7 +62,7 @@ services:
       context: "../.."
       dockerfile: containers/oo-gith/Dockerfile
     ports:
-      - "3033:80"
+      - "8008:80"
     depends_on:
       - mongod
     read_only: true
@@ -139,6 +139,8 @@ services:
     build:
       context: "../.."
       dockerfile: containers/oo-front/Dockerfile
+    ports:
+      - "8080:8080"
     depends_on:
       - mongod
       - redis

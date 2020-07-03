@@ -56,23 +56,26 @@ RUN \
 
 RUN apt-get update && \
 	apt-get install --no-install-recommends -y \
-		nodejs
+		nodejs \
+		git
 
 # Install oo-front
 # Note: paths are relative to repository root
 RUN mkdir -p /srv/oo/projects
 COPY config*.hjson /srv/oo/projects/
 COPY shared /srv/oo/projects/shared
-COPY front /srv/oo/projects/front
 COPY client /srv/oo/projects/client
+COPY front /srv/oo/projects/front
 RUN \
 	cd /srv/oo/projects/shared && \
 		npm ci && \
 	cd /srv/oo/projects/front && \
 		npm ci && \
-		npm run grunt && \
+		npm install --only=dev && \
+		npm run build && \
 	cd /srv/oo/projects/client && \
 		npm ci && \
+		npm install --only=dev && \
 		npm run bower -- --allow-root install && \
 		npm run grunt
 
