@@ -41,3 +41,5 @@ RUN \
 	cd /srv/oo/projects/shared && npm ci && \
 	cd /srv/oo/projects/back-filesystem && npm ci && \
 	cd /srv/oo/projects/back-master && npm ci
+
+CMD DEBUG=* node /srv/oo/projects/back-master/app.js

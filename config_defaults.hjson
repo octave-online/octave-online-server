@@ -38,10 +38,11 @@
 
 # Redis connection info
 redis: {
-	hostname: localhost
+	hostname: redis
 	port: 6379
 	options: {
-		auth_pass: xxxxxxxxx
+		# Add a password here if your instance requires authentication:
+		# auth_pass: xxxxxxxxx
 	}
 
 	# RATE LIMITING
@@ -243,7 +244,7 @@ session: {
 	# OCTAVE SESSION HOST IMPLEMENTATION
 	# Choices: "selinux", "docker", and "unsafe".
 	# Refer to the README file for more details.
-	implementation: docker
+	implementation: unsafe
 }
 
 # Session pool settings

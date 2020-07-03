@@ -84,6 +84,14 @@ services:
     tmpfs:
       - /run
       - /tmp
+  redis:
+    image: docker.io/library/redis:latest
+    ports:
+      - "6379:6379"
+    read_only: true
+    tmpfs:
+      - /run
+      - /tmp
   octave-deps:
     image: octaveonline/octave-deps:v1.0.0
     build:
@@ -117,8 +125,14 @@ services:
       context: "../.."
       dockerfile: containers/oo-back/Dockerfile
       args: ["FULL_BASE_IMAGE=octaveonline/octave-oo:v1.0.0"]
-    depends_on: ["octave-oo"]
+    depends_on:
+      - octave-oo
+      - redis
+      - mongod
+    volumes:
+      - logs:/srv/logs
+    read_only: true
 volumes:
   git:
   mongodb:
-
+  logs:
