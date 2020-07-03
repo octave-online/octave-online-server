@@ -140,4 +140,48 @@ class CappedFileSystem extends OnlineOffline {
 	}
 }
 
-module.exports = CappedFileSystem;
+/// An alternative to CappedFileSystem when sudo is unavailable.
+/// This class does *not* limit file sizes.
+class TmpWorkDirectory extends OnlineOffline {
+	constructor(sessCode) {
+		super();
+		this.sessCode = sessCode;
+		this._mlog = logger("tmp-work-directory:" + sessCode + ":minor");
+	}
+
+	_doCreate(next) {
+		this._cleanups = [];
+
+		async.series([
+			(_next) => {
+				this._mlog.trace("Making directory...");
+				temp.mkdir("oo-", (err, tmpdir) => {
+					if (tmpdir) this.dir = tmpdir;
+					if (!err) this._cleanups.unshift((__next) => {
+						this._mlog.trace("Removing directory...");
+						child_process.execFile("rm", ["-rf", tmpdir], __next);
+					});
+					this._mlog.debug("Created directory:", this.dir);
+					_next(err);
+				});
+			},
+		], (err) => {
+			return next(err, this.dir);
+		});
+	}
+
+	_doDestroy(next) {
+		async.series(this._cleanups, (err) => {
+			if (err) return next(err);
+			this._enabled = false;
+			this._cleanups = null;
+			this.dir = null;
+			return next(null);
+		});
+	}
+}
+
+module.exports = {
+	CappedFileSystem,
+	TmpWorkDirectory
+};

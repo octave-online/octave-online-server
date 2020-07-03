@@ -21,7 +21,7 @@
 "use strict";
 
 const OctaveSession = require("./octave-session");
-const CappedFileSystem = require("./capped-file-system");
+const { CappedFileSystem, TmpWorkDirectory } = require("./capped-file-system");
 const DockerHandler = require("./docker-handler");
 const ProcessHandler = require("./process-handler");
 const config = require("@oo/shared").config;
@@ -44,7 +44,11 @@ class SessionImpl extends OctaveSession {
 
 		this._makeSessions();
 
-		this._cfs = new CappedFileSystem(this.sessCode, config.docker.diskQuotaKiB);
+		if (config.session.implementation === "unsafe") {
+			this._cfs = new TmpWorkDirectory(this.sessCode);
+		} else {
+			this._cfs = new CappedFileSystem(this.sessCode, config.docker.diskQuotaKiB);
+		}
 
 		this._filesSession.on("message", this._handleMessage.bind(this));
 		this._hostSession.on("message", this._handleMessage.bind(this));
