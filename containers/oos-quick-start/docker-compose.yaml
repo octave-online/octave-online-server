@@ -35,7 +35,7 @@ services:
       - "3003:3003"
       - "9418:9418"
     volumes:
-      - ${OOS_GIT_VOLUME}:/srv/oo/git
+      - git:/srv/oo/git
     read_only: true
     tmpfs:
       - /run
@@ -49,7 +49,7 @@ services:
       - "3013:3013"
       - "3023:3023"
     volumes:
-      - ${OOS_GIT_VOLUME}:/srv/oo/git
+      - git:/srv/oo/git
     read_only: true
     tmpfs:
       - /run
@@ -63,6 +63,8 @@ services:
       dockerfile: containers/oo-gith/Dockerfile
     ports:
       - "3033:80"
+    depends_on:
+      - mongod
     read_only: true
     tmpfs:
       - /run
@@ -75,11 +77,41 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - ${OOS_MONGODB_VOLUME}:/data/db
+      - mongodb:/data/db
     read_only: true
     # Log all commands. (TODO: consider the performance penalty?)
     command: --slowms=1
     tmpfs:
       - /run
       - /tmp
+  octave-deps:
+    image: octaveonline/octave-deps:v1.0.0
+    build:
+      context: "../.."
+      dockerfile: containers/octave-deps/Dockerfile
+    read_only: true
+  octave-stable:
+    image: octaveonline/octave-stable:v1.0.0
+    build:
+      context: "../.."
+      dockerfile: containers/octave-stable/Dockerfile
+      args: ["FULL_BASE_IMAGE=octaveonline/octave-deps:v1.0.0"]
+    depends_on: ["octave-deps"]
+  octave-pkg:
+    image: octaveonline/octave-pkg:v1.0.0
+    build:
+      context: "../.."
+      dockerfile: containers/octave-pkg/Dockerfile
+      args: ["FULL_BASE_IMAGE=octaveonline/octave-stable:v1.0.0"]
+    depends_on: ["octave-stable"]
+  octave-oo:
+    image: octaveonline/octave-oo:v1.0.0
+    build:
+      context: "../.."
+      dockerfile: containers/octave-oo/Dockerfile
+      args: ["FULL_BASE_IMAGE=octaveonline/octave-pkg:v1.0.0"]
+    depends_on: ["octave-pkg"]
+volumes:
+  git:
+  mongodb:
 
