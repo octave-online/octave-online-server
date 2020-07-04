@@ -64,7 +64,9 @@ RUN yum install -y \
 	transfig \
 	zlib-devel
 
+# TODO: It's not clear which is the "correct" way to set the environment variable
 RUN echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk" > /etc/profile.d/oo.sh
+ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk
 
 # TODO
 # arpack-devel
