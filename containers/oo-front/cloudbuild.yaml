@@ -71,11 +71,6 @@ steps:
   args:
     - -c
     - |
-      # Copy AppEngine files to the root directory
-      find gcp/appengine/oo-front -type f -exec cp {} . \; &&
-      rm -f package-lock.json;
-      [[ $? == 0 ]] || exit $?;  # exit if failure
-
       gcloud app deploy $_DEPLOY_OPTS;
 
 timeout: 1800s

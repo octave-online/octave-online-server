@@ -48,8 +48,8 @@ steps:
   args:
     - -c
     - |
-      [[ $? == 0 ]] || exit $?;  # exit if failure
-
-      gcloud app deploy;
+      gcloud app deploy $_DEPLOY_OPTS;
 
 timeout: 1800s
+substitutions:
+  _DEPLOY_OPTS: "--promote"
