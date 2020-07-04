@@ -27,7 +27,10 @@ FROM $FULL_BASE_IMAGE
 # RUN hg clone --insecure -r 56dd7419d7aa http://www.octave.org/hg/octave
 
 ### 6.0.1 ###
-RUN hg clone --insecure -r 9e7b2625e574 http://www.octave.org/hg/octave
+# RUN hg clone --insecure -r 9e7b2625e574 http://www.octave.org/hg/octave
+
+### 6.0.1, after fix to bug #58698 ###
+RUN hg clone --insecure -r 171a2857d6d1 http://www.octave.org/hg/octave
 
 RUN cd octave && \
 	./bootstrap && \
