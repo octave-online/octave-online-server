@@ -64,12 +64,18 @@ RUN cd back-octave && make && make install
 # 	hg import ../back-octave/oo-changesets/108-9b39ca8bcbfd.hg.txt
 
 ### 5.2 ###
+# RUN cd octave && \
+# 	hg import ../back-octave/oo-changesets/200-84cbf166497f.hg.txt && \
+# 	hg import ../back-octave/oo-changesets/201-b993253f19d0.hg.txt && \
+# 	hg import ../back-octave/oo-changesets/202-d9d23f97ba78.hg.txt && \
+# 	hg import ../back-octave/oo-changesets/203-d6b5ffb8e4cc.hg.txt && \
+# 	hg import ../back-octave/oo-changesets/204-e61d7b8918e2.hg.txt
+
+### 6.0.1 ###
 RUN cd octave && \
-	hg import ../back-octave/oo-changesets/200-84cbf166497f.hg.txt && \
-	hg import ../back-octave/oo-changesets/201-b993253f19d0.hg.txt && \
-	hg import ../back-octave/oo-changesets/202-d9d23f97ba78.hg.txt && \
-	hg import ../back-octave/oo-changesets/203-d6b5ffb8e4cc.hg.txt && \
-	hg import ../back-octave/oo-changesets/204-e61d7b8918e2.hg.txt
+	hg import ../back-octave/oo-changesets/300-d78448f9c483.hg.txt && \
+	hg import ../back-octave/oo-changesets/301-97f7d1f4fe83.hg.txt && \
+	hg import ../back-octave/oo-changesets/302-8900d7cf8554.hg.txt
 
 # Re-build with patches
 RUN cd octave/build-oo && make -j8

@@ -1,0 +1,43 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1593856818 18000
+#      Sat Jul 04 05:00:18 2020 -0500
+# Branch oo-5.2a
+# Node ID 8900d7cf85541d1b927b7d071f541b69cd234f7c
+# Parent  97f7d1f4fe83bd6ebe102eb4cc6268ae23ad8d52
+Another octave_link to event_manager rename
+
+diff -r 97f7d1f4fe83 -r 8900d7cf8554 scripts/plot/util/__gnuplot_drawnow__.m
+--- a/scripts/plot/util/__gnuplot_drawnow__.m	Fri Jul 03 03:58:38 2020 +0000
++++ b/scripts/plot/util/__gnuplot_drawnow__.m	Sat Jul 04 05:00:18 2020 -0500
+@@ -60,8 +60,8 @@
+ 
+     should_plot_to_terminal = (
+       !strcmp (term, "dumb") && (
+-        __octave_link_plot_destination__ () == 0 ||
+-        __octave_link_plot_destination__ () == 2
++        __event_manager_plot_destination__ () == 0 ||
++        __event_manager_plot_destination__ () == 2
+       )
+     );
+ 
+@@ -73,8 +73,8 @@
+ 
+     should_plot_to_temp_file = (
+       strcmp (term, "dumb") ||
+-      __octave_link_plot_destination__ () == 1 ||
+-      __octave_link_plot_destination__ () == 2
++      __event_manager_plot_destination__ () == 1 ||
++      __event_manager_plot_destination__ () == 2
+     );
+ 
+     if (should_plot_to_temp_file)
+@@ -101,7 +101,7 @@
+         if strcmp (term, "dumb")
+           puts (a);
+         else
+-          __octave_link_show_static_plot__ (term, a);
++          __event_manager_show_static_plot__ (term, a);
+         endif
+       endif
+     endif
