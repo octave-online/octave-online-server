@@ -1,0 +1,14 @@
+diff -u -r ltfat/inst/nonstatgab/nsdgt.m ltfat/inst/nonstatgab/nsdgt.m
+--- ltfat/inst/nonstatgab/nsdgt.m	2018-06-21 15:03:11.000000000 +0000
++++ ltfat/inst/nonstatgab/nsdgt.m	2020-07-05 01:52:46.072676195 +0000
+@@ -149,8 +149,8 @@
+         col = ceil(Lg/M(ii));
+
+         temp = zeros(col*M(ii),W,assert_classname(f,g{1}));
+-        temp([end-floor(Lg/2)+1:end,1:ceil(Lg/2)],:) = bsxfun(@ ...
+-                                                          times,f(win_range,:),g{ii}(idx));
++        temp([end-floor(Lg/2)+1:end,1:ceil(Lg/2)],:) = bsxfun(@times, ...
++                                                          f(win_range,:),g{ii}(idx));
+
+         temp = reshape(temp,M(ii),col,W);
+         X = squeeze(fft(sum(temp,2)));
