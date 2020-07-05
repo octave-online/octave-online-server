@@ -196,9 +196,12 @@ Here are some critical user journeys that test a fairly wide cross-section of th
 	1. Run `O = urlread("https://example.com")`; it should print the same HTML as the previous line (http vs https)
 	1. Run `O = urlread("http://cnn.com")`; it should print an error saying that the domain is not in the whitelist (unless you added that domain to your custom whitelist)
 	1. Run `ping`; you should see a response like "Ping time: 75ms"
+	1. Run `pause; disp("done")`; you should see a message "press enter to continue".  Press enter, and then you should see "done" printed out to the console
 1. Octave feature coverage
-	1. Run `pkg load communications` and then `help gf`; you should get a help page (skip this if you don't install the communications package)
+	1. Run `gf`; you should see a message "Run 'pkg load communications' to use 'gf'"
+	1. Run `pkg load communications` and then `help gf`; you should get a help page
 	1. Run `audioread("dummy.wav")`; you should get an error that the file does not exist (but you should NOT get an error that says libsndfile was not installed)
+	1. Run `fork`; you should see a message "error: 'fork' undefined near line 1, column 1"
 1. Student / instructor features
 	1. Create two accounts if you do not already have two accounts
 	1. In one account, add a string to the `instructor` field in mongodb; for example, `"test-course"`
