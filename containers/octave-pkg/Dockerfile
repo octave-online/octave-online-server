@@ -148,3 +148,5 @@ RUN cd /usr/local/share/octave/site/m && /usr/local/bin/octave -q --eval "\
 		packages = {packages{:} pkg('describe', '-verbose', p{1}.name){:}}; \
 	endfor; \
 	save('package_metadata.mat', 'packages'); "
+
+# TODO: Add octaverc.m to the Docker image, and remove it from install-site-m
