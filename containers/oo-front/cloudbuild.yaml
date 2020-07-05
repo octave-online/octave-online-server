@@ -65,13 +65,14 @@ steps:
     - OO_ANNOUNCEMENT_HTML=$_ANNOUNCEMENT_HTML
 
 # Deploy to AppEngine
+# Use "gcloud beta app deploy" to work around bug: https://stackoverflow.com/questions/62575138/network-session-affinitytrue-property-of-app-yaml-file-is-not-reflecting-in
 - name: gcr.io/cloud-builders/gcloud
   entrypoint: bash
   timeout: 1800s
   args:
     - -c
     - |
-      gcloud app deploy $_DEPLOY_OPTS;
+      gcloud beta app deploy $_DEPLOY_OPTS;
 
 timeout: 1800s
 substitutions:
