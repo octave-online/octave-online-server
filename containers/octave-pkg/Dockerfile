@@ -41,9 +41,6 @@ RUN mkdir pkg-downloads
 RUN cd pkg-downloads && wget $PKG_BASE_URL/control-3.2.0.tar.gz && \
 	/usr/local/bin/octave -q --eval "pkg install control-3.2.0.tar.gz;"
 
-RUN cd pkg-downloads && wget $PKG_BASE_URL/control-3.2.0.tar.gz && \
-	/usr/local/bin/octave -q --eval "pkg install control-3.2.0.tar.gz;"
-
 RUN cd pkg-downloads && wget $PKG_BASE_URL/signal-1.4.1.tar.gz && \
 	/usr/local/bin/octave -q --eval "pkg install signal-1.4.1.tar.gz;"
 
@@ -98,12 +95,6 @@ RUN cd pkg-downloads && wget $PKG_BASE_URL/stk-2.6.1.tar.gz && \
 RUN cd pkg-downloads && wget $PKG_BASE_URL/ltfat-2.3.1.tar.gz && \
 	/usr/local/bin/octave -q --eval "pkg install ltfat-2.3.1.tar.gz;"
 
-RUN cd pkg-downloads && wget $PKG_BASE_URL/mechanics-1.3.1.tar.gz && \
-	/usr/local/bin/octave -q --eval "pkg install mechanics-1.3.1.tar.gz;"
-
-RUN cd pkg-downloads && wget $PKG_BASE_URL/divand-1.1.2.tar.gz && \
-	/usr/local/bin/octave -q --eval "pkg install divand-1.1.2.tar.gz;"
-
 RUN cd pkg-downloads && wget $PKG_BASE_URL/mapping-1.4.0.tar.gz && \
 	/usr/local/bin/octave -q --eval "pkg install mapping-1.4.0.tar.gz;"
 
@@ -117,7 +108,15 @@ RUN cd pkg-downloads && wget https://github.com/apjanke/octave-tablicious/releas
 	/usr/local/bin/octave -q --eval "pkg install tablicious-0.3.5.tar.gz;"
 
 # TODO: Package to consider adding:
-# - fuzzy-logic-toolkit (present in older versions)
+# - fuzzy-logic-toolkit-0.4.5 (present in older versions; 55 downloads/week)
+# - video-2.0.0 (49 downloads/week)
+# - netcdf-1.0.13 (47 downloads/week)
+# - dataframe-1.2.0 (47 downloads/week)
+# - mvn-1.1.0 (43 downloads/week)
+
+# Former packages:
+# - mechanics-1.3.1 (dropped due to only 4 downloads/week)
+# - divand-1.1.2 (dropped due to only 8 downloads/week)
 
 # Generate package metadata, used for warning messages
 RUN cd /usr/local/share/octave/site/m && /usr/local/bin/octave -q --eval "\
