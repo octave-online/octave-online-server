@@ -50,21 +50,19 @@ setenv("PYTHON", "python3")
 % Packages that are installed but not auto-loaded have a reason, such as shadows.
 
 pkg load control;
+pkg load dataframe;
 pkg load general;
 pkg load geometry;
 pkg load image;
 pkg load interval;
 pkg load linear-algebra;
 pkg load miscellaneous;
+pkg load mvn;
 pkg load signal;
 pkg load struct;
 pkg load symbolic;
-
-% TODO: Save this file as part of the Dockerfile, then enable these pkgs:
-% pkg load dataframe;
-% pkg load mvn;
-% pkg load tablicious;
-% pkg load video;
+pkg load tablicious;
+pkg load video;
 
 % Packages not auto-loaded because of the JVM dependency:
 % pkg load data-smoothing;

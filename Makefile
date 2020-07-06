@@ -51,7 +51,7 @@ install-selinux-bin:
 	ln -sf $$PWD /usr/local/share/oo
 
 install-site-m:
-	cp back-octave/octaverc.m /usr/local/share/octave/site/m/startup/octaverc
+	echo "This command is no longer supported. See containers/octave-pkg/Dockerfile."
 
 enable-graceful-shutdown:
 	cp entrypoint/oo-no-restart.service /usr/lib/systemd/system/oo.service;

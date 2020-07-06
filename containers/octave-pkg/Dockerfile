@@ -37,7 +37,9 @@ RUN yum install -y \
 	netcdf-devel \
 	python3-pip
 
-RUN pip3 install sympy
+# TODO: install version 1.5.1 until the symbolic package is fixed:
+# https://github.com/cbm755/octsympy/issues/1023
+RUN pip3 install sympy==1.5.1
 
 ARG PKG_BASE_URL=https://downloads.sourceforge.net/project/octave/Octave%20Forge%20Packages/Individual%20Package%20Releases
 
@@ -149,4 +151,5 @@ RUN cd /usr/local/share/octave/site/m && /usr/local/bin/octave -q --eval "\
 	endfor; \
 	save('package_metadata.mat', 'packages'); "
 
-# TODO: Add octaverc.m to the Docker image, and remove it from install-site-m
+# Install site octaverc.m (formerly part of "install-site-m" in Makefile)
+COPY containers/octave-pkg/octaverc.m /usr/local/share/octave/site/m/startup/octaverc
