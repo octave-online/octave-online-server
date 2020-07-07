@@ -60,9 +60,6 @@ steps:
         npm run build
       );
       [[ $? == 0 ]] || exit $?;  # exit if failure
-  env:
-    - OO_ANNOUNCEMENT_DISPLAY=$_ANNOUNCEMENT_DISPLAY
-    - OO_ANNOUNCEMENT_HTML=$_ANNOUNCEMENT_HTML
 
 # Deploy to AppEngine
 # Use "gcloud beta app deploy" to work around bug: https://stackoverflow.com/questions/62575138/network-session-affinitytrue-property-of-app-yaml-file-is-not-reflecting-in
@@ -76,6 +73,4 @@ steps:
 
 timeout: 1800s
 substitutions:
-  _ANNOUNCEMENT_DISPLAY: "off"
-  _ANNOUNCEMENT_HTML: "<p></p>"
   _DEPLOY_OPTS: "--promote"

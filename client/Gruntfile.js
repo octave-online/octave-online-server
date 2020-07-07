@@ -41,10 +41,6 @@ function getFileUtf8(filepath) {
 	};
 }
 
-const announcement_display = process.env.OO_ANNOUNCEMENT_DISPLAY ? process.env.OO_ANNOUNCEMENT_DISPLAY : config.client.announcement_display;
-
-const announcement_html = process.env.OO_ANNOUNCEMENT_HTML ? process.env.OO_ANNOUNCEMENT_HTML : config.client.announcement_html;
-
 module.exports = function (grunt) {
 	grunt.loadNpmTasks("grunt-contrib-requirejs");
 	grunt.loadNpmTasks("grunt-contrib-stylus");
@@ -221,32 +217,8 @@ module.exports = function (grunt) {
 				]
 			},
 			html: {
-				src: ["dist/index.html", "dist/gdpr.html", "dist/privacy.txt"],
+				src: ["dist/privacy.txt"],
 				actions: [
-					{
-						name: "requirejs",
-						search: "<!-- Begin RequireJS -->[\\s\\S]+?<!-- End RequireJS -->",
-						replace: "<script src=\"js/require.js\"></script>",
-						flags: "g"
-					},
-					{
-						name: "js-timestamp",
-						search: "\\{!js-timestamp!\\}",
-						replace: getJsTimestamp,
-						flags: "g"
-					},
-					{
-						name: "css-timestamp",
-						search: "\\{!css-timestamp!\\}",
-						replace: getCssTimestamp,
-						flags: "g"
-					},
-					{
-						name: "logo-svg",
-						search: "<!-- Logo SVG -->",
-						replace: getFileUtf8("dist/images/logos/banner-black.svg"),
-						flags: "g"
-					},
 					{
 						name: "privacy-txt",
 						search: "<!-- Privacy TXT -->",
@@ -257,60 +229,6 @@ module.exports = function (grunt) {
 						name: "eula-txt",
 						search: "<!-- EULA TXT -->",
 						replace: getFileUtf8("app/eula.txt"),
-						flags: "g"
-					},
-					{
-						name: "title",
-						search: "\\{!title!\\}",
-						replace: config.client.title,
-						flags: "g"
-					},
-					{
-						name: "description",
-						search: "\\{!description!\\}",
-						replace: config.client.description,
-						flags: "g"
-					},
-					{
-						name: "theme-color",
-						search: "\\{!theme-color!\\}",
-						replace: config.client.theme_color,
-						flags: "g"
-					},
-					{
-						name: "app-name",
-						search: "\\{!app-name!\\}",
-						replace: config.client.app_name,
-						flags: "g"
-					},
-					{
-						name: "announcement-display",
-						search: "\\{!announcement-display!\\}",
-						replace: announcement_display,
-						flags: "g"
-					},
-					{
-						name: "announcement-html",
-						search: "\\{!announcement-html!\\}",
-						replace: announcement_html,
-						flags: "g"
-					},
-					{
-						name: "recaptcha-sitekey",
-						search: "\\{!recaptcha-sitekey!\\}",
-						replace: config.recaptcha.siteKey,
-						flags: "g"
-					},
-					{
-						name: "onboarding",
-						search: "<!--ONBOARDING([\\s\\S]+?)ONBOARDING-->",
-						replace: function(full, match) {
-							if (config.client.onboarding) {
-								return match;
-							} else {
-								return "";
-							}
-						},
 						flags: "g"
 					},
 				]
@@ -324,13 +242,22 @@ module.exports = function (grunt) {
 		}
 	});
 
+	grunt.registerTask("build-data", function(key, value) {
+		grunt.file.write("dist/build_data.json", JSON.stringify({
+			jsTimestamp: getJsTimestamp(),
+			cssTimestamp: getCssTimestamp(),
+			useDistPaths: true,
+		}));
+	});
+
 	grunt.registerTask("default", [
 		"requirejs", // app.js
 		"uglify", // runtime.js
 		"stylus:dist",
 		"regex-replace:appcss",
 		"sync",
-		"regex-replace:html"
+		"regex-replace:html",
+		"build-data",
 	]);
 
 	grunt.registerTask("index", ["sync", "regex-replace:html"]);

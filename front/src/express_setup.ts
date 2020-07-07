@@ -42,11 +42,20 @@ const recaptcha = new ReCAPTCHA({
 
 const PORT = process.env.PORT || config.front.listen_port;
 
+const STATIC_PATH = Path.join(__dirname, "..", "..", config.front.static_path);
+
+let buildData = {};
+try {
+	buildData = require(Path.join(STATIC_PATH, "build_data.json"));
+	log.trace("Loaded buildData:", buildData);
+} catch(err) {
+	log.warn("Could not load buildData:", err);
+}
+
 export let app: Http.Server;
 
 export function init(){
-	const staticPath = Path.join(__dirname, "..", "..", config.front.static_path);
-	log.info("Serving static files from:", staticPath);
+	log.info("Serving static files from:", STATIC_PATH);
 
 	app = Express()
 		.use(function(req, res, next) {
@@ -62,7 +71,7 @@ export function init(){
 			req.url = "/index.html";
 			next("route");
 		})
-		.use(ServeStatic(staticPath, {
+		.use(ServeStatic(STATIC_PATH, {
 			maxAge: "7d",
 			setHeaders: (res, path, stat) => {
 				switch (Path.extname(path)) {
@@ -89,6 +98,10 @@ export function init(){
 		.set("view engine", "ejs")
 		.get("/ping", function(req, res){
 			res.sendStatus(204);
+		})
+		.get(["/", "/index.html"], function(req, res) {
+			res.setHeader("Cache-Control", "public, max-age=0");
+			res.status(200).render("index", { config, buildData });
 		})
 		.post("/auth/persona", Passport.authenticate("persona"), function(req, res){
 			res.sendStatus(204);

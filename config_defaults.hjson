@@ -490,8 +490,7 @@ client: {
 	#   - "on" => show the message to all visitors; this could announce expected system downtime, for example
 	#   - "returning" => show the message to returning users only (those who have dismissed the onboarding screen); this could announce new feature to existing users, for example.  This setting only works if onboarding is set to true
 	#   - "off" => disable the announcement screen
-	# Tip: the announcement can be enabled or disabled using the "grunt index" command, which is faster than a full "grunt" and also does not invalidate JS/CSS caching.
-	# Note: If the environment variables OO_ANNOUNCEMENT_DISPLAY and OO_ANNOUNCEMENT_HTML are set during the grunt build, they will be used instead of the settings below.
+	# TODO: Re-engineer a way to set the announcement without rebuilding the app.
 	announcement_display: "off"
 	# Use the following variable to control the HTML shown in the announcement box.
 	announcement_html:
