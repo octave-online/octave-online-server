@@ -270,6 +270,7 @@ export const config: {
         flavor_log_interval: number;
         hostname: string;
         listen_port: number;
+        locales_path: string;
         port: number;
         protocol: string;
         require_https: boolean;

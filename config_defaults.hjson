@@ -434,6 +434,8 @@ front: {
 	# static_path is the directory to serve; should be either the "app" (debug) or "dist" (production) directory of the client project.
 	# A relative path is relative to the top-level projects directory (the directory where this file is located).
 	static_path: client/dist
+	# locales_path is the directory containing i18next translation files. A relative path is relative to the top-level projects directory.
+	locales_path: front/locales
 
 	# COOKIE SETTINGS
 	# For the primary Octave Online Server session ID; there may be other cookies set on the client side, like those used to dismiss onboarding boxes.

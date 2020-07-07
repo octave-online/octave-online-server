@@ -24,6 +24,9 @@ import Path = require("path");
 import BodyParser = require("body-parser");
 import Compression = require("compression");
 import Express = require("express");
+import I18next = require("i18next");
+import I18nextFsBackend = require("i18next-fs-backend");
+import I18nextMiddleware = require("i18next-http-middleware");
 import Passport = require("passport");
 import ReCAPTCHA = require("recaptcha2");
 import ServeStatic = require("serve-static");
@@ -41,8 +44,8 @@ const recaptcha = new ReCAPTCHA({
 });
 
 const PORT = process.env.PORT || config.front.listen_port;
-
 const STATIC_PATH = Path.join(__dirname, "..", "..", config.front.static_path);
+const LOCALES_PATH = Path.join(__dirname, "..", "..", config.front.locales_path);
 
 let buildData = {};
 try {
@@ -56,6 +59,19 @@ export let app: Http.Server;
 
 export function init(){
 	log.info("Serving static files from:", STATIC_PATH);
+
+	// Work around bug in i18next TypeScript definition?
+	const i18next = (I18next as unknown as I18next.i18n);
+	i18next
+		.use(I18nextMiddleware.LanguageDetector)
+		.use(I18nextFsBackend)
+		.init({
+			backend: {
+				loadPath: Path.join(LOCALES_PATH, "{{lng}}.yaml"),
+			},
+			fallbackLng: "en",
+			preload: ["en", "es"]
+		});
 
 	app = Express()
 		.use(function(req, res, next) {
@@ -91,6 +107,7 @@ export function init(){
 				(req as any).rawBody = buf;
 			}
 		}))
+		.use(I18nextMiddleware.handle(i18next))
 		.use(Passport.initialize())
 		.use(Passport.session())
 		.use(Siofu.router)
@@ -101,7 +118,11 @@ export function init(){
 		})
 		.get(["/", "/index.html"], function(req, res) {
 			res.setHeader("Cache-Control", "public, max-age=0");
-			res.status(200).render("index", { config, buildData });
+			res.status(200).render("index", {
+				config,
+				buildData,
+				t: (req as any).t as I18next.TFunction
+			});
 		})
 		.post("/auth/persona", Passport.authenticate("persona"), function(req, res){
 			res.sendStatus(204);
