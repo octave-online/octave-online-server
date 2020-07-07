@@ -242,7 +242,7 @@ module.exports = function (grunt) {
 		}
 	});
 
-	grunt.registerTask("build-data", function(key, value) {
+	grunt.registerTask("build-data", function() {
 		grunt.file.write("dist/build_data.json", JSON.stringify({
 			jsTimestamp: getJsTimestamp(),
 			cssTimestamp: getCssTimestamp(),
