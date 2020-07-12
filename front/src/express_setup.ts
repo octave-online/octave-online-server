@@ -80,9 +80,9 @@ export function init(){
 			}
 		}, (err) => {
 			if (err) {
-				log.trace("i18next initialized");
-			} else {
 				log.error("i18next failed to initialize:", err);
+			} else {
+				log.trace("i18next initialized");
 			}
 		});
 

@@ -292,49 +292,50 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		<div id="main_menu" aria-hidden="true"><div id="main_menu_content">
 			<!-- ko if: (!currentUser() && !showUserInHeader()) -->
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
-					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="Sign in with Google" />
+					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="<%= t("header.btn_sign_in_google") %>" />
 				</svg>
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_password">
-					<image xlink:href="images/sign-in-with-password.svg" src="images/sign-in-with-password.png" width="200" height="40" alt="Sign in with Password" />
+					<image xlink:href="images/sign-in-with-password.svg" src="images/sign-in-with-password.png" width="200" height="40" alt="<%= t("header.btn_sign_in_google") %>" />
 				</svg>
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
-					<image xlink:href="images/sign-in-with-email.svg" src="images/sign-in-with-email.png" width="200" height="40" alt="Sign in with Email" />
+					<image xlink:href="images/sign-in-with-email.svg" src="images/sign-in-with-email.png" width="200" height="40" alt="<%= t("header.btn_sign_in_email") %>" />
 				</svg>
 				<p class="login_bottom">
-					Signed in before but need to change your email address? Click "Feedback" and create a ticket. We will change it for you.
+					<%= t("header.body_change_email") %>
 				</p>
 			<!-- /ko -->
 			<!-- ko if: (currentUser() && !showUserInHeader()) -->
 				<div id="userbox">
 					<span data-bind="text: currentUser().name"></span>
-					<a id="logout_icon" href="javascript:void(0)" title="Sign Out" data-bind="click: doLogout">Sign&nbsp;Out</a>
+					<a id="logout_icon" href="javascript:void(0)" title="Sign Out" data-bind="click: doLogout"><%= t("header.btn_sign_out") %></a>
 				</div>
 				<div class="site-control-item" data-bind="click: showUpgradeTier">
-					<a href="javascript:void(0)">Upgrade with Patreon</a>
+					<a href="javascript:void(0)"><%= t("header.btn_patreon") %></a>
 				</div>
 				<div class="share-url-box">
 					<!-- ko if: currentUser().share_key -->
-						<em>Others can use the following link to connect to your workspace.</em>
+						<em><%= t("header.body_share_desc") %></em>
 						<input data-bind="value: shareLink" onclick="this.select()" readonly="readonly" />
 						<div class="site-control-item" data-bind="click: toggleSharing">
-							<a href="javascript:void(0)">Disable Sharing</a>
+							<a href="javascript:void(0)"><%= t("header.btn_disable_sharing") %></a>
 						</div>
 					<!-- /ko -->
 					<!-- ko ifnot: currentUser().share_key -->
 						<div class="site-control-item" data-bind="click: toggleSharing">
-							<a href="javascript:void(0)">Share Workspace</a>
+							<a href="javascript:void(0)"><%= t("header.btn_enable_sharing") %></a>
 						</div>
 					<!-- /ko -->
 				</div>
 				<div class="site-control-item" id="create-password-btn" data-bind="click: showChangePassword">
-					<a href="javascript:void(0)">Change Password</a>
+					<a href="javascript:void(0)"><%= t("header.btn_change_password") %></a>
 				</div>
 			<!-- /ko -->
 			<!-- ko foreach: instructorPrograms -->
 				<div class="instructor-programs">
-					<strong>Students Enrolled in <span data-bind="text: program"></span>:</strong>
+					<strong><%= t("header.students_title") %></strong><br/>
+					<em><%= t("header.students_subhead1") %> <span data-bind="text: program"></span></em>
 					<ul data-bind="foreach: users">
-						<li><a data-bind="attr: { href: shareUrl }, text: displayName" target="_blank"></a> (<a data-bind="click: $root.unenrollStudent" title="Unenroll">&#x232B;</a> <a data-bind="click: $root.reenrollStudent" title="Move">&#x2794;</a>)</li>
+						<li><a data-bind="attr: { href: shareUrl }, text: displayName" target="_blank"></a> (<a data-bind="click: $root.unenrollStudent" title="<%= t("header.students_btn_unenroll") %>">&#x232B;</a> <a data-bind="click: $root.reenrollStudent" title="<%= t("header.students_btn_reenroll") %>">&#x2794;</a>)</li>
 					</ul>
 				</div>
 			<!-- /ko -->
@@ -346,34 +347,34 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				data-uv-link-color="#007dbf"
 				data-uv-default-mode="feedback"
 				data-uv-forum-id="211888">
-				Feedback and Support
+				<%= t("header.btn_support") %>
 			</a></div>
 			<div class="site-control-item">
-				<a id="showprivacy">Privacy Policy and EULA</a>
+				<a id="showprivacy"><%= t("header.btn_legal") %></a>
 			</div>
 			<div class="site-control-item">
-				<a href="https://github.com/octave-online/octave-online-server" target="_blank">GitHub Project (AGPL)</a>
+				<a href="https://github.com/octave-online/octave-online-server" target="_blank"><%= t("header.btn_github") %></a>
 			</div>
 			<div class="site-control-item" id="change-skin">
-				<a href="javascript:void(0)">Change Theme</a>
+				<a href="javascript:void(0)"><%= t("header.btn_change_theme") %></a>
 			</div>
 			<div class="site-control-item" id="reset-layout">
-				<a href="javascript:void(0)">Change/Reset Layout</a>
+				<a href="javascript:void(0)"><%= t("header.btn_change_layout") %></a>
 			</div>
 			<div id="twitter-follow-holder" class="site-control-item">
 				<a href="https://twitter.com/OctaveOnline" class="twitter-follow-button" data-show-count="false"
-				data-lang="en" data-size="large" data-show-screen-name="false" target="_blank">Follow on Twitter</a>
+				data-lang="en" data-size="large" data-show-screen-name="false" target="_blank"><%= t("header.btn_twitter") %></a>
 			</div>
 			<div class="preference-inline-item">
 				<label>
 					<input type="checkbox" data-bind="checked: inlinePlots" />
-					Render New Plots Inline
+					<%= t("header.btn_inline_plots") %>
 				</label>
 			</div>
 			<div class="preference-inline-item">
 				<label>
 					<input type="checkbox" data-bind="checked: consoleWhiteSpaceWrap" />
-					Wrap Long Lines in Console
+					<%= t("header.btn_text_wrap") %>
 				</label>
 			</div>
 			<!-- ko if: currentUser -->
@@ -381,17 +382,17 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				<div class="preference-inline-item">
 					<label>
 						<input type="checkbox" data-bind="checked: flavorTester" />
-						Beta Test Dedicated Servers
+						<%= t("header.btn_test_flavors") %>
 					</label>
 				</div>
 			-->
 			<!-- /ko -->
 			<!-- ko if: allBuckets().length > 0 -->
 				<div class="all-buckets">
-					<strong>Your Buckets:</strong>
+					<strong><%= t("header.buckets_title") %></strong>
 					<ul data-bind="foreach: allBuckets">
 						<li>
-							<a data-bind="click: deleteit" title="Delete Bucket" class="bucket-delete">&#x232B;</a>
+							<a data-bind="click: deleteit" title="<%= t("header.buckets_btn_delete") %>" class="bucket-delete">&#x232B;</a>
 
 							<a data-bind="attr: { href: url }, text: displayName" target="_blank" class="bucket-name"></a>
 							<br/>
@@ -409,32 +410,32 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 
 <% if (config.client.onboarding) { %>
 <div id="onboarding" data-purpose="popover"><div><div>
-	<h2>Welcome to Octave Online</h2>
+	<h2><%= t("promos.welcome_title", { config }) %></h2>
 
 	<p>
-		Octave Online is a web UI for GNU Octave, the open-source alternative to MATLAB.  Thousands of students, educators, and researchers from around the world use Octave Online each day for studying machine learning, control systems, numerical methods, and more.
+		<%= t("promos.welcome_p1", { config }) %>
 	</p>
 	<figure>
 		<figcaption>
-			Type commands in the prompt like you would in your local copy of GNU Octave or MATLAB.
+			<%= t("promos.welcome_p2") %>
 		</figcaption>
 		<img src="images/demo/fminbnd-prompt.png" alt="fminbnd(@(x) x .* log(x), 0, 1)" style="max-width: 362px;"/>
 		<img src="images/demo/fminbnd-result.png" alt="0.36788" style="max-width: 366px;"/>
 	</figure>
 	<figure>
 		<figcaption>
-			Plot charts and graphs.
+			<%= t("promos.welcome_p3") %>
 		</figcaption>
 		<img src="images/demo/sombrero-prompt.png" alt="sombrero()" style="max-width: 150px;"/>
 		<img src="images/demo/sombrero-result.jpg" alt="plot showing a sombrero" style="max-width: 531px;"/>
 	</figure>
 	<figure>
 		<figcaption>
-			Sign in for more features: script files, buckets, real-time collaboration like Google Docs, extended runtime, and more.
+			<%= t("promos.welcome_p4") %>
 		</figcaption>
 		<img src="images/demo/editor.png" alt="cstr_reactor.m"/>
 	</figure>
-	<button id="onboarding-start" data-purpose="close">Start Using Octave Online</button>
+	<button id="onboarding-start" data-purpose="close"><%= t("promos.welcome_btn_start") %></button>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 <% } %>
@@ -450,28 +451,27 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 </div></div></div>
 
 <div id="email_token" data-purpose="popover" aria-hidden="true"><div><div>
-	<label for="emailField">Enter your email address:</label>
+	<label for="emailField"><%= t("modals.email_label1") %></label>
 	<form action="./auth/tok" method="post">
-		<input type="email" id="emailField1" name="s" placeholder="email address" />
+		<input type="email" id="emailField1" name="s" placeholder="<%= t("common.email_placeholder") %>" />
 		<input type="password" id="passwordField1" name="p" />
 		<div class="g-recaptcha" data-sitekey="<%= config.recaptcha.siteKey %>"></div>
-		<input type="submit" value="Submit" />
+		<input type="submit" value="<%= t("common.btn_submit") %>" />
 	</form>
-	<p>You will be emailed an 11-digit code that you will need to enter on the next screen.</p>
-	<p><em>Notice:</em> If you do not receive your code, please open a support ticket for assistance.</p>
+	<p><%= t("modals.email_p1") %></p>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
 <div id="email_password" data-purpose="popover" aria-hidden="true"><div><div>
-	<p><strong>New user? Forgot your password?</strong>  Use the "email token" sign-in option instead.  Once you are signed in, use the "Change Password" option in the menu to set a new password.</p>
+	<p><strong><%= t("modals.password_subhead1") %></strong> <%= t("modals.password_p1") %></p>
 	<form action="./auth/pwd" method="post">
-		<input type="email" id="emailField2" name="s" placeholder="email address" />
+		<input type="email" id="emailField2" name="s" placeholder="<%= t("common.email_placeholder") %>" />
 		<input type="password" name="p" placeholder="password" />
 		<!-- <div class="g-recaptcha" data-sitekey="<%= config.recaptcha.siteKey %>"></div> -->
 		<!-- ko if: window.location.protocol === "http:" -->
-		<p><strong>Caution:</strong>  You are using an unsecured connection (http).  People might be able to see what you submit.  <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }">Switch to a secured connection (https)</a></p>
+		<p><strong><%= t("common.subhead_caution_colon") %></strong> <%= t("modals.password_p2") %> <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }"><%= t("modals.password_btn_https") %></a></p>
 		<!-- /ko -->
-		<input type="submit" value="Submit" />
+		<input type="submit" value="<%= t("common.btn_submit") %>" />
 	</form>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>

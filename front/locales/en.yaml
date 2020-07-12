@@ -1,6 +1,31 @@
 hello_world: Hello World
 
 header:
+  body_change_email: Signed in before but need to change your email address? Click "Feedback" and create a ticket. We will change it for you.
+  body_share_desc: Others can use the following link to connect to your workspace.
+  btn_change_layout: Change/Reset Layout
+  btn_change_password: Change Password
+  btn_change_theme: Change Theme
+  btn_disable_sharing: Disable Sharing
+  btn_enable_sharing: Share Workspace
+  btn_github: GitHub Project
+  btn_inline_plots: Render New Plots Inline
+  btn_legal: Privacy Policy and EULA
+  btn_patreon: Upgrade with Patreon
+  btn_sign_in_email: Sign in with Email
+  btn_sign_in_google: Sign in with Google
+  btn_sign_in_password: Sign in with Password
+  btn_sign_out: Sign Out
+  btn_support: Feedback and Support
+  btn_test_flavors: Beta Test Dedicated Servers
+  btn_text_wrap: Wrap Long Lines in Console
+  btn_twitter: Follow on Twitter
+  buckets_btn_delete: Delete Bucket
+  buckets_title: "Your Buckets:"
+  students_btn_reenroll: Move
+  students_btn_unenroll: Unenroll
+  students_subhead1: "Code:"
+  students_title: Students
   ui_menu: MENU
 
 editor:
@@ -61,3 +86,22 @@ promos:
   prompt_p2: "To use script files:"
   prompt_title: Octave Command Prompt
   ui_dismiss: dismiss
+  welcome_title: Welcome to {{config.client.app_name}}
+  welcome_p1: Octave Online is a web UI for GNU Octave, the open-source alternative to MATLAB.  Thousands of students, educators, and researchers from around the world use {{config.client.app_name}} each day for studying machine learning, control systems, numerical methods, and more.
+  welcome_p2: Type commands in the prompt like you would in your local copy of GNU Octave or MATLAB.
+  welcome_p3: Plot charts and graphs.
+  welcome_p4: "Sign in for more features: script files, buckets, real-time collaboration like Google Docs, extended runtime, and more."
+  welcome_btn_start: Start Using Octave Online
+
+modals:
+  email_label1: "Enter your email address:"
+  email_p1: You will be emailed an 11-digit code that you will need to enter on the next screen. If you do not receive your code, please open a support ticket for assistance.
+  password_subhead1: New user? Forgot your password?
+  password_p1: Use the "email token" sign-in option instead. Once you are signed in, use the "Change Password" option in the menu to set a new password.
+  password_p2: You are using an unsecured connection (http). People might be able to see what you submit.
+  password_btn_https: Switch to a secured connection (https)
+
+common:
+  email_placeholder: email address
+  btn_submit: Submit
+  subhead_caution_colon: "Caution:"
