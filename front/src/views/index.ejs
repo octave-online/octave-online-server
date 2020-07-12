@@ -69,7 +69,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		<!-- /ko -->
 		<div class="hamburger" id="hamburger" aria-label="Menu" role="button" aria-controls="navigation">
 			<div class="hamburger-box">
-				<span class="hamburger-memo">MENU</span>
+				<span class="hamburger-memo"><%= t("header.ui_menu") %></span>
 				<div class="hamburger-inner"></div>
 			</div>
 		</div>
@@ -79,14 +79,14 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 			<div id="files_toolbar" class="theme-header">
 				Files
 				<!-- ko if: purpose() !== "bucket" -->
-				<span id="files_toolbar_create" title="Create empty file"></span>
+				<span id="files_toolbar_create" title="<%= t("editor.btn_create") %>"></span>
 				<!-- /ko -->
 			</div>
 			<!-- ko if: purpose() !== "bucket" -->
 			<div id="files_toolbar_lower">
-				<span id="files_toolbar_upload" title="Upload file"></span>
-				<span id="files_toolbar_refresh" title="Refresh files"></span>
-				<span id="files_toolbar_info" title="File version history"></span>
+				<span id="files_toolbar_upload" title="<%= t("editor.btn_upload") %>"></span>
+				<span id="files_toolbar_refresh" title="<%= t("editor.btn_refresh") %>"></span>
+				<span id="files_toolbar_info" title="<%= t("editor.btn_history") %>"></span>
 			</div>
 			<!-- /ko -->
 			<div id="files_list_container" data-bind="css: { 'is_bucket': purpose() === 'bucket' }">
@@ -104,7 +104,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				</ul>
 				<!-- ko if: purpose() !== "bucket" -->
 				<span id="files_drop_notification">
-					Drop Files Here to Upload
+					<%= t("editor.ui_drop") %>
 				</span>
 				<!-- /ko -->
 			</div>
@@ -115,22 +115,22 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					<span id="editor_hamburger" data-bind="click: buttonsShown.toggle()" title="Show Toolbar"></span>
 					<span id="editor_filename" data-bind="text: filename, css: { 'modified': isModified }"></span>
 					<!-- ko if: runnable -->
-					<span id="editor_runit" title="Run Script" data-bind="click: runit">RUN &#x25b6;</span>
+					<span id="editor_runit" title="<%= t("editor.btn_run") %>" data-bind="click: runit"><%= t("editor.ui_run") %> &#x25b6;</span>
 					<!-- /ko -->
 				</div>
 				<div id="editor_btn_container" data-bind="vizSafe: buttonsShown" aria-hidden="true">
-					<span id="editor_download" title="Download File" data-bind="click: download"></span>
+					<span id="editor_download" title="<%= t("editor.btn_download") %>" data-bind="click: download"></span>
 					<!-- ko if: $root.purpose() !== "bucket" -->
-					<span id="editor_rename" title="Rename File" data-bind="click: rename"></span>
-					<span id="editor_delete" title="DELETE File" data-bind="click: deleteit"></span>
+					<span id="editor_rename" title="<%= t("editor.btn_rename") %>" data-bind="click: rename"></span>
+					<span id="editor_delete" title="<%= t("editor.btn_delete") %>" data-bind="click: deleteit"></span>
 					<!-- /ko -->
 					<!-- ko if: editable -->
-					<span id="editor_print" title="Print File" data-bind="click: print"></span>
-					<label id="wrap_checkbox" title="Toggle Word Wrap"><input type="checkbox" data-bind="checked: wrap" /></label>
+					<span id="editor_print" title="<%= t("editor.btn_print") %>" data-bind="click: print"></span>
+					<label id="wrap_checkbox" title="<%= t("editor.btn_wrap") %>"><input type="checkbox" data-bind="checked: wrap" /></label>
 					<!-- ko if: $root.purpose() !== "bucket" -->
-					<span id="editor_share" title="Share File in new Bucket" data-bind="click: share"></span>
+					<span id="editor_share" title="<%= t("editor.btn_share") %>" data-bind="click: share"></span>
 					<!-- /ko -->
-					<span id="editor_save" title="Save File" data-bind="click: save"></span>
+					<span id="editor_save" title="<%= t("editor.btn_save") %>" data-bind="click: save"></span>
 					<!-- /ko -->
 				</div>
 
@@ -140,17 +140,16 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				<!-- ko ifnot: editable -->
 					<div class="editor_nofile" data-bind="css: { taller: !buttonsShown(), shorter: buttonsShown() }">
 						<h2>
-							<%= config.client.app_name %> Interactive Editor
+							<%= t("editor.unsupported_title", { config }) %>
 						</h2>
 
 						<p>
-							The currently selected file can't be edited online. You can still use the toolbar above to rename,
-							download, and delete the file.  Reasons might include:
+							<%= t("editor.unsupported_p1") %>
 						</p>
 						<ol>
-							<li>The file type isn't supported in this editor.</li>
-							<li>The file is in a binary format, like images.</li>
-							<li>The file is too large and can't be loaded into the editor.</li>
+							<li><%= t("editor.unsupported_li1") %></li>
+							<li><%= t("editor.unsupported_li2") %></li>
+							<li><%= t("editor.unsupported_li3") %></li>
 						</ol>
 					</div>
 				<!-- /ko -->
@@ -158,35 +157,41 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 			<!-- ko ifnot: openFile -->
 				<div class="editor_nofile fullheight">
 					<h2>
-						<%= t("tips_and_tricks") %>
+						<%= t("editor.tips_title") %>
 					</h2>
 					<!-- ko if: purpose() !== "bucket" -->
 					<p>
-						The files you make on <%= config.client.app_name %> will be saved for the next time you visit.
+						<%= t("editor.tips_p1", { config }) %>
 					</p>
 					<!-- /ko -->
+					<h3>
+						<%= t("editor.tips_subhead1") %>
+					</h3>
 					<p>
-						In the editor, you can use <a href="https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts#default-keyboard-shortcuts" target="_blank">most of these keyboard shortcuts</a>.  You can also use these special keyboard shortcuts:
+						<%= t("editor.tips_p2") %>
 					</p>
 					<dl>
 						<dt>Ctrl + Space</dt>
-						<dd>Show the auto-completion menu</dd>
+						<dd><%= t("editor.tips_dd1") %></dd>
 						<dt>Cmd/Ctrl + S</dt>
-						<dd>Save the file</dd>
+						<dd><%= t("editor.tips_dd2") %></dd>
 						<dt>Cmd/Ctrl/Win + R</dt>
-						<dd>Run the file</dd>
+						<dd><%= t("editor.tips_dd3") %></dd>
 						<dt>Cmd/Ctrl/Win + E</dt>
-						<dd>Set focus to the prompt</dd>
+						<dd><%= t("editor.tips_dd4") %></dd>
 					</dl>
+					<p>
+						<a href="https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts#default-keyboard-shortcuts" target="_blank"><strong><%= t("editor.tips_a1") %></strong></a>
+					</p>
 				</div>
 			<!-- /ko -->
 		</div>
 		<div id="output_panel" data-bind="attr:{ style: flex.outputCss }">
 			<div id="plot_container" aria-hidden="true" data-bind="vizSafe: showPlot, with: currentPlot">
-				<div id="plot_figure_container" title="Click to zoom" data-bind="click: $root.zoomPlot, css: { fullscreen: $root.plotZoomed }">
+				<div id="plot_figure_container" title="<%= t("panel.plot_btn_zoom") %>" data-bind="click: $root.zoomPlot, css: { fullscreen: $root.plotZoomed }">
 					<div id="plot_svg_container" data-bind="visible: complete, html: completeData"></div>
 					<div id="plot_loading" data-bind="visible: !complete()">
-						<img src="images/spinner.svg" alt="Loading&hellip;"/>
+						<img src="images/spinner.svg" alt="<%= t("panel.ui_loading") %>"/>
 					</div>
 					<div id="plot_canvas_container">
 						<canvas id="plot_canvas" width="600" height="400"></canvas>
@@ -194,20 +199,20 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				</div>
 				<div id="plot_controls_container">
 					<p>
-						<span id="plot_prev_btn" title="Previous Plot" class="plot-nav-btn" data-bind="click: $root.showPrevPlot, css: { disabled: $root.firstPlotShown }">&laquo;</span>
-						<span id="plot_next_btn" title="Next Plot" class="plot-nav-btn" data-bind="click: $root.showNextPlot, css: { disabled: $root.lastPlotShown }">&raquo;</span>
+						<span id="plot_prev_btn" title="<%= t("panel.plot_btn_prev") %>" class="plot-nav-btn" data-bind="click: $root.showPrevPlot, css: { disabled: $root.firstPlotShown }">&laquo;</span>
+						<span id="plot_next_btn" title="<%= t("panel.plot_btn_next") %>" class="plot-nav-btn" data-bind="click: $root.showNextPlot, css: { disabled: $root.lastPlotShown }">&raquo;</span>
 					</p>
 					<p id="plot_info">
-						Plot: Line&nbsp;<span data-bind="text: lineNumber"></span>
+						<%- t("panel.plot_ui_description", { lineNumberHTML: '<span data-bind="text: lineNumber"></span>' }) %>
 					</p>
-					<span id="plot_png_download_btn" title="Download Plot as Image" data-bind="click: downloadPng"></span>
-					<span id="plot_svg_download_btn" title="Download Plot as Image" data-bind="click: downloadSvg"></span>
+					<span id="plot_png_download_btn" title="<%= t("panel.plot_btn_download") %>" data-bind="click: downloadPng"></span>
+					<span id="plot_svg_download_btn" title="<%= t("panel.plot_btn_download") %>" data-bind="click: downloadSvg"></span>
 				</div>
 			</div>
 			<div id="vars_console_container"  data-hover="flex">
 				<div id="vars_panel" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 2 }">
 					<div class="theme-header">
-						Vars
+						<%= t("panel.vars_title") %>
 					</div>
 					<div id="vars_content">
 						<ul data-bind="foreach: vars">
@@ -222,36 +227,36 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					<div id="console_output_container">
 						<pre id="console" data-bind="css: { 'console-wrap': consoleWhiteSpaceWrap }"></pre>
 						<!-- ko if: currentUser() && currentUser().patreon && currentUser().patreon.tier_name -->
-						<div id="tier_background"><div data-bind="class: currentUser().patreon.tier_name, click: showUpgradeTier" title="Upgraded session"></div></div>
+						<div id="tier_background"><div data-bind="class: currentUser().patreon.tier_name, click: showUpgradeTier" title="<%= t("panel.output_ui_upgraded") %>"></div></div>
 						<!-- /ko -->
 						<% if (config.client.onboarding) { %>
 						<div id="instructor-promo" aria-hidden="true">
-							<span class="l1">Did you know you can use <%= config.client.app_name %> in your class?</span>
-							<span class="l2">Open a support ticket to inquire about how we can set you up as an instructor.</span>
-							<span class="l3" data-purpose="close">dismiss</span>
+							<span class="l1"><%= t("promos.instructor_p1", { config }) %></span>
+							<span class="l2"><%= t("promos.instructor_p2") %></span>
+							<span class="l3" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
 						</div>
 						<% } %>
 						<div id="cwd_box" style="display: none" data-bind="visible: !!cwd()">cwd: <span data-bind="text: cwd"></span></div>
 						<div id="type_here" aria-hidden="true">
-							<span class="l1">Octave Command Prompt</span>
-							<span class="l2">Type expressions here and press enter.</span>
+							<span class="l1"><%= t("promos.prompt_title") %></span>
+							<span class="l2"><%= t("promos.prompt_p1") %></span>
 							<!-- ko ifnot: currentUser() -->
-							<span class="l3">Tip: <a href="javascript:void(0)" id="sign_in_shortcut">Sign in</a> to run script files.</span>
+							<span class="l3"><%= t("promos.prompt_p2") %> <a href="javascript:void(0)" id="sign_in_shortcut"><%= t("promos.prompt_btn1") %></a></span>
 							<!-- /ko -->
 						</div>
-						<span id="plot_opener" aria-hidden="true" title="Expand Plot Window" data-bind="click: togglePlot"></span>
-						<a id="agpl_icon" title="Octave Online Server on GitHub" href="https://github.com/octave-online/octave-online-server" target="_blank"><img src="images/agpl-logo.svg" alt="AGPL Free Software" /></a>
+						<span id="plot_opener" aria-hidden="true" title="<%= t("panel.plot_btn_expand") %>" data-bind="click: togglePlot"></span>
+						<a id="agpl_icon" title="<%= t("panel.output_btn_github", { projectName: "Octave Online Server" }) %>" href="https://github.com/octave-online/octave-online-server" target="_blank"><img src="images/agpl-logo.svg" alt="AGPL Free Software" /></a>
 						<div id="flavor_upgrade_div" style="display: none" data-bind="visible: !!canUseFlavors()">
 							<!-- ko ifnot: activeFlavor -->
 							<!--
-							<button id="upgrade_btn" data-bind="click: showUpgradeBox" title="Request dedicated server">
-								<span class="disk" data-bind="css: { available: hasFlavorsAvailable() }"></span> UPGRADE
+							<button id="upgrade_btn" data-bind="click: showUpgradeBox" title="<%= t("panel.flavor_btn_upgrade") %>">
+								<span class="disk" data-bind="css: { available: hasFlavorsAvailable() }"></span> <%= t("panel.flavor_ui_upgrade") %>
 							</button>
 							-->
 							<!-- /ko -->
 							<!-- ko with: activeFlavor -->
 							<div id="flavor_status">
-								Running on: <span data-bind="text: details.displayName"></span> <span data-bind="text: minutes"></span>
+								<%= t("panel.flavor_ui_running_on") %> <span data-bind="text: details.displayName"></span> <span data-bind="text: minutes"></span>
 							</div>
 							<!-- /ko -->
 						</div>
@@ -267,18 +272,18 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 						<div id="prompt" style="height: 28px" aria-hidden="true"></div>
 
 						<div id="runtime_controls_container" aria-hidden="true">
-							<span id="signal" title="Stop Currently Running Command (send SIGINT)"></span>
+							<span id="signal" title="<%= t("panel.prompt_btn_sigint") %>"></span>
 							<span id="seconds_remaining_container">
-								Seconds Remaining:
+								<%= t("panel.prompt_ui_seconds") %>
 								<span id="seconds_remaining">0</span>
 							</span>
 							<span id="add_time_container">
-								<span class="clickable" data-bind="click: addTime">Add <span data-bind="text: countdownExtraTimeSeconds"></span> Seconds</span>
+								<span class="clickable" data-bind="click: addTime"><%- t("panel.prompt_btn_add", { numSecondsHTML: '<span data-bind="text: countdownExtraTimeSeconds"></span>' }) %></span>
 								<!-- ko if: (currentUser() && (!currentUser().patreon || !currentUser().patreon.currently_entitled_tier)) -->
-								or <span class="clickable" data-bind="click: showUpgradeTier">Upgrade</span>
+								/ <span class="clickable" data-bind="click: showUpgradeTier"><%= t("panel.prompt_btn_upgrade") %></span>
 								<!-- /ko -->
 							</span>
-							<span id="payload_acknowledge_container" class="clickable" data-bind="click: acknowledgePayload">Resume Execution</span>
+							<span id="payload_acknowledge_container" class="clickable" data-bind="click: acknowledgePayload"><%= t("panel.prompt_btn_resume") %></span>
 						</div>
 					</div>
 				</div>

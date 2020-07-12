@@ -1,2 +1,63 @@
 hello_world: Hello World
-tips_and_tricks: Tips & Tricks
+
+header:
+  ui_menu: MENU
+
+editor:
+  btn_create: Create empty file
+  btn_delete: DELETE File
+  btn_download: Download File
+  btn_history: File version history
+  btn_print: Print File
+  btn_refresh: Refresh files
+  btn_rename: Rename File
+  btn_run: Run Script
+  btn_save: Save File
+  btn_share: Share File in new Bucket
+  btn_upload: Upload file
+  btn_wrap: Toggle Word Wrap
+  tips_a1: Full List
+  tips_dd1: Show the auto-completion menu
+  tips_dd2: Save the file
+  tips_dd3: Run the file
+  tips_dd4: Set focus to the prompt
+  tips_p1: "The files you make on {{config.client.app_name}} will be saved for the next time you visit."
+  tips_p2: "Common shortcuts:"
+  tips_subhead1: Keyboard Shortcuts
+  tips_title: Tips & Tricks
+  ui_drop: Drop Files Here to Upload
+  ui_run: RUN
+  unsupported_li1: "The file type isn't supported in this editor."
+  unsupported_li2: "The file is in a binary format, like images."
+  unsupported_li3: "The file is too large and can't be loaded into the editor."
+  unsupported_p1: "The currently selected file can't be edited online. You can still use the toolbar above to rename, download, and delete the file.  Reasons might include:"
+  unsupported_title: "{{config.client.app_name}} Interactive Editor"
+
+panel:
+  flavor_btn_upgrade: Request dedicated server
+  flavor_ui_running_on: "Running on:"
+  flavor_ui_upgrade: UPGRADE
+  output_btn_github: "{{projectName}} on GitHub"
+  output_ui_upgraded: Upgraded session
+  plot_btn_download: Download Plot as Image
+  plot_btn_expand: Expand Plot Window
+  plot_btn_next: Next Plot
+  plot_btn_prev: Previous Plot
+  plot_btn_zoom: Click to zoom
+  plot_ui_description: "Plot: Line {{-lineNumberHTML}}"
+  prompt_btn_add: Add {{-numSecondsHTML}} Seconds
+  prompt_btn_resume: Resume Execution
+  prompt_btn_sigint: Stop Currently Running Command (send SIGINT)
+  prompt_btn_upgrade: Upgrade
+  prompt_ui_seconds: "Seconds Remaining:"
+  ui_loading: Loading…
+  vars_title: Vars
+
+promos:
+  instructor_p1: Did you know you can use {{config.client.app_name}} in your class?
+  instructor_p2: Open a support ticket to inquire about how we can set you up as an instructor.
+  prompt_btn1: Sign In
+  prompt_p1: Type expressions here and press enter.
+  prompt_p2: "To use script files:"
+  prompt_title: Octave Command Prompt
+  ui_dismiss: dismiss

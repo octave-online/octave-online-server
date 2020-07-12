@@ -70,7 +70,20 @@ export function init(){
 				loadPath: Path.join(LOCALES_PATH, "{{lng}}.yaml"),
 			},
 			fallbackLng: "en",
-			preload: ["en", "es"]
+			preload: ["en", "es"],
+			saveMissing: true,
+			missingKeyHandler: function(lng, ns, key, fallbackValue) {
+				log.error("i18next missing key:", lng, ns, key, fallbackValue);
+			},
+			missingInterpolationHandler: function(text, value) {
+				log.error("i18next missing interpolation:", text, value);
+			}
+		}, (err) => {
+			if (err) {
+				log.trace("i18next initialized");
+			} else {
+				log.error("i18next failed to initialize:", err);
+			}
 		});
 
 	app = Express()
