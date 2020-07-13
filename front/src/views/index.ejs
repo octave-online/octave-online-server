@@ -453,7 +453,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 <div id="email_token" data-purpose="popover" aria-hidden="true"><div><div>
 	<label for="emailField"><%= t("modals.email_label1") %></label>
 	<form action="./auth/tok" method="post">
-		<input type="email" id="emailField1" name="s" placeholder="<%= t("common.email_placeholder") %>" />
+		<input type="email" id="emailField1" name="s" placeholder="<%= t("common.placeholder_email") %>" />
 		<input type="password" id="passwordField1" name="p" />
 		<div class="g-recaptcha" data-sitekey="<%= config.recaptcha.siteKey %>"></div>
 		<input type="submit" value="<%= t("common.btn_submit") %>" />
@@ -465,11 +465,11 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 <div id="email_password" data-purpose="popover" aria-hidden="true"><div><div>
 	<p><strong><%= t("modals.password_subhead1") %></strong> <%= t("modals.password_p1") %></p>
 	<form action="./auth/pwd" method="post">
-		<input type="email" id="emailField2" name="s" placeholder="<%= t("common.email_placeholder") %>" />
-		<input type="password" name="p" placeholder="password" />
+		<input type="email" id="emailField2" name="s" placeholder="<%= t("common.placeholder_email") %>" />
+		<input type="password" name="p" placeholder="<%= t("common.placeholder_password") %>" />
 		<!-- <div class="g-recaptcha" data-sitekey="<%= config.recaptcha.siteKey %>"></div> -->
 		<!-- ko if: window.location.protocol === "http:" -->
-		<p><strong><%= t("common.subhead_caution_colon") %></strong> <%= t("modals.password_p2") %> <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }"><%= t("modals.password_btn_https") %></a></p>
+		<p><strong><%= t("common.subhead_caution_colon") %></strong> <%= t("common.p_https") %> <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }"><%= t("common.btn_https") %></a></p>
 		<!-- /ko -->
 		<input type="submit" value="<%= t("common.btn_submit") %>" />
 	</form>
@@ -478,48 +478,48 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 
 <div id="change_password" data-purpose="popover" aria-hidden="true"><div><div>
 	<h2 class="popover-title-bar">
-		Change Password
+		<%= t("modals.changepwd_title") %>
 	</h2>
-	<p>Enter your new password below.  To remove your password and disable password-based logins, leave the password field blank and click "Save Password".</p>
-	<input type="password" id="new_pwd" placeholder="password" />
+	<p><%= t("modals.changepwd_p1") %></p>
+	<input type="password" id="new_pwd" placeholder="<%= t("common.placeholder_password") %>" />
 	<!-- ko if: window.location.protocol === "http:" -->
-	<p><strong>Caution:</strong>  You are using an unsecured connection (http).  People might be able to see what you submit.  <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }">Switch to a secured connection (https)</a></p>
+	<p><strong><%= t("common.subhead_caution_colon") %></strong> <%= t("common.p_https") %> <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }"><%= t("common.btn_https") %></a></p>
 	<!-- /ko -->
-	<button id="save-password-btn">Save Password</button>
+	<button id="save-password-btn"><%= t("modals.changepwd_btn_submit") %></button>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
 <div id="create_bucket" data-purpose="popover" aria-hidden="true"><div><div>
 	<h2 class="popover-title-bar">
-		Customize Bucket
+		<%= t("modals.createbucket_title") %>
 	</h2>
 	<!-- ko with: newBucket -->
 	<div id="create-bucket-content">
-		<p>A "bucket" is how to publicly share snapshots of <%= config.client.app_name %> script or data files.</p>
-		<h3>Optional: Add More Files</h3>
-		<p>Select files and click the right arrow button.</p>
+		<p><%= t("modals.createbucket_p1", { config }) %></p>
+		<h3><%= t("modals.createbucket_subhead1") %></h3>
+		<p><%= t("modals.createbucket_p2") %></p>
 		<fieldset class="bucket-files-fieldset left">
-			<legend>Files to Add</legend>
+			<legend><%= t("modals.createbucket_subhead2") %></legend>
 			<select data-bind="options: filesNotIncluded, optionsText: 'filename', selectedOptions: selectedLeft" multiple></select>
 		</fieldset>
 		<fieldset class="bucket-files-fieldset right">
-			<legend>Files in Bucket</legend>
+			<legend><%= t("modals.createbucket_subhead3") %></legend>
 			<select data-bind="options: files, optionsText: 'filename', selectedOptions: selectedRight" multiple></select>
 		</fieldset>
 		<p class="bucket-file-move-btns">
 			<button data-bind="click: moveRightToLeft">⇦</button>
 			<button data-bind="click: moveLeftToRight">⇨</button>
 		</p>
-		<h3>Optional: Select Main File</h3>
-		<p>The "main" script is automatically run when someone views the bucket.</p>
+		<h3><%= t("modals.createbucket_subhead4") %></h3>
+		<p><%= t("modals.createbucket_p3") %></p>
 		<p><label>
-			<strong>Main File:</strong>
+			<strong><%= t("modals.createbucket_label1") %></strong>
 			<select data-bind="options: textFiles, optionsText: 'filename', optionsCaption: 'none', value: main"></select>
 		</label></p>
-		<p class="last">After clicking below, your browser will refresh into your new bucket.  You can share the URL of the page to which you are redirected.</p>
+		<p class="last"><%= t("modals.createbucket_p4") %></p>
 	</div>
 	<div id="create-bucket-bar">
-		<button id="create-bucket-btn" data-bind="click: createOnServer, visible: showCreateButton">Create Bucket 🡺</button>
+		<button id="create-bucket-btn" data-bind="click: createOnServer, visible: showCreateButton"><%= t("modals.createbucket_btn_submit") %> 🡺</button>
 	</div>
 	<img id="create-bucket-spinner" src="images/spinner.svg" width="40" data-bind="visible: !showCreateButton()" />
 	<!-- /ko -->
@@ -544,28 +544,28 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 <div id="upgrade_to_tier" data-purpose="popover" aria-hidden="true"><div><div>
 	<!-- ko with: currentUser -->
 	<h2 class="popover-title-bar">
-		Upgrade Account
+		<%= t("modals.upgrade_title") %>
 	</h2>
 	<!-- ko ifnot: $data.patreon -->
 	<p class="action-links">
-		<a href="/auth/patreon/plans" target="_blank">View Plans</a> or <a href="/auth/patreon">Link Patreon Account</a>
+		<a href="/auth/patreon/plans" target="_blank"><%= t("modals.upgrade_btn1") %></a> / <a href="/auth/patreon"><%= t("modals.upgrade_btn2") %></a>
 	</p>
 	<!-- /ko -->
 	<!-- ko if: $data.patreon -->
 	<!-- ko if: patreon.currently_entitled_amount_cents -->
 	<p class="bigger">
-		Thank you for your <span data-bind="text: (patreon.currently_entitled_amount_cents/100).toLocaleString(undefined, { style: 'currency', currency: 'usd' })"></span> pledge!
+		<%= t("modals.upgrade_p1", { pledgeAmountHTML: `<span data-bind="text: (patreon.currently_entitled_amount_cents/100).toLocaleString(undefined, { style: 'currency', currency: 'usd' })"></span>` }) %>
 	</p>
 	<!-- /ko -->
 	<p class="action-links">
-		<a href="/auth/patreon/plans" target="_blank">Change on Patreon</a>
+		<a href="/auth/patreon/plans" target="_blank"><%= t("modals.upgrade_btn3") %></a>
 	</p>
 	<p class="minor-action-links">
-		Want to transfer your pledge? <a href="/auth/patreon/revoke">Unlink Patreon Account</a>
+		<%= t("modals.upgrade_p2") %> <a href="/auth/patreon/revoke"><%= t("modals.upgrade_btn4") %></a>
 	</p>
 	<!-- /ko -->
 	<p>
-		Each week, Octave Online connects tens of thousands of students, educators, and researchers in over 100 countries.  We have <strong>no ads</strong> and <strong>no paywall</strong>.  If you believe in our mission to provide educational software free of charge, please join us by supporting Octave Online on Patreon.
+		<%= t("modals.upgrade_p3") %>
 	</p>
 	<!-- /ko -->
 	<span class="closebtn" data-purpose="close"></span>
@@ -573,36 +573,34 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 
 <div id="site_loading">
 	<div id="cosine-pulse"></div>
-	<div id="site_loading_patience" class="patience" aria-hidden="true">Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.</div>
-	<div id="site_loading_more_patience" class="patience" aria-hidden="true">Thanks for waiting.  It's not supposed to take this long.  Please double-check your internet connection.  If you are sure that your internet is working, consider contacting support.</div>
+	<div id="site_loading_patience" class="patience" aria-hidden="true"><%= t("modals.patience_p1") %></div>
+	<div id="site_loading_more_patience" class="patience" aria-hidden="true"><%= t("modals.patience_p2") %></div>
 </div>
 
 <% if (config.client.onboarding) { %>
 <div id="sync-promo" aria-hidden="true">
-	<span class="l1">View historical versions of your script files!</span>
-	<span class="l2">Click the icon for more info.</span>
-	<span class="l3" data-purpose="close">dismiss</span>
+	<span class="l1"><%= t("promos.sync_p1") %></span>
+	<span class="l2"><%= t("promos.sync_p2") %></span>
+	<span class="l3" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
 </div>
 <div id="create-bucket-promo" aria-hidden="true">
-	<span class="l1">Share snapshots of your script files!</span>
-	<span class="l2">Click the icon to create a new bucket.</span>
-	<span class="l3" data-purpose="close">dismiss</span>
+	<span class="l1"><%= t("promos.bucketcreate_p1") %></span>
+	<span class="l2"><%= t("promos.bucketcreate_p2") %></span>
+	<span class="l3" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
 </div>
 <div id="share-promo" aria-hidden="true">
-	<span class="l0">Tip:</span>
-	<span class="l1">Set up <strong>sharing</strong> so you can collaboratively edit your script files in real time,</span>
-	<span class="l2">like Google Docs.</span>
-	<span class="l3" data-purpose="close">dismiss</span>
+	<span class="l0"><%= t("promos.sharing_subhead1") %></span>
+	<span class="l1"><%= t("promos.sharing_p1") %></span>
+	<span class="l3" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
 </div>
 <div id="login-promo" aria-hidden="true">
-	<span class="l1">Want to use</span>
-	<span class="l2">scripts?</span>
-	<span class="l3">Sign in to create and share script files.</span>
-	<span class="l4" data-purpose="close">dismiss</span>
+	<span class="l1"><%= t("promos.login_p1") %></span>
+	<span class="l3"><%= t("promos.login_p2") %></span>
+	<span class="l4" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
 </div>
 <div id="bucket-promo" aria-hidden="true">
-	<span class="l1">Sign in to create your own buckets and use the rest of <%= config.client.app_name %>.</span>
-	<span class="l2" data-purpose="close">dismiss</span>
+	<span class="l1"><%= t("promos.bucketsbacklink_p1") %></span>
+	<span class="l2" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
 </div>
 <% } %>
 

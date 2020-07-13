@@ -92,16 +92,50 @@ promos:
   welcome_p3: Plot charts and graphs.
   welcome_p4: "Sign in for more features: script files, buckets, real-time collaboration like Google Docs, extended runtime, and more."
   welcome_btn_start: Start Using Octave Online
+  sync_p1: View historical versions of your script files!
+  sync_p2: Click the icon for more info.
+  bucketcreate_p1: Share snapshots of your script files!
+  bucketcreate_p2: Click the icon to create a new bucket.
+  sharing_subhead1: "Tip:"
+  sharing_p1: Set up <strong>sharing</strong> so you can collaboratively edit your script files in real time, like Google Docs.
+  login_p1: Want to use scripts?
+  login_p2: Sign in to create and share script files.
+  bucketsbacklink_p1: Sign in to create your own buckets and use the rest of <%= config.client.app_name %>.
 
 modals:
   email_label1: "Enter your email address:"
   email_p1: You will be emailed an 11-digit code that you will need to enter on the next screen. If you do not receive your code, please open a support ticket for assistance.
   password_subhead1: New user? Forgot your password?
   password_p1: Use the "email token" sign-in option instead. Once you are signed in, use the "Change Password" option in the menu to set a new password.
-  password_p2: You are using an unsecured connection (http). People might be able to see what you submit.
-  password_btn_https: Switch to a secured connection (https)
+  changepwd_title: Change Password
+  changepwd_p1: Enter your new password below.  To remove your password and disable password-based logins, leave the password field blank and click "Save Password".
+  changepwd_btn_submit: Save Password
+  createbucket_title: Customize Bucket
+  createbucket_p1: A "bucket" is how to publicly share snapshots of {{config.client.app_name}} script or data files.
+  createbucket_subhead1: "Optional: Add More Files"
+  createbucket_p2: Select files and click the right arrow button.
+  createbucket_subhead2: Files to Add
+  createbucket_subhead3: Files in Bucket
+  createbucket_subhead4: "Optional: Select Main File"
+  createbucket_p3: The "main" script is automatically run when someone views the bucket.
+  createbucket_label1: "Main File:"
+  createbucket_p4: After clicking below, your browser will refresh into your new bucket.  You can share the URL of the page to which you are redirected.
+  createbucket_btn_submit: Create Bucket
+  upgrade_title: Upgrade Account
+  upgrade_btn1: View Plans
+  upgrade_btn2: Link Patreon Account
+  upgrade_p1: Thank you for your {{-pledgeAmountHTML}} pledge!
+  upgrade_btn3: Change on Patreon
+  upgrade_p2: Want to transfer your pledge?
+  upgrade_btn4: Unlink Patreon Account
+  upgrade_p3: Each week, Octave Online connects tens of thousands of students, educators, and researchers in over 100 countries.  We have <strong>no ads</strong> and <strong>no paywall</strong>.  If you believe in our mission to provide educational software free of charge, please join us by supporting Octave Online on Patreon.
+  patience_p1: Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.
+  patience_p2: Thanks for waiting.  It's not supposed to take this long.  Please double-check your internet connection.  If you are sure that your internet is working, consider contacting support.
 
 common:
-  email_placeholder: email address
+  placeholder_email: email address
   btn_submit: Submit
   subhead_caution_colon: "Caution:"
+  placeholder_password: password
+  btn_https: Switch to a secured connection (https)
+  p_https: You are using an unsecured connection (http). People might be able to see what you submit.
