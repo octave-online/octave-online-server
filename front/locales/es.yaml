@@ -1,2 +1,4 @@
 hello_world: Hola Mundo
-tips_and_tricks: Consejos y Trucos
+
+editor:
+  tips_title: Consejos y Trucos

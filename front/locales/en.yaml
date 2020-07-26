@@ -97,7 +97,7 @@ promos:
   bucketcreate_p1: Share snapshots of your script files!
   bucketcreate_p2: Click the icon to create a new bucket.
   sharing_subhead1: "Tip:"
-  sharing_p1: Set up <strong>sharing</strong> so you can collaboratively edit your script files in real time, like Google Docs.
+  sharing_p1: Set up sharing so you can collaboratively edit your script files in real time, like Google Docs.
   login_p1: Want to use scripts?
   login_p2: Sign in to create and share script files.
   bucketsbacklink_p1: Sign in to create your own buckets and use the rest of <%= config.client.app_name %>.
@@ -128,7 +128,7 @@ modals:
   upgrade_btn3: Change on Patreon
   upgrade_p2: Want to transfer your pledge?
   upgrade_btn4: Unlink Patreon Account
-  upgrade_p3: Each week, Octave Online connects tens of thousands of students, educators, and researchers in over 100 countries.  We have <strong>no ads</strong> and <strong>no paywall</strong>.  If you believe in our mission to provide educational software free of charge, please join us by supporting Octave Online on Patreon.
+  upgrade_p3: Each week, Octave Online connects tens of thousands of students, educators, and researchers in over 100 countries.  We have no ads and no paywall.  If you believe in our mission to provide educational software free of charge, please join us by supporting Octave Online on Patreon.
   patience_p1: Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.
   patience_p2: Thanks for waiting.  It's not supposed to take this long.  Please double-check your internet connection.  If you are sure that your internet is working, consider contacting support.
 

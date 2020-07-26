@@ -554,7 +554,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<!-- ko if: $data.patreon -->
 	<!-- ko if: patreon.currently_entitled_amount_cents -->
 	<p class="bigger">
-		<%= t("modals.upgrade_p1", { pledgeAmountHTML: `<span data-bind="text: (patreon.currently_entitled_amount_cents/100).toLocaleString(undefined, { style: 'currency', currency: 'usd' })"></span>` }) %>
+		<%- t("modals.upgrade_p1", { pledgeAmountHTML: `<span data-bind="text: (patreon.currently_entitled_amount_cents/100).toLocaleString(undefined, { style: 'currency', currency: 'usd' })"></span>` }) %>
 	</p>
 	<!-- /ko -->
 	<p class="action-links">
