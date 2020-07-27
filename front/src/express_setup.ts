@@ -27,6 +27,7 @@ import Express = require("express");
 import I18next = require("i18next");
 import I18nextFsBackend = require("i18next-fs-backend");
 import I18nextMiddleware = require("i18next-http-middleware");
+import PseudoLocalization = require("pseudo-localization");
 import Passport = require("passport");
 import ReCAPTCHA = require("recaptcha2");
 import ServeStatic = require("serve-static");
@@ -131,10 +132,24 @@ export function init(){
 		})
 		.get(["/", "/index.html"], function(req, res) {
 			res.setHeader("Cache-Control", "public, max-age=0");
+			let t = (req as any).t as I18next.TFunction;
+			if ((req as any).language === "en-XA") {
+				let old_t = t;
+				t = function(key: string, options: any) {
+					return PseudoLocalization.localize(old_t(key, options));
+				};
+			}
+			// Get the JavaScript translations
+			let oo_translations: {[key: string]: string} = {};
+			for (let key of Object.keys((req as any).i18n.getDataByLanguage("en").translation.javascript)) {
+				let key_string = key as string;
+				oo_translations[key_string] = t(`javascript.${key_string}`, { config });
+			}
 			res.status(200).render("index", {
 				config,
 				buildData,
-				t: (req as any).t as I18next.TFunction
+				t,
+				oo_translations,
 			});
 		})
 		.post("/auth/persona", Passport.authenticate("persona"), function(req, res){

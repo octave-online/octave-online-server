@@ -61,43 +61,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		defaultSkin = availableSkins[0];
 	}
 
-	// Flavors
-	function FlavorObject(details){
-		var self = this;
-
-		// Main Bindings
-		self.details = details;
-		self.start = ko.observable();
-		self.current = ko.observable();
-
-		// Functions
-		self.minutes = ko.computed(function() {
-			var start = Number(self.start());
-			var end = Number(self.current());
-			if (Number.isNaN(start) || Number.isNaN(end)) {
-				return "";
-			}
-			return "(" + Math.ceil((end - start) / 60000) + "m)";
-		});
-	}
-	// TODO: Generate this from config.hjson
-	var availableFlavors = {
-		"basic": {
-			id: "basic",
-			displayName: "4GB",
-			longName: "4 cores, 4 GB memory"
-		},
-		"memory": {
-			id: "memory",
-			displayName: "15GB",
-			longName: "2 cores, 15 GB memory"
-		}
-	};
-	var availableFlavorsArray = [];
-	for (var flavorId in availableFlavors) {
-		availableFlavorsArray.push(availableFlavors[flavorId]);
-	}
-
 	// Plot MVVM class
 	function PlotObject(id){
 		var self = this;
@@ -166,8 +129,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 	var vars = ko.observableArray([]);
 	var plotHistory = ko.observableArray([]);
 	var currentPlotIdx = ko.observable(-1);
-	var flavorTester = ko.observable(false);
-	var activeFlavor = ko.observable();
 	var currentUser = ko.observable();
 	var viewModel = window.viewModel = {
 		files: allOctFiles,
@@ -187,11 +148,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		allBuckets: ko.observableArray(),
 		newBucket: ko.observable(),
 		countdownExtraTimeSeconds: ko.observable(),
-		flavorTester: flavorTester,
-		activeFlavor: activeFlavor,
-		flavorList: ko.observableArray(),
-		availableFlavorsArray: availableFlavorsArray,
-		selectedFlavor: ko.observable(),
 
 		// More for UI
 		logoSrc: ko.computed(function() {
@@ -215,7 +171,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			var idx = currentPlotIdx();
 			var len = plotHistory().length;
 			if (len === 0) {
-				utils.alert("This button shows and hides the plot window.  Enter an expression that generates a plot.");
+				utils.alert(oo_translations.alert_plot_window);
 			} else if (idx < 0) {
 				currentPlotIdx(len-1);
 			} else {
@@ -258,52 +214,33 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		},
 
 		unenrollStudent: function(user) {
-			if (confirm("Are you sure that you want to remove the following student from your course?\n\nName: " + user.displayName + "\nCourse: " + user.program)) {
+			if (confirm(oo_translations.student_unenroll_p1 + "\n\n" + oo_translations.label_name + " " + user.displayName + "\n" + oo_translations.label_course + " " + user.program)) {
 				OctMethods.socket.unenrollStudent(user);
 			}
 		},
 		reenrollStudent: function(user) {
-			var newProgram = prompt("Enter the course code to which you want to move this student:", "");
+			var newProgram = prompt(oo_translations.student_reenroll_p1, "");
 			var programs = viewModel.instructorPrograms();
 			for (var i=0; i<programs.length; i++) {
 				if (programs[i].program === newProgram) {
 					OctMethods.socket.reenrollStudent(user, newProgram);
-					utils.alert("The following student is being re-enrolled.  Reload the page to see the update.\n\nName: " + user.displayName + "\nNew Course: " + newProgram);
+					utils.alert(oo_translations.label_name.student_reenroll_p2 + "\n\n" + oo_translations.label_name + " " + user.displayName + "\n" + oo_translations.label_course + " " + newProgram);
 					return;
 				}
 			}
-			utils.alert("Error: Could not find the program " + newProgram);
+			utils.alert(oo_translations.student_reenroll_p3 + " " + newProgram);
 		},
 
 		toggleSharing: function(){
 			var shareKey = viewModel.currentUser().share_key;
 			var program = viewModel.currentUser().program;
 			if (program && program !== "default") {
-				utils.alert("You cannot disable sharing as a student enrolled in an Octave Online program.  You need to remove yourself from \"" + program + "\" by running \"enroll('default')\" at the command prompt.");
+				utils.alert(oo_translations.toggle_sharing_p1 + " " + program + "\n\n"+ oo_translations.toggle_sharing_p2 + "\n\nenroll('default')");
 			} else {
 				OctMethods.socket.toggleSharing(!shareKey);
 			}
 		},
 
-		canUseFlavors: ko.computed(function() {
-			return currentUser() && (activeFlavor() || flavorTester());
-		}),
-		desiredFlavorId: ko.computed(function() {
-			return activeFlavor() && activeFlavor().details.id;
-		}),
-		hasFlavorsAvailable: function() {
-			return viewModel.flavorList().length > 0;
-		},
-		showUpgradeBox: function() {
-			anal.sitecontrol("upgradeflavorbtn");
-			$("#upgrade_to_flavor").showSafe();
-		},
-		upgradeNow: function() {
-			var flavorId = viewModel.selectedFlavor();
-			viewModel.activeFlavor(new FlavorObject(availableFlavors[flavorId]));
-			OctMethods.load.stopPatience();
-			OctMethods.socket.flavorUpgrade(flavorId);
-		},
 		showUpgradeTier: function() {
 			anal.sitecontrol("upgradetierbtn");
 			$("#upgrade_to_tier").showSafe();
@@ -355,7 +292,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 	viewModel.flex.sizes.extend({ localStorage: "flex:h" });
 	viewModel.inlinePlots.extend({ localStorage: "inline-plots" });
 	viewModel.consoleWhiteSpaceWrap.extend({ localStorage: "console-white-space-wrap" });
-	viewModel.flavorTester.extend({ localStorage: "flavor-tester" });
 	// Keep the console output visible when the plot window opens
 	viewModel.showPlot.subscribe(function(){
 		setTimeout(OctMethods.console.scroll, 0);
@@ -436,8 +372,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					OctMethods.socket.reconnect();
 					options.remove();
 				});
-				var txt = "Click Here to Reconnect";
-				btn1.append(document.createTextNode(txt));
+				btn1.append(document.createTextNode(oo_translations.btn_reconnect));
 				options.append(btn1);
 
 				// Append to the console
@@ -450,7 +385,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				el.attr("href", url);
 				el.attr("target", "_blank");
 				el.append(document.createTextNode(url));
-				$("#console").append(document.createTextNode("See "));
+				$("#console").append(document.createTextNode(oo_translations.label_see_url));
 				$("#console").append(el);
 				$("#console").append(document.createTextNode("\n"));
 				OctMethods.console.scroll();
@@ -603,16 +538,12 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			},
 			askForEnroll: function(program){
 				if(!OctMethods.editor.initialized){
-					utils.alert("You need to sign in to enroll in a course.");
+					utils.alert(oo_translations.student_enroll_p1);
 					return;
 				}
 
-				if(confirm("Enroll in \"" + program + "\"?\n\n" +
-					"When you enroll in a course, the instructors for that course " +
-					"will be able to access the files you save in Octave Online. " +
-					"You can cancel your enrollment at any time by running " +
-					"enroll('default') at the command prompt.\n\n" +
-					"Press Cancel if you don't know what any of this means.")){
+				if(confirm(
+					oo_translations.student_enroll_p2 + "\n\nenroll('default')\n\n" + student_enroll_p3)){
 					OctMethods.socket.enroll(program);
 					viewModel.currentUser().program = program; // note: this is not observable
 				}
@@ -791,11 +722,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					bucket_id: bucket.id()
 				});
 			},
-			flavorUpgrade: function(flavor){
-				return OctMethods.socket.emit("oo.flavor_upgrade", {
-					flavor: flavor
-				});
-			},
 			emit: function(message, data){
 				if (!OctMethods.socket.instance
 					|| !OctMethods.socket.instance.connected) {
@@ -845,8 +771,9 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				socket.on("bucket-deleted", OctMethods.socketListeners.bucketDeleted);
 				socket.on("all-buckets", OctMethods.socketListeners.allBuckets);
 				socket.on("oo.pong", OctMethods.socketListeners.pong);
-				socket.on("oo.flavor-list", OctMethods.socketListeners.flavorList);
-				socket.on("oo.touch-flavor", OctMethods.socketListeners.touchFlavor);
+				// Flavors are no longer supported:
+				// socket.on("oo.flavor-list", OctMethods.socketListeners.flavorList);
+				// socket.on("oo.touch-flavor", OctMethods.socketListeners.touchFlavor);
 				socket.on("restart-countdown", OctMethods.socketListeners.restartCountdown);
 				socket.on("change-directory", OctMethods.socketListeners.changeDirectory);
 				socket.on("edit-file", OctMethods.socketListeners.editFile);
@@ -1100,19 +1027,9 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			pong: function(data) {
 				var startTime = parseInt(data.startTime);
 				var endTime = new Date().valueOf();
-				OctMethods.console.write("Ping time: " + (endTime-startTime) + "ms\n");
+				OctMethods.console.write(oo_translations.label_ping_time + " " + (endTime-startTime) + "ms\n");
 				OctMethods.prompt.enable();
 				OctMethods.prompt.focus();
-			},
-			flavorList: function(data) {
-				viewModel.flavorList(data.servers);
-			},
-			touchFlavor: function(data) {
-				if (!viewModel.activeFlavor()) {
-					viewModel.activeFlavor(new FlavorObject(availableFlavors[data.flavor]));
-				}
-				viewModel.activeFlavor().start(data.start);
-				viewModel.activeFlavor().current(data.current);
 			},
 			restartCountdown: function(){
 				// TODO: Is this method dead?
@@ -1141,7 +1058,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 				// Show the notification message after a small delay in order to let the output buffers flush first.
 				setTimeout(function(){
-					OctMethods.console.writeError("\nNOTICE: Execution paused due to large payload\n");
+					OctMethods.console.writeError("\n" + oo_translations.alert_payload + "\n");
 				}, parseInt("105!config.session.payloadMessageDelay"));
 			},
 			init: function(){
@@ -1151,7 +1068,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 						action: "workspace",
 						info: OctMethods.vars.wsId,
 						skipCreate: OctMethods.socket.isExited,
-						flavor: viewModel.desiredFlavorId()
 					});
 
 				}else if(OctMethods.vars.studentId){
@@ -1159,7 +1075,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 						action: "student",
 						info: OctMethods.vars.studentId,
 						skipCreate: OctMethods.socket.isExited,
-						flavor: viewModel.desiredFlavorId()
 					});
 
 				}else if (OctMethods.vars.bucketId){
@@ -1168,7 +1083,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 						info: OctMethods.vars.bucketId,
 						sessCode: OctMethods.socket.sessCode,
 						skipCreate: OctMethods.socket.isExited,
-						flavor: viewModel.desiredFlavorId()
 					});
 
 				}else{
@@ -1176,7 +1090,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 						action: "session",
 						sessCode: OctMethods.socket.sessCode,
 						skipCreate: OctMethods.socket.isExited,
-						flavor: viewModel.desiredFlavorId()
 					});
 				}
 
@@ -1190,16 +1103,11 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				OctMethods.load.callback();
 			},
 			destroyu: function(message){
-				OctMethods.console.writeError("Octave Exited. Message: "+message+"\n");
+				OctMethods.console.writeError(oo_translations.alert_exited + " " + message + "\n");
 
-				// TODO: It is bad practice to do string comparison here.
-				if (message === "Flavor Upgrade") {
-					OctMethods.load.showLoader();
-				} else {
-					OctMethods.console.writeRestartBtn();
-					OctMethods.socket.isExited = true;
-					OctMethods.load.hideLoader();
-				}
+				OctMethods.console.writeRestartBtn();
+				OctMethods.socket.isExited = true;
+				OctMethods.load.hideLoader();
 
 				// Clean up UI
 				OctMethods.prompt.disable();
@@ -1207,7 +1115,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			},
 			disconnect: function(){
 				if (!OctMethods.socket.isExited) {
-					OctMethods.console.writeError("Connection lost.  Attempting to reconnect...\n");
+					OctMethods.console.writeError(oo_translations.alert_reconnecting + "\n");
 				}
 
 				// Clean up UI
@@ -1221,13 +1129,13 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		editor: {
 			instance: null,
 			defaultFilename: "my_script.m",
-			defaultContent: "disp(\"Hello World\");\n",
+			defaultContent: "disp(\"" + oo_translations.hello_world + "\");\n",
 			running: false,
 			initialized: false,
 			bucketWarned: false,
 			save: function(octfile){
 				if (viewModel.purpose() === "bucket" && !OctMethods.editor.bucketWarned) {
-					utils.alert("Note: This is a read-only bucket. Changes you make will not be persisted after you close your browser window.");
+					utils.alert(oo_translations.alert_readonly);
 					OctMethods.editor.bucketWarned = true;
 				}
 				return OctMethods.socket.save(octfile);
@@ -1275,10 +1183,10 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			},
 			rename: function(octfile){
 				var oldName = octfile.filename();
-				var newName = prompt("Enter a new filename:", oldName);
+				var newName = prompt(oo_translations.rename_label1, oldName);
 				if (!newName || oldName === newName) return false;
 				if (viewModel.fileNameExists(newName)){
-					utils.alert("The specified filename already exists.");
+					utils.alert(oo_translations.rename_alert1);
 					return false;
 				}
 				return OctMethods.socket.rename(octfile, newName);
@@ -1326,9 +1234,9 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 				// Add a credit line at the bottom
 				var creditDiv = $("<div></div>");
-				creditDiv.append("Printed for " + viewModel.currentUser().name);
+				creditDiv.append(oo_translations.print_p1 + " " + viewModel.currentUser().name);
 				creditDiv.append("<br/>");
-				creditDiv.append("Powered by Octave Online");
+				creditDiv.append(oo_translations.print_p2);
 				creditDiv.append("<br/>");
 				creditDiv.append("http://octave-online.net");
 				creditDiv.css("font", "10pt/10pt 'Trebuchet MS',Verdana,sans-serif");
@@ -1367,12 +1275,11 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				var filename = OctMethods.editor.defaultFilename;
 				// do..while to protect against duplicate file names
 				do{
-					filename = prompt("Please enter a filename:", filename);
+					filename = prompt(oo_translations.newfile_label1, filename);
 				} while(filename && !OctMethods.editor.create(filename));
 			},
 			refresh: function(){
-				if(confirm("This will reload your files from the server. Any " +
-					"unsaved changes will be lost.")){
+				if(confirm(oo_translations.alert_refresh)){
 					OctMethods.editor.reset();
 					OctMethods.socket.refresh();
 				}

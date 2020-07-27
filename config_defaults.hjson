@@ -477,12 +477,12 @@ client: {
 	theme_collection: server
 
 	# FRONTEND OPTIONS
-	# Title and meta-tag description to use.
-	title: Octave Online Server
-	description: The power of Octave Online run on custom hardware. Used under the AGPL license.
+	# Title and meta-tag description to use, based on a key in the translation file. Before being added to the translation files, these options were "title" and "description" directly in this configuration file.
+	title_key: "header.meta_title_server"
+	desc_key: "header.meta_desc_server"
 	# Theme color; should be consistent with color1 in fire.styl
 	theme_color: AD928E
-	# A name substituted in various places in index.html
+	# Brand name, same across languages.
 	app_name: Octave Online Server
 	# Whether to show the splash screen and other onboarding bubbles to help new users learn how to use the software.
 	onboarding: false

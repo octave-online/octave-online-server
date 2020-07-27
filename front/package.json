@@ -35,6 +35,7 @@
     "passport-google-oauth": "^2.0.0",
     "passport-local": "^1.0.0",
     "postmark": "^2.5.1",
+    "pseudo-localization": "^2.1.1",
     "recaptcha2": "^1.3.3",
     "serve-static": "^1.14.1",
     "simple-oauth2": "^3.4.0",

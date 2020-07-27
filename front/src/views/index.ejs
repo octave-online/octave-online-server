@@ -20,10 +20,10 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 <html>
 <head>
 
-	<title><%= config.client.title %></title>
+	<title><%= t(config.client.title_key, { config }) %></title>
 
 	<!-- Standard Meta Tags -->
-	<meta name="description" content="<%= config.client.description %>"/>
+	<meta name="description" content="<%= t(config.client.desc_key, { config }) %>"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 	<link rel="icon" type="image/png" sizes="32x32" href="images/logos/favicon_package/favicon-32x32.png"/>
 	<link rel="icon" type="image/png" sizes="16x16" href="images/logos/favicon_package/favicon-16x16.png"/>
@@ -77,7 +77,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<section data-hover="flex">
 		<div id="files_container" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 0 }">
 			<div id="files_toolbar" class="theme-header">
-				Files
+				<%= t("editor.files_title") %>
 				<!-- ko if: purpose() !== "bucket" -->
 				<span id="files_toolbar_create" title="<%= t("editor.btn_create") %>"></span>
 				<!-- /ko -->
@@ -112,7 +112,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		<div id="open_container" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 1 }">
 			<!-- ko with: openFile -->
 				<div id="editor_toolbar" class="theme-header">
-					<span id="editor_hamburger" data-bind="click: buttonsShown.toggle()" title="Show Toolbar"></span>
+					<span id="editor_hamburger" data-bind="click: buttonsShown.toggle()" title="<%= t("editor.btn_toolbar") %>"></span>
 					<span id="editor_filename" data-bind="text: filename, css: { 'modified': isModified }"></span>
 					<!-- ko if: runnable -->
 					<span id="editor_runit" title="<%= t("editor.btn_run") %>" data-bind="click: runit"><%= t("editor.ui_run") %> &#x25b6;</span>
@@ -246,20 +246,6 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 						</div>
 						<span id="plot_opener" aria-hidden="true" title="<%= t("panel.plot_btn_expand") %>" data-bind="click: togglePlot"></span>
 						<a id="agpl_icon" title="<%= t("panel.output_btn_github", { projectName: "Octave Online Server" }) %>" href="https://github.com/octave-online/octave-online-server" target="_blank"><img src="images/agpl-logo.svg" alt="AGPL Free Software" /></a>
-						<div id="flavor_upgrade_div" style="display: none" data-bind="visible: !!canUseFlavors()">
-							<!-- ko ifnot: activeFlavor -->
-							<!--
-							<button id="upgrade_btn" data-bind="click: showUpgradeBox" title="<%= t("panel.flavor_btn_upgrade") %>">
-								<span class="disk" data-bind="css: { available: hasFlavorsAvailable() }"></span> <%= t("panel.flavor_ui_upgrade") %>
-							</button>
-							-->
-							<!-- /ko -->
-							<!-- ko with: activeFlavor -->
-							<div id="flavor_status">
-								<%= t("panel.flavor_ui_running_on") %> <span data-bind="text: details.displayName"></span> <span data-bind="text: minutes"></span>
-							</div>
-							<!-- /ko -->
-						</div>
 					</div>
 					<div id="console_prompt_container">
 
@@ -377,16 +363,6 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					<%= t("header.btn_text_wrap") %>
 				</label>
 			</div>
-			<!-- ko if: currentUser -->
-			<!--
-				<div class="preference-inline-item">
-					<label>
-						<input type="checkbox" data-bind="checked: flavorTester" />
-						<%= t("header.btn_test_flavors") %>
-					</label>
-				</div>
-			-->
-			<!-- /ko -->
 			<!-- ko if: allBuckets().length > 0 -->
 				<div class="all-buckets">
 					<strong><%= t("header.buckets_title") %></strong>
@@ -435,7 +411,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		</figcaption>
 		<img src="images/demo/editor.png" alt="cstr_reactor.m"/>
 	</figure>
-	<button id="onboarding-start" data-purpose="close"><%= t("promos.welcome_btn_start") %></button>
+	<button id="onboarding-start" data-purpose="close"><%= t("promos.welcome_btn_start", { config }) %></button>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 <% } %>
@@ -526,21 +502,6 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<span class="closebtn" data-purpose="close" data-bind="click: clearBucket"></span>
 </div></div></div>
 
-<div id="upgrade_to_flavor" data-purpose="popover" aria-hidden="true"><div><div>
-	<p><strong>Upgrade to Dedicated Server</strong></p>
-	<p>Choose your server configuration:</p>
-	<p>
-		<select id="flavor_select" data-bind="foreach: availableFlavorsArray, value: selectedFlavor">
-			<option data-bind="value: id, text: longName"></option>
-		</select>
-	</p>
-	<!-- ko if: flavorList().length -->
-	<p><em>There are currently <span data-bind="text: flavorList().length"></span> dedicated servers available!</em></p>
-	<!-- /ko -->
-	<p><button data-purpose="close" data-bind="click: upgradeNow">Upgrade Now</button></p>
-	<span class="closebtn" data-purpose="close"></span>
-</div></div></div>
-
 <div id="upgrade_to_tier" data-purpose="popover" aria-hidden="true"><div><div>
 	<!-- ko with: currentUser -->
 	<h2 class="popover-title-bar">
@@ -565,7 +526,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	</p>
 	<!-- /ko -->
 	<p>
-		<%= t("modals.upgrade_p3") %>
+		<%= t("modals.upgrade_p3", { config }) %>
 	</p>
 	<!-- /ko -->
 	<span class="closebtn" data-purpose="close"></span>
@@ -599,10 +560,14 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<span class="l4" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
 </div>
 <div id="bucket-promo" aria-hidden="true">
-	<span class="l1"><%= t("promos.bucketsbacklink_p1") %></span>
+	<span class="l1"><%= t("promos.bucketsbacklink_p1", { config }) %></span>
 	<span class="l2" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
 </div>
 <% } %>
+
+<script type="text/javascript">
+window.oo_translations = <%- JSON.stringify(oo_translations) %>;
+</script>
 
 <% if (buildData.useDistPaths) { %>
 <script type="text/javascript" src="js/require.js"></script>

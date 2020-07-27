@@ -1,5 +1,3 @@
-hello_world: Hello World
-
 header:
   body_change_email: Signed in before but need to change your email address? Click "Feedback" and create a ticket. We will change it for you.
   body_share_desc: Others can use the following link to connect to your workspace.
@@ -22,6 +20,10 @@ header:
   btn_twitter: Follow on Twitter
   buckets_btn_delete: Delete Bucket
   buckets_title: "Your Buckets:"
+  meta_desc_official: Create and share scripts for scientific computing with GNU Octave. Free and open-source. Works in your browser, including on Chromebook, iPad, tablet, and smartphone.
+  meta_desc_server: The power of {{config.client.app_name}} run on custom hardware. Used under the AGPL license.
+  meta_title_official: "{{config.client.app_name}} · Cloud IDE compatible with MATLAB"
+  meta_title_server: "{{config.client.app_name}}"
   students_btn_reenroll: Move
   students_btn_unenroll: Unenroll
   students_subhead1: "Code:"
@@ -39,8 +41,10 @@ editor:
   btn_run: Run Script
   btn_save: Save File
   btn_share: Share File in new Bucket
+  btn_toolbar: Show Toolbar
   btn_upload: Upload file
   btn_wrap: Toggle Word Wrap
+  files_title: Files
   tips_a1: Full List
   tips_dd1: Show the auto-completion menu
   tips_dd2: Save the file
@@ -87,11 +91,11 @@ promos:
   prompt_title: Octave Command Prompt
   ui_dismiss: dismiss
   welcome_title: Welcome to {{config.client.app_name}}
-  welcome_p1: Octave Online is a web UI for GNU Octave, the open-source alternative to MATLAB.  Thousands of students, educators, and researchers from around the world use {{config.client.app_name}} each day for studying machine learning, control systems, numerical methods, and more.
+  welcome_p1: "{{config.client.app_name}} is a web UI for GNU Octave, the open-source alternative to MATLAB.  Thousands of students, educators, and researchers from around the world use {{config.client.app_name}} each day for studying machine learning, control systems, numerical methods, and more."
   welcome_p2: Type commands in the prompt like you would in your local copy of GNU Octave or MATLAB.
   welcome_p3: Plot charts and graphs.
   welcome_p4: "Sign in for more features: script files, buckets, real-time collaboration like Google Docs, extended runtime, and more."
-  welcome_btn_start: Start Using Octave Online
+  welcome_btn_start: "Start Using {{config.client.app_name}}"
   sync_p1: View historical versions of your script files!
   sync_p2: Click the icon for more info.
   bucketcreate_p1: Share snapshots of your script files!
@@ -100,7 +104,7 @@ promos:
   sharing_p1: Set up sharing so you can collaboratively edit your script files in real time, like Google Docs.
   login_p1: Want to use scripts?
   login_p2: Sign in to create and share script files.
-  bucketsbacklink_p1: Sign in to create your own buckets and use the rest of <%= config.client.app_name %>.
+  bucketsbacklink_p1: Sign in to create your own buckets and use the rest of {{config.client.app_name}}.
 
 modals:
   email_label1: "Enter your email address:"
@@ -128,9 +132,37 @@ modals:
   upgrade_btn3: Change on Patreon
   upgrade_p2: Want to transfer your pledge?
   upgrade_btn4: Unlink Patreon Account
-  upgrade_p3: Each week, Octave Online connects tens of thousands of students, educators, and researchers in over 100 countries.  We have no ads and no paywall.  If you believe in our mission to provide educational software free of charge, please join us by supporting Octave Online on Patreon.
+  upgrade_p3: Each week, {{config.client.app_name}} connects tens of thousands of students, educators, and researchers in over 100 countries.  We have no ads and no paywall.  If you believe in our mission to provide educational software free of charge, please join us by supporting {{config.client.app_name}} on Patreon.
   patience_p1: Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.
   patience_p2: Thanks for waiting.  It's not supposed to take this long.  Please double-check your internet connection.  If you are sure that your internet is working, consider contacting support.
+
+javascript:
+  alert_exited: "Octave Exited. Message:"
+  alert_payload: "NOTICE: Execution paused due to large payload"
+  alert_plot_window: This button shows and hides the plot window.  Enter an expression that generates a plot.
+  alert_readonly: "Note: This is a read-only bucket. Changes you make will not be persisted after you close your browser window."
+  alert_reconnecting: "Connection lost.  Attempting to reconnect..."
+  alert_refresh: "This will reload your files from the server. Any unsaved changes will be lost."
+  btn_reconnect: Click Here to Reconnect
+  hello_world: Hello World
+  label_course: "Course:"
+  label_name: "Name:"
+  label_ping_time: "Ping time:"
+  label_see_url: "See:"
+  newfile_label1: "Please enter a filename:"
+  print_p1: "Printed for:"
+  print_p2: Powered by {{config.client.app_name}}
+  rename_alert1: "The specified filename already exists."
+  rename_label1: "Enter a new filename:"
+  student_enroll_p1: You need to sign in to enroll in a course.
+  student_enroll_p2: When you enroll in a course, the instructors for that course will be able to access the files you save. You can cancel your enrollment at any time by running running the following at the command prompt.
+  student_enroll_p3: Press Cancel if you don't know what any of this means.
+  student_reenroll_p1: "Enter the course code to which you want to move this student:"
+  student_reenroll_p2: The following student is being re-enrolled.  Reload the page to see the update.
+  student_reenroll_p3: "Error: Could not find the program:"
+  student_unenroll_p1: Are you sure that you want to remove the following student from your course?
+  toggle_sharing_p1: "You cannot disable sharing as a student enrolled in an {{config.client.app_name}} program:"
+  toggle_sharing_p2: "You need to remove yourself by running this command at at the command prompt:"
 
 common:
   placeholder_email: email address
