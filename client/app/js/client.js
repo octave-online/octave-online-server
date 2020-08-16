@@ -543,7 +543,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				}
 
 				if(confirm(
-					oo_translations.student_enroll_p2 + "\n\nenroll('default')\n\n" + student_enroll_p3)){
+					oo_translations.student_enroll_p2 + "\n\nenroll('default')\n\n" + oo_translations.student_enroll_p3)){
 					OctMethods.socket.enroll(program);
 					viewModel.currentUser().program = program; // note: this is not observable
 				}
