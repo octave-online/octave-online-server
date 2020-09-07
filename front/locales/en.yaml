@@ -63,9 +63,6 @@ editor:
   unsupported_title: "{{config.client.app_name}} Interactive Editor"
 
 panel:
-  flavor_btn_upgrade: Request dedicated server
-  flavor_ui_running_on: "Running on:"
-  flavor_ui_upgrade: UPGRADE
   output_btn_github: "{{projectName}} on GitHub"
   output_ui_upgraded: Upgraded session
   plot_btn_download: Download Plot as Image
@@ -159,9 +156,9 @@ javascript:
   student_enroll_p3: Press Cancel if you don't know what any of this means.
   student_reenroll_p1: "Enter the course code to which you want to move this student:"
   student_reenroll_p2: The following student is being re-enrolled.  Reload the page to see the update.
-  student_reenroll_p3: "Error: Could not find the program:"
+  student_reenroll_p3: "Error: Could not find the course code:"
   student_unenroll_p1: Are you sure that you want to remove the following student from your course?
-  toggle_sharing_p1: "You cannot disable sharing as a student enrolled in an {{config.client.app_name}} program:"
+  toggle_sharing_p1: "You cannot disable sharing as a student enrolled in an {{config.client.app_name}} course code:"
   toggle_sharing_p2: "You need to remove yourself by running this command at at the command prompt:"
 
 common:
