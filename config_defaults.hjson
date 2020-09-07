@@ -478,8 +478,8 @@ client: {
 
 	# FRONTEND OPTIONS
 	# Title and meta-tag description to use, based on a key in the translation file. Before being added to the translation files, these options were "title" and "description" directly in this configuration file.
-	title_key: "header.meta_title_server"
-	desc_key: "header.meta_desc_server"
+	title_key: "header.meta.server.title"
+	description_key: "header.meta.server.desc"
 	# Theme color; should be consistent with color1 in fire.styl
 	theme_color: AD928E
 	# Brand name, same across languages.

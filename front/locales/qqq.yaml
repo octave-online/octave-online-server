@@ -1,137 +1,163 @@
 header:
-  body_change_email: Paragraph of body text
-  body_share_desc: Paragraph of body text
-  btn_change_layout: Button text
-  btn_change_password: Button text
-  btn_change_theme: Button text
-  btn_disable_sharing: Button text
-  btn_enable_sharing: Button text
-  btn_github: Link text
-  btn_inline_plots: Button text
-  btn_legal: Button text
-  btn_patreon: Button text; "Patreon" should not be translated
-  btn_sign_in_email: Button text
-  btn_sign_in_google: Button text
-  btn_sign_in_password: Button text
-  btn_sign_out: Button text
-  btn_support: Button text
-  btn_test_flavors: Button text
-  btn_text_wrap: Button text
-  btn_twitter: Button text
-  buckets_btn_delete: Button text
-  buckets_title: Label, followed by a number
-  meta_desc_official: Paragraph of body tex
-  meta_desc_server: Paragraph of body tex
-  meta_title_official: Site Title
-  meta_title_server: Site Title (does not need translation)
-  students_btn_reenroll: Button text
-  students_btn_unenroll: Button text
-  students_subhead1: Label, followed by a list
-  students_title: Section header
-  ui_menu: Button text to show the menu (appears prominently on page)
+  sidebar:
+    changeemail#body: Paragraph of body text
+    sharedesc#body: Paragraph of body text
+    changelayout#btn: Button text
+    changepassword#btn: Button text
+    changetheme#btn: Button text
+    disablesharing#btn: Button text
+    enablesharing#btn: Button text
+    github#btn: Link text
+    inlineplots#btn: Button text
+    legal#btn: Button text
+    patreon#btn: Button text; "Patreon" should not be translated
+    signinemail#btn: Button text
+    signingoogle#btn: Button text
+    signinpassword#btn: Button text
+    signout#btn: Button text
+    support#btn: Button text
+    testflavors#btn: Button text
+    textwrap#btn: Button text
+    twitter#btn: Button text
+  buckets:
+    delete#btn: Button text
+    title: Label, followed by a number
+  meta:
+    official:
+      title: Site Title
+      desc: Paragraph of body tex
+    server:
+      title: Site Title (does not need translation)
+      desc: Paragraph of body tex
+  students:
+    reenroll#btn: Button text
+    unenroll#btn: Button text
+    subhead1: Label, followed by a list
+    title: Section header
+  site:
+    menu#btn: Button text to show the menu (appears prominently on page)
 
 editor:
-  btn_create: Button text
-  btn_delete: Button text
-  btn_download: Button text
-  btn_history: Button text
-  btn_print: Button text
-  btn_refresh: Button text
-  btn_rename: Button text
-  btn_run: Button text
-  btn_save: Button text
-  btn_share: Button text
-  btn_toolbar: Button text
-  btn_upload: Button text
-  btn_wrap: Button text
-  files_title: Section header
-  tips_a1: Link text
-  tips_dd1: Description of what a button will do
-  tips_dd2: Description of what a button will do
-  tips_dd3: Description of what a button will do
-  tips_dd4: Description of what a button will do
-  tips_p1: Paragraph of body text
-  tips_p2: Label, followed by a list
-  tips_subhead1: Section header
-  tips_title: Section header
-  ui_drop: Instruction for the user
-  ui_run: Button text to evaluate a script (appears prominently on page)
-  unsupported_li1: Error text
-  unsupported_li2: Error text
-  unsupported_li3: Error text
-  unsupported_p1: Error text, ending with a label, followed by a list
-  unsupported_title: Section header
+  toolbar:
+    create#btn: Button text
+    delete#btn: Button text
+    download#btn: Button text
+    history#btn: Button text
+    print#btn: Button text
+    refresh#btn: Button text
+    rename#btn: Button text
+    run#btn: Button text
+    save#btn: Button text
+    share#btn: Button text
+    toolbar#btn: Button text
+    upload#btn: Button text
+    wrap#btn: Button text
+    files#title: Section header
+    drop#ui: Instruction for the user
+    run#ui: Button text to evaluate a script (appears prominently on page)
+  tips:
+    a1: Link text
+    dd1: Description of what a button will do
+    dd2: Description of what a button will do
+    dd3: Description of what a button will do
+    dd4: Description of what a button will do
+    p1: Paragraph of body text
+    p2: Label, followed by a list
+    subhead1: Section header
+    title: Section header
+  unsupported:
+    li1: Error text
+    li2: Error text
+    li3: Error text
+    p1: Error text, ending with a label, followed by a list
+    title: Section header
 
 panel:
-  output_btn_github: Link text
-  output_ui_upgraded: Description when hovering over an image
-  plot_btn_download: Button text
-  plot_btn_expand: Button text
-  plot_btn_next: Button text
-  plot_btn_prev: Button text
-  plot_btn_zoom: Button text
-  plot_ui_description: Paragraph of body text
-  prompt_btn_add: Button text with interpolated number; for example, "Add 15 seconds"
-  prompt_btn_resume: Button text
-  prompt_btn_sigint: Button text; "SIGINT" should not be translated
-  prompt_btn_upgrade: Button text
-  prompt_ui_seconds: Label, followed by a number
-  ui_loading: Filler text when a component is not ready yet
-  vars_title: Section header
+  output:
+    github#btn: Link text
+    upgraded#ui: Description when hovering over an image
+  plot:
+    download#btn: Button text
+    expand#btn: Button text
+    next#btn: Button text
+    prev#btn: Button text
+    zoom#btn: Button text
+    description#ui: Paragraph of body text
+  prompt:
+    add#btn: Button text with interpolated number; for example, "Add 15 seconds"
+    resume#btn: Button text
+    sigint#btn: Button text; "SIGINT" should not be translated
+    upgrade#btn: Button text
+    seconds#ui: Label, followed by a number
+  vars:
+    title: Section header
 
 promos:
-  instructor_p1: Paragraph of body text
-  instructor_p2: Call to action, paragraph of body text
-  prompt_btn1: Call to action, button text
-  prompt_p1: Paragraph of body text
-  prompt_p2: Label, followed by a call to action button
-  prompt_title: Section header
-  ui_dismiss: Button text
-  welcome_title: Section header (shown prominently on page)
-  welcome_p1: Paragraph of body text
-  welcome_p2: Paragraph of body text describing what you can do on the site
-  welcome_p3: Paragraph of body text describing what you can do on the site
-  welcome_p4: Paragraph of body text with a call to action and also describing what you can do on the site
-  welcome_btn_start: Call to action, button text
-  sync_p1: Call to action, paragraph of body text
-  sync_p2: Call to action, paragraph of body text
-  bucketcreate_p1: Call to action, paragraph of body text
-  bucketcreate_p2: Call to action, paragraph of body text
-  sharing_subhead1: Section header
-  sharing_p1: Call to action, paragraph of body text
-  login_p1: Rhetorical question asked of the user
-  login_p2: Call to action, paragraph of body text
-  bucketsbacklink_p1: Call to action, paragraph of body text
+  instructor:
+    p1: Paragraph of body text
+    p2: Call to action, paragraph of body text
+  prompt:
+    btn1: Call to action, button text
+    p1: Paragraph of body text
+    p2: Label, followed by a call to action button
+    title: Section header
+  welcome:
+    title: Section header (shown prominently on page)
+    p1: Paragraph of body text
+    p2: Paragraph of body text describing what you can do on the site
+    p3: Paragraph of body text describing what you can do on the site
+    p4: Paragraph of body text with a call to action and also describing what you can do on the site
+    start#btn: Call to action, button text
+  sync:
+    p1: Call to action, paragraph of body text
+    p2: Call to action, paragraph of body text
+  bucketcreate:
+    p1: Call to action, paragraph of body text
+    p2: Call to action, paragraph of body text
+  sharing:
+    subhead1: Section header
+    p1: Call to action, paragraph of body text
+  login:
+    p1: Rhetorical question asked of the user
+    p2: Call to action, paragraph of body text
+  bucketsbacklink:
+    p1: Call to action, paragraph of body text
 
 modals:
-  email_label1: Call to action, form field label
-  email_p1: Paragraph of body text
-  password_subhead1: Rhetorical question asked of the user
-  password_p1: Call to action, paragraph of body text
-  changepwd_title: Button text
-  changepwd_p1: Call to action, paragraph of body text
-  changepwd_btn_submit: Button text
-  createbucket_title: Button text
-  createbucket_p1: Paragraph of body text
-  createbucket_subhead1: Call to action, section header
-  createbucket_p2: Call to action, paragraph of body text
-  createbucket_subhead2: Section header, followed by a list
-  createbucket_subhead3: Section header, followed by a list
-  createbucket_subhead4: Call to action, section header
-  createbucket_p3: Paragraph of body text
-  createbucket_label1: Section header, followed by a list
-  createbucket_p4: Paragraph of body text
-  createbucket_btn_submit: Button text
-  upgrade_title: Button text
-  upgrade_btn1: Button text
-  upgrade_btn2: Button text; "Patreon" should not be translated
-  upgrade_p1: Paragraph of body text
-  upgrade_btn3: Button text; "Patreon" should not be translated
-  upgrade_p2: Rhetorical question asked of the user
-  upgrade_btn4: Button text; "Patreon" should not be translated
-  upgrade_p3: Paragraph of body text; "Patreon" should not be translated
-  patience_p1: Paragraph of body text
-  patience_p2: Paragraph of body text
+  email:
+    label1: Call to action, form field label
+    p1: Paragraph of body text
+  password:
+    subhead1: Rhetorical question asked of the user
+    p1: Call to action, paragraph of body text
+  changepwd:
+    title: Button text
+    p1: Call to action, paragraph of body text
+    submit#btn: Button text
+  createbucket:
+    title: Button text
+    p1: Paragraph of body text
+    subhead1: Call to action, section header
+    p2: Call to action, paragraph of body text
+    subhead2: Section header, followed by a list
+    subhead3: Section header, followed by a list
+    subhead4: Call to action, section header
+    p3: Paragraph of body text
+    label1: Section header, followed by a list
+    p4: Paragraph of body text
+    submit#btn: Button text
+  upgrade:
+    title: Button text
+    btn1: Button text
+    btn2: Button text; "Patreon" should not be translated
+    p1: Paragraph of body text
+    btn3: Button text; "Patreon" should not be translated
+    p2: Rhetorical question asked of the user
+    btn4: Button text; "Patreon" should not be translated
+    p3: Paragraph of body text; "Patreon" should not be translated
+  patience:
+    p1: Paragraph of body text
+    p2: Paragraph of body text
 
 javascript:
   alert_exited: Label, followed by an error code
@@ -162,9 +188,11 @@ javascript:
   toggle_sharing_p2: Call to action, followed by a computer command
 
 common:
-  placeholder_email: Placeholder text for form field
-  btn_submit: Button text
-  subhead_caution_colon: Label, followed by another sentence
-  placeholder_password: Placeholder text for form field
-  btn_https: Button text
-  p_https: Paragraph of body text
+  email#ph: Placeholder text for form field
+  submit#btn: Button text
+  caution#label: Label, followed by another sentence
+  password#ph: Placeholder text for form field
+  https#btn: Button text
+  https#p: Paragraph of body text
+  loading#ui: Filler text when a component is not ready yet
+  dismiss#btn: Button text
