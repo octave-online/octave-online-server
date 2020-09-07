@@ -171,7 +171,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			var idx = currentPlotIdx();
 			var len = plotHistory().length;
 			if (len === 0) {
-				utils.alert(oo_translations.alert_plot_window);
+				utils.alert(oo_translations["console.plotwindow#alert"]);
 			} else if (idx < 0) {
 				currentPlotIdx(len-1);
 			} else {
@@ -214,28 +214,28 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		},
 
 		unenrollStudent: function(user) {
-			if (confirm(oo_translations.student_unenroll_p1 + "\n\n" + oo_translations.label_name + " " + user.displayName + "\n" + oo_translations.label_course + " " + user.program)) {
+			if (confirm(oo_translations["students.unenroll.p1"] + "\n\n" + oo_translations["students.name#label"] + " " + user.displayName + "\n" + oo_translations["students.course#label"] + " " + user.program)) {
 				OctMethods.socket.unenrollStudent(user);
 			}
 		},
 		reenrollStudent: function(user) {
-			var newProgram = prompt(oo_translations.student_reenroll_p1, "");
+			var newProgram = prompt(oo_translations["students.reenroll.p1"], "");
 			var programs = viewModel.instructorPrograms();
 			for (var i=0; i<programs.length; i++) {
 				if (programs[i].program === newProgram) {
 					OctMethods.socket.reenrollStudent(user, newProgram);
-					utils.alert(oo_translations.label_name.student_reenroll_p2 + "\n\n" + oo_translations.label_name + " " + user.displayName + "\n" + oo_translations.label_course + " " + newProgram);
+					utils.alert(oo_translations["students.reenroll.p2"] + "\n\n" + oo_translations["students.name#label"] + " " + user.displayName + "\n" + oo_translations["students.course#label"] + " " + newProgram);
 					return;
 				}
 			}
-			utils.alert(oo_translations.student_reenroll_p3 + " " + newProgram);
+			utils.alert(oo_translations["students.reenroll.p3"] + " " + newProgram);
 		},
 
 		toggleSharing: function(){
 			var shareKey = viewModel.currentUser().share_key;
 			var program = viewModel.currentUser().program;
 			if (program && program !== "default") {
-				utils.alert(oo_translations.toggle_sharing_p1 + " " + program + "\n\n"+ oo_translations.toggle_sharing_p2 + "\n\nenroll('default')");
+				utils.alert(oo_translations["togglesharing.p1"] + " " + program + "\n\n"+ oo_translations["togglesharing.p2"] + "\n\nenroll('default')");
 			} else {
 				OctMethods.socket.toggleSharing(!shareKey);
 			}
@@ -372,7 +372,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					OctMethods.socket.reconnect();
 					options.remove();
 				});
-				btn1.append(document.createTextNode(oo_translations.btn_reconnect));
+				btn1.append(document.createTextNode(oo_translations["console.reconnect#btn"]));
 				options.append(btn1);
 
 				// Append to the console
@@ -385,7 +385,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				el.attr("href", url);
 				el.attr("target", "_blank");
 				el.append(document.createTextNode(url));
-				$("#console").append(document.createTextNode(oo_translations.label_see_url));
+				$("#console").append(document.createTextNode(oo_translations["console.seeurl#label"]));
 				$("#console").append(el);
 				$("#console").append(document.createTextNode("\n"));
 				OctMethods.console.scroll();
@@ -538,12 +538,12 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			},
 			askForEnroll: function(program){
 				if(!OctMethods.editor.initialized){
-					utils.alert(oo_translations.student_enroll_p1);
+					utils.alert(oo_translations["students.enroll.p1"]);
 					return;
 				}
 
 				if(confirm(
-					oo_translations.student_enroll_p2 + "\n\nenroll('default')\n\n" + oo_translations.student_enroll_p3)){
+					oo_translations["students.enroll.p2"] + "\n\nenroll('default')\n\n" + oo_translations["students.enroll.p3"])){
 					OctMethods.socket.enroll(program);
 					viewModel.currentUser().program = program; // note: this is not observable
 				}
@@ -1027,7 +1027,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			pong: function(data) {
 				var startTime = parseInt(data.startTime);
 				var endTime = new Date().valueOf();
-				OctMethods.console.write(oo_translations.label_ping_time + " " + (endTime-startTime) + "ms\n");
+				OctMethods.console.write(oo_translations["console.pingtime#label"] + " " + (endTime-startTime) + "ms\n");
 				OctMethods.prompt.enable();
 				OctMethods.prompt.focus();
 			},
@@ -1058,7 +1058,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 				// Show the notification message after a small delay in order to let the output buffers flush first.
 				setTimeout(function(){
-					OctMethods.console.writeError("\n" + oo_translations.alert_payload + "\n");
+					OctMethods.console.writeError("\n" + oo_translations["console.payload#alert"] + "\n");
 				}, parseInt("105!config.session.payloadMessageDelay"));
 			},
 			init: function(){
@@ -1103,7 +1103,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				OctMethods.load.callback();
 			},
 			destroyu: function(message){
-				OctMethods.console.writeError(oo_translations.alert_exited + " " + message + "\n");
+				OctMethods.console.writeError(oo_translations["console.exited#alert"] + " " + message + "\n");
 
 				OctMethods.console.writeRestartBtn();
 				OctMethods.socket.isExited = true;
@@ -1115,7 +1115,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			},
 			disconnect: function(){
 				if (!OctMethods.socket.isExited) {
-					OctMethods.console.writeError(oo_translations.alert_reconnecting + "\n");
+					OctMethods.console.writeError(oo_translations["console.reconnecting#alert"] + "\n");
 				}
 
 				// Clean up UI
@@ -1129,13 +1129,13 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		editor: {
 			instance: null,
 			defaultFilename: "my_script.m",
-			defaultContent: "disp(\"" + oo_translations.hello_world + "\");\n",
+			defaultContent: "disp(\"" + oo_translations["newfile.helloworld"] + "\");\n",
 			running: false,
 			initialized: false,
 			bucketWarned: false,
 			save: function(octfile){
 				if (viewModel.purpose() === "bucket" && !OctMethods.editor.bucketWarned) {
-					utils.alert(oo_translations.alert_readonly);
+					utils.alert(oo_translations["console.readonly#alert"]);
 					OctMethods.editor.bucketWarned = true;
 				}
 				return OctMethods.socket.save(octfile);
@@ -1183,10 +1183,10 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			},
 			rename: function(octfile){
 				var oldName = octfile.filename();
-				var newName = prompt(oo_translations.rename_label1, oldName);
+				var newName = prompt(oo_translations["rename.label"], oldName);
 				if (!newName || oldName === newName) return false;
 				if (viewModel.fileNameExists(newName)){
-					utils.alert(oo_translations.rename_alert1);
+					utils.alert(oo_translations["rename.alert"]);
 					return false;
 				}
 				return OctMethods.socket.rename(octfile, newName);
@@ -1234,9 +1234,9 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 				// Add a credit line at the bottom
 				var creditDiv = $("<div></div>");
-				creditDiv.append(oo_translations.print_p1 + " " + viewModel.currentUser().name);
+				creditDiv.append(oo_translations["print.p1"] + " " + viewModel.currentUser().name);
 				creditDiv.append("<br/>");
-				creditDiv.append(oo_translations.print_p2);
+				creditDiv.append(oo_translations["print.p2"]);
 				creditDiv.append("<br/>");
 				creditDiv.append("http://octave-online.net");
 				creditDiv.css("font", "10pt/10pt 'Trebuchet MS',Verdana,sans-serif");
@@ -1275,11 +1275,11 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				var filename = OctMethods.editor.defaultFilename;
 				// do..while to protect against duplicate file names
 				do{
-					filename = prompt(oo_translations.newfile_label1, filename);
+					filename = prompt(oo_translations["newfile.label"], filename);
 				} while(filename && !OctMethods.editor.create(filename));
 			},
 			refresh: function(){
-				if(confirm(oo_translations.alert_refresh)){
+				if(confirm(oo_translations["console.refresh#alert"])){
 					OctMethods.editor.reset();
 					OctMethods.socket.refresh();
 				}

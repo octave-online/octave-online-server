@@ -160,32 +160,41 @@ modals:
     p2: Thanks for waiting.  It's not supposed to take this long.  Please double-check your internet connection.  If you are sure that your internet is working, consider contacting support.
 
 javascript:
-  alert_exited: "Octave Exited. Message:"
-  alert_payload: "NOTICE: Execution paused due to large payload"
-  alert_plot_window: This button shows and hides the plot window.  Enter an expression that generates a plot.
-  alert_readonly: "Note: This is a read-only bucket. Changes you make will not be persisted after you close your browser window."
-  alert_reconnecting: "Connection lost.  Attempting to reconnect..."
-  alert_refresh: "This will reload your files from the server. Any unsaved changes will be lost."
-  btn_reconnect: Click Here to Reconnect
-  hello_world: Hello World
-  label_course: "Course:"
-  label_name: "Name:"
-  label_ping_time: "Ping time:"
-  label_see_url: "See:"
-  newfile_label1: "Please enter a filename:"
-  print_p1: "Printed for:"
-  print_p2: Powered by {{config.client.app_name}}
-  rename_alert1: "The specified filename already exists."
-  rename_label1: "Enter a new filename:"
-  student_enroll_p1: You need to sign in to enroll in a course.
-  student_enroll_p2: When you enroll in a course, the instructors for that course will be able to access the files you save. You can cancel your enrollment at any time by running running the following at the command prompt.
-  student_enroll_p3: Press Cancel if you don't know what any of this means.
-  student_reenroll_p1: "Enter the course code to which you want to move this student:"
-  student_reenroll_p2: The following student is being re-enrolled.  Reload the page to see the update.
-  student_reenroll_p3: "Error: Could not find the course code:"
-  student_unenroll_p1: Are you sure that you want to remove the following student from your course?
-  toggle_sharing_p1: "You cannot disable sharing as a student enrolled in an {{config.client.app_name}} course code:"
-  toggle_sharing_p2: "You need to remove yourself by running this command at at the command prompt:"
+  console:
+    exited#alert: "Octave Exited. Message:"
+    payload#alert: "NOTICE: Execution paused due to large payload"
+    plotwindow#alert: This button shows and hides the plot window.  Enter an expression that generates a plot.
+    readonly#alert: "Note: This is a read-only bucket. Changes you make will not be persisted after you close your browser window."
+    reconnecting#alert: "Connection lost.  Attempting to reconnect..."
+    refresh#alert: "This will reload your files from the server. Any unsaved changes will be lost."
+    reconnect#btn: Click Here to Reconnect
+    pingtime#label: "Ping time:"
+    seeurl#label: "See:"
+  newfile:
+    label: "Please enter a filename:"
+    helloworld: Hello World
+  print:
+    p1: "Printed for:"
+    p2: Powered by {{config.client.app_name}}
+  rename:
+    alert: "The specified filename already exists."
+    label: "Enter a new filename:"
+  students:
+    course#label: "Course:"
+    name#label: "Name:"
+    enroll:
+      p1: You need to sign in to enroll in a course.
+      p2: When you enroll in a course, the instructors for that course will be able to access the files you save. You can cancel your enrollment at any time by running running the following at the command prompt.
+      p3: Press Cancel if you don't know what any of this means.
+    reenroll:
+      p1: "Enter the course code to which you want to move this student:"
+      p2: The following student is being re-enrolled.  Reload the page to see the update.
+      p3: "Error: Could not find the course code:"
+    unenroll:
+      p1: Are you sure that you want to remove the following student from your course?
+  togglesharing:
+    p1: "You cannot disable sharing as a student enrolled in an {{config.client.app_name}} course code:"
+    p2: "You need to remove yourself by running this command at at the command prompt:"
 
 common:
   email#ph: email address

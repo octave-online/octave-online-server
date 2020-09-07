@@ -160,32 +160,41 @@ modals:
     p2: Paragraph of body text
 
 javascript:
-  alert_exited: Label, followed by an error code
-  alert_payload: Paragraph of body text
-  alert_plot_window: Paragraph of body text with call to action
-  alert_readonly: Paragraph of body text
-  alert_reconnecting: Paragraph of body text
-  alert_refresh: Paragraph of body text
-  btn_reconnect: Button text
-  hello_world: Sample string used in programming
-  label_course: Label, followed by a course code (like "Math_101")
-  label_name: Label, followed by a name or email
-  label_ping_time: Label, followed by a number
-  label_see_url: Label, followed by a URL link to documentation
-  newfile_label1: Label for form field
-  print_p1: Label, followed by a name or email
-  print_p2: Body text
-  rename_alert1: Body text
-  rename_label1: Label for form field
-  student_enroll_p1: Paragraph of body text
-  student_enroll_p2: Paragraph of body text
-  student_enroll_p3: Press Cancel if you don't know what any of this means.
-  student_reenroll_p1: Label for form field
-  student_reenroll_p2: Paragraph of body text
-  student_reenroll_p3: Label, followed by a course code (like "Math_101")
-  student_unenroll_p1: Rhetorical question asked of the user
-  toggle_sharing_p1: Paragraph of body text, followed by a course code (like "Math_101")
-  toggle_sharing_p2: Call to action, followed by a computer command
+  console:
+    exited#alert: Label, followed by an error code
+    payload#alert: Paragraph of body text
+    plotwindow#alert: Paragraph of body text with call to action
+    readonly#alert: Paragraph of body text
+    reconnecting#alert: Paragraph of body text
+    refresh#alert: Paragraph of body text
+    reconnect#btn: Button text
+    pingtime#label: Label, followed by a number
+    seeurl#label: Label, followed by a URL link to documentation
+  newfile:
+    label: Label for form field
+    helloworld: Sample string used in programming
+  print:
+    p1: Label, followed by a name or email
+    p2: Body text
+  rename:
+    alert: Body text
+    label: Label for form field
+  students:
+    course#label: Label, followed by a course code (like "Math_101")
+    name#label: Label, followed by a name or email
+    enroll:
+      p1: Paragraph of body text
+      p2: Paragraph of body text
+      p3: Press Cancel if you don't know what any of this means.
+    reenroll:
+      p1: Label for form field
+      p2: Paragraph of body text
+      p3: Label, followed by a course code (like "Math_101")
+    unenroll:
+      p1: Rhetorical question asked of the user
+  togglesharing:
+    p1: Paragraph of body text, followed by a course code (like "Math_101")
+    p2: Call to action, followed by a computer command
 
 common:
   email#ph: Placeholder text for form field

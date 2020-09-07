@@ -24,6 +24,7 @@ import Path = require("path");
 import BodyParser = require("body-parser");
 import Compression = require("compression");
 import Express = require("express");
+import Flatten = require("flat");
 import I18next = require("i18next");
 import I18nextFsBackend = require("i18next-fs-backend");
 import I18nextMiddleware = require("i18next-http-middleware");
@@ -141,7 +142,8 @@ export function init(){
 			}
 			// Get the JavaScript translations
 			let oo_translations: {[key: string]: string} = {};
-			for (let key of Object.keys((req as any).i18n.getDataByLanguage("en").translation.javascript)) {
+			let jsKeys: {[key: string]: unknown} = Flatten((req as any).i18n.getDataByLanguage("en").translation.javascript);
+			for (let key of Object.keys(jsKeys)) {
 				let key_string = key as string;
 				oo_translations[key_string] = t(`javascript.${key_string}`, { config });
 			}
