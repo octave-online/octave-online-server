@@ -69,7 +69,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		<!-- /ko -->
 		<div class="hamburger" id="hamburger" aria-label="Menu" role="button" aria-controls="navigation">
 			<div class="hamburger-box">
-				<span class="hamburger-memo"><%= t("header.ui_menu") %></span>
+				<span class="hamburger-memo"><%= t("header.site.menu#btn") %></span>
 				<div class="hamburger-inner"></div>
 			</div>
 		</div>
@@ -77,16 +77,16 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<section data-hover="flex">
 		<div id="files_container" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 0 }">
 			<div id="files_toolbar" class="theme-header">
-				<%= t("editor.files_title") %>
+				<%= t("editor.toolbar.files#title") %>
 				<!-- ko if: purpose() !== "bucket" -->
-				<span id="files_toolbar_create" title="<%= t("editor.btn_create") %>"></span>
+				<span id="files_toolbar_create" title="<%= t("editor.toolbar.create#btn") %>"></span>
 				<!-- /ko -->
 			</div>
 			<!-- ko if: purpose() !== "bucket" -->
 			<div id="files_toolbar_lower">
-				<span id="files_toolbar_upload" title="<%= t("editor.btn_upload") %>"></span>
-				<span id="files_toolbar_refresh" title="<%= t("editor.btn_refresh") %>"></span>
-				<span id="files_toolbar_info" title="<%= t("editor.btn_history") %>"></span>
+				<span id="files_toolbar_upload" title="<%= t("editor.toolbar.upload#btn") %>"></span>
+				<span id="files_toolbar_refresh" title="<%= t("editor.toolbar.refresh#btn") %>"></span>
+				<span id="files_toolbar_info" title="<%= t("editor.toolbar.history#btn") %>"></span>
 			</div>
 			<!-- /ko -->
 			<div id="files_list_container" data-bind="css: { 'is_bucket': purpose() === 'bucket' }">
@@ -104,7 +104,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				</ul>
 				<!-- ko if: purpose() !== "bucket" -->
 				<span id="files_drop_notification">
-					<%= t("editor.ui_drop") %>
+					<%= t("editor.toolbar.drop#ui") %>
 				</span>
 				<!-- /ko -->
 			</div>
@@ -112,25 +112,25 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		<div id="open_container" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 1 }">
 			<!-- ko with: openFile -->
 				<div id="editor_toolbar" class="theme-header">
-					<span id="editor_hamburger" data-bind="click: buttonsShown.toggle()" title="<%= t("editor.btn_toolbar") %>"></span>
+					<span id="editor_hamburger" data-bind="click: buttonsShown.toggle()" title="<%= t("editor.toolbar.toolbar#btn") %>"></span>
 					<span id="editor_filename" data-bind="text: filename, css: { 'modified': isModified }"></span>
 					<!-- ko if: runnable -->
-					<span id="editor_runit" title="<%= t("editor.btn_run") %>" data-bind="click: runit"><%= t("editor.ui_run") %> &#x25b6;</span>
+					<span id="editor_runit" title="<%= t("editor.toolbar.run#btn") %>" data-bind="click: runit"><%= t("editor.toolbar.run#ui") %> &#x25b6;</span>
 					<!-- /ko -->
 				</div>
 				<div id="editor_btn_container" data-bind="vizSafe: buttonsShown" aria-hidden="true">
-					<span id="editor_download" title="<%= t("editor.btn_download") %>" data-bind="click: download"></span>
+					<span id="editor_download" title="<%= t("editor.toolbar.download#btn") %>" data-bind="click: download"></span>
 					<!-- ko if: $root.purpose() !== "bucket" -->
-					<span id="editor_rename" title="<%= t("editor.btn_rename") %>" data-bind="click: rename"></span>
-					<span id="editor_delete" title="<%= t("editor.btn_delete") %>" data-bind="click: deleteit"></span>
+					<span id="editor_rename" title="<%= t("editor.toolbar.rename#btn") %>" data-bind="click: rename"></span>
+					<span id="editor_delete" title="<%= t("editor.toolbar.delete#btn") %>" data-bind="click: deleteit"></span>
 					<!-- /ko -->
 					<!-- ko if: editable -->
-					<span id="editor_print" title="<%= t("editor.btn_print") %>" data-bind="click: print"></span>
-					<label id="wrap_checkbox" title="<%= t("editor.btn_wrap") %>"><input type="checkbox" data-bind="checked: wrap" /></label>
+					<span id="editor_print" title="<%= t("editor.toolbar.print#btn") %>" data-bind="click: print"></span>
+					<label id="wrap_checkbox" title="<%= t("editor.toolbar.wrap#btn") %>"><input type="checkbox" data-bind="checked: wrap" /></label>
 					<!-- ko if: $root.purpose() !== "bucket" -->
-					<span id="editor_share" title="<%= t("editor.btn_share") %>" data-bind="click: share"></span>
+					<span id="editor_share" title="<%= t("editor.toolbar.share#btn") %>" data-bind="click: share"></span>
 					<!-- /ko -->
-					<span id="editor_save" title="<%= t("editor.btn_save") %>" data-bind="click: save"></span>
+					<span id="editor_save" title="<%= t("editor.toolbar.save#btn") %>" data-bind="click: save"></span>
 					<!-- /ko -->
 				</div>
 
@@ -140,16 +140,16 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				<!-- ko ifnot: editable -->
 					<div class="editor_nofile" data-bind="css: { taller: !buttonsShown(), shorter: buttonsShown() }">
 						<h2>
-							<%= t("editor.unsupported_title", { config }) %>
+							<%= t("editor.unsupported.title", { config }) %>
 						</h2>
 
 						<p>
-							<%= t("editor.unsupported_p1") %>
+							<%= t("editor.unsupported.p1") %>
 						</p>
 						<ol>
-							<li><%= t("editor.unsupported_li1") %></li>
-							<li><%= t("editor.unsupported_li2") %></li>
-							<li><%= t("editor.unsupported_li3") %></li>
+							<li><%= t("editor.unsupported.li1") %></li>
+							<li><%= t("editor.unsupported.li2") %></li>
+							<li><%= t("editor.unsupported.li3") %></li>
 						</ol>
 					</div>
 				<!-- /ko -->
@@ -157,41 +157,41 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 			<!-- ko ifnot: openFile -->
 				<div class="editor_nofile fullheight">
 					<h2>
-						<%= t("editor.tips_title") %>
+						<%= t("editor.tips.title") %>
 					</h2>
 					<!-- ko if: purpose() !== "bucket" -->
 					<p>
-						<%= t("editor.tips_p1", { config }) %>
+						<%= t("editor.tips.p1", { config }) %>
 					</p>
 					<!-- /ko -->
 					<h3>
-						<%= t("editor.tips_subhead1") %>
+						<%= t("editor.tips.subhead1") %>
 					</h3>
 					<p>
-						<%= t("editor.tips_p2") %>
+						<%= t("editor.tips.p2") %>
 					</p>
 					<dl>
 						<dt>Ctrl + Space</dt>
-						<dd><%= t("editor.tips_dd1") %></dd>
+						<dd><%= t("editor.tips.dd1") %></dd>
 						<dt>Cmd/Ctrl + S</dt>
-						<dd><%= t("editor.tips_dd2") %></dd>
+						<dd><%= t("editor.tips.dd2") %></dd>
 						<dt>Cmd/Ctrl/Win + R</dt>
-						<dd><%= t("editor.tips_dd3") %></dd>
+						<dd><%= t("editor.tips.dd3") %></dd>
 						<dt>Cmd/Ctrl/Win + E</dt>
-						<dd><%= t("editor.tips_dd4") %></dd>
+						<dd><%= t("editor.tips.dd4") %></dd>
 					</dl>
 					<p>
-						<a href="https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts#default-keyboard-shortcuts" target="_blank"><strong><%= t("editor.tips_a1") %></strong></a>
+						<a href="https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts#default-keyboard-shortcuts" target="_blank"><strong><%= t("editor.tips.a1") %></strong></a>
 					</p>
 				</div>
 			<!-- /ko -->
 		</div>
 		<div id="output_panel" data-bind="attr:{ style: flex.outputCss }">
 			<div id="plot_container" aria-hidden="true" data-bind="vizSafe: showPlot, with: currentPlot">
-				<div id="plot_figure_container" title="<%= t("panel.plot_btn_zoom") %>" data-bind="click: $root.zoomPlot, css: { fullscreen: $root.plotZoomed }">
+				<div id="plot_figure_container" title="<%= t("panel.plot.zoom#btn") %>" data-bind="click: $root.zoomPlot, css: { fullscreen: $root.plotZoomed }">
 					<div id="plot_svg_container" data-bind="visible: complete, html: completeData"></div>
 					<div id="plot_loading" data-bind="visible: !complete()">
-						<img src="images/spinner.svg" alt="<%= t("panel.ui_loading") %>"/>
+						<img src="images/spinner.svg" alt="<%= t("common.loading#ui") %>"/>
 					</div>
 					<div id="plot_canvas_container">
 						<canvas id="plot_canvas" width="600" height="400"></canvas>
@@ -199,20 +199,20 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				</div>
 				<div id="plot_controls_container">
 					<p>
-						<span id="plot_prev_btn" title="<%= t("panel.plot_btn_prev") %>" class="plot-nav-btn" data-bind="click: $root.showPrevPlot, css: { disabled: $root.firstPlotShown }">&laquo;</span>
-						<span id="plot_next_btn" title="<%= t("panel.plot_btn_next") %>" class="plot-nav-btn" data-bind="click: $root.showNextPlot, css: { disabled: $root.lastPlotShown }">&raquo;</span>
+						<span id="plot_prev_btn" title="<%= t("panel.plot.prev#btn") %>" class="plot-nav-btn" data-bind="click: $root.showPrevPlot, css: { disabled: $root.firstPlotShown }">&laquo;</span>
+						<span id="plot_next_btn" title="<%= t("panel.plot.next#btn") %>" class="plot-nav-btn" data-bind="click: $root.showNextPlot, css: { disabled: $root.lastPlotShown }">&raquo;</span>
 					</p>
 					<p id="plot_info">
-						<%- t("panel.plot_ui_description", { lineNumberHTML: '<span data-bind="text: lineNumber"></span>' }) %>
+						<%- t("panel.plot.description#ui", { lineNumberHTML: '<span data-bind="text: lineNumber"></span>' }) %>
 					</p>
-					<span id="plot_png_download_btn" title="<%= t("panel.plot_btn_download") %>" data-bind="click: downloadPng"></span>
-					<span id="plot_svg_download_btn" title="<%= t("panel.plot_btn_download") %>" data-bind="click: downloadSvg"></span>
+					<span id="plot_png_download_btn" title="<%= t("panel.plot.download#btn") %>" data-bind="click: downloadPng"></span>
+					<span id="plot_svg_download_btn" title="<%= t("panel.plot.download#btn") %>" data-bind="click: downloadSvg"></span>
 				</div>
 			</div>
 			<div id="vars_console_container"  data-hover="flex">
 				<div id="vars_panel" aria-hidden="true" data-bind="resizeFlex:{ group: flex.sizes, index: 2 }">
 					<div class="theme-header">
-						<%= t("panel.vars_title") %>
+						<%= t("panel.vars.title") %>
 					</div>
 					<div id="vars_content">
 						<ul data-bind="foreach: vars">
@@ -227,25 +227,25 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					<div id="console_output_container">
 						<pre id="console" data-bind="css: { 'console-wrap': consoleWhiteSpaceWrap }"></pre>
 						<!-- ko if: currentUser() && currentUser().patreon && currentUser().patreon.tier_name -->
-						<div id="tier_background"><div data-bind="class: currentUser().patreon.tier_name, click: showUpgradeTier" title="<%= t("panel.output_ui_upgraded") %>"></div></div>
+						<div id="tier_background"><div data-bind="class: currentUser().patreon.tier_name, click: showUpgradeTier" title="<%= t("panel.output.upgraded#ui") %>"></div></div>
 						<!-- /ko -->
 						<% if (config.client.onboarding) { %>
 						<div id="instructor-promo" aria-hidden="true">
-							<span class="l1"><%= t("promos.instructor_p1", { config }) %></span>
-							<span class="l2"><%= t("promos.instructor_p2") %></span>
-							<span class="l3" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
+							<span class="l1"><%= t("promos.instructor.p1", { config }) %></span>
+							<span class="l2"><%= t("promos.instructor.p2") %></span>
+							<span class="l3" data-purpose="close"><%= t("common.dismiss#btn") %></span>
 						</div>
 						<% } %>
 						<div id="cwd_box" style="display: none" data-bind="visible: !!cwd()">cwd: <span data-bind="text: cwd"></span></div>
 						<div id="type_here" aria-hidden="true">
-							<span class="l1"><%= t("promos.prompt_title") %></span>
-							<span class="l2"><%= t("promos.prompt_p1") %></span>
+							<span class="l1"><%= t("promos.prompt.title") %></span>
+							<span class="l2"><%= t("promos.prompt.p1") %></span>
 							<!-- ko ifnot: currentUser() -->
-							<span class="l3"><%= t("promos.prompt_p2") %> <a href="javascript:void(0)" id="sign_in_shortcut"><%= t("promos.prompt_btn1") %></a></span>
+							<span class="l3"><%= t("promos.prompt.p2") %> <a href="javascript:void(0)" id="sign_in_shortcut"><%= t("promos.prompt.btn1") %></a></span>
 							<!-- /ko -->
 						</div>
-						<span id="plot_opener" aria-hidden="true" title="<%= t("panel.plot_btn_expand") %>" data-bind="click: togglePlot"></span>
-						<a id="agpl_icon" title="<%= t("panel.output_btn_github", { projectName: "Octave Online Server" }) %>" href="https://github.com/octave-online/octave-online-server" target="_blank"><img src="images/agpl-logo.svg" alt="AGPL Free Software" /></a>
+						<span id="plot_opener" aria-hidden="true" title="<%= t("panel.plot.expand#btn") %>" data-bind="click: togglePlot"></span>
+						<a id="agpl_icon" title="<%= t("panel.output.github#btn", { projectName: "Octave Online Server" }) %>" href="https://github.com/octave-online/octave-online-server" target="_blank"><img src="images/agpl-logo.svg" alt="AGPL Free Software" /></a>
 					</div>
 					<div id="console_prompt_container">
 
@@ -258,18 +258,18 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 						<div id="prompt" style="height: 28px" aria-hidden="true"></div>
 
 						<div id="runtime_controls_container" aria-hidden="true">
-							<span id="signal" title="<%= t("panel.prompt_btn_sigint") %>"></span>
+							<span id="signal" title="<%= t("panel.prompt.sigint#btn") %>"></span>
 							<span id="seconds_remaining_container">
-								<%= t("panel.prompt_ui_seconds") %>
+								<%= t("panel.prompt.seconds#ui") %>
 								<span id="seconds_remaining">0</span>
 							</span>
 							<span id="add_time_container">
-								<span class="clickable" data-bind="click: addTime"><%- t("panel.prompt_btn_add", { numSecondsHTML: '<span data-bind="text: countdownExtraTimeSeconds"></span>' }) %></span>
+								<span class="clickable" data-bind="click: addTime"><%- t("panel.prompt.add#btn", { numSecondsHTML: '<span data-bind="text: countdownExtraTimeSeconds"></span>' }) %></span>
 								<!-- ko if: (currentUser() && (!currentUser().patreon || !currentUser().patreon.currently_entitled_tier)) -->
-								/ <span class="clickable" data-bind="click: showUpgradeTier"><%= t("panel.prompt_btn_upgrade") %></span>
+								/ <span class="clickable" data-bind="click: showUpgradeTier"><%= t("panel.prompt.upgrade#btn") %></span>
 								<!-- /ko -->
 							</span>
-							<span id="payload_acknowledge_container" class="clickable" data-bind="click: acknowledgePayload"><%= t("panel.prompt_btn_resume") %></span>
+							<span id="payload_acknowledge_container" class="clickable" data-bind="click: acknowledgePayload"><%= t("panel.prompt.resume#btn") %></span>
 						</div>
 					</div>
 				</div>
@@ -278,50 +278,50 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		<div id="main_menu" aria-hidden="true"><div id="main_menu_content">
 			<!-- ko if: (!currentUser() && !showUserInHeader()) -->
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
-					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="<%= t("header.btn_sign_in_google") %>" />
+					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="<%= t("header.sidebar.signingoogle#btn") %>" />
 				</svg>
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_password">
-					<image xlink:href="images/sign-in-with-password.svg" src="images/sign-in-with-password.png" width="200" height="40" alt="<%= t("header.btn_sign_in_google") %>" />
+					<image xlink:href="images/sign-in-with-password.svg" src="images/sign-in-with-password.png" width="200" height="40" alt="<%= t("header.sidebar.signingoogle#btn") %>" />
 				</svg>
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
-					<image xlink:href="images/sign-in-with-email.svg" src="images/sign-in-with-email.png" width="200" height="40" alt="<%= t("header.btn_sign_in_email") %>" />
+					<image xlink:href="images/sign-in-with-email.svg" src="images/sign-in-with-email.png" width="200" height="40" alt="<%= t("header.sidebar.signinemail#btn") %>" />
 				</svg>
 				<p class="login_bottom">
-					<%= t("header.body_change_email") %>
+					<%= t("header.sidebar.changeemail#body") %>
 				</p>
 			<!-- /ko -->
 			<!-- ko if: (currentUser() && !showUserInHeader()) -->
 				<div id="userbox">
 					<span data-bind="text: currentUser().name"></span>
-					<a id="logout_icon" href="javascript:void(0)" title="Sign Out" data-bind="click: doLogout"><%= t("header.btn_sign_out") %></a>
+					<a id="logout_icon" href="javascript:void(0)" title="Sign Out" data-bind="click: doLogout"><%= t("header.sidebar.signout#btn") %></a>
 				</div>
 				<div class="site-control-item" data-bind="click: showUpgradeTier">
-					<a href="javascript:void(0)"><%= t("header.btn_patreon") %></a>
+					<a href="javascript:void(0)"><%= t("header.sidebar.patreon#btn") %></a>
 				</div>
 				<div class="share-url-box">
 					<!-- ko if: currentUser().share_key -->
-						<em><%= t("header.body_share_desc") %></em>
+						<em><%= t("header.sidebar.sharedesc#body") %></em>
 						<input data-bind="value: shareLink" onclick="this.select()" readonly="readonly" />
 						<div class="site-control-item" data-bind="click: toggleSharing">
-							<a href="javascript:void(0)"><%= t("header.btn_disable_sharing") %></a>
+							<a href="javascript:void(0)"><%= t("header.sidebar.disablesharing#btn") %></a>
 						</div>
 					<!-- /ko -->
 					<!-- ko ifnot: currentUser().share_key -->
 						<div class="site-control-item" data-bind="click: toggleSharing">
-							<a href="javascript:void(0)"><%= t("header.btn_enable_sharing") %></a>
+							<a href="javascript:void(0)"><%= t("header.sidebar.enablesharing#btn") %></a>
 						</div>
 					<!-- /ko -->
 				</div>
 				<div class="site-control-item" id="create-password-btn" data-bind="click: showChangePassword">
-					<a href="javascript:void(0)"><%= t("header.btn_change_password") %></a>
+					<a href="javascript:void(0)"><%= t("header.sidebar.changepassword#btn") %></a>
 				</div>
 			<!-- /ko -->
 			<!-- ko foreach: instructorPrograms -->
 				<div class="instructor-programs">
-					<strong><%= t("header.students_title") %></strong><br/>
-					<em><%= t("header.students_subhead1") %> <span data-bind="text: program"></span></em>
+					<strong><%= t("header.students.title") %></strong><br/>
+					<em><%= t("header.students.subhead1") %> <span data-bind="text: program"></span></em>
 					<ul data-bind="foreach: users">
-						<li><a data-bind="attr: { href: shareUrl }, text: displayName" target="_blank"></a> (<a data-bind="click: $root.unenrollStudent" title="<%= t("header.students_btn_unenroll") %>">&#x232B;</a> <a data-bind="click: $root.reenrollStudent" title="<%= t("header.students_btn_reenroll") %>">&#x2794;</a>)</li>
+						<li><a data-bind="attr: { href: shareUrl }, text: displayName" target="_blank"></a> (<a data-bind="click: $root.unenrollStudent" title="<%= t("header.students.unenroll#btn") %>">&#x232B;</a> <a data-bind="click: $root.reenrollStudent" title="<%= t("header.students.reenroll#btn") %>">&#x2794;</a>)</li>
 					</ul>
 				</div>
 			<!-- /ko -->
@@ -333,42 +333,42 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				data-uv-link-color="#007dbf"
 				data-uv-default-mode="feedback"
 				data-uv-forum-id="211888">
-				<%= t("header.btn_support") %>
+				<%= t("header.sidebar.support#btn") %>
 			</a></div>
 			<div class="site-control-item">
-				<a id="showprivacy"><%= t("header.btn_legal") %></a>
+				<a id="showprivacy"><%= t("header.sidebar.legal#btn") %></a>
 			</div>
 			<div class="site-control-item">
-				<a href="https://github.com/octave-online/octave-online-server" target="_blank"><%= t("header.btn_github") %></a>
+				<a href="https://github.com/octave-online/octave-online-server" target="_blank"><%= t("header.sidebar.github#btn") %></a>
 			</div>
 			<div class="site-control-item" id="change-skin">
-				<a href="javascript:void(0)"><%= t("header.btn_change_theme") %></a>
+				<a href="javascript:void(0)"><%= t("header.sidebar.changetheme#btn") %></a>
 			</div>
 			<div class="site-control-item" id="reset-layout">
-				<a href="javascript:void(0)"><%= t("header.btn_change_layout") %></a>
+				<a href="javascript:void(0)"><%= t("header.sidebar.changelayout#btn") %></a>
 			</div>
 			<div id="twitter-follow-holder" class="site-control-item">
 				<a href="https://twitter.com/OctaveOnline" class="twitter-follow-button" data-show-count="false"
-				data-lang="en" data-size="large" data-show-screen-name="false" target="_blank"><%= t("header.btn_twitter") %></a>
+				data-lang="en" data-size="large" data-show-screen-name="false" target="_blank"><%= t("header.sidebar.twitter#btn") %></a>
 			</div>
 			<div class="preference-inline-item">
 				<label>
 					<input type="checkbox" data-bind="checked: inlinePlots" />
-					<%= t("header.btn_inline_plots") %>
+					<%= t("header.sidebar.inlineplots#btn") %>
 				</label>
 			</div>
 			<div class="preference-inline-item">
 				<label>
 					<input type="checkbox" data-bind="checked: consoleWhiteSpaceWrap" />
-					<%= t("header.btn_text_wrap") %>
+					<%= t("header.sidebar.textwrap#btn") %>
 				</label>
 			</div>
 			<!-- ko if: allBuckets().length > 0 -->
 				<div class="all-buckets">
-					<strong><%= t("header.buckets_title") %></strong>
+					<strong><%= t("header.buckets.title") %></strong>
 					<ul data-bind="foreach: allBuckets">
 						<li>
-							<a data-bind="click: deleteit" title="<%= t("header.buckets_btn_delete") %>" class="bucket-delete">&#x232B;</a>
+							<a data-bind="click: deleteit" title="<%= t("header.buckets.delete#btn") %>" class="bucket-delete">&#x232B;</a>
 
 							<a data-bind="attr: { href: url }, text: displayName" target="_blank" class="bucket-name"></a>
 							<br/>
@@ -386,32 +386,32 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 
 <% if (config.client.onboarding) { %>
 <div id="onboarding" data-purpose="popover"><div><div>
-	<h2><%= t("promos.welcome_title", { config }) %></h2>
+	<h2><%= t("promos.welcome.title", { config }) %></h2>
 
 	<p>
-		<%= t("promos.welcome_p1", { config }) %>
+		<%= t("promos.welcome.p1", { config }) %>
 	</p>
 	<figure>
 		<figcaption>
-			<%= t("promos.welcome_p2") %>
+			<%= t("promos.welcome.p2") %>
 		</figcaption>
 		<img src="images/demo/fminbnd-prompt.png" alt="fminbnd(@(x) x .* log(x), 0, 1)" style="max-width: 362px;"/>
 		<img src="images/demo/fminbnd-result.png" alt="0.36788" style="max-width: 366px;"/>
 	</figure>
 	<figure>
 		<figcaption>
-			<%= t("promos.welcome_p3") %>
+			<%= t("promos.welcome.p3") %>
 		</figcaption>
 		<img src="images/demo/sombrero-prompt.png" alt="sombrero()" style="max-width: 150px;"/>
 		<img src="images/demo/sombrero-result.jpg" alt="plot showing a sombrero" style="max-width: 531px;"/>
 	</figure>
 	<figure>
 		<figcaption>
-			<%= t("promos.welcome_p4") %>
+			<%= t("promos.welcome.p4") %>
 		</figcaption>
 		<img src="images/demo/editor.png" alt="cstr_reactor.m"/>
 	</figure>
-	<button id="onboarding-start" data-purpose="close"><%= t("promos.welcome_btn_start", { config }) %></button>
+	<button id="onboarding-start" data-purpose="close"><%= t("promos.welcome.start#btn", { config }) %></button>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 <% } %>
@@ -427,75 +427,75 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 </div></div></div>
 
 <div id="email_token" data-purpose="popover" aria-hidden="true"><div><div>
-	<label for="emailField"><%= t("modals.email_label1") %></label>
+	<label for="emailField"><%= t("modals.email.label1") %></label>
 	<form action="./auth/tok" method="post">
-		<input type="email" id="emailField1" name="s" placeholder="<%= t("common.placeholder_email") %>" />
+		<input type="email" id="emailField1" name="s" placeholder="<%= t("common.email#ph") %>" />
 		<input type="password" id="passwordField1" name="p" />
 		<div class="g-recaptcha" data-sitekey="<%= config.recaptcha.siteKey %>"></div>
-		<input type="submit" value="<%= t("common.btn_submit") %>" />
+		<input type="submit" value="<%= t("common.submit#btn") %>" />
 	</form>
-	<p><%= t("modals.email_p1") %></p>
+	<p><%= t("modals.email.p1") %></p>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
 <div id="email_password" data-purpose="popover" aria-hidden="true"><div><div>
-	<p><strong><%= t("modals.password_subhead1") %></strong> <%= t("modals.password_p1") %></p>
+	<p><strong><%= t("modals.password.subhead1") %></strong> <%= t("modals.password.p1") %></p>
 	<form action="./auth/pwd" method="post">
-		<input type="email" id="emailField2" name="s" placeholder="<%= t("common.placeholder_email") %>" />
-		<input type="password" name="p" placeholder="<%= t("common.placeholder_password") %>" />
+		<input type="email" id="emailField2" name="s" placeholder="<%= t("common.email#ph") %>" />
+		<input type="password" name="p" placeholder="<%= t("common.password#ph") %>" />
 		<!-- <div class="g-recaptcha" data-sitekey="<%= config.recaptcha.siteKey %>"></div> -->
 		<!-- ko if: window.location.protocol === "http:" -->
-		<p><strong><%= t("common.subhead_caution_colon") %></strong> <%= t("common.p_https") %> <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }"><%= t("common.btn_https") %></a></p>
+		<p><strong><%= t("common.caution#label") %></strong> <%= t("common.https#p") %> <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }"><%= t("common.https#btn") %></a></p>
 		<!-- /ko -->
-		<input type="submit" value="<%= t("common.btn_submit") %>" />
+		<input type="submit" value="<%= t("common.submit#btn") %>" />
 	</form>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
 <div id="change_password" data-purpose="popover" aria-hidden="true"><div><div>
 	<h2 class="popover-title-bar">
-		<%= t("modals.changepwd_title") %>
+		<%= t("modals.changepwd.title") %>
 	</h2>
-	<p><%= t("modals.changepwd_p1") %></p>
-	<input type="password" id="new_pwd" placeholder="<%= t("common.placeholder_password") %>" />
+	<p><%= t("modals.changepwd.p1") %></p>
+	<input type="password" id="new_pwd" placeholder="<%= t("common.password#ph") %>" />
 	<!-- ko if: window.location.protocol === "http:" -->
-	<p><strong><%= t("common.subhead_caution_colon") %></strong> <%= t("common.p_https") %> <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }"><%= t("common.btn_https") %></a></p>
+	<p><strong><%= t("common.caution#label") %></strong> <%= t("common.https#p") %> <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }"><%= t("common.https#btn") %></a></p>
 	<!-- /ko -->
-	<button id="save-password-btn"><%= t("modals.changepwd_btn_submit") %></button>
+	<button id="save-password-btn"><%= t("modals.changepwd.submit#btn") %></button>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
 <div id="create_bucket" data-purpose="popover" aria-hidden="true"><div><div>
 	<h2 class="popover-title-bar">
-		<%= t("modals.createbucket_title") %>
+		<%= t("modals.createbucket.title") %>
 	</h2>
 	<!-- ko with: newBucket -->
 	<div id="create-bucket-content">
-		<p><%= t("modals.createbucket_p1", { config }) %></p>
-		<h3><%= t("modals.createbucket_subhead1") %></h3>
-		<p><%= t("modals.createbucket_p2") %></p>
+		<p><%= t("modals.createbucket.p1", { config }) %></p>
+		<h3><%= t("modals.createbucket.subhead1") %></h3>
+		<p><%= t("modals.createbucket.p2") %></p>
 		<fieldset class="bucket-files-fieldset left">
-			<legend><%= t("modals.createbucket_subhead2") %></legend>
+			<legend><%= t("modals.createbucket.subhead2") %></legend>
 			<select data-bind="options: filesNotIncluded, optionsText: 'filename', selectedOptions: selectedLeft" multiple></select>
 		</fieldset>
 		<fieldset class="bucket-files-fieldset right">
-			<legend><%= t("modals.createbucket_subhead3") %></legend>
+			<legend><%= t("modals.createbucket.subhead3") %></legend>
 			<select data-bind="options: files, optionsText: 'filename', selectedOptions: selectedRight" multiple></select>
 		</fieldset>
 		<p class="bucket-file-move-btns">
 			<button data-bind="click: moveRightToLeft">⇦</button>
 			<button data-bind="click: moveLeftToRight">⇨</button>
 		</p>
-		<h3><%= t("modals.createbucket_subhead4") %></h3>
-		<p><%= t("modals.createbucket_p3") %></p>
+		<h3><%= t("modals.createbucket.subhead4") %></h3>
+		<p><%= t("modals.createbucket.p3") %></p>
 		<p><label>
-			<strong><%= t("modals.createbucket_label1") %></strong>
+			<strong><%= t("modals.createbucket.label1") %></strong>
 			<select data-bind="options: textFiles, optionsText: 'filename', optionsCaption: 'none', value: main"></select>
 		</label></p>
-		<p class="last"><%= t("modals.createbucket_p4") %></p>
+		<p class="last"><%= t("modals.createbucket.p4") %></p>
 	</div>
 	<div id="create-bucket-bar">
-		<button id="create-bucket-btn" data-bind="click: createOnServer, visible: showCreateButton"><%= t("modals.createbucket_btn_submit") %> 🡺</button>
+		<button id="create-bucket-btn" data-bind="click: createOnServer, visible: showCreateButton"><%= t("modals.createbucket.submit#btn") %> 🡺</button>
 	</div>
 	<img id="create-bucket-spinner" src="images/spinner.svg" width="40" data-bind="visible: !showCreateButton()" />
 	<!-- /ko -->
@@ -505,28 +505,28 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 <div id="upgrade_to_tier" data-purpose="popover" aria-hidden="true"><div><div>
 	<!-- ko with: currentUser -->
 	<h2 class="popover-title-bar">
-		<%= t("modals.upgrade_title") %>
+		<%= t("modals.upgrade.title") %>
 	</h2>
 	<!-- ko ifnot: $data.patreon -->
 	<p class="action-links">
-		<a href="/auth/patreon/plans" target="_blank"><%= t("modals.upgrade_btn1") %></a> / <a href="/auth/patreon"><%= t("modals.upgrade_btn2") %></a>
+		<a href="/auth/patreon/plans" target="_blank"><%= t("modals.upgrade.btn1") %></a> / <a href="/auth/patreon"><%= t("modals.upgrade.btn2") %></a>
 	</p>
 	<!-- /ko -->
 	<!-- ko if: $data.patreon -->
 	<!-- ko if: patreon.currently_entitled_amount_cents -->
 	<p class="bigger">
-		<%- t("modals.upgrade_p1", { pledgeAmountHTML: `<span data-bind="text: (patreon.currently_entitled_amount_cents/100).toLocaleString(undefined, { style: 'currency', currency: 'usd' })"></span>` }) %>
+		<%- t("modals.upgrade.p1", { pledgeAmountHTML: `<span data-bind="text: (patreon.currently_entitled_amount_cents/100).toLocaleString(undefined, { style: 'currency', currency: 'usd' })"></span>` }) %>
 	</p>
 	<!-- /ko -->
 	<p class="action-links">
-		<a href="/auth/patreon/plans" target="_blank"><%= t("modals.upgrade_btn3") %></a>
+		<a href="/auth/patreon/plans" target="_blank"><%= t("modals.upgrade.btn3") %></a>
 	</p>
 	<p class="minor-action-links">
-		<%= t("modals.upgrade_p2") %> <a href="/auth/patreon/revoke"><%= t("modals.upgrade_btn4") %></a>
+		<%= t("modals.upgrade.p2") %> <a href="/auth/patreon/revoke"><%= t("modals.upgrade.btn4") %></a>
 	</p>
 	<!-- /ko -->
 	<p>
-		<%= t("modals.upgrade_p3", { config }) %>
+		<%= t("modals.upgrade.p3", { config }) %>
 	</p>
 	<!-- /ko -->
 	<span class="closebtn" data-purpose="close"></span>
@@ -534,34 +534,34 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 
 <div id="site_loading">
 	<div id="cosine-pulse"></div>
-	<div id="site_loading_patience" class="patience" aria-hidden="true"><%= t("modals.patience_p1") %></div>
-	<div id="site_loading_more_patience" class="patience" aria-hidden="true"><%= t("modals.patience_p2") %></div>
+	<div id="site_loading_patience" class="patience" aria-hidden="true"><%= t("modals.patience.p1") %></div>
+	<div id="site_loading_more_patience" class="patience" aria-hidden="true"><%= t("modals.patience.p2") %></div>
 </div>
 
 <% if (config.client.onboarding) { %>
 <div id="sync-promo" aria-hidden="true">
-	<span class="l1"><%= t("promos.sync_p1") %></span>
-	<span class="l2"><%= t("promos.sync_p2") %></span>
-	<span class="l3" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
+	<span class="l1"><%= t("promos.sync.p1") %></span>
+	<span class="l2"><%= t("promos.sync.p2") %></span>
+	<span class="l3" data-purpose="close"><%= t("common.dismiss#btn") %></span>
 </div>
 <div id="create-bucket-promo" aria-hidden="true">
-	<span class="l1"><%= t("promos.bucketcreate_p1") %></span>
-	<span class="l2"><%= t("promos.bucketcreate_p2") %></span>
-	<span class="l3" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
+	<span class="l1"><%= t("promos.bucketcreate.p1") %></span>
+	<span class="l2"><%= t("promos.bucketcreate.p2") %></span>
+	<span class="l3" data-purpose="close"><%= t("common.dismiss#btn") %></span>
 </div>
 <div id="share-promo" aria-hidden="true">
-	<span class="l0"><%= t("promos.sharing_subhead1") %></span>
-	<span class="l1"><%= t("promos.sharing_p1") %></span>
-	<span class="l3" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
+	<span class="l0"><%= t("promos.sharing.subhead1") %></span>
+	<span class="l1"><%= t("promos.sharing.p1") %></span>
+	<span class="l3" data-purpose="close"><%= t("common.dismiss#btn") %></span>
 </div>
 <div id="login-promo" aria-hidden="true">
-	<span class="l1"><%= t("promos.login_p1") %></span>
-	<span class="l3"><%= t("promos.login_p2") %></span>
-	<span class="l4" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
+	<span class="l1"><%= t("promos.login.p1") %></span>
+	<span class="l3"><%= t("promos.login.p2") %></span>
+	<span class="l4" data-purpose="close"><%= t("common.dismiss#btn") %></span>
 </div>
 <div id="bucket-promo" aria-hidden="true">
-	<span class="l1"><%= t("promos.bucketsbacklink_p1", { config }) %></span>
-	<span class="l2" data-purpose="close"><%= t("promos.ui_dismiss") %></span>
+	<span class="l1"><%= t("promos.bucketsbacklink.p1", { config }) %></span>
+	<span class="l2" data-purpose="close"><%= t("common.dismiss#btn") %></span>
 </div>
 <% } %>
 
