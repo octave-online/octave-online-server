@@ -130,6 +130,8 @@ If in doubt on style, follow the convention of the file you are editing.
 
 **Quotes:** Use double-quoted strings, unless you are in a context where you need a different quotation style, such as backtick strings in JavaScript.
 
+**Internationalization (i18n/l10n):** If possible, all new UI strings should be extracted into *en.yaml* so that they can be translated.  For more details, see [front/locales/README.md](front/locales/README.md).
+
 **ECMAScript Versions:** JavaScript code in the *client* project should conform to the ECMAScript 5 standard, in order to have broad browser support.  JavaScript in all other projects can use the latest ECMAScript standard supported by Node.js 6.x LTS.  By design, all JavaScript code in Octave Online Server server should be able to be run natively without transcompilation to a different ECMAScript version.
 
 ### Linting
