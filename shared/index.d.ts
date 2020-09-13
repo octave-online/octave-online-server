@@ -219,12 +219,12 @@ export const config: {
         announcement_display: string;
         announcement_html: string;
         app_name: string;
-        description: string;
+        description_key: string;
         gacode: string;
         onboarding: boolean;
         theme_collection: string;
         theme_color: string;
-        title: string;
+        title_key: string;
         uservoice: string;
     };
     docker: {
@@ -270,6 +270,7 @@ export const config: {
         flavor_log_interval: number;
         hostname: string;
         listen_port: number;
+        locales: string[];
         locales_path: string;
         port: number;
         protocol: string;

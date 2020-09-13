@@ -59,6 +59,10 @@ recaptcha: {
 	secretKey: xxxxxxxxx
 }
 
+gcp: {
+	artifacts_bucket: artifacts.PROJECT_ID.appspot.com
+}
+
 # # # # # # # # # # # # # # # #
 # Back Server configurations  #
 # # # # # # # # # # # # # # # #

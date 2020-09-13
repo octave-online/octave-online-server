@@ -132,11 +132,17 @@ rackspace: {
 
 # GCP connection info
 gcp: {
+	# Key for service worker to access GCP resources
 	key_filename: false
+	# Zone for compute API calls
 	zone: us-central1-f
+	# Managed Instance Group (MIG) autoscaler configurations
 	instance_group_name: xxxxxxxxx
 	instance_group_removal_method: abandon
 	health_check_port: 3030
+	# Cloud Storage Bucket for artifacts used for i18next locales; see cloudbuild.yaml in https://github.com/octave-online/oos-translations
+	artifacts_bucket: artifacts.PROJECT_ID.appspot.com
+  i18next_locales_tar_gz: objects/oos-translations/i18next_locales.tar.gz
 }
 
 # StatsD connection info
@@ -434,8 +440,13 @@ front: {
 	# static_path is the directory to serve; should be either the "app" (debug) or "dist" (production) directory of the client project.
 	# A relative path is relative to the top-level projects directory (the directory where this file is located).
 	static_path: client/dist
-	# locales_path is the directory containing i18next translation files. A relative path is relative to the top-level projects directory.
-	locales_path: front/locales
+
+	# LOCALE SETTINGS
+	# Both of these settings may be overriden in either buildData.json or front_setup.js. See src/app.ts for details.
+	# locales_path is the path matching i18next translation files, with "{{lng}}" standing in for the language. A relative path is relative to the top-level projects directory.
+	locales_path: "front/locales/{{lng}}.yaml"
+	# locales is a list of languages to load from the above directory.
+	locales: ["en"]
 
 	# COOKIE SETTINGS
 	# For the primary Octave Online Server session ID; there may be other cookies set on the client side, like those used to dismiss onboarding boxes.

@@ -47,20 +47,17 @@ const recaptcha = new ReCAPTCHA({
 
 const PORT = process.env.PORT || config.front.listen_port;
 const STATIC_PATH = Path.join(__dirname, "..", "..", config.front.static_path);
-const LOCALES_PATH = Path.join(__dirname, "..", "..", config.front.locales_path);
-
-let buildData = {};
-try {
-	buildData = require(Path.join(STATIC_PATH, "build_data.json"));
-	log.trace("Loaded buildData:", buildData);
-} catch(err) {
-	log.warn("Could not load buildData:", err);
-}
 
 export let app: Http.Server;
 
-export function init(){
+export interface BuildData {
+	locales_path?: string;
+	locales?: string[];
+}
+
+export function init(buildData: BuildData){
 	log.info("Serving static files from:", STATIC_PATH);
+	log.info("Loading locales from:", buildData.locales_path);
 
 	// Work around bug in i18next TypeScript definition?
 	const i18next = (I18next as unknown as I18next.i18n);
@@ -69,10 +66,10 @@ export function init(){
 		.use(I18nextFsBackend)
 		.init({
 			backend: {
-				loadPath: Path.join(LOCALES_PATH, "{{lng}}.yaml"),
+				loadPath: buildData.locales_path!,
 			},
 			fallbackLng: "en",
-			preload: ["en", "es"],
+			preload: buildData.locales!,
 			saveMissing: true,
 			missingKeyHandler: function(lng, ns, key, fallbackValue) {
 				log.error("i18next missing key:", lng, ns, key, fallbackValue);
@@ -84,7 +81,7 @@ export function init(){
 			if (err) {
 				log.error("i18next failed to initialize:", err);
 			} else {
-				log.trace("i18next initialized");
+				log.info("i18next initialized with languages:", Object.keys(i18next.store.data));
 			}
 		});
 
