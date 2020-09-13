@@ -22,6 +22,11 @@
 
 define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_highlight", "js/anal", "base64-toblob", "ismobile", "exports", "js/octfile", "js/bucket", "js/vars", "ko-takeArray", "require", "js/onboarding", "js/ws-shared", "js/utils", "blob", "jquery.md5", "jquery.purl", "ace/theme/crimson_editor", "ace/theme/merbivore_soft", "js/ko-ace"], function($, ko, canvg, Base64, download, aceStaticHighlight, anal, b64ToBlob, isMobile, exports, OctFile, Bucket, Var, koTakeArray, require, onboarding, WsShared, utils){
 
+	if (!window.oo_translations) {
+		console.error("WARNING: Translations not found. UI text will be unavailable.");
+	}
+	var oo_translations = window.oo_translations || {};
+
 	/* * * * START KNOCKOUT SETUP * * * */
 
 	// Skin MVVM class

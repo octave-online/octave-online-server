@@ -37,7 +37,7 @@ module.exports = async function fetchTranslations(buildData) {
 	const tmpdir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "oo-translations-"));
 	log.trace("Made tmpdir:", tmpdir);
 	const targzPath = path.join(tmpdir, "i18next_locales.tar.gz");
-	log.trace("Making request to Google Cloud Storage to download translations…")
+	log.trace("Making request to Google Cloud Storage to download translations…");
 	await gcp.downloadFile(log.log, config.gcp.artifacts_bucket, config.gcp.i18next_locales_tar_gz, targzPath);
 	log.trace("Translations succesfully downloaded");
 	const { stdout, stderr } = await execFile("tar", ["zxf", "i18next_locales.tar.gz"], { cwd: tmpdir });
@@ -51,9 +51,9 @@ module.exports = async function fetchTranslations(buildData) {
 	const filenames = await fs.promises.readdir(i18nextLocalesDir);
 	log.trace("filenames present in unpacked tar.gz:", filenames);
 	for (let filename of filenames) {
-		let match;
-		if (match = re.exec(filename)) {
+		let match = re.exec(filename);
+		if (match) {
 			buildData.locales.push(match[1]);
 		}
 	}
-}
+};
