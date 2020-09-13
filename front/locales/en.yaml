@@ -1,0 +1,224 @@
+# Copyright © 2020, Octave Online LLC
+#
+# This file is part of Octave Online Server.
+#
+# Octave Online Server is free software: you can redistribute it and/or
+# modify it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
+#
+# Octave Online Server is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Octave Online Server.  If not, see
+# <https://www.gnu.org/licenses/>.
+
+header:
+  sidebar:
+    changeemail#body: Signed in before but need to change your email address? Click "Feedback" and create a ticket. We will change it for you.
+    sharedesc#body: Others can use the following link to connect to your workspace.
+    changelayout#btn: Change/Reset Layout
+    changepassword#btn: Change Password
+    changetheme#btn: Change Theme
+    disablesharing#btn: Disable Sharing
+    enablesharing#btn: Share Workspace
+    github#btn: GitHub Project
+    inlineplots#btn: Render New Plots Inline
+    legal#btn: Privacy Policy and EULA
+    patreon#btn: Upgrade with Patreon
+    signinemail#btn: Sign in with Email
+    signingoogle#btn: Sign in with Google
+    signinpassword#btn: Sign in with Password
+    signout#btn: Sign Out
+    support#btn: Feedback and Support
+    textwrap#btn: Wrap Long Lines in Console
+    twitter#btn: Follow on Twitter
+  buckets:
+    delete#btn: Delete Bucket
+    title: "Your Buckets:"
+  meta:
+    official:
+      title: "{{config.client.app_name}} · Cloud IDE compatible with MATLAB"
+      desc: Create and share scripts for scientific computing with GNU Octave. Free and open-source. Works in your browser, including on Chromebook, iPad, tablet, and smartphone.
+    server:
+      title: "{{config.client.app_name}}"
+      desc: The power of {{config.client.app_name}} run on custom hardware. Used under the AGPL license.
+  students:
+    reenroll#btn: Move
+    unenroll#btn: Unenroll
+    subhead1: "Code:"
+    title: Students
+  site:
+    menu#btn: MENU
+
+editor:
+  toolbar:
+    create#btn: Create empty file
+    delete#btn: DELETE File
+    download#btn: Download File
+    history#btn: File version history
+    print#btn: Print File
+    refresh#btn: Refresh files
+    rename#btn: Rename File
+    run#btn: Run Script
+    save#btn: Save File
+    share#btn: Share File in new Bucket
+    toolbar#btn: Show Toolbar
+    upload#btn: Upload file
+    wrap#btn: Toggle Word Wrap
+    files#title: Files
+    drop#ui: Drop Files Here to Upload
+    run#ui: RUN
+  tips:
+    a1: Full List
+    dd1: Show the auto-completion menu
+    dd2: Save the file
+    dd3: Run the file
+    dd4: Set focus to the prompt
+    p1: "The files you make on {{config.client.app_name}} will be saved for the next time you visit."
+    p2: "Common shortcuts:"
+    subhead1: Keyboard Shortcuts
+    title: Tips & Tricks
+  unsupported:
+    li1: "The file type isn't supported in this editor."
+    li2: "The file is in a binary format, like images."
+    li3: "The file is too large and can't be loaded into the editor."
+    p1: "The currently selected file can't be edited online. You can still use the toolbar above to rename, download, and delete the file.  Reasons might include:"
+    title: "{{config.client.app_name}} Interactive Editor"
+
+panel:
+  output:
+    github#btn: "{{projectName}} on GitHub"
+    upgraded#ui: Upgraded session
+  plot:
+    download#btn: Download Plot as Image
+    expand#btn: Expand Plot Window
+    next#btn: Next Plot
+    prev#btn: Previous Plot
+    zoom#btn: Click to zoom
+    description#ui: "Plot: Line {{-lineNumberHTML}}"
+  prompt:
+    add#btn: Add {{-numSecondsHTML}} Seconds
+    resume#btn: Resume Execution
+    sigint#btn: Stop Currently Running Command (send SIGINT)
+    upgrade#btn: Upgrade
+    seconds#ui: "Seconds Remaining:"
+  vars:
+    title: Vars
+
+promos:
+  instructor:
+    p1: Did you know you can use {{config.client.app_name}} in your class?
+    p2: Open a support ticket to inquire about how we can set you up as an instructor.
+  prompt:
+    btn1: Sign In
+    p1: Type expressions here and press enter.
+    p2: "To use script files:"
+    title: Octave Command Prompt
+  welcome:
+    title: Welcome to {{config.client.app_name}}
+    p1: "{{config.client.app_name}} is a web UI for GNU Octave, the open-source alternative to MATLAB.  Thousands of students, educators, and researchers from around the world use {{config.client.app_name}} each day for studying machine learning, control systems, numerical methods, and more."
+    p2: Type commands in the prompt like you would in your local copy of GNU Octave or MATLAB.
+    p3: Plot charts and graphs.
+    p4: "Sign in for more features: script files, buckets, real-time collaboration like Google Docs, extended runtime, and more."
+    start#btn: "Start Using {{config.client.app_name}}"
+  sync:
+    p1: View historical versions of your script files!
+    p2: Click the icon for more info.
+  bucketcreate:
+    p1: Share snapshots of your script files!
+    p2: Click the icon to create a new bucket.
+  sharing:
+    subhead1: "Tip:"
+    p1: Set up sharing so you can collaboratively edit your script files in real time, like Google Docs.
+  login:
+    p1: Want to use scripts?
+    p2: Sign in to create and share script files.
+  bucketsbacklink:
+    p1: Sign in to create your own buckets and use the rest of {{config.client.app_name}}.
+
+modals:
+  email:
+    label1: "Enter your email address:"
+    p1: You will be emailed an 11-digit code that you will need to enter on the next screen. If you do not receive your code, please open a support ticket for assistance.
+  password:
+    subhead1: New user? Forgot your password?
+    p1: Use the "email token" sign-in option instead. Once you are signed in, use the "Change Password" option in the menu to set a new password.
+  changepwd:
+    title: Change Password
+    p1: Enter your new password below.  To remove your password and disable password-based logins, leave the password field blank and click "Save Password".
+    submit#btn: Save Password
+  createbucket:
+    title: Customize Bucket
+    p1: A "bucket" is how to publicly share snapshots of {{config.client.app_name}} script or data files.
+    subhead1: "Optional: Add More Files"
+    p2: Select files and click the right arrow button.
+    subhead2: Files to Add
+    subhead3: Files in Bucket
+    subhead4: "Optional: Select Main File"
+    p3: The "main" script is automatically run when someone views the bucket.
+    label1: "Main File:"
+    p4: After clicking below, your browser will refresh into your new bucket.  You can share the URL of the page to which you are redirected.
+    submit#btn: Create Bucket
+  upgrade:
+    title: Upgrade Account
+    btn1: View Plans
+    btn2: Link Patreon Account
+    p1: Thank you for your {{-pledgeAmountHTML}} pledge!
+    btn3: Change on Patreon
+    p2: Want to transfer your pledge?
+    btn4: Unlink Patreon Account
+    p3: Each week, {{config.client.app_name}} connects tens of thousands of students, educators, and researchers in over 100 countries.  We have no ads and no paywall.  If you believe in our mission to provide educational software free of charge, please join us by supporting {{config.client.app_name}} on Patreon.
+  patience:
+    p1: Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.
+    p2: Thanks for waiting.  It's not supposed to take this long.  Please double-check your internet connection.  If you are sure that your internet is working, consider contacting support.
+
+javascript:
+  console:
+    exited#alert: "Octave Exited. Message:"
+    payload#alert: "NOTICE: Execution paused due to large payload"
+    plotwindow#alert: This button shows and hides the plot window.  Enter an expression that generates a plot.
+    readonly#alert: "Note: This is a read-only bucket. Changes you make will not be persisted after you close your browser window."
+    reconnecting#alert: "Connection lost.  Attempting to reconnect..."
+    refresh#alert: "This will reload your files from the server. Any unsaved changes will be lost."
+    reconnect#btn: Click Here to Reconnect
+    pingtime#label: "Ping time:"
+    seeurl#label: "See:"
+  newfile:
+    label: "Please enter a filename:"
+    helloworld: Hello World
+  print:
+    p1: "Printed for:"
+    p2: Powered by {{config.client.app_name}}
+  rename:
+    alert: "The specified filename already exists."
+    label: "Enter a new filename:"
+  students:
+    course#label: "Course:"
+    name#label: "Name:"
+    enroll:
+      p1: You need to sign in to enroll in a course.
+      p2: When you enroll in a course, the instructors for that course will be able to access the files you save. You can cancel your enrollment at any time by running running the following at the command prompt.
+      p3: Press Cancel if you don't know what any of this means.
+    reenroll:
+      p1: "Enter the course code to which you want to move this student:"
+      p2: The following student is being re-enrolled.  Reload the page to see the update.
+      p3: "Error: Could not find the course code:"
+    unenroll:
+      p1: Are you sure that you want to remove the following student from your course?
+  togglesharing:
+    p1: "You cannot disable sharing as a student enrolled in an {{config.client.app_name}} course code:"
+    p2: "You need to remove yourself by running this command at at the command prompt:"
+
+common:
+  email#ph: email address
+  submit#btn: Submit
+  caution#label: "Caution:"
+  password#ph: password
+  https#btn: Switch to a secured connection (https)
+  https#p: You are using an unsecured connection (http). People might be able to see what you submit.
+  loading#ui: Loading…
+  dismiss#btn: dismiss

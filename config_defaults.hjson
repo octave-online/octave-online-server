@@ -132,11 +132,17 @@ rackspace: {
 
 # GCP connection info
 gcp: {
+	# Key for service worker to access GCP resources
 	key_filename: false
+	# Zone for compute API calls
 	zone: us-central1-f
+	# Managed Instance Group (MIG) autoscaler configurations
 	instance_group_name: xxxxxxxxx
 	instance_group_removal_method: abandon
 	health_check_port: 3030
+	# Cloud Storage Bucket for artifacts used for i18next locales; see cloudbuild.yaml in https://github.com/octave-online/oos-translations
+	artifacts_bucket: artifacts.PROJECT_ID.appspot.com
+  i18next_locales_tar_gz: objects/oos-translations/i18next_locales.tar.gz
 }
 
 # StatsD connection info
@@ -435,6 +441,13 @@ front: {
 	# A relative path is relative to the top-level projects directory (the directory where this file is located).
 	static_path: client/dist
 
+	# LOCALE SETTINGS
+	# Both of these settings may be overriden in either buildData.json or front_setup.js. See src/app.ts for details.
+	# locales_path is the path matching i18next translation files, with "{{lng}}" standing in for the language. A relative path is relative to the top-level projects directory.
+	locales_path: "front/locales/{{lng}}.yaml"
+	# locales is a list of languages to load from the above directory.
+	locales: ["en"]
+
 	# COOKIE SETTINGS
 	# For the primary Octave Online Server session ID; there may be other cookies set on the client side, like those used to dismiss onboarding boxes.
 	# Please set a custom cookie secret!
@@ -475,12 +488,12 @@ client: {
 	theme_collection: server
 
 	# FRONTEND OPTIONS
-	# Title and meta-tag description to use.
-	title: Octave Online Server
-	description: The power of Octave Online run on custom hardware. Used under the AGPL license.
+	# Title and meta-tag description to use, based on a key in the translation file. Before being added to the translation files, these options were "title" and "description" directly in this configuration file.
+	title_key: "header.meta.server.title"
+	description_key: "header.meta.server.desc"
 	# Theme color; should be consistent with color1 in fire.styl
 	theme_color: AD928E
-	# A name substituted in various places in index.html
+	# Brand name, same across languages.
 	app_name: Octave Online Server
 	# Whether to show the splash screen and other onboarding bubbles to help new users learn how to use the software.
 	onboarding: false

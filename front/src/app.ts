@@ -18,7 +18,9 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import { logger } from "./shared_wrap";
+import Path = require("path");
+
+import { config, logger } from "./shared_wrap";
 import * as Mongo from "./mongo";
 import * as Passport from "./passport_setup";
 import * as Middleware from "./session_middleware";
@@ -28,6 +30,32 @@ import * as SocketIoApp from "./socketio";
 const log = logger("app");
 
 async function main() {
+	let buildData: ExpressApp.BuildData = {};
+	try {
+		buildData = require(Path.join(__dirname, "..", "..", config.front.static_path, "build_data.json"));
+		log.trace("Loaded buildData:", buildData);
+	} catch(err) {
+		log.warn("Failed to load buildData; will serve development resources:", err.message);
+	}
+
+	try {
+		const setupFn = require("../../entrypoint/front_setup");
+		await setupFn(buildData);
+		log.trace("Successfully ran front_setup. New buildData:", buildData);
+	} catch (err) {
+		if (/Cannot find module/.test(err.message)) {
+			log.debug("Tip: create entrypoint/front_setup.js to run code at startup:", err.message);
+		} else {
+			log.error("front_setup error:", err);
+		}
+	}
+	if (!buildData.locales_path) {
+		buildData.locales_path = Path.join(__dirname, "..", "..", config.front.locales_path);
+	}
+	if (!buildData.locales) {
+		buildData.locales = config.front.locales;
+	}
+
 	try {
 		log.trace("Connecting to Mongo...");
 		await Mongo.connect();
@@ -38,7 +66,7 @@ async function main() {
 
 	Passport.init();
 	Middleware.init();
-	ExpressApp.init();
+	ExpressApp.init(buildData);
 	SocketIoApp.init();
 }
 

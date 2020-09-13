@@ -29,6 +29,8 @@ const util = require("util");
 
 const gcp = require("./index");
 
+const log = console.log;
+
 const execFile = util.promisify(child_process.execFile);
 
 async function reboot() {
@@ -36,20 +38,20 @@ async function reboot() {
 }
 
 async function main() {
-	const { recommendedSize, targetSize } = await gcp.getAutoscalerInfo();
-	console.log("Recommended/Target Size:", recommendedSize, targetSize);
+	const { recommendedSize, targetSize } = await gcp.getAutoscalerInfo(log);
+	log("Recommended/Target Size:", recommendedSize, targetSize);
 	if (targetSize > recommendedSize) {
-		console.log("Removing self from group");
-		return await gcp.removeSelfFromGroup();
+		log("Removing self from group");
+		return await gcp.removeSelfFromGroup(log);
 	} else {
-		console.log("Requesting reboot");
+		log("Requesting reboot");
 		return await reboot();
 	}
 }
 
 module.exports = function() {
 	main().then((results) => {
-		console.log(results);
+		log(results);
 		process.exit(0);
 	}).catch((err) => {
 		console.error(err);

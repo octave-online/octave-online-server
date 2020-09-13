@@ -24,6 +24,11 @@ import Path = require("path");
 import BodyParser = require("body-parser");
 import Compression = require("compression");
 import Express = require("express");
+import Flatten = require("flat");
+import I18next = require("i18next");
+import I18nextFsBackend = require("i18next-fs-backend");
+import I18nextMiddleware = require("i18next-http-middleware");
+import PseudoLocalization = require("pseudo-localization");
 import Passport = require("passport");
 import ReCAPTCHA = require("recaptcha2");
 import ServeStatic = require("serve-static");
@@ -41,21 +46,44 @@ const recaptcha = new ReCAPTCHA({
 });
 
 const PORT = process.env.PORT || config.front.listen_port;
-
 const STATIC_PATH = Path.join(__dirname, "..", "..", config.front.static_path);
-
-let buildData = {};
-try {
-	buildData = require(Path.join(STATIC_PATH, "build_data.json"));
-	log.trace("Loaded buildData:", buildData);
-} catch(err) {
-	log.warn("Could not load buildData:", err);
-}
 
 export let app: Http.Server;
 
-export function init(){
+export interface BuildData {
+	locales_path?: string;
+	locales?: string[];
+}
+
+export function init(buildData: BuildData){
 	log.info("Serving static files from:", STATIC_PATH);
+	log.info("Loading locales from:", buildData.locales_path);
+
+	// Work around bug in i18next TypeScript definition?
+	const i18next = (I18next as unknown as I18next.i18n);
+	i18next
+		.use(I18nextMiddleware.LanguageDetector)
+		.use(I18nextFsBackend)
+		.init({
+			backend: {
+				loadPath: buildData.locales_path!,
+			},
+			fallbackLng: "en",
+			preload: buildData.locales!,
+			saveMissing: true,
+			missingKeyHandler: function(lng, ns, key, fallbackValue) {
+				log.error("i18next missing key:", lng, ns, key, fallbackValue);
+			},
+			missingInterpolationHandler: function(text, value) {
+				log.error("i18next missing interpolation:", text, value);
+			}
+		}, (err) => {
+			if (err) {
+				log.error("i18next failed to initialize:", err);
+			} else {
+				log.info("i18next initialized with languages:", Object.keys(i18next.store.data));
+			}
+		});
 
 	app = Express()
 		.use(function(req, res, next) {
@@ -91,6 +119,7 @@ export function init(){
 				(req as any).rawBody = buf;
 			}
 		}))
+		.use(I18nextMiddleware.handle(i18next))
 		.use(Passport.initialize())
 		.use(Passport.session())
 		.use(Siofu.router)
@@ -101,7 +130,26 @@ export function init(){
 		})
 		.get(["/", "/index.html"], function(req, res) {
 			res.setHeader("Cache-Control", "public, max-age=0");
-			res.status(200).render("index", { config, buildData });
+			let t = (req as any).t as I18next.TFunction;
+			if ((req as any).language === "en-XA") {
+				let old_t = t;
+				t = function(key: string, options: any) {
+					return PseudoLocalization.localize(old_t(key, options));
+				};
+			}
+			// Get the JavaScript translations
+			let oo_translations: {[key: string]: string} = {};
+			let jsKeys: {[key: string]: unknown} = Flatten((req as any).i18n.getDataByLanguage("en").translation.javascript);
+			for (let key of Object.keys(jsKeys)) {
+				let key_string = key as string;
+				oo_translations[key_string] = t(`javascript.${key_string}`, { config });
+			}
+			res.status(200).render("index", {
+				config,
+				buildData,
+				t,
+				oo_translations,
+			});
 		})
 		.post("/auth/persona", Passport.authenticate("persona"), function(req, res){
 			res.sendStatus(204);

@@ -1,0 +1,224 @@
+# Copyright © 2020, Octave Online LLC
+#
+# This file is part of Octave Online Server.
+#
+# Octave Online Server is free software: you can redistribute it and/or
+# modify it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
+#
+# Octave Online Server is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Octave Online Server.  If not, see
+# <https://www.gnu.org/licenses/>.
+
+header:
+  sidebar:
+    changeemail#body: Paragraph of body text
+    sharedesc#body: Paragraph of body text
+    changelayout#btn: Button text
+    changepassword#btn: Button text
+    changetheme#btn: Button text
+    disablesharing#btn: Button text
+    enablesharing#btn: Button text
+    github#btn: Link text
+    inlineplots#btn: Button text
+    legal#btn: Button text
+    patreon#btn: Button text; "Patreon" should not be translated
+    signinemail#btn: Button text
+    signingoogle#btn: Button text
+    signinpassword#btn: Button text
+    signout#btn: Button text
+    support#btn: Button text
+    textwrap#btn: Button text
+    twitter#btn: Button text
+  buckets:
+    delete#btn: Button text
+    title: Label, followed by a number
+  meta:
+    official:
+      title: Site Title
+      desc: Paragraph of body tex
+    server:
+      title: Site Title (does not need translation)
+      desc: Paragraph of body tex
+  students:
+    reenroll#btn: Button text
+    unenroll#btn: Button text
+    subhead1: Label, followed by a list
+    title: Section header
+  site:
+    menu#btn: Button text to show the menu (appears prominently on page)
+
+editor:
+  toolbar:
+    create#btn: Button text
+    delete#btn: Button text
+    download#btn: Button text
+    history#btn: Button text
+    print#btn: Button text
+    refresh#btn: Button text
+    rename#btn: Button text
+    run#btn: Button text
+    save#btn: Button text
+    share#btn: Button text
+    toolbar#btn: Button text
+    upload#btn: Button text
+    wrap#btn: Button text
+    files#title: Section header
+    drop#ui: Instruction for the user
+    run#ui: Button text to evaluate a script (appears prominently on page)
+  tips:
+    a1: Link text
+    dd1: Description of what a button will do
+    dd2: Description of what a button will do
+    dd3: Description of what a button will do
+    dd4: Description of what a button will do
+    p1: Paragraph of body text
+    p2: Label, followed by a list
+    subhead1: Section header
+    title: Section header
+  unsupported:
+    li1: Error text
+    li2: Error text
+    li3: Error text
+    p1: Error text, ending with a label, followed by a list
+    title: Section header
+
+panel:
+  output:
+    github#btn: Link text
+    upgraded#ui: Description when hovering over an image
+  plot:
+    download#btn: Button text
+    expand#btn: Button text
+    next#btn: Button text
+    prev#btn: Button text
+    zoom#btn: Button text
+    description#ui: Paragraph of body text
+  prompt:
+    add#btn: Button text with interpolated number; for example, "Add 15 seconds"
+    resume#btn: Button text
+    sigint#btn: Button text; "SIGINT" should not be translated
+    upgrade#btn: Button text
+    seconds#ui: Label, followed by a number
+  vars:
+    title: Section header
+
+promos:
+  instructor:
+    p1: Paragraph of body text
+    p2: Call to action, paragraph of body text
+  prompt:
+    btn1: Call to action, button text
+    p1: Paragraph of body text
+    p2: Label, followed by a call to action button
+    title: Section header
+  welcome:
+    title: Section header (shown prominently on page)
+    p1: Paragraph of body text
+    p2: Paragraph of body text describing what you can do on the site
+    p3: Paragraph of body text describing what you can do on the site
+    p4: Paragraph of body text with a call to action and also describing what you can do on the site
+    start#btn: Call to action, button text
+  sync:
+    p1: Call to action, paragraph of body text
+    p2: Call to action, paragraph of body text
+  bucketcreate:
+    p1: Call to action, paragraph of body text
+    p2: Call to action, paragraph of body text
+  sharing:
+    subhead1: Section header
+    p1: Call to action, paragraph of body text
+  login:
+    p1: Rhetorical question asked of the user
+    p2: Call to action, paragraph of body text
+  bucketsbacklink:
+    p1: Call to action, paragraph of body text
+
+modals:
+  email:
+    label1: Call to action, form field label
+    p1: Paragraph of body text
+  password:
+    subhead1: Rhetorical question asked of the user
+    p1: Call to action, paragraph of body text
+  changepwd:
+    title: Button text
+    p1: Call to action, paragraph of body text
+    submit#btn: Button text
+  createbucket:
+    title: Button text
+    p1: Paragraph of body text
+    subhead1: Call to action, section header
+    p2: Call to action, paragraph of body text
+    subhead2: Section header, followed by a list
+    subhead3: Section header, followed by a list
+    subhead4: Call to action, section header
+    p3: Paragraph of body text
+    label1: Section header, followed by a list
+    p4: Paragraph of body text
+    submit#btn: Button text
+  upgrade:
+    title: Button text
+    btn1: Button text
+    btn2: Button text; "Patreon" should not be translated
+    p1: Paragraph of body text
+    btn3: Button text; "Patreon" should not be translated
+    p2: Rhetorical question asked of the user
+    btn4: Button text; "Patreon" should not be translated
+    p3: Paragraph of body text; "Patreon" should not be translated
+  patience:
+    p1: Paragraph of body text
+    p2: Paragraph of body text
+
+javascript:
+  console:
+    exited#alert: Label, followed by an error code
+    payload#alert: Paragraph of body text
+    plotwindow#alert: Paragraph of body text with call to action
+    readonly#alert: Paragraph of body text
+    reconnecting#alert: Paragraph of body text
+    refresh#alert: Paragraph of body text
+    reconnect#btn: Button text
+    pingtime#label: Label, followed by a number
+    seeurl#label: Label, followed by a URL link to documentation
+  newfile:
+    label: Label for form field
+    helloworld: Sample string used in programming
+  print:
+    p1: Label, followed by a name or email
+    p2: Body text
+  rename:
+    alert: Body text
+    label: Label for form field
+  students:
+    course#label: Label, followed by a course code (like "Math_101")
+    name#label: Label, followed by a name or email
+    enroll:
+      p1: Paragraph of body text
+      p2: Paragraph of body text
+      p3: Press Cancel if you don't know what any of this means.
+    reenroll:
+      p1: Label for form field
+      p2: Paragraph of body text
+      p3: Label, followed by a course code (like "Math_101")
+    unenroll:
+      p1: Rhetorical question asked of the user
+  togglesharing:
+    p1: Paragraph of body text, followed by a course code (like "Math_101")
+    p2: Call to action, followed by a computer command
+
+common:
+  email#ph: Placeholder text for form field
+  submit#btn: Button text
+  caution#label: Label, followed by another sentence
+  password#ph: Placeholder text for form field
+  https#btn: Button text
+  https#p: Paragraph of body text
+  loading#ui: Filler text when a component is not ready yet
+  dismiss#btn: Button text

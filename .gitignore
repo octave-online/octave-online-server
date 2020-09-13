@@ -40,3 +40,4 @@ config.hjson
 back-octave/octave-host
 back-octave/bin/cwd/
 entrypoint/exit.js
+entrypoint/front_setup.js

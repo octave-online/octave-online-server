@@ -61,6 +61,10 @@ steps:
       );
       [[ $? == 0 ]] || exit $?;  # exit if failure
 
+      # Create front_setup.js to download translations from GCP
+      echo 'module.exports = require("../shared/gcp/fetch_translations.js")' > entrypoint/front_setup.js
+      [[ $? == 0 ]] || exit $?;  # exit if failure
+
 # Deploy to AppEngine
 # Use "gcloud beta app deploy" to work around bug: https://stackoverflow.com/questions/62575138/network-session-affinitytrue-property-of-app-yaml-file-is-not-reflecting-in
 - name: gcr.io/cloud-builders/gcloud
