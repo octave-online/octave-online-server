@@ -44,7 +44,7 @@ async function main() {
 		log.trace("Successfully ran front_setup. New buildData:", buildData);
 	} catch (err) {
 		if (/Cannot find module/.test(err.message)) {
-			log.debug("Tip: create entrypoint/front_setup.js to run code at startup:", err.message);
+			log.warn("Tip: create entrypoint/front_setup.js to run code at startup:", err.message);
 		} else {
 			log.error("front_setup error:", err);
 		}

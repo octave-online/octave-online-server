@@ -35,6 +35,7 @@ steps:
       gcloud source repos clone oo-misc1 &&
       (cd oo-misc1 && git log -n1) &&
       cp oo-misc1/gcp_config.hjson config.hjson &&
+      cp oo-misc1/octave-online-866c0deeb0d1.json . &&
       find oo-misc1/appengine/oo-front -type f -exec cp {} . \; &&
       rm -f package-lock.json &&
       rm -rf oo-misc1;
@@ -58,6 +59,9 @@ steps:
         cd front &&
         npm ci &&
         npm run build
+      ) && (
+        cd shared/gcp &&
+        npm ci
       );
       [[ $? == 0 ]] || exit $?;  # exit if failure
 
