@@ -18,7 +18,7 @@
 
 header:
   sidebar:
-    changeemail#body: Paragraph of body text
+    changeemail#body: (OBSOLETE) Paragraph of body text
     sharedesc#body: Paragraph of body text
     changelayout#btn: Button text
     changepassword#btn: Button text

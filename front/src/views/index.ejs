@@ -276,6 +276,19 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 			</div>
 		</div>
 		<div id="main_menu" aria-hidden="true"><div id="main_menu_content">
+			<% if (buildData.locales.length > 1) { %>
+				<div class="i18n-language-selector">
+					<span class="flaticon-i18n"></span>
+					<select data-bind="options: availableLanguages,
+						optionsText: function(lng) {
+							if (Intl.DisplayNames) {
+								return new Intl.DisplayNames(lng, { type: 'language' }).of(lng);
+							} else {
+								return lng;
+							}
+						}, value: currentLanguage"></select>
+				</div>
+			<% } %>
 			<!-- ko if: (!currentUser() && !showUserInHeader()) -->
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
 					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="<%= t("header.sidebar.signingoogle#btn") %>" />
@@ -286,9 +299,6 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_email">
 					<image xlink:href="images/sign-in-with-email.svg" src="images/sign-in-with-email.png" width="200" height="40" alt="<%= t("header.sidebar.signinemail#btn") %>" />
 				</svg>
-				<p class="login_bottom">
-					<%= t("header.sidebar.changeemail#body") %>
-				</p>
 			<!-- /ko -->
 			<!-- ko if: (currentUser() && !showUserInHeader()) -->
 				<div id="userbox">
@@ -567,6 +577,8 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 
 <script type="text/javascript">
 window.oo_translations = <%- JSON.stringify(oo_translations) %>;
+window.oo_currentLanguage = <%- JSON.stringify(currentLanguage) %>;
+window.oo_availableLanguages = <%- JSON.stringify(buildData.locales) %>;
 </script>
 
 <% if (buildData.useDistPaths) { %>

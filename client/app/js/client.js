@@ -26,6 +26,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		console.error("WARNING: Translations not found. UI text will be unavailable.");
 	}
 	var oo_translations = window.oo_translations || {};
+	var oo_currentLanguage = window.oo_currentLanguage || "und";
+	var oo_availableLanguages = window.oo_availableLanguages || ["und"];
 
 	/* * * * START KNOCKOUT SETUP * * * */
 
@@ -153,6 +155,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		allBuckets: ko.observableArray(),
 		newBucket: ko.observable(),
 		countdownExtraTimeSeconds: ko.observable(),
+		currentLanguage: ko.observable(oo_currentLanguage),
+		availableLanguages: ko.observableArray(oo_availableLanguages),
 
 		// More for UI
 		logoSrc: ko.computed(function() {
@@ -305,6 +309,19 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 	// Listener for showing and hiding the create-bucket promo
 	viewModel.openFile.subscribe(function(octfile) {
 		onboarding.toggleCreateBucketPromo(octfile && octfile.editable && viewModel.purpose() === "default");
+	});
+
+	// Set the lng query parameter when the language changes
+	viewModel.currentLanguage.subscribe(function(lng) {
+		if (URL) {
+			// Correct solution for new browsers
+			const url = new URL(window.location.href);
+			url.searchParams.set("lng", lng);
+			window.location.href = url.toString();
+		} else {
+			// Partial solution for old browsers
+			window.location.href = "/?lng=" + lng;
+		}
 	});
 
 	/* * * * END KNOCKOUT, START EDITOR/CONSOLE/PROMPT * * * */

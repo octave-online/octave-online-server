@@ -131,11 +131,21 @@ export function init(buildData: BuildData){
 		.get(["/", "/index.html"], function(req, res) {
 			res.setHeader("Cache-Control", "public, max-age=0");
 			let t = (req as any).t as I18next.TFunction;
-			if ((req as any).language === "en-XA") {
+			const requestedLanguage = (req as any).language as string;
+			if (requestedLanguage === "en-XA") {
 				let old_t = t;
 				t = function(key: string, options: any) {
 					return PseudoLocalization.localize(old_t(key, options));
 				};
+			}
+			// Figure out the current language from the resource bundles
+			const resolvedLanguages = (req as any).languages as string[];
+			let currentLanguage;
+			for (let language of resolvedLanguages) {
+				if (buildData.locales!.indexOf(language) !== -1) {
+					currentLanguage = language;
+					break;
+				}
 			}
 			// Get the JavaScript translations
 			let oo_translations: {[key: string]: string} = {};
@@ -149,6 +159,7 @@ export function init(buildData: BuildData){
 				buildData,
 				t,
 				oo_translations,
+				currentLanguage,
 			});
 		})
 		.post("/auth/persona", Passport.authenticate("persona"), function(req, res){
