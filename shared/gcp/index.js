@@ -32,11 +32,9 @@ let _computeClient = null;
 
 function getComputeClient() {
 	if (!_computeClient) {
-		if (config.gcp.key_filename) {
-			const keyInfo = require(config.gcp.key_filename);
+		if (config.gcp.credentials) {
 			_computeClient = new Compute({
-				projectId: keyInfo.project_id,
-				keyFilename: config.gcp.key_filename
+				credentials: config.gcp.credentials
 			});
 		} else {
 			_computeClient = new Compute();
@@ -108,11 +106,9 @@ let _storageClient = null;
 
 function getStorageClient() {
 	if (!_storageClient) {
-		if (config.gcp.key_filename) {
-			const keyInfo = require(config.gcp.key_filename);
+		if (config.gcp.credentials) {
 			_storageClient = new Storage({
-				projectId: keyInfo.project_id,
-				keyFilename: config.gcp.key_filename
+				credentials: config.gcp.credentials
 			});
 		} else {
 			_storageClient = new Storage();

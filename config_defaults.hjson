@@ -132,8 +132,15 @@ rackspace: {
 
 # GCP connection info
 gcp: {
-	# Key for service worker to access GCP resources
-	key_filename: false
+	# Credentials for service worker to access GCP resources. Take the JSON blob that you download from the GCP cloud console and paste it here:
+	# credentials: {
+	# 	"type": "service_account",
+	# 	"project_id": "...",
+	# 	"private_key_id": "...",
+	# 	"private_key": "...",
+	# 	...
+	# }
+	credentials: false
 	# Zone for compute API calls
 	zone: us-central1-f
 	# Managed Instance Group (MIG) autoscaler configurations
