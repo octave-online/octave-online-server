@@ -50,7 +50,7 @@ async function getRecommendedSize(log) {
 		.zone(config.gcp.zone)
 		.autoscaler(config.gcp.instance_group_name);
 	const [, result ] = await client.get();
-	log.info("Recommended size:", result.recommendedSize);
+	log("Recommended size:", result.recommendedSize);
 	return result.recommendedSize;
 }
 
@@ -59,7 +59,7 @@ async function getTargetSize(log) {
 		.zone(config.gcp.zone)
 		.instanceGroupManager(config.gcp.instance_group_name);
 	const [, result ] = await client.get();
-	log.info("Target size:", result.targetSize);
+	log("Target size:", result.targetSize);
 	return result.targetSize;
 }
 
@@ -76,7 +76,7 @@ async function getAutoscalerInfo(log) {
 
 async function getSelfName(log) {
 	const name = await gcpMetadata.instance("name");
-	log.info("Self name:", name);
+	log("Self name:", name);
 	return name;
 }
 
@@ -91,10 +91,10 @@ async function removeSelfFromGroup(log) {
 
 	let operation;
 	if (config.gcp.instance_group_removal_method === "abandon") {
-		log.info("Abandoning self");
+		log("Abandoning self");
 		[ operation ] = await client.abandonInstances(vm);
 	} else if (config.gcp.instance_group_removal_method === "delete") {
-		log.info("Deleting self");
+		log("Deleting self");
 		[ operation ] = await client.deleteInstances(vm);
 	} else {
 		throw new Error("Unknown removal method");
