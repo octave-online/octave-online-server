@@ -34,6 +34,7 @@ function getComputeClient() {
 	if (!_computeClient) {
 		if (config.gcp.credentials) {
 			_computeClient = new Compute({
+				projectId: config.gcp.credentials.project_id,
 				credentials: config.gcp.credentials
 			});
 		} else {
@@ -108,6 +109,7 @@ function getStorageClient() {
 	if (!_storageClient) {
 		if (config.gcp.credentials) {
 			_storageClient = new Storage({
+				projectId: config.gcp.credentials.project_id,
 				credentials: config.gcp.credentials
 			});
 		} else {
