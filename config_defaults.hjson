@@ -523,5 +523,7 @@ client: {
 	gacode: xxxxxxxxx
 	# Application identifier for UserVoice
 	uservoice: xxxxxxxxx
+	# AdSense ID; should start with "ca-pub-"
+	adsense_id: xxxxxxxxx
 }
 
