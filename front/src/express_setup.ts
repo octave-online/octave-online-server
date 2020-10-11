@@ -48,7 +48,8 @@ const recaptcha = new ReCAPTCHA({
 const PORT = process.env.PORT || config.front.listen_port;
 const STATIC_PATH = Path.join(__dirname, "..", "..", config.front.static_path);
 
-export let app: Http.Server;
+export let app: Express.Application;
+export let server: Http.Server;
 
 export interface BuildData {
 	locales_path?: string;
@@ -258,8 +259,17 @@ export function init(buildData: BuildData){
 		.use(function (err: any, req: any, res: any, next: any) {
 			log.error("Express Error", err);
 			res.sendStatus(500);
-		})
-		.listen(PORT);
+		});
+
+	server = app.listen(PORT);
 
 	log.info("Initialized Express Server on port:", PORT);
+	log.debug("App Settings:", (app as any).settings);
+
+	if (app.get("view cache") && config.front.view_cache_clear_interval) {
+		setInterval(() => {
+			log.trace("Clearing EJS Cache:", Object.keys(require("ejs").cache._data));
+			require("ejs").clearCache();
+		}, config.front.view_cache_clear_interval);
+	}
 }

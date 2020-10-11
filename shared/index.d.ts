@@ -277,6 +277,7 @@ export const config: {
         require_https: boolean;
         socket_io_path: string;
         static_path: string;
+        view_cache_clear_interval: number;
     };
     gcp: {
         health_check_port: number;

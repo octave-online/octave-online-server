@@ -471,6 +471,8 @@ front: {
 	socket_io_path: /socket.io
 	# Whether to redirect HTTP to HTTPS in Express
 	require_https: false
+	# Interval (in ms) to clear the Express template view cache. This enables live changes to index.ejs and other template files in production. Set to 0 to disable clearing of the cache.
+	view_cache_clear_interval: 120000
 }
 
 # Operational Transformation settings
