@@ -20,6 +20,42 @@
 
 @require("mixins.styl")
 
+#abox {
+	position: absolute
+	top: 0
+	right: 0
+	
+	background-color: color2
+	text-align: center
+	
+	width: ad_width
+	height: 100%
+	@media (max-width: responsive_width_four) {
+		width: 100%
+		height: ad_height
+	}
+	
+	#abox_default {
+		font-size: 20px
+		line-height: 25px
+		padding: 5px 5px 0
+		cursor: pointer
+	}
+}
+
+#main {
+	position: absolute
+	bottom: 0
+	left: 0
+
+	top: 0
+	right: ad_width
+	@media (max-width: responsive_width_four) {
+		top: ad_height
+		right: 0
+	}
+}
+
 #flexbox {
 	display: flex
 	flex-flow: column nowrap

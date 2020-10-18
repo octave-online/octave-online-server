@@ -46,7 +46,20 @@ const recaptcha = new ReCAPTCHA({
 });
 
 const PORT = process.env.PORT || config.front.listen_port;
-const STATIC_PATH = Path.join(__dirname, "..", "..", config.front.static_path);
+const STATIC_PATH_1 = Path.join(__dirname, "..", "..", config.front.static_path);
+const STATIC_PATH_2 = Path.join(__dirname, "..", "static");
+const STATIC_OPTS: ServeStatic.ServeStaticOptions = {
+	maxAge: "7d",
+	setHeaders: (res, path, stat) => {
+		switch (Path.extname(path)) {
+			case ".html":
+				res.setHeader("Cache-Control", "public, max-age=0");
+				break;
+			default:
+				break;
+		}
+	}
+};
 
 export let app: Express.Application;
 export let server: Http.Server;
@@ -57,7 +70,7 @@ export interface BuildData {
 }
 
 export function init(buildData: BuildData){
-	log.info("Serving static files from:", STATIC_PATH);
+	log.info("Serving static files from:", STATIC_PATH_1);
 	log.info("Loading locales from:", buildData.locales_path);
 
 	// Work around bug in i18next TypeScript definition?
@@ -100,18 +113,8 @@ export function init(buildData: BuildData){
 			req.url = "/index.html";
 			next("route");
 		})
-		.use(ServeStatic(STATIC_PATH, {
-			maxAge: "7d",
-			setHeaders: (res, path, stat) => {
-				switch (Path.extname(path)) {
-					case ".html":
-						res.setHeader("Cache-Control", "public, max-age=0");
-						break;
-					default:
-						break;
-				}
-			}
-		}))
+		.use(ServeStatic(STATIC_PATH_1, STATIC_OPTS))
+		.use(ServeStatic(STATIC_PATH_2, STATIC_OPTS))
 		.use(SessionMiddleware.middleware)
 		.use(BodyParser.urlencoded({ extended: true }))
 		.use(BodyParser.json({

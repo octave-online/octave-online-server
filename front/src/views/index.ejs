@@ -52,7 +52,22 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 
 </head>
 <body>
-
+<div id="abox">
+	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+	<div id="abox_default" data-bind="click: showUpgradeTier">
+		<%= t("header.site.adfallback#body") %>
+	</div>
+	<!-- A-Box -->
+	<ins class="adsbygoogle"
+		style="position:absolute;display:block;top:0;left:0;width:100%;height:100%;max-width:100%;max-height:100%;"
+		data-ad-format="horizontal, vertical"
+		data-ad-client="<%= config.client.adsense_id %>"
+		data-ad-slot="<%= config.client.adsense_slot %>"></ins>
+	<script>
+	(adsbygoogle = window.adsbygoogle || []).push({});
+	</script>
+</div>
+<div id="main">
 <div id="flexbox">
 	<header>
 		<h1>
@@ -222,7 +237,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 				<div id="console_container" data-bind="resizeFlex:{ group: flex.sizes, index: 3 }">
 					<div id="console_output_container">
 						<pre id="console" data-bind="css: { 'console-wrap': consoleWhiteSpaceWrap }"></pre>
-						<!-- ko if: currentUser() && currentUser().patreon && currentUser().patreon.tier_name -->
+						<!-- ko if: patreonValue() > 0 -->
 						<div id="tier_background"><div data-bind="class: currentUser().patreon.tier_name, click: showUpgradeTier" title="<%= t("panel.output.upgraded#ui") %>"></div></div>
 						<!-- /ko -->
 						<% if (config.client.onboarding) { %>
@@ -509,10 +524,15 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 </div></div></div>
 
 <div id="upgrade_to_tier" data-purpose="popover" aria-hidden="true"><div><div>
-	<!-- ko with: currentUser -->
 	<h2 class="popover-title-bar">
 		<%= t("modals.upgrade.title") %>
 	</h2>
+	<!-- ko ifnot: currentUser -->
+	<p class="action-links">
+		<a href="/auth/patreon/plans" target="_blank"><%= t("modals.upgrade.btn1") %></a> / <a href="/auth/patreon"><%= t("modals.upgrade.btn2") %></a>
+	</p>
+	<!-- /ko -->
+	<!-- ko with: currentUser -->
 	<!-- ko ifnot: $data.patreon -->
 	<p class="action-links">
 		<a href="/auth/patreon/plans" target="_blank"><%= t("modals.upgrade.btn1") %></a> / <a href="/auth/patreon"><%= t("modals.upgrade.btn2") %></a>
@@ -531,10 +551,10 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		<%= t("modals.upgrade.p2") %> <a href="/auth/patreon/revoke"><%= t("modals.upgrade.btn4") %></a>
 	</p>
 	<!-- /ko -->
+	<!-- /ko -->
 	<p>
 		<%= t("modals.upgrade.p3", { config }) %>
 	</p>
-	<!-- /ko -->
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
@@ -595,5 +615,6 @@ require(["js/app"], function(){
 // var OctMethods = require("js/client"); OctMethods.console.writeUrl("/auth/patreon"); OctMethods.console.write("\n\n\n\n\n\n\n\n\n\n");
 });
 </script>
+</div>
 </body>
 </html>

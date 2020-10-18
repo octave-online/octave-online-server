@@ -167,6 +167,10 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				return "images/logos/banner-" + color + ".svg";
 			}
 		}),
+		patreonValue: ko.computed(function() {
+			var user = currentUser();
+			return user && user.patreon && user.patreon.currently_entitled_amount_cents;
+		}),
 
 		// More for plots
 		currentPlot: ko.computed(function(){
@@ -898,6 +902,12 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					onboarding.showUserPromo(data);
 					onboarding.hideScriptPromo();
 					onboarding.hideBucketPromo();
+					if (viewModel.patreonValue() > 0) {
+						$(".adsbygoogle").css("display", "none");
+						$("#abox").hideSafe();
+						$("#main").css("top", 0);
+						$("#main").css("right", 0);
+					}
 
 					// Analytics
 					anal.signedin();

@@ -53,6 +53,7 @@ header:
     title: Students
   site:
     menu#btn: MENU
+    adfallback#body: "Do your part: support Free Software by contributing US$3/mo."
 
 editor:
   toolbar:
@@ -171,7 +172,7 @@ modals:
     btn3: Change on Patreon
     p2: Want to transfer your pledge?
     btn4: Unlink Patreon Account
-    p3: Each week, {{config.client.app_name}} connects tens of thousands of students, educators, and researchers in over 100 countries.  We have no ads and no paywall.  If you believe in our mission to provide educational software free of charge, please join us by supporting {{config.client.app_name}} on Patreon.
+    p3: Each week, {{config.client.app_name}} connects tens of thousands of students, educators, and researchers in over 100 countries.  We have no paywall.  If you believe in our mission to provide educational software free of charge, please join us by supporting {{config.client.app_name}} on Patreon.
   patience:
     p1: Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.
     p2: Thanks for waiting.  It's not supposed to take this long.  Please double-check your internet connection.  If you are sure that your internet is working, consider contacting support.

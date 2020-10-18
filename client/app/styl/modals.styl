@@ -23,7 +23,7 @@ modal_header_height = 30px
 
 // Popover Box
 popover(_width, _height, _zindex){
-	position: fixed
+	position: absolute
 	top: 0
 	left: 0
 	right: 0
@@ -33,15 +33,15 @@ popover(_width, _height, _zindex){
 
 	& > div {
 		position: absolute
-		top: 50%
-		left: 50%
+		top: 0%
+		left: 0%
 		width: 100%
 		height: 100%
 
 		& > div {
 			position: absolute
-			top: (_height/-2)
-			left: (_width/-2)
+			top: calc("50% - (%s / 2)" % _height, 10%)
+			left: calc("50% - (%s / 2)" % _width, 10%)
 			width: _width
 			height: _height
 			overflow: auto

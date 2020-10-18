@@ -216,6 +216,7 @@ export const config: {
         };
     };
     client: {
+        adsense_id: string;
         announcement_display: string;
         announcement_html: string;
         app_name: string;
@@ -280,10 +281,23 @@ export const config: {
         view_cache_clear_interval: number;
     };
     gcp: {
+        artifacts_bucket: string;
+        credentials: {
+            auth_provider_x509_cert_url: string;
+            auth_uri: string;
+            client_email: string;
+            client_id: string;
+            client_x509_cert_url: string;
+            private_key: string;
+            private_key_id: string;
+            project_id: string;
+            token_uri: string;
+            type: string;
+        };
         health_check_port: number;
+        i18next_locales_tar_gz: string;
         instance_group_name: string;
         instance_group_removal_method: string;
-        key_filename: string;
         zone: string;
     };
     git: {

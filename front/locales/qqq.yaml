@@ -53,6 +53,7 @@ header:
     title: Section header
   site:
     menu#btn: Button text to show the menu (appears prominently on page)
+    adfallback#body: Text shown when advertisement is unavailable
 
 editor:
   toolbar:

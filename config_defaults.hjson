@@ -527,5 +527,7 @@ client: {
 	uservoice: xxxxxxxxx
 	# AdSense ID; should start with "ca-pub-"
 	adsense_id: xxxxxxxxx
+	# AdSense slot number; used in the "data-ad-slot" parameter
+  adsense_slot: "xxxxxxxxx"
 }
 
