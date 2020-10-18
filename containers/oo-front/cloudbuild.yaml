@@ -36,7 +36,7 @@ steps:
       (cd oo-misc1 && git log -n1) &&
       cp oo-misc1/gcp_config.hjson config.hjson &&
       cp oo-misc1/octave-online-866c0deeb0d1.json . &&
-      find oo-misc1/appengine/oo-front -depth 1 -exec cp {} . \; &&
+      find oo-misc1/appengine/oo-front -mindepth 1 -maxdepth 1 -exec cp {} . \; &&
       mv static/ front/ &&
       rm -f package-lock.json &&
       rm -rf oo-misc1;
