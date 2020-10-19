@@ -490,6 +490,19 @@ ot: {
 # Client configurations #
 # # # # # # # # # # # # #
 
+# AdSense settings
+adsense: {
+	# AdSense ID; should start with "ca-pub-"
+	adsense_id: xxxxxxxxx
+	# AdSense HTML code, including <style> and <ins> tags
+	adsense_html:
+		'''
+		<style type="text/css">
+		#abox { display: block; }
+		</style>
+		'''
+}
+
 client: {
 	# THEME COLLECTION
 	# Choices: "server", "official", or some other theme collection that you create manually.
@@ -525,9 +538,5 @@ client: {
 	gacode: xxxxxxxxx
 	# Application identifier for UserVoice
 	uservoice: xxxxxxxxx
-	# AdSense ID; should start with "ca-pub-"
-	adsense_id: xxxxxxxxx
-	# AdSense slot number; used in the "data-ad-slot" parameter
-  adsense_slot: "xxxxxxxxx"
 }
 

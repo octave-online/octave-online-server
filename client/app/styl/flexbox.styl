@@ -21,39 +21,40 @@
 @require("mixins.styl")
 
 #abox {
+	// Actual sizes overridden in HTML
 	position: absolute
+	display: none
 	top: 0
 	right: 0
+	width: 0
+	height: 0
 	
 	background-color: color2
 	text-align: center
 	
-	width: ad_width
-	height: 100%
-	@media (max-width: responsive_width_four) {
-		width: 100%
-		height: ad_height
+	.abox_content {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
 	}
-	
+
 	#abox_default {
 		font-size: 20px
 		line-height: 25px
-		padding: 5px 5px 0
+		padding: 5px
 		cursor: pointer
 	}
 }
 
 #main {
+	// Actual sizes overridden in HTML
 	position: absolute
+	display: block
+	top: 0
+	right: 0
 	bottom: 0
 	left: 0
-
-	top: 0
-	right: ad_width
-	@media (max-width: responsive_width_four) {
-		top: ad_height
-		right: 0
-	}
 }
 
 #flexbox {

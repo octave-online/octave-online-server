@@ -197,6 +197,10 @@ export class StdioMessenger {
 }
 
 export const config: {
+    adsense: {
+        adsense_html: string;
+        adsense_id: string;
+    };
     auth: {
         easy: {
             max_token_age: number;
@@ -216,7 +220,6 @@ export const config: {
         };
     };
     client: {
-        adsense_id: string;
         announcement_display: string;
         announcement_html: string;
         app_name: string;
