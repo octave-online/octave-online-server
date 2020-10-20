@@ -34,6 +34,15 @@ define(function(){
 		garef("create", "{!gacode!}", "auto");
 		garef("set", "anonymizeIp", true);
 
+		// Record browser window size
+		var width = window.innerWidth || document.body.clientWidth;
+		var height = window.innerHeight || document.body.clientHeight;
+		width = Math.round(width/50)*50;
+		height = Math.round(height/50)*50;
+		garef("send", "event", "browser-size", "width", width);
+		garef("send", "event", "browser-size", "height", height);
+		garef("send", "event", "browser-size", "combined", width+"x"+height);
+
 		// Send queued-up messages to GA
 		for (var i=0; i<q.length; i++) {
 			garef.apply(this, q[i]);

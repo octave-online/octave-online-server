@@ -497,10 +497,11 @@ adsense: {
 	# AdSense HTML code, including <style> and <ins> tags
 	adsense_html:
 		'''
-		<style type="text/css">
-		#abox { display: block; }
-		</style>
 		'''
+	# Example:
+	# <style type="text/css">
+	# #abox { display: block; }
+	# </style>
 }
 
 client: {
