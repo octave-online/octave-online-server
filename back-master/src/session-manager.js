@@ -78,7 +78,9 @@ class SessionManager extends EventEmitter {
 				let t1 = new Date().valueOf();
 				this._monitor_session.sendMessage("cmd", { data: "pinv(magic(500));" });
 				this._monitor_session.once("msg:request-input", () => {
-					log.debug("Monitor Time (ms):", new Date().valueOf() - t1);
+					const elapsed = new Date().valueOf() - t1;
+					log.debug("Monitor Time (ms):", elapsed);
+					metrics.gauge("oo.monitor_time_ms", elapsed);
 				});
 			}
 		}, config.sessionManager.logInterval);
