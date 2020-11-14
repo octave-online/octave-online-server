@@ -429,6 +429,7 @@ auth: {
 	password: {
 		salt_rounds: 10
 	}
+	# Basic Auth users for utils-admin and utils-auth
 	utils_admin: {
 		users: {
 		}

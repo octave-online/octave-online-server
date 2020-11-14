@@ -76,6 +76,11 @@ const server = http.createServer((req, res) => {
 			res.writeHead(400);
 			return res.end("Invalid credentials");
 		}
+		const adminPass = config.auth.utils_admin.users[creds.name];
+		if (adminPass && creds.pass === adminPass) {
+			res.writeHead(204);
+			return res.end();
+		}
 		const mongoStart = new Date().valueOf();
 		User.findOne({ email: creds.name }, (err, user) => {
 			const mongoEnd = new Date().valueOf();
