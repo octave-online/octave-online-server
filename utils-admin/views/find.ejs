@@ -20,44 +20,26 @@ along with Octave Online Server.  If not, see
 
 <%- include("partials/header"); -%>
 
-<h2>Search for User</h2>
-
-<form action="/users/" class="pure-form">
-	<p>
-		<textarea name="mq" class="pure-input-1">{ "email": { "$regex": "___" } }</textarea>
-	</p>
-	<p>
-		<input type="submit" class="pure-button" value="Search" />
-	</p>
-</form>
-
+<% if (docs.length === 0) { %>
+<p><em>No documents found!</em></p>
+<% } else { %>
+<h2>Query Results</h2>
+<% for (let doc of docs) { %>
 <hr/>
-
-<form action="/create.do" method="post" class="pure-form">
-	<p>
-		<textarea name="document" class="pure-input-1" rows="7">{
-	"email": "___",
-	"profile": {
-		"method": "administrative"
-	}
-}</textarea>
-	</p>
-	<p>
-		<input type="submit" class="pure-button" value="Create New User" />
-	</p>
-</form>
-
+<pre style="white-space: pre-wrap;"><%= JSON.stringify(doc, null, 2) %></pre>
+<% } %>
 <hr/>
+<% } %>
 
 <form action="/find/" class="pure-form">
 	<p>
-		<input type="text" name="db" placeholder="db name" />
+		<input type="text" name="db" placeholder="db name" value="<%= query.db %>" />
 	</p>
 	<p>
-		<textarea name="mq" class="pure-input-1" placeholder="query"></textarea>
+		<textarea name="mq" class="pure-input-1" placeholder="query"><%= query.mq %></textarea>
 	</p>
 	<p>
-		<input type="submit" class="pure-button" value="Find Documents" />
+		<input type="submit" class="pure-button" value="Search Again" />
 	</p>
 </form>
 

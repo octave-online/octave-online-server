@@ -32,6 +32,23 @@ router.get("/", function(req, res) {
 	});
 });
 
+router.getAsync("/find/", async function(req, res) {
+	const queryString = req.query.mq || "{}";
+	let queryObject;
+	try {
+		queryObject = JSON.parse(queryString);
+	} catch(e) {
+		res.status(400).type("txt").send(`JSON parse error: ${e.message}\n\n${queryString}`);
+		return;
+	}
+	const docs = await db.find(req.query.db, queryObject);
+	res.render("find", {
+		title: "OO Find",
+		docs,
+		query: req.query
+	});
+});
+
 router.postAsync("/create.do", async function(req, res) {
 	const newDoc = JSON.parse(req.body.document);
 	const result = await db.createDocument("users", newDoc);
