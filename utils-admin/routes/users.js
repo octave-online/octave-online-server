@@ -23,6 +23,7 @@ const util = require("util");
 
 const bcryptjs = require("bcryptjs");
 const express = require("express");
+const got = require("got");
 const { addAsync } = require("@awaitjs/express");
 
 const config = require("@oo/shared").config;
@@ -42,7 +43,13 @@ function randomString(length) {
 
 router.getAsync("/", async function(req, res) {
 	const queryString = req.query.mq || "{}";
-	const queryObject = JSON.parse(queryString);
+	let queryObject;
+	try {
+		queryObject = JSON.parse(queryString);
+	} catch(e) {
+		res.status(400).type("txt").send(`JSON parse error: ${e.message}\n\n${queryString}`);
+		return;
+	}
 	const users = await db.find("users", queryObject);
 	res.render("user-list", {
 		title: "OO User Search",
@@ -54,10 +61,15 @@ router.getAsync("/", async function(req, res) {
 router.getAsync("/:userId", async function(req, res) {
 	const userId = req.params.userId || "";
 	const user = await db.findById("users", userId);
+	const buckets = await db.find("buckets", {
+		"user_id": user._id,
+	});
 	res.render("user", {
-		title: `OO: ${user.email}`,
+		title: `OO: ${user.email || `Deleted User ${user.deleted_email}`}`,
 		user,
-		randomString: randomString(12)
+		buckets,
+		randomString: randomString(12),
+		config
 	});
 });
 
@@ -86,8 +98,37 @@ router.postAsync("/:userId/set-password.do", async function(req, res) {
 
 router.postAsync("/:userId/overwrite.do", async function(req, res) {
 	const userId = req.params.userId || "";
-	const newDoc = JSON.parse(req.body.document);
+	let newDoc;
+	try {
+		newDoc = JSON.parse(req.body.document);
+	} catch(e) {
+		res.status(400).type("txt").send(`JSON parse error: ${e.message}\n\n${req.body.document}`);
+		return;
+	}
 	await db.replaceById("users", userId, newDoc);
+	res.redirect(".");
+});
+
+router.postAsync("/:userId/delete-data.do", async function(req, res) {
+	const userId = req.params.userId || "";
+	const user = await db.findById("users", userId);
+	if (req.body.deleteRepo) {
+		await got(`http://${config.git.hostname}:${config.git.createRepoPort}`, {
+			searchParams: {
+				type: "repos",
+				name: user.parametrized,
+				action: "delete",
+			},
+			retry: 0,
+		});
+	}
+	if (req.body.deleteMongo) {
+		const newDoc = {
+			deleted_email: user.email,
+			parametrized: user.parametrized,
+		};
+		await db.replaceById("users", userId, newDoc);
+	}
 	res.redirect(".");
 });
 

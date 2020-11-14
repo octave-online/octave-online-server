@@ -26,7 +26,7 @@ along with Octave Online Server.  If not, see
 	<ul>
 	<% for (let user of users) { %>
 		<li>
-			<strong><a href="<%= `/users/${user._id}/` %>"><%= user.email %></a></strong>
+			<strong><a href="<%= `/users/${user._id}/` %>"><%= user.email %> (<%= user._id %>)</a></strong>
 		</li>
 	<% } %>
 	</ul>

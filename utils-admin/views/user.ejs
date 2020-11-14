@@ -38,9 +38,6 @@ along with Octave Online Server.  If not, see
 
 <h2>Set Password</h2>
 
-<%
-%>
-
 <form action="<%= `/users/${user._id}/set-password.do` %>" method="post" class="pure-form">
 	<input type="hidden" name="id" value="<%= user._id %>" />
 	<p>
@@ -48,6 +45,38 @@ along with Octave Online Server.  If not, see
 	</p>
 	<p>
 		<input type="submit" class="pure-button" value="Set Password" />
+	</p>
+</form>
+
+<h2>Buckets</h2>
+
+<% if (buckets.length) { %>
+<ul>
+<% for (let bucket of buckets) { %>
+<li><tt><%= bucket.bucket_id %></tt> (<%= bucket._id.getTimestamp().toISOString() %>)</li>
+<% } %>
+</ul>
+<% } else { %>
+<p><em>No buckets found</em></p>
+<% } %>
+
+<h2>Repo Operations</h2>
+
+<p>
+	<a href="<%= `${config.git.httpUrl}${user.parametrized}.git/` %>">Open Repo Viewer</a>
+</p>
+
+<h2>Delete User Data</h2>
+
+<form action="<%= `/users/${user._id}/delete-data.do` %>" method="post" class="pure-form">
+	<input type="hidden" name="id" value="<%= user._id %>" />
+	<p>
+		<label><input type="checkbox" name="deleteRepo" /> Delete User Repo</label><br/>
+		<label><input type="checkbox" name="deleteMongo" /> Delete Mongo Data</label><br/>
+		<em>Note: Bucket deletion not supported yet</em>
+	</p>
+	<p>
+		<input type="submit" class="pure-button" value="Delete User Data" />
 	</p>
 </form>
 
