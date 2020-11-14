@@ -22,7 +22,7 @@
 ###############################################################
 
 [Unit]
-Description=Service to create bare git repos
+Description=Service to create and delete bare git repos
 
 [Service]
 ExecStart=/usr/local/bin/create-repo-service /srv/oo/git 3003

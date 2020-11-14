@@ -42,16 +42,18 @@ http.createServer((req, res) => {
 	const isoTime = new Date().toISOString();
 	if (["buckets", "repos"].indexOf(query.type) === -1) {
 		res.writeHead(400, "Invalid type");
-		console.log(`${isoTime} Invalid type`);
+		console.log(`create-repo-service: ${isoTime} Invalid type`);
 		return res.end();
 	}
 	if (!query.name || !/^[\w]+$/.test(query.name)) {
 		res.writeHead(400, "Invalid name");
-		console.log(`${isoTime} Invalid name`);
+		console.log(`create-repo-service: ${isoTime} Invalid name`);
 		return res.end();
 	}
 	const bareRepoPath = path.join(gitRoot, query.type, query.name + ".git");
-	const process = child_process.spawn("git", ["init", "--bare", bareRepoPath]);
+	const process = (query.action === "delete")
+		? child_process.spawn("rm", ["-rf", bareRepoPath])
+		: child_process.spawn("git", ["init", "--bare", bareRepoPath]);
 	let resData = Buffer.alloc(0);
 	process.stdout.on("data", (chunk) => {
 		resData = Buffer.concat([resData, chunk]);
@@ -60,17 +62,18 @@ http.createServer((req, res) => {
 		resData = Buffer.concat([resData, chunk]);
 	});
 	process.on("exit", (code /* , signal */) => {
+		const operation = (query.action === "delete") ? "Delete" : "Init";
 		if (code === 0) {
 			res.writeHead(200, { "Content-Type": "text/plain" });
-			console.log(`${isoTime} Created ${bareRepoPath}`);
+			console.log(`create-repo-service: ${isoTime} ${operation} Success: ${bareRepoPath}`);
 		} else {
 			res.writeHead(500, { "Content-Type": "text/plain" });
-			console.log(`${isoTime} Error ${bareRepoPath}`);
-			console.log(resData.toString("utf-8"));
+			console.log(`create-repo-service: ${isoTime} ${operation} Error: ${bareRepoPath}`);
+			console.log(`create-repo-service: ${resData.toString("utf-8")}`);
 		}
 		res.write(resData);
 		res.end();
 	});
 }).listen(port);
 
-console.log("Listening on port", port);
+console.log("create-repo-service: Listening on port", port);
