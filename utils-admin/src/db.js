@@ -29,6 +29,10 @@ async function connect(url, dbName) {
 	db = mongoClient.db(dbName);
 }
 
+async function close() {
+	mongoClient.close();
+}
+
 async function find(collectionName, query) {
 	const collection = db.collection(collectionName);
 	return await collection.find(query).limit(10).toArray();
@@ -43,6 +47,12 @@ async function findById(collectionName, id) {
 		throw new Error("Could not find user with id: " + id);
 	}
 	return result;
+}
+
+function findAll(collectionName, query, projection) {
+	const collection = db.collection(collectionName);
+	const cursor = collection.find(query).project(projection).batchSize(50);
+	return cursor;
 }
 
 async function updateById(collectionName, id, update) {
@@ -66,8 +76,10 @@ async function createDocument(collectionName, newDoc) {
 
 module.exports = {
 	connect,
+	close,
 	find,
 	findById,
+	findAll,
 	updateById,
 	replaceById,
 	createDocument

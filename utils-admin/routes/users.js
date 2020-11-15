@@ -23,11 +23,11 @@ const util = require("util");
 
 const bcryptjs = require("bcryptjs");
 const express = require("express");
-const got = require("got");
 const { addAsync } = require("@awaitjs/express");
 
 const config = require("@oo/shared").config;
 const db = require("../src/db");
+const repo = require("../src/repo");
 
 const router = addAsync(express.Router());
 
@@ -113,14 +113,7 @@ router.postAsync("/:userId/delete-data.do", async function(req, res) {
 	const userId = req.params.userId || "";
 	const user = await db.findById("users", userId);
 	if (req.body.deleteRepo) {
-		await got(`http://${config.git.hostname}:${config.git.createRepoPort}`, {
-			searchParams: {
-				type: "repos",
-				name: user.parametrized,
-				action: "delete",
-			},
-			retry: 0,
-		});
+		await repo.deleteRepo(user);
 	}
 	if (req.body.deleteMongo) {
 		const newDoc = {

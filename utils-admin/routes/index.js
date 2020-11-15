@@ -41,7 +41,7 @@ router.getAsync("/find/", async function(req, res) {
 		res.status(400).type("txt").send(`JSON parse error: ${e.message}\n\n${queryString}`);
 		return;
 	}
-	const docs = await db.find(req.query.db, queryObject);
+	const docs = await db.find(req.query.collection, queryObject);
 	res.render("find", {
 		title: "OO Find",
 		docs,
