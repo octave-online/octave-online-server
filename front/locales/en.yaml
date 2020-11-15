@@ -79,7 +79,7 @@ editor:
     dd2: Save the file
     dd3: Run the file
     dd4: Set focus to the prompt
-    p1: "The files you make on {{config.client.app_name}} will be saved for the next time you visit."
+    p1: "The files you make on {{config.client.app_name}} will be saved for the next time you visit. They will be deleted after 6 months of inactivity."
     p2: "Common shortcuts:"
     subhead1: Keyboard Shortcuts
     title: Tips & Tricks
