@@ -58,7 +58,10 @@ if (command !== "run" && command != "dryrun") {
 		"last_activity": {
 			"$gt": startTime,
 			"$lt": endTime,
-		}
+		},
+		"patreon.currently_entitled_amount_cents": {
+			"$in": [null, 0],
+		},
 	};
 	for await (let user of db.findAll("users", query, { parametrized: 1 })) {
 		debug("Processing:", JSON.stringify(user));
