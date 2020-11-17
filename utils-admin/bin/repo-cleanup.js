@@ -63,7 +63,7 @@ if (command !== "run" && command != "dryrun") {
 			"$in": [null, 0],
 		},
 	};
-	for await (let user of db.findAll("users", query, { parametrized: 1 })) {
+	for await (let user of db.findAll("users", query, { parametrized: 1, last_activity: 1 })) {
 		debug("Processing:", JSON.stringify(user));
 		if (command === "run") {
 			await repo.deleteRepo(user);
