@@ -491,18 +491,37 @@ ot: {
 # Client configurations #
 # # # # # # # # # # # # #
 
-# AdSense settings
-adsense: {
-	# AdSense ID; should start with "ca-pub-"
-	adsense_id: xxxxxxxxx
-	# AdSense HTML code, including <style> and <ins> tags
-	adsense_html:
+# Advertisement settings
+ads: {
+	# HTML code for the <head> block.
+	# Example for AdSense:
+	#     '''
+	#     <script data-ad-client="ca-pub-xxxxxxxx" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+	#     '''
+	head_html:
 		'''
 		'''
-	# Example:
-	# <style type="text/css">
-	# #abox { display: block; }
-	# </style>
+
+	# HTML code for the "abox" div in the <body> tag. The div must be enabled via CSS in a <style> tag.
+	# Example for AdSense, creating a fixed 300x100 slot (use media queries to change the slot size based on screen size):
+	#     '''
+	#     <style type="text/css">
+	#     #abox { display: block; width: 100%; height: 100px; }
+	#     .abox_content { width: 300px; height: 100px; }
+	#     #main { top: 100px; right: 0; }
+	#     </style>
+	#     <ins class="adsbygoogle abox_content" id="abox_responsive"
+	#       style="display:block;"
+	#       data-ad-client="ca-pub-xxxxxxxx"
+	#       data-ad-slot="xxxxxxxx"
+	#       data-full-width-responsive="false"></ins>
+	#     <script>
+	#     (adsbygoogle = window.adsbygoogle || []).push({});
+	#     </script>
+	#     '''
+	abox_html:
+		'''
+		'''
 }
 
 client: {

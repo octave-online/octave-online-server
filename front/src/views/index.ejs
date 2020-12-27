@@ -48,7 +48,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<style type="text/css">
 	[aria-hidden="true"] { display: none !important; }
 	</style>
-	<script data-ad-client="<%= config.adsense.adsense_id %>" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+	<%- config.ads.head_html %>
 
 </head>
 <body>
@@ -56,10 +56,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<div id="abox_default" class="abox_content" data-bind="click: showUpgradeTier">
 		<%= t("header.site.adfallback#body") %>
 	</div>
-	<%- config.adsense.adsense_html %>
-	<script>
-	(adsbygoogle = window.adsbygoogle || []).push({});
-	</script>
+	<%- config.ads.abox_html %>
 </div>
 <div id="main">
 <div id="flexbox">
