@@ -62,6 +62,18 @@ class WorkingUtil {
 		], next);
 	}
 
+	hasOctaverc(next) {
+		fs.access(path.join(this.cwd, ".octaverc"), (err) => {
+			if (err) {
+				this._mlog.trace(".octaverc does not exist");
+				return next(null, false);
+			} else {
+				this._mlog.trace(".octaverc exists");
+				return next(null, true);
+			}
+		});
+	}
+
 	_recursiveReaddir(directory, depth, next) {
 		// Don't recurse more than 3 levels deep
 		if (depth > 3) {

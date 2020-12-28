@@ -118,6 +118,7 @@ class SessionImpl extends OctaveSession {
 	}
 
 	_sendMessageToHost(name, content) {
+		this._mlog.trace("Sending message to Octave host:", name, content);
 		this._hostSession.sendMessage(name, content);
 	}
 

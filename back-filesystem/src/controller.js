@@ -83,8 +83,11 @@ class FilesController extends EventEmitter {
 						this.gitUtil.initialize(this.user, this.workDir, _next);
 					},
 					(results, _next) => {
+						this.workingUtil.hasOctaverc(_next);
+					},
+					(hasOctaverc, _next) => {
 						this.ready = true;
-						this._sendMessage("files-ready", {});
+						this._sendMessage("files-ready", { hasOctaverc });
 						_next(null);
 					},
 					(_next) => {
@@ -126,8 +129,11 @@ class FilesController extends EventEmitter {
 						this.gitUtil.initializeBucket(this.bucketId, this.workDir, content.readonly, _next);
 					},
 					(results, _next) => {
+						this.workingUtil.hasOctaverc(_next);
+					},
+					(hasOctaverc, _next) => {
 						this.ready = true;
-						this._sendMessage("files-ready", {});
+						this._sendMessage("files-ready", { hasOctaverc });
 						_next(null);
 					},
 					(_next) => {

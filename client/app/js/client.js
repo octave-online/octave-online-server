@@ -931,7 +931,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					// Set up the UI
 					$("#open_container").showSafe();
 					$("#files_container").showSafe();
-					if (!OctMethods.vars.bucketId) {
+					if (!OctMethods.vars.bucketId && !OctMethods.vars.wsId) {
 						onboarding.showSyncPromo();
 					}
 
@@ -1130,9 +1130,9 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					OctMethods.load.hideLoader();
 				}
 			},
-			filesReady: function() {
-				// hide the coverall loading div if necessary
-				OctMethods.load.callback();
+			filesReady: function(message) {
+				// hide the coverall loading div if necessary, and perform other initialization tasks
+				OctMethods.load.callback(message);
 			},
 			destroyu: function(message){
 				OctMethods.console.writeError(oo_translations["console.exited#alert"] + " " + message + "\n");
@@ -1266,7 +1266,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 				// Add a credit line at the bottom
 				var creditDiv = $("<div></div>");
-				creditDiv.append(oo_translations["print.p1"] + " " + viewModel.currentUser().name);
+				creditDiv.append(oo_translations["print.p1"] + " " + (viewModel.currentUser() || { name: "Anonymous" }).name);
 				creditDiv.append("<br/>");
 				creditDiv.append(oo_translations["print.p2"]);
 				creditDiv.append("<br/>");
@@ -1337,8 +1337,16 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			firstConnection: true,
 			loaderVisible: true,
 			bePatientTimeout: null,
-			callback: function(){
+			callback: function(message){
 				OctMethods.load.hideLoader();
+				var initCmd = "";
+				// As soon as files are loaded for the first time, execute the .octaverc if it is present
+				// GNU Octave normally does this automatically, but we pre-start the processes against a clean directory, so .octaverc is not present when GNU Octave starts up
+				// Do this on the client so that the UI reflects that a command is being run
+				// Do this every time we receive a files-ready command, indicating that a new session has started
+				if (message && message.hasOctaverc) {
+					initCmd += "source(\".octaverc\"); ";
+				}
 				if(OctMethods.load.firstConnection){
 					OctMethods.load.firstConnection = false;
 
@@ -1348,21 +1356,21 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					$("#plot_opener").hideSafe();
 					$("#vars_panel").showSafe();
 
+					// Initial bucket command
+					if (OctMethods.vars.bucketInfo && OctMethods.vars.bucketInfo.main) {
+						initCmd += "source(\"" + OctMethods.vars.bucketInfo.main + "\"); ";
+					}
+
 					// Evaluate the query string command (uses purl)
 					try{
-						var initCmd = $.url().fparam("cmd");
+						var purlCmd = $.url().fparam("cmd");
+						if (purlCmd) initCmd += purlCmd;
 					}catch(e){
 						console.log(e);
 					}
-
-					// Initial bucket command
-					if (!initCmd && OctMethods.vars.bucketInfo && OctMethods.vars.bucketInfo.main) {
-						initCmd = "source(\"" + OctMethods.vars.bucketInfo.main + "\");";
-					}
-
-					if(initCmd){
-						OctMethods.console.command(initCmd);
-					}
+				}
+				if(initCmd){
+					OctMethods.console.command(initCmd);
 				}
 			},
 			showLoader: function(){

@@ -129,7 +129,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					<!-- ko if: editable -->
 					<span id="editor_print" title="<%= t("editor.toolbar.print#btn") %>" data-bind="click: print"></span>
 					<label id="wrap_checkbox" title="<%= t("editor.toolbar.wrap#btn") %>"><input type="checkbox" data-bind="checked: wrap" /></label>
-					<!-- ko if: $root.purpose() !== "bucket" -->
+					<!-- ko if: $root.purpose() !== "bucket" && $root.currentUser -->
 					<span id="editor_share" title="<%= t("editor.toolbar.share#btn") %>" data-bind="click: share"></span>
 					<!-- /ko -->
 					<span id="editor_save" title="<%= t("editor.toolbar.save#btn") %>" data-bind="click: save"></span>
