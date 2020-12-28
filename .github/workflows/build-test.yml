@@ -1,0 +1,24 @@
+name: Node.js CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+    - name: Install
+      run: |
+        touch config.hjson
+        npm ci
+        (cd test && npm ci)
+    - name: Test
+      run: |
+        (cd test && npm test)
+      env:
+        CI: true
+    - name: Lint
+      run: npm run lint
