@@ -21,6 +21,8 @@
 
 // This tool deletes repos from inactive users.
 
+/* eslint-disable no-console */
+
 const config = require("@oo/shared").config;
 const db = require("../src/db");
 const debug = require("debug")("oo:repo-cleanup");

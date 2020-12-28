@@ -319,7 +319,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 	viewModel.currentLanguage.subscribe(function(lng) {
 		if (URL) {
 			// Correct solution for new browsers
-			const url = new URL(window.location.href);
+			var url = new URL(window.location.href);
 			url.searchParams.set("lng", lng);
 			window.location.href = url.toString();
 		} else {
