@@ -109,7 +109,7 @@ export class SharedWorkspace
 		const promptId = "prompt." + this.wsId;
 		process.nextTick(() => {
 			this.emit("data", "ws.promptid", promptId);
-			this.docs[promptId] = new OtDocument(promptId, `${this.logId}:prompt.${safeWsId}`);
+			this.docs[promptId] = new OtDocument(promptId, `${this.logId}:prompt.${safeWsId}`, "");
 			this.subscribe();
 		});
 	}
@@ -161,7 +161,7 @@ export class SharedWorkspace
 		// A few special handlers
 		if (name === "save") {
 			// happens when the user saves a file OR creates a new file
-			this.resolveFileSave(value, true, false);
+			this.resolveFileSave(value);
 		}
 
 		// Pass other events into the onUserAction handler
@@ -178,11 +178,11 @@ export class SharedWorkspace
 		// A few special handlers
 		if (name === "user") {
 			// happens when the full list of files is read
-			this.resolveFileList(value.files, true, value.refresh);
+			this.resolveFileList(value.files /* , true, value.refresh */);
 
 		} else if (name === "fileadd") {
 			// happens when SIOFU uploads a file
-			this.resolveFileAdd(value, true, true);
+			this.resolveFileAdd(value);
 
 		} else if (name === "renamed") {
 			// happens when a file is successfully renamed
@@ -194,40 +194,39 @@ export class SharedWorkspace
 		}
 	}
 
-	private resolveFileList(files: any, update: boolean, overwrite: boolean){
+	private resolveFileList(files: any){
 		files = files || {};
 		for(const filename in files){
 			if (!files.hasOwnProperty(filename)) continue;
 			const file = files[filename];
 			if (!file.isText) continue;
 			const content = new Buffer(file.content, "base64").toString();
-			this.resolveFile(filename, content, update, overwrite);
+			this.resolveFile(filename, content);
 		}
 	}
 
-	private resolveFileAdd(file: any, update: boolean, overwrite: boolean){
+	private resolveFileAdd(file: any){
 		if (!file.isText) return;
 
-		this._log.trace("Resolving File Add", file.filename, update, overwrite);
+		this._log.trace("Resolving File Add", file.filename);
 
 		const content = new Buffer(file.content, "base64").toString();
-		this.resolveFile(file.filename, content, update, overwrite);
+		this.resolveFile(file.filename, content);
 	}
 
-	private resolveFileSave(file: any, update: boolean, overwrite: boolean){
-		this._log.trace("Resolving File Save", file.filename, update, overwrite);
-		this.resolveFile(file.filename, file.content, update, overwrite);
+	private resolveFileSave(file: any){
+		this._log.trace("Resolving File Save", file.filename);
+		this.resolveFile(file.filename, file.content);
 	}
 
-	private resolveFile(filename: string, content: string,
-		update: boolean, overwrite: boolean) {
+	private resolveFile(filename: string, content: string) {
 		// Note: hash.copy() was added in Node.js 13; we could use that here instead of converting via Buffer.from()
 		const hexHash = Crypto.createHash("md5").update(filename).digest("hex");
 		const shortHash = Buffer.from(hexHash, "hex").toString("base64").replace(/=/g, "");
 		const docId = `doc.${this.wsId}.${hexHash}`;
 
 		if (!this.docs[docId]) {
-			this.docs[docId] = new OtDocument(docId, `${this.logId}:doc.${this.safeWsId}.${shortHash}`);
+			this.docs[docId] = new OtDocument(docId, `${this.logId}:doc.${this.safeWsId}.${shortHash}`, content);
 			this.docs[docId].logFilename(filename);
 			this.subscribe();
 			process.nextTick(() => {
@@ -237,8 +236,6 @@ export class SharedWorkspace
 				});
 			});
 		}
-
-		if (update) this.docs[docId].setContent(content, overwrite);
 	}
 
 	private resolveFileRename(oldname: string, newname: string) {
@@ -437,7 +434,7 @@ export class SharedWorkspace
 					// Special handlers for a few user actions
 					switch(data.name){
 						case "ws.save":
-							this.resolveFileSave(data.data, false, false);
+							this.resolveFileSave(data.data);
 							break;
 					}
 				}

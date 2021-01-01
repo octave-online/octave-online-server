@@ -42,13 +42,17 @@ export class OtDocument extends EventEmitter {
 	private crsIds: string[] = [];
 	private touchInterval: any;
 	private _log: ILogger;
+	private _mlog: ILogger;
+	private initialContent: string;
 	public opsReceivedCounter = 0;
 	public setContentCounter = 0;
 
-	constructor (id: string, safeId: string) {
+	constructor (id: string, safeId: string, initialContent: string) {
 		super();
 		this.id = id;
 		this._log = logger("ot-doc:" + safeId) as ILogger;
+		this._mlog = logger("ot-doc:" + safeId + ":minor") as ILogger;
+		this.initialContent = initialContent;
 		this.load();
 	}
 
@@ -106,11 +110,15 @@ export class OtDocument extends EventEmitter {
 		redisMessenger.loadOtDoc(this.id, (err: Err, rev: number, content: string) => {
 			if (err) this._log.error("REDIS ERROR", err);
 			else {
+				this._log.trace("Loaded doc: rev", rev);
 				this.emit("data", "ot.doc", {
 					docId: this.id,
 					rev,
 					content
 				});
+				if (rev === 0 && this.initialContent) {
+					this.setContent(this.initialContent, false);
+				}
 			}
 		});
 	}
@@ -128,21 +136,26 @@ export class OtDocument extends EventEmitter {
 				if (!obj.data) return;
 				i = this.crsIds.indexOf(obj.data.id);
 				if (i > -1) this.crsIds.splice(i, 1);
-				else this.emit("data", "ot.cursor", {
-					docId: this.id,
-					cursor: obj.data.cursor
-				});
+				else {
+					this._mlog.trace("Received another user's cursor:", obj.data.cursor);
+					this.emit("data", "ot.cursor", {
+						docId: this.id,
+						cursor: obj.data.cursor
+					});
+				}
 				break;
 
 			case "operation":
 				if (!obj.chgId || !obj.ops) return;
 				i = this.chgIds.indexOf(obj.chgId);
 				if (i > -1) {
+					this._mlog.trace("Received ack for ops:", obj.ops.length);
 					this.chgIds.splice(i, 1);
 					this.emit("data", "ot.ack", {
 						docId: this.id
 					});
 				} else {
+					this._mlog.trace("Received broadcast of ops:", obj.ops.length);
 					this.emit("data", "ot.broadcast", {
 						docId: this.id,
 						ops: obj.ops
@@ -196,7 +209,7 @@ export class OtDocument extends EventEmitter {
 		this.opsReceivedCounter++;
 	}
 
-	public setContent(content: string, overwrite: boolean) {
+	private setContent(content: string, overwrite: boolean) {
 		const chgId = Uuid.v4();
 
 		this._log.trace("Setting content", content.length, overwrite);
