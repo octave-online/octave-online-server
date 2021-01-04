@@ -544,11 +544,22 @@ class OctaveSession extends OnlineOffline {
 					this._countdownExtraTime = content.user.countdownExtraTime;
 					this._countdownRequestTime = content.user.countdownRequestTime;
 				}
-				if (content.bucketId) {
+				if (content.bucketId && !content.bucket) {
+					// For backwards compatibility
+					content.bucket = {
+						bucket_id: content.bucketId,
+						butype: "readonly",
+					};
+				}
+				if (content.bucket) {
+					if (!content.bucket.butype) {
+						this._log.error("butype not present in bucket", content);
+						content.butype = "readonly";
+					}
 					this._sendMessageToFiles("bucket-info", {
-						id: content.bucketId,
-						legalTime: this._legalTime, // FIXME: For backwards compatibility
-						readonly: true
+						id: content.bucket.bucket_id,
+						legalTime: this._legalTime, // For backwards compatibility
+						readonly: content.bucket.butype === "readonly",
 					});
 				} else {
 					this._sendMessageToFiles(name, content);

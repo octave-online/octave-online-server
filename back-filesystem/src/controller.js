@@ -122,8 +122,8 @@ class FilesController extends EventEmitter {
 				}
 				this.bucketId = content.id;
 				this._legalTime = content.legalTime; // FIXME: For backwards compatibility
-				// If content.readonly is false, this request is for creating the bucket.  If content.readonly is true, this request is for reading from the bucket.
-				this._log.info("Received bucket:", this.bucketId);
+				// If content.readonly is false, this request is for a project or for creating the bucket.  If content.readonly is true, this request is for reading from the bucket.
+				this._log.info("Received bucket:", this.bucketId, content.readonly);
 				async.waterfall([
 					(_next) => {
 						this.gitUtil.initializeBucket(this.bucketId, this.workDir, content.readonly, _next);
