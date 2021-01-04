@@ -18,9 +18,11 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-// Mongoose Bucket: stores metadata about a bucket.
+// Mongoose Bucket: stores metadata about a bucket or project.
 
 import Mongoose = require("mongoose");
+// const got = require("got");
+// import { Got } from "got";
 import { IUser } from "./user_model";
 import { logger, ILogger } from "./shared_wrap";
 
@@ -59,8 +61,10 @@ const bucketSchema = new Mongoose.Schema({
 
 // Workaround to make TypeScript apply signatures to the method definitions
 interface IBucketMethods {
-	checkPermissions(user: IUser|null): boolean;
+	checkAccessPermissions(user: IUser|null): boolean;
+	checkDeletePermissions(user: IUser|null): boolean;
 	touchLastActivity(next: (err: Err) => void): void;
+	removeRepo(next: (err: Err) => void): void;
 	isValidAction(this: IBucket, action: string): boolean;
 	logf(): ILogger;
 }
@@ -91,8 +95,15 @@ class BucketMethods implements IBucketMethods {
 		}
 	}
 
-	checkPermissions(this: IBucket, user: IUser|null): boolean {
+	checkAccessPermissions(this: IBucket, user: IUser|null): boolean {
 		if (this.butype === "editable" && (!user || !user._id.equals(this.user_id))) {
+			return false;
+		}
+		return true;
+	}
+
+	checkDeletePermissions(this: IBucket, user: IUser|null): boolean {
+		if (!user || !user._id.equals(this.user_id)) {
 			return false;
 		}
 		return true;
@@ -104,6 +115,27 @@ class BucketMethods implements IBucketMethods {
 		this.save(next);
 	}
 
+	removeRepo(this: IBucket, next: (err: Err) => void): void {
+		// See comment in socket_connect.ts
+		next(new Error("Unimplemented"));
+		/*
+		(got as Got)("http://" + config.git.hostname + ":" + config.git.createRepoPort, {
+			searchParams: {
+				type: "buckets",
+				name: this.bucket_id,
+				action: "delete",
+			},
+			retry: 0,
+		}).then((response) => {
+			if (response.statusCode === 200) {
+				next(null);
+				return;
+			}
+			next(new Error(response.body));
+		}).catch(next);
+		*/
+	}
+
 	logf(this: IBucket): ILogger {
 		return logger("bucket:" + this.id.valueOf());
 	}
@@ -111,8 +143,10 @@ class BucketMethods implements IBucketMethods {
 
 // Copy the methods into bucketSchema
 bucketSchema.methods.isValidAction = BucketMethods.prototype.isValidAction;
-bucketSchema.methods.checkPermissions = BucketMethods.prototype.checkPermissions;
+bucketSchema.methods.checkAccessPermissions = BucketMethods.prototype.checkAccessPermissions;
+bucketSchema.methods.checkDeletePermissions = BucketMethods.prototype.checkDeletePermissions;
 bucketSchema.methods.touchLastActivity = BucketMethods.prototype.touchLastActivity;
+bucketSchema.methods.removeRepo = BucketMethods.prototype.removeRepo;
 bucketSchema.methods.logf = BucketMethods.prototype.logf;
 
 bucketSchema.virtual("createdTime").get(function (this: IBucket) {

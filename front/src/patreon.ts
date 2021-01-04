@@ -20,12 +20,11 @@
 
 import Crypto = require("crypto");
 
+const got = require("got");
+import { Got } from "got";
 import Async = require("async");
 import EasyNoPassword = require("easy-no-password");
 import SimpleOAuth2 = require("simple-oauth2");
-
-// Can't get these to work in my current version of TypeScript and Node.js
-const got = require("got");
 
 import { config, logger } from "./shared_wrap";
 import { User, IUser } from "./user_model";
@@ -187,17 +186,17 @@ export function phase2(req: any, res: any, next: any) {
 		}],
 		patreonInfo: ["tokenObject", ({tokenObject}, _next) => {
 			log.trace(tokenObject);
-			got("https://www.patreon.com/api/oauth2/v2/identity", {
+			(got as Got)("https://www.patreon.com/api/oauth2/v2/identity", {
 				headers: {
 					"Authorization": "Bearer " + tokenObject.access_token
 				},
-				query: {
+				searchParams: {
 					"include": "memberships,memberships.currently_entitled_tiers",
 					"fields[member]": "currently_entitled_amount_cents"
 				},
-				json: true
-			}).then((response: any) => {
-				const body = response.body;
+				responseType: "json",
+			}).then((response) => {
+				const body: any = response.body;
 				try {
 					const user_id = (body.data.id) as string;
 					log.info("Processing Patreon link for user_id:", user_id);

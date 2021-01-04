@@ -53,6 +53,12 @@ interface SocketAsyncAuto {
 	init_session: null;
 }
 
+interface DeleteBucketAsyncAuto {
+	bucket: IBucket|null;
+	deleted: any;
+	repo: any;
+}
+
 export class SocketHandler implements IDestroyable {
 	public socket: ISocketCustom;
 	public back: BackServerHandler;
@@ -164,7 +170,7 @@ export class SocketHandler implements IDestroyable {
 						this.socket.emit("destroy-u", "Invalid Bucket or Project");
 						return;
 					}
-					if (!bucket.checkPermissions(user)) {
+					if (!bucket.checkAccessPermissions(user)) {
 						this._log.info("Permission denied:", bucket.consoleText);
 						this.sendMessage("Permission denied: " + bucket.bucket_id);
 						this.socket.emit("destroy-u", "Permission Denied");
@@ -214,7 +220,7 @@ export class SocketHandler implements IDestroyable {
 
 				this.listen();
 				if (!skipCreate) {
-					(this.workspace as IWorkspace).beginOctaveRequest(this.flavor);
+					this.workspace.beginOctaveRequest(this.flavor);
 				}
 
 				// Continue down the chain (does not do anything currently)
@@ -459,32 +465,40 @@ export class SocketHandler implements IDestroyable {
 		if (!obj.bucket_id) return;
 		if (!this.user) return;
 		this._log.info("Deleting bucket:", obj.bucket_id);
-		// NOTE: This deletes the bucket from mongo, but not from the file server.  A batch job can be run to delete bucket repos that are not in sync with mongo.
-		Bucket.findOne({ bucket_id: obj.bucket_id }, (err, bucket) => {
-			if (err) {
-				this._log.error("LOAD BUCKET ERROR", err);
-				this.sendMessage("Encountered error while finding bucket.");
-				return;
-			}
-			if (!bucket) {
-				this.sendMessage("Unable to find bucket; did you already delete it?");
-				return;
-			}
-			if (!this.user!._id.equals(bucket.user_id)) {
-				this._log.error("ERROR: Bad owner:", bucket.user_id, this.user!.consoleText);
-				this.sendMessage("You are not the owner of that bucket");
-				return;
-			}
-			bucket.remove((err) => {
-				if (err) {
-					this._log.error("REMOVE BUCKET ERROR", err);
-					this.sendMessage("Encountered error while removing bucket.");
+
+		Async.auto<DeleteBucketAsyncAuto>({
+			bucket: (next) => {
+				Bucket.findOne({ bucket_id: obj.bucket_id }, next);
+			},
+			deleted: ["bucket", ({bucket}, next) => {
+				if (!bucket) {
+					next(new Error("Unable to find bucket"));
 					return;
 				}
+				if (!bucket.checkDeletePermissions(this.user)) {
+					next(new Error("Bad owner: " + bucket.consoleText + " " + this.user?.consoleText));
+					return;
+				}
+				bucket.remove(next);
+			}],
+			repo: ["bucket", "deleted", ({bucket}, next) => {
+				// Note: It would be nice to request repo removal here, but there may be back server instances running that still require it. Instead, there should be a job that periodically scans for and removes orphaned bucket repos.
+				if (bucket) {
+					// bucket.removeRepo(next);
+					next(null);
+				} else {
+					next(null);
+				}
+			}],
+		}, (err) => {
+			if (err) {
+				this._log.warn("DELETE BUCKET", err);
+				this.sendMessage("Encountered error while deleting bucket");
+			} else {
 				this.socket.emit("bucket-deleted", {
 					bucket_id: obj.bucket_id
 				});
-			});
+			}
 		});
 	}
 
