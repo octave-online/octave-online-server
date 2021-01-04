@@ -76,7 +76,8 @@ module.exports = function (grunt) {
 							"app/images",
 							"app/images/logo_collections/" + config.client.theme_collection
 						]
-					}
+					},
+					// "include css": true,
 				},
 				files: [
 					{
@@ -100,7 +101,8 @@ module.exports = function (grunt) {
 							"app/images",
 							"app/images/logo_collections/" + config.client.theme_collection
 						]
-					}
+					},
+					// "include css": true,
 				},
 				files: [
 					{

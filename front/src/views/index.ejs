@@ -324,6 +324,9 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 						</div>
 					<!-- /ko -->
 				</div>
+				<div class="site-control-item" data-bind="click: showCreateNewProject">
+					<a href="javascript:void(0)"><%= t("header.sidebar.createnewproject#btn") %></a>
+				</div>
 				<div class="site-control-item" id="create-password-btn" data-bind="click: showChangePassword">
 					<a href="javascript:void(0)"><%= t("header.sidebar.changepassword#btn") %></a>
 				</div>
@@ -377,10 +380,16 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 			</div>
 			<!-- ko if: allBuckets().length > 0 -->
 				<div class="all-buckets">
-					<strong><%= t("header.buckets.title") %></strong>
+					<strong><%= t("header.buckets.title@2") %></strong>
 					<ul data-bind="foreach: allBuckets">
 						<li>
-							<a data-bind="click: deleteit" title="<%= t("header.buckets.delete#btn") %>" class="bucket-delete">&#x232B;</a>
+							<a data-bind="click: deleteit" title="<%= t("header.buckets.delete#btn@2") %>" class="bucket-delete">&#x232B;</a>
+							<!-- ko if: butype() === "readonly" -->
+							<span class="bucket-icon-bucket" title="<%= t("common.bucket") %>"></span>
+							<!-- /ko -->
+							<!-- ko ifnot: butype() === "readonly" -->
+							<span class="bucket-icon-project" title="<%= t("common.project") %>"></span>
+							<!-- /ko -->
 
 							<a data-bind="attr: { href: url }, text: displayName" target="_blank" class="bucket-name"></a>
 							<br/>
@@ -478,36 +487,75 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 </div></div></div>
 
 <div id="create_bucket" data-purpose="popover" aria-hidden="true"><div><div>
-	<h2 class="popover-title-bar">
-		<%= t("modals.createbucket.title") %>
-	</h2>
 	<!-- ko with: newBucket -->
+	<h2 class="popover-title-bar">
+		<!-- ko if: butype() === "readonly" -->
+		<%= t("modals.createbucket.title") %>
+		<!-- /ko -->
+		<!-- ko ifnot: butype() === "readonly" -->
+		<%= t("modals.createbucket.titlep") %>
+		<!-- /ko -->
+	</h2>
 	<div id="create-bucket-content">
-		<p><%= t("modals.createbucket.p1", { config }) %></p>
-		<h3><%= t("modals.createbucket.subhead1") %></h3>
+		<p><%= t("modals.createbucket.p1@2") %></p>
+		<div class="bucket-butype">
+			<label><input type="radio" value="readonly" data-bind="checked: butype" /><span><%= t("common.bucket") %></span></label>
+			<label><input type="radio" value="editable" data-bind="checked: butype" /><span><%= t("common.project") %></span></label>
+		</div>
+		<h3>
+			<!-- ko if: butype() === "readonly" -->
+			<%= t("modals.createbucket.subhead1@2") %>
+			<!-- /ko -->
+			<!-- ko ifnot: butype() === "readonly" -->
+			<%= t("modals.createbucket.subhead1p") %>
+			<!-- /ko -->
+		</h3>
 		<p><%= t("modals.createbucket.p2") %></p>
 		<fieldset class="bucket-files-fieldset left">
 			<legend><%= t("modals.createbucket.subhead2") %></legend>
 			<select data-bind="options: filesNotIncluded, optionsText: 'filename', selectedOptions: selectedLeft" multiple></select>
 		</fieldset>
 		<fieldset class="bucket-files-fieldset right">
-			<legend><%= t("modals.createbucket.subhead3") %></legend>
+			<legend>
+				<!-- ko if: butype() === "readonly" -->
+				<%= t("modals.createbucket.subhead3") %>
+				<!-- /ko -->
+				<!-- ko ifnot: butype() === "readonly" -->
+				<%= t("modals.createbucket.subhead3p") %>
+				<!-- /ko -->
+			</legend>
 			<select data-bind="options: files, optionsText: 'filename', selectedOptions: selectedRight" multiple></select>
 		</fieldset>
 		<p class="bucket-file-move-btns">
 			<button data-bind="click: moveRightToLeft">⇦</button>
 			<button data-bind="click: moveLeftToRight">⇨</button>
 		</p>
+		<!-- ko if: butype() === "readonly" -->
 		<h3><%= t("modals.createbucket.subhead4") %></h3>
 		<p><%= t("modals.createbucket.p3") %></p>
 		<p><label>
 			<strong><%= t("modals.createbucket.label1") %></strong>
 			<select data-bind="options: textFiles, optionsText: 'filename', optionsCaption: 'none', value: main"></select>
 		</label></p>
-		<p class="last"><%= t("modals.createbucket.p4") %></p>
+		<!-- /ko -->
+		<p class="last">
+			<!-- ko if: butype() === "readonly" -->
+			<%= t("modals.createbucket.p4") %>
+			<!-- /ko -->
+			<!-- ko ifnot: butype() === "readonly" -->
+			<%= t("modals.createbucket.p4p") %>
+			<!-- /ko -->
+		</p>
 	</div>
 	<div id="create-bucket-bar">
-		<button id="create-bucket-btn" data-bind="click: createOnServer, visible: showCreateButton"><%= t("modals.createbucket.submit#btn") %> 🡺</button>
+		<button id="create-bucket-btn" data-bind="click: createOnServer, visible: showCreateButton">
+			<!-- ko if: butype() === "readonly" -->
+			<%= t("modals.createbucket.submit#btn") %> 🡺
+			<!-- /ko -->
+			<!-- ko ifnot: butype() === "readonly" -->
+			<%= t("modals.createbucket.submitp#btn") %> 🡺
+			<!-- /ko -->
+		</button>
 	</div>
 	<img id="create-bucket-spinner" src="images/spinner.svg" width="40" data-bind="visible: !showCreateButton()" />
 	<!-- /ko -->

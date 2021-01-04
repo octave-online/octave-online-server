@@ -179,6 +179,13 @@ define(
 			viewModel.purpose("bucket");
 			viewModel.selectedSkin(OctMethods.ko.availableSkins[3]);
 			onboarding.showBucketPromo();
+		} else {
+			match = $.url().attr("path").match(/^\/project~(\w+)$/);
+			if (match) {
+				OctMethods.vars.bucketId = match[1];
+				viewModel.purpose("project");
+				viewModel.selectedSkin(OctMethods.ko.availableSkins[3]);
+			}
 		}
 
 		// Global key bindings:
@@ -263,6 +270,7 @@ define(
 					newSkin = OctMethods.ko.availableSkins[2];
 					break;
 				case "bucket":
+				case "project":
 					newSkin = OctMethods.ko.availableSkins[3];
 					break;
 				case "default":

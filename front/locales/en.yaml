@@ -20,6 +20,7 @@ header:
   sidebar:
     changeemail#body: Signed in before but need to change your email address? Click "Feedback" and create a ticket. We will change it for you.
     sharedesc#body: Others can use the following link to connect to your workspace.
+    createnewproject#btn: Create New Project
     changelayout#btn: Change/Reset Layout
     changepassword#btn: Change Password
     changetheme#btn: Change Theme
@@ -37,8 +38,8 @@ header:
     textwrap#btn: Wrap Long Lines in Console
     twitter#btn: Follow on Twitter
   buckets:
-    delete#btn: Delete Bucket
-    title: "Your Buckets:"
+    delete#btn@2: Delete Bucket/Project
+    title@2: "Buckets and Projects:"
   meta:
     official:
       title: "{{config.client.app_name}} · Cloud IDE compatible with MATLAB"
@@ -154,16 +155,21 @@ modals:
     submit#btn: Save Password
   createbucket:
     title: Customize Bucket
-    p1: A "bucket" is how to publicly share snapshots of {{config.client.app_name}} script or data files.
-    subhead1: "Optional: Add More Files"
+    titlep: Customize Project
+    p1@2: A "bucket" is the way to share snapshots of script and data files. A "project" is an editable workspace to organize script and data files.
+    subhead1@2: "Optional: Add More Files to Bucket"
+    subhead1p: "Optional: Copy Files into Project"
     p2: Select files and click the right arrow button.
     subhead2: Files to Add
     subhead3: Files in Bucket
+    subhead3p: Files in Project
     subhead4: "Optional: Select Main File"
     p3: The "main" script is automatically run when someone views the bucket.
     label1: "Main File:"
     p4: After clicking below, your browser will refresh into your new bucket.  You can share the URL of the page to which you are redirected.
+    p4p: After clicking below, your browser will refresh into your new project.
     submit#btn: Create Bucket
+    submitp#btn: Create Project
   upgrade:
     title: Upgrade Account
     btn1: View Plans
@@ -223,3 +229,5 @@ common:
   https#p: You are using an unsecured connection (http). People might be able to see what you submit.
   loading#ui: Loading…
   dismiss#btn: dismiss
+  bucket: Bucket
+  project: Project

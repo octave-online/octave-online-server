@@ -258,6 +258,13 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			anal.sitecontrol("upgradetierbtn");
 			$("#upgrade_to_tier").showSafe();
 		},
+		showCreateNewProject: function() {
+			anal.sitecontrol("createnewprojectbtn");
+			var project = new Bucket();
+			project.butype("editable");
+			viewModel.newBucket(project);
+			$("#create_bucket").showSafe();
+		},
 
 		getOctFileFromName: function(filename){
 			// Since allOctFiles is always sorted, we can do binary search.
@@ -740,7 +747,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					filenames: ko.utils.arrayMap(bucket.files(), function(octfile){
 						return octfile.filename();
 					}),
-					main: bucket.mainFilename()
+					main: bucket.mainFilename(),
+					butype: bucket.butype(),
 				});
 			},
 			deleteBucket: function(bucket) {
@@ -1111,7 +1119,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 				}else if (OctMethods.vars.bucketId){
 					OctMethods.socket.emit("init", {
-						action: "bucket",
+						action: (viewModel.purpose() === "bucket") ? "bucket" : "project",
 						info: OctMethods.vars.bucketId,
 						sessCode: OctMethods.socket.sessCode,
 						skipCreate: OctMethods.socket.isExited,
@@ -1357,7 +1365,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					$("#vars_panel").showSafe();
 
 					// Initial bucket command
-					if (OctMethods.vars.bucketInfo && OctMethods.vars.bucketInfo.main) {
+					if (OctMethods.vars.bucketInfo && OctMethods.vars.bucketInfo.main && OctMethods.vars.bucketInfo.main !== ".octaverc") {
 						initCmd += "source(\"" + OctMethods.vars.bucketInfo.main + "\"); ";
 					}
 

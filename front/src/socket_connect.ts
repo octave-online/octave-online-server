@@ -21,7 +21,7 @@
 import Async = require("async");
 
 import { BackServerHandler } from "./back_server_handler";
-import { Bucket } from "./bucket_model";
+import { Bucket, IBucket } from "./bucket_model";
 import { logger, ILogger } from "./shared_wrap";
 import { FlavorRecord } from "./flavor_record_model";
 import { IDestroyable, IWorkspace } from "./utils";
@@ -49,6 +49,7 @@ interface SocketAsyncAuto {
 	user: IUser|null;
 	raw_init: any;
 	init: InitData;
+	bucket: IBucket|null;
 	init_session: null;
 }
 
@@ -57,7 +58,7 @@ export class SocketHandler implements IDestroyable {
 	public back: BackServerHandler;
 	public workspace: IWorkspace|null = null;
 	public user: IUser|null = null;
-	public bucketId: string|null = null;
+	public bucket: IBucket|null = null;
 	public flavor: string|null = null;
 	public destroyed = false;
 
@@ -97,7 +98,7 @@ export class SocketHandler implements IDestroyable {
 				raw_user.loadDependencies(next);
 			}],
 
-			// 2. User requested to connect
+			// 2. Process init data from client and load bucket info
 			raw_init: (next) => {
 				this.socket.once("init", (data) => {
 					next(null, data);
@@ -136,20 +137,47 @@ export class SocketHandler implements IDestroyable {
 					next(null, init);
 				}
 			}],
+			bucket: ["init", ({init}, next) => {
+				const { action, info } = init;
+				if (action !== "bucket" && action !== "project") {
+					next(null, null);
+					return;
+				}
+				Bucket.findOne({ bucket_id: info as string }, next);
+			}],
 
 			// Callback (depends on 1 and 2)
-			init_session: ["user", "init", ({user, init}, next) => {
+			init_session: ["user", "init", "bucket", ({user, init, bucket}, next) => {
 				if (this.destroyed) return;
 
 				// Unpack and save init settings
 				const { action, info, oldSessCode, skipCreate, flavor } = init;
 				this.user = user;
 				this.flavor = flavor;
+				this.bucket = bucket;
+
+				// Check for a valid bucket
+				if (action === "bucket" || action === "project") {
+					if (!bucket || !bucket.isValidAction(action)) {
+						this._log.info("Invalid bucket/project:", action, (bucket?.consoleText));
+						this.sendMessage("Unable to find bucket or project: " + (info as string));
+						this.socket.emit("destroy-u", "Invalid Bucket or Project");
+						return;
+					}
+					if (!bucket.checkPermissions(user)) {
+						this._log.info("Permission denied:", bucket.consoleText);
+						this.sendMessage("Permission denied: " + bucket.bucket_id);
+						this.socket.emit("destroy-u", "Permission Denied");
+						return;
+					}
+					this.socket.emit("bucket-info", bucket);
+				}
 
 				// Fork to load instructor data and buckets
 				this.loadInstructor();
 				this.loadUserBuckets();
 				this.touchUser();
+				this.touchBucket();
 
 				switch (action) {
 					case "workspace":
@@ -166,9 +194,10 @@ export class SocketHandler implements IDestroyable {
 						break;
 
 					case "bucket":
-						if (!info) return;
-						this._log.info("Attaching to a bucket:", info);
-						this.workspace = new NormalWorkspace(oldSessCode, user, info as string);
+					case "project":
+						if (!bucket) return;
+						this._log.info("Attaching to a bucket/project:", bucket.consoleText);
+						this.workspace = new NormalWorkspace(oldSessCode, user, bucket);
 						break;
 
 					case "session":
@@ -184,10 +213,7 @@ export class SocketHandler implements IDestroyable {
 				}
 
 				this.listen();
-				if (action === "bucket") {
-					this.bucketId = info as string;
-					this.loadBucket(skipCreate);
-				} else if (!skipCreate) {
+				if (!skipCreate) {
 					(this.workspace as IWorkspace).beginOctaveRequest(this.flavor);
 				}
 
@@ -383,30 +409,18 @@ export class SocketHandler implements IDestroyable {
 		if (!this.user) return;
 		this.user.touchLastActivity((err) => {
 			if (err) {
-				this._log.error("TOUCH ACTIVITY ERROR", err);
+				this._log.error("TOUCH USER ACTIVITY ERROR", err);
 				return;
 			}
 		});
 	}
 
-	private loadBucket(skipCreate: boolean): void {
-		if (!this.bucketId) return;
-		Bucket.findOne({ bucket_id: this.bucketId }, (err, bucket) => {
+	private touchBucket(): void {
+		if (!this.bucket) return;
+		this.bucket.touchLastActivity((err) => {
 			if (err) {
-				this._log.error("LOAD BUCKET ERROR", err);
-				this.sendMessage("Encountered error while initializing bucket.");
+				this._log.error("TOUCH BUCKET ACTIVITY ERROR", err);
 				return;
-			}
-			if (!bucket) {
-				this.sendMessage("Unable to find bucket: " + this.bucketId);
-				this.socket.emit("destroy-u", "Unknown Bucket");
-				this.workspace = null;
-				return;
-			}
-			this._log.trace("Bucket loaded:", bucket.bucket_id);
-			this.socket.emit("bucket-info", bucket);
-			if (!skipCreate && this.workspace) {
-				this.workspace.beginOctaveRequest(this.flavor);
 			}
 		});
 	}
@@ -429,10 +443,11 @@ export class SocketHandler implements IDestroyable {
 		}
 
 		const bucket = new Bucket();
-		this._log.info("Creating bucket:", obj.bucket_id, this.user.consoleText);
 		bucket.bucket_id = obj.bucket_id;
 		bucket.user_id = this.user._id;
 		bucket.main = obj.main;
+		bucket.butype = obj.butype;
+		this._log.info("Creating bucket:", bucket.consoleText, this.user.consoleText);
 		bucket.save((err) => {
 			if (err) return this._log.error("ERROR creating bucket:", err);
 			this.socket.emit("bucket-created", { bucket });

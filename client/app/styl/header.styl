@@ -202,7 +202,7 @@ header {
 		}
 
 		ul {
-			margin: 3px 0
+			margin: 0 0 3px 0
 			padding-left: 0
 			list-style-type: none
 		}
@@ -210,6 +210,7 @@ header {
 		li {
 			clear: both
 			border-bottom: 1px solid colorfg2
+			line-height: 1.2em
 		}
 
 		.bucket-name {
@@ -222,9 +223,28 @@ header {
 		
 		.bucket-delete {
 			float: right
-			margin-top: 0.5em
+			height: 2.4em
+			line-height: 2.4em
+			vertical-align: middle
 			margin-right: 3px
 			cursor: pointer
+		}
+		
+		.bucket-icon-bucket, .bucket-icon-project {
+			float: left
+			width: 1.2em
+			height: 2.4em
+			margin-right: 0.5em
+			background-repeat: no-repeat
+			background-position: left center
+		}
+		
+		.bucket-icon-bucket {
+			flaticon(share)
+		}
+		
+		.bucket-icon-project {
+			flaticon(project)
 		}
 	}
 	

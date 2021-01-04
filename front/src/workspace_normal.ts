@@ -23,6 +23,7 @@ import { EventEmitter } from "events";
 import Async = require("async");
 
 import { IDestroyable, IWorkspace } from "./utils";
+import { IBucket } from "./bucket_model";
 import { IUser } from "./user_model";
 import { config, newRedisMessenger, logger, ILogger } from "./shared_wrap";
 import { octaveHelper, SessionState } from "./octave_session_helper";
@@ -38,14 +39,14 @@ export class NormalWorkspace
 	public sessCode: string|null;
 	public destroyed = false;
 	private user: IUser|null;
-	private bucketId: string|null;
+	private bucket: IBucket|null;
 	private _log: ILogger;
 
-	constructor(sessCode: string|null, user: IUser|null, bucketId: string|null){
+	constructor(sessCode: string|null, user: IUser|null, bucket: IBucket|null){
 		super();
 		this.sessCode = sessCode;
 		this.user = user;
-		this.bucketId = bucketId;
+		this.bucket = bucket;
 		this._log = logger("workspace-nrm:uninitialized");
 
 		process.nextTick(()=>{
@@ -92,8 +93,8 @@ export class NormalWorkspace
 				if (this.user) {
 					this._log.info("User", this.user.consoleText);
 				}
-				if (this.bucketId) {
-					this._log.info("Bucket", this.bucketId);
+				if (this.bucket) {
+					this._log.info("Bucket", this.bucket.consoleText);
 				}
 
 				// Ask for an Octave session if we need one.
@@ -101,7 +102,7 @@ export class NormalWorkspace
 				if (state === SessionState.Needed) {
 					octaveHelper.askForOctave(sessCode, {
 						user: this.user,
-						bucketId: this.bucketId,
+						bucket: this.bucket,
 						flavor
 					}, next);
 				} else {

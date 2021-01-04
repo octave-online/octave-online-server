@@ -132,6 +132,8 @@ If in doubt on style, follow the convention of the file you are editing.
 
 **Internationalization (i18n/l10n):** If possible, all new UI strings should be extracted into *en.yaml* so that they can be translated.  For more details, see [front/locales/README.md](front/locales/README.md).
 
+**Upstream/Downstream:** Throughout the code, there are comments and function names indicating "upstream" and "downstream".  "Upstream", or "U", means toward the Octave process, away from the client.  "Downstream", or "D", means toward the client, away from the Octave process.  So, for example, a message sent from the back server to the front server is considered downstream, and a message sent from the back server to the Octave process is considered upstream.
+
 **ECMAScript Versions:** JavaScript code in the *client* project should conform to the ECMAScript 5 standard, in order to have broad browser support.  JavaScript in all other projects can use the latest ECMAScript standard supported by Node.js 6.x LTS.  By design, all JavaScript code in Octave Online Server server should be able to be run natively without transcompilation to a different ECMAScript version.
 
 ### Linting

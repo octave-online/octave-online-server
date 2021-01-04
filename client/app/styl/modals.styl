@@ -184,6 +184,35 @@ popover(_width, _height, _zindex){
 			margin: 10px
 			clear: both
 		}
+		
+		.bucket-butype {
+			position: relative
+			text-align: center
+
+			label {
+				cursor: pointer
+				position: relative
+				z-index: 0
+				font-size: 1.2em
+				margin: 0 0.5em
+
+				input {
+					position: relative
+					z-index: 2
+				}
+				span {
+					position: relative
+					background-color: color2
+					position: inline-block
+					padding: 0.2em 0.4em 0.2em 1.2em
+					margin-left: -1em
+					z-index: 1
+				}
+				input[type="radio"]:checked + span {
+					background-color: color1
+				}
+			}
+		}
 
 		.bucket-files-fieldset {
 			width: 40%
@@ -215,6 +244,7 @@ popover(_width, _height, _zindex){
 		}
 
 		.last {
+			clear: both
 			margin-top: 15px
 			border-top: 2px solid color2
 			padding-top: 5px

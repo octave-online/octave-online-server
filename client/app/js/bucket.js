@@ -45,8 +45,10 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 				}
 			}
 		});
+		self.butype = ko.observable("readonly");
 		self.url = ko.computed(function() {
-			return window.location.origin + "/bucket~" + self.id();
+			var prefix = (self.butype() === "readonly") ? "bucket" : "project";
+			return window.location.origin + "/" + prefix + "~" + self.id();
 		});
 		self.displayName = ko.computed(function() {
 			return self.mainFilename() ? self.mainFilename() : self.id() ? self.id() : "headless bucket";
@@ -97,6 +99,7 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 		bucket.id(info.bucket_id);
 		bucket.mainFilename(info.main);
 		bucket.createdTime(new Date(info.createdTime));
+		bucket.butype(info.butype);
 		return bucket;
 	};
 
