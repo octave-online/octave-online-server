@@ -158,6 +158,11 @@ export function init(buildData: BuildData){
 				let key_string = key as string;
 				oo_translations[key_string] = t(`javascript.${key_string}`, { config });
 			}
+			let commonKeys: {[key: string]: unknown} = Flatten((req as any).i18n.getDataByLanguage("en").translation.common);
+			for (let key of Object.keys(commonKeys)) {
+				let key_string = key as string;
+				oo_translations["common." + key_string] = t(`common.${key_string}`, { config });
+			}
 			res.status(200).render("index", {
 				config,
 				buildData,

@@ -62,7 +62,7 @@ const bucketSchema = new Mongoose.Schema({
 // Workaround to make TypeScript apply signatures to the method definitions
 interface IBucketMethods {
 	checkAccessPermissions(user: IUser|null): boolean;
-	checkDeletePermissions(user: IUser|null): boolean;
+	isOwnedBy(user: IUser|null): boolean;
 	touchLastActivity(next: (err: Err) => void): void;
 	removeRepo(next: (err: Err) => void): void;
 	isValidAction(this: IBucket, action: string): boolean;
@@ -102,7 +102,7 @@ class BucketMethods implements IBucketMethods {
 		return true;
 	}
 
-	checkDeletePermissions(this: IBucket, user: IUser|null): boolean {
+	isOwnedBy(this: IBucket, user: IUser|null): boolean {
 		if (!user || !user._id.equals(this.user_id)) {
 			return false;
 		}
@@ -144,7 +144,7 @@ class BucketMethods implements IBucketMethods {
 // Copy the methods into bucketSchema
 bucketSchema.methods.isValidAction = BucketMethods.prototype.isValidAction;
 bucketSchema.methods.checkAccessPermissions = BucketMethods.prototype.checkAccessPermissions;
-bucketSchema.methods.checkDeletePermissions = BucketMethods.prototype.checkDeletePermissions;
+bucketSchema.methods.isOwnedBy = BucketMethods.prototype.isOwnedBy;
 bucketSchema.methods.touchLastActivity = BucketMethods.prototype.touchLastActivity;
 bucketSchema.methods.removeRepo = BucketMethods.prototype.removeRepo;
 bucketSchema.methods.logf = BucketMethods.prototype.logf;

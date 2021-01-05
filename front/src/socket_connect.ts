@@ -187,30 +187,34 @@ export class SocketHandler implements IDestroyable {
 
 				switch (action) {
 					case "workspace":
-						if (!info) return;
-						this._log.info("Attaching to colaborative workspace:", info);
-						this.workspace = new SharedWorkspace("default", info, socket.id);
-						break;
+						this._log.warn("Attempted to create no-context workspace:", info);
+						return;
 
 					case "student":
 						if (!info) return;
 						// Note: this is not necesarilly a student.  It can be any user.
 						this._log.info("Attaching to a student's workspace:", info);
-						this.workspace = new SharedWorkspace("student", info, socket.id);
+						this.workspace = new SharedWorkspace(info as string, null, null, socket.id);
 						break;
 
 					case "bucket":
 					case "project":
 						if (!bucket) return;
-						this._log.info("Attaching to a bucket/project:", bucket.consoleText);
-						this.workspace = new NormalWorkspace(oldSessCode, user, bucket);
+						if (bucket.butype === "collab") {
+							// TODO: Should we start the collaborative session with the current user's tier or with the project owner's tier? For now, start it with the current user's tier.
+							this._log.info("Attaching to a collaborative project:", bucket.consoleText);
+							this.workspace = new SharedWorkspace(null, user, bucket, socket.id);
+						} else {
+							this._log.info("Attaching to a bucket/project:", bucket.consoleText);
+							this.workspace = new NormalWorkspace(oldSessCode, user, bucket);
+						}
 						break;
 
 					case "session":
 					default:
 						if (user && user.share_key) {
 							this._log.info("Attaching as host to student's workspace:", user.share_key);
-							this.workspace = new SharedWorkspace("host", user, socket.id);
+							this.workspace = new SharedWorkspace(null, user, null, socket.id);
 						} else {
 							this._log.info("Attaching to default workspace with sessCode", oldSessCode);
 							this.workspace = new NormalWorkspace(oldSessCode, user, null);
@@ -451,8 +455,10 @@ export class SocketHandler implements IDestroyable {
 		const bucket = new Bucket();
 		bucket.bucket_id = obj.bucket_id;
 		bucket.user_id = this.user._id;
-		bucket.main = obj.main;
 		bucket.butype = obj.butype;
+		if (obj.butype === "readonly") {
+			bucket.main = obj.main;
+		}
 		this._log.info("Creating bucket:", bucket.consoleText, this.user.consoleText);
 		bucket.save((err) => {
 			if (err) return this._log.error("ERROR creating bucket:", err);
@@ -475,7 +481,7 @@ export class SocketHandler implements IDestroyable {
 					next(new Error("Unable to find bucket"));
 					return;
 				}
-				if (!bucket.checkDeletePermissions(this.user)) {
+				if (!bucket.isOwnedBy(this.user)) {
 					next(new Error("Bad owner: " + bucket.consoleText + " " + this.user?.consoleText));
 					return;
 				}
@@ -618,23 +624,54 @@ export class SocketHandler implements IDestroyable {
 	}
 
 	private onToggleSharing(obj: any): void {
-		if (!this.user || !obj) return;
-		const enabled = obj.enabled;
+		const enabled: boolean = obj?.enabled;
+		const warning = new Error("warning");
 
-		if (!enabled && this.user.program && this.user.program !== "default") {
-			this.sendMessage("You must unenroll before disabling sharing.\nTo unenroll, run the command \"enroll('default')\".");
-		} else if (enabled) {
-			this.user.createShareKey((err)=> {
-				if (err) this._log.error("MONGO ERROR", err);
+		Async.series([
+			(next) => {
+				if (this.bucket) {
+					if (!this.bucket.isOwnedBy(this.user)) {
+						this.sendMessage("Permission denied");
+						this._log.warn("Could not toggle sharing: permission denied:", this.bucket.consoleText, this.user?.consoleText);
+						next(warning);
+					} else if (this.bucket.butype === "editable" && enabled) {
+						this.bucket.butype = "collab";
+						this.bucket.save(next);
+					} else if (this.bucket.butype === "collab" && !enabled) {
+						if (this.workspace) this.workspace.destroyD("Sharing Disabled");
+						this.bucket.butype = "editable";
+						this.bucket.save(next);
+					} else {
+						this.sendMessage("Could not toggle sharing");
+						this._log.warn("Could not toggle sharing:", this.bucket.consoleText, obj);
+						next(warning);
+					}
+				} else if (this.user) {
+					if (this.user.program && this.user.program !== "default") {
+						this.sendMessage("You must unenroll before changing sharing settings.\nTo unenroll, run the command \"enroll('default')\".");
+						next(warning);
+					} else if (!this.user.share_key && enabled) {
+						this.user.createShareKey(next);
+					} else if (this.user.share_key && !enabled) {
+						if (this.workspace) this.workspace.destroyD("Sharing Disabled");
+						this.user.removeShareKey(next);
+					} else {
+						this.sendMessage("Could not toggle sharing");
+						this._log.warn("Could not toggle sharing:", this.user.consoleText, obj);
+						next(warning);
+					}
+				}
+			}
+		], (err) => {
+			if (err === warning) {
+				// no-op
+			} else if (err) {
+				this._log.error("TOGGLE SHARING", err);
+				this.sendMessage("Could not toggle sharing");
+			} else {
 				this.socket.emit("reload", {});
-			});
-		} else {
-			if (this.workspace) this.workspace.destroyD("Sharing Disabled");
-			this.user.removeShareKey((err)=> {
-				if (err) this._log.error("MONGO ERROR", err);
-				this.socket.emit("reload", {});
-			});
-		}
+			}
+		});
 	}
 
 	private onFlavorUpgrade(obj: any): void {

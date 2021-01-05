@@ -29,6 +29,7 @@ import { IWorkspace } from "./utils";
 import { octaveHelper, SessionState } from "./octave_session_helper";
 import { OtDocument } from "./ot_document";
 import { User, IUser } from "./user_model";
+import { IBucket } from "./bucket_model";
 
 interface BeginOctaveRequestAsyncAuto {
 	user: IUser|null;
@@ -54,6 +55,7 @@ export class SharedWorkspace
 	public destroyed = false;
 	private shareKey: string|null = null;
 	private user: IUser|null = null;
+	private bucket: IBucket|null = null;
 	private docs: { [key: string]: OtDocument } = {};
 	private msgIds: string[] = [];
 	private otEventCounter = 0;
@@ -63,33 +65,26 @@ export class SharedWorkspace
 	private _log: ILogger;
 	private logId: string;
 
-	constructor(type: string, info: any, logId: string) {
+	constructor(shareKey: string|null, user: IUser|null, bucket: IBucket|null, logId: string) {
 		super();
 
 		this._log = logger(`workspace-shr:${logId}:uninitialized`);
 		this.logId = logId;
 
-		switch(type){
-			case "student":
-				this.shareKey = info as string;
-				break;
+		this.shareKey = shareKey;
+		this.user = user;
+		this.bucket = bucket;
 
-			case "host":
-				this.user = info as IUser;
-				this.setWsId(this.user.parametrized);
-				break;
-
-			case "default":
-			default:
-				this.setWsId(info as string);
-				break;
+		if (bucket) {
+			this.setWsId(`bucket_${bucket.bucket_id}`, false);
+		} else if (user) {
+			this.setWsId(user.parametrized, true);
 		}
-
 
 		this.subscribe();
 	}
 
-	private setWsId(wsId: string) {
+	private setWsId(wsId: string, truncate: boolean) {
 		if (this.wsId) {
 			if (this.wsId !== wsId)
 				this._log.error("SHARED WORKSPACE ERROR: Trying to set wsId to", wsId, "when it was already set to", this.wsId);
@@ -99,9 +94,8 @@ export class SharedWorkspace
 		this.wsId = wsId;
 
 		// May 2018: remove email-based IDs from log
-		const safeWsId = this.wsId && this.wsId.substr(0, 8);
-		this.safeWsId = safeWsId;
-		this._log = logger(`workspace-shr:${this.logId}:${safeWsId}`);
+		this.safeWsId = truncate ? wsId.substr(0, 8) : wsId;
+		this._log = logger(`workspace-shr:${this.logId}:${this.safeWsId}`);
 
 		// Create the prompt's OtDocument (every session)
 		// Never emit from constructors since there are no listeners yet;
@@ -109,7 +103,7 @@ export class SharedWorkspace
 		const promptId = "prompt." + this.wsId;
 		process.nextTick(() => {
 			this.emit("data", "ws.promptid", promptId);
-			this.docs[promptId] = new OtDocument(promptId, `${this.logId}:prompt.${safeWsId}`, "");
+			this.docs[promptId] = new OtDocument(promptId, `${this.logId}:prompt.${this.safeWsId}`, "");
 			this.subscribe();
 		});
 	}
@@ -307,9 +301,11 @@ export class SharedWorkspace
 			ready: ["user", ({user}, next) => {
 				this.user = user;
 				if (user) {
-					this.setWsId(user.parametrized);
-					this._log.info("Connecting to student:", user.consoleText);
 					this.emit("data", "userinfo", user);
+					if (!this.wsId) {
+						this.setWsId(user.parametrized, true);
+						this._log.info("Connecting to student:", user.consoleText);
+					}
 				} else if (!this.wsId) {
 					this._log.warn("WARNING: Could not find student with share key", this.shareKey);
 					this.emit("message", "Could not find the specified workspace.  Please check your URL and try again.");
@@ -372,6 +368,7 @@ export class SharedWorkspace
 				this._log.info("Sending Octave Request for Shared Workspace");
 				octaveHelper.askForOctave(this.sessCode, {
 					user: this.user,
+					bucket: this.bucket,
 					flavor
 				}, next);
 			}

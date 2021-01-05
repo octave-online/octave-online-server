@@ -64,9 +64,9 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		<h1>
 			<img alt="<%= config.client.app_name %>" src="images/logos/banner-black.svg" data-bind="attr: { src: logoSrc }" />
 		</h1>
-		<!-- ko if: showUserInHeader -->
+		<!-- ko if: extraHeaderText -->
 		<small>
-			<span data-bind="text: currentUser().name"></span>
+			<span data-bind="text: extraHeaderText"></span>
 		</small>
 		<!-- /ko -->
 		<div class="hamburger" id="hamburger" aria-label="Menu" role="button" aria-controls="navigation">
@@ -291,7 +291,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 						}, value: currentLanguage"></select>
 				</div>
 			<% } %>
-			<!-- ko if: (!currentUser() && !showUserInHeader()) -->
+			<!-- ko if: (!currentUser() && purpose() !== "student") -->
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
 					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="<%= t("header.sidebar.signingoogle#btn") %>" />
 				</svg>
@@ -302,7 +302,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					<image xlink:href="images/sign-in-with-email.svg" src="images/sign-in-with-email.png" width="200" height="40" alt="<%= t("header.sidebar.signinemail#btn") %>" />
 				</svg>
 			<!-- /ko -->
-			<!-- ko if: (currentUser() && !showUserInHeader()) -->
+			<!-- ko if: (currentUser() && purpose() !== "student") -->
 				<div id="userbox">
 					<span data-bind="text: currentUser().name"></span>
 					<a id="logout_icon" href="javascript:void(0)" title="Sign Out" data-bind="click: doLogout"><%= t("header.sidebar.signout#btn") %></a>
@@ -311,16 +311,23 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					<a href="javascript:void(0)"><%= t("header.sidebar.patreon#btn") %></a>
 				</div>
 				<div class="share-url-box">
-					<!-- ko if: currentUser().share_key -->
+					<!-- ko if: sharingEnabled -->
+						<!-- ko if: purpose() !== "project" -->
 						<em><%= t("header.sidebar.sharedesc#body") %></em>
 						<input data-bind="value: shareLink" onclick="this.select()" readonly="readonly" />
+						<!-- /ko -->
 						<div class="site-control-item" data-bind="click: toggleSharing">
-							<a href="javascript:void(0)"><%= t("header.sidebar.disablesharing#btn") %></a>
+							<a href="javascript:void(0)"><%= t("header.sidebar.disablesharing#btn@2") %></a>
 						</div>
 					<!-- /ko -->
-					<!-- ko ifnot: currentUser().share_key -->
+					<!-- ko ifnot: sharingEnabled -->
 						<div class="site-control-item" data-bind="click: toggleSharing">
-							<a href="javascript:void(0)"><%= t("header.sidebar.enablesharing#btn") %></a>
+							<!-- ko if: purpose() === "project" -->
+							<a href="javascript:void(0)" title="<%= t("header.sidebar.enablesharingp#tooltip") %>"><%= t("header.sidebar.enablesharing#btn@2") %></a>
+							<!-- /ko -->
+							<!-- ko if: purpose() !== "project" -->
+							<a href="javascript:void(0)" title="<%= t("header.sidebar.enablesharing#tooltip") %>"><%= t("header.sidebar.enablesharing#btn@2") %></a>
+							<!-- /ko -->
 						</div>
 					<!-- /ko -->
 				</div>
@@ -616,7 +623,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 </div>
 <div id="share-promo" aria-hidden="true">
 	<span class="l0"><%= t("promos.sharing.subhead1") %></span>
-	<span class="l1"><%= t("promos.sharing.p1") %></span>
+	<span class="l1"><%= t("promos.sharing.p1@2") %></span>
 	<span class="l3" data-purpose="close"><%= t("common.dismiss#btn") %></span>
 </div>
 <div id="login-promo" aria-hidden="true">

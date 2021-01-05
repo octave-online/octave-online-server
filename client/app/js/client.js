@@ -137,6 +137,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 	var plotHistory = ko.observableArray([]);
 	var currentPlotIdx = ko.observable(-1);
 	var currentUser = ko.observable();
+	var currentBucket = ko.observable();
 	var viewModel = window.viewModel = {
 		files: allOctFiles,
 		openFile: ko.observable(),
@@ -244,14 +245,20 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			utils.alert(oo_translations["students.reenroll.p3"] + " " + newProgram);
 		},
 
-		toggleSharing: function(){
-			var shareKey = viewModel.currentUser().share_key;
-			var program = viewModel.currentUser().program;
-			if (program && program !== "default") {
-				utils.alert(oo_translations["togglesharing.p1"] + " " + program + "\n\n"+ oo_translations["togglesharing.p2"] + "\n\nenroll('default')");
-			} else {
-				OctMethods.socket.toggleSharing(!shareKey);
+		currentBucket: currentBucket,
+		sharingEnabled: ko.computed(function() {
+			var bucket = currentBucket();
+			if (bucket) {
+				return bucket.butype === "collab";
 			}
+			var user = currentUser();
+			if (user) {
+				return !!user.share_key;
+			}
+			return false;
+		}),
+		toggleSharing: function(){
+			OctMethods.socket.toggleSharing(!viewModel.sharingEnabled());
 		},
 
 		showUpgradeTier: function() {
@@ -299,8 +306,17 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			shown: ko.observable(false)
 		}
 	};
-	viewModel.showUserInHeader = ko.computed(function(){
-		return (viewModel.currentUser() && viewModel.purpose() === "student");
+	viewModel.isCollabProject = ko.computed(function(){
+		return viewModel.currentBucket() && viewModel.currentBucket().butype === "collab";
+	});
+	viewModel.extraHeaderText = ko.computed(function(){
+		if (viewModel.purpose() === "student") {
+			return currentUser() && currentUser().name;
+		} else if (viewModel.currentBucket()) {
+			return oo_translations["common.project"] + " " + viewModel.currentBucket().bucket_id.slice(0, 4);
+		} else {
+			return null;
+		}
 	});
 	viewModel.shareLink = ko.computed(function(){
 		if (!viewModel.currentUser()) return "";
@@ -950,8 +966,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					window.dispatchEvent(evt);
 
 					// If we are in a bucket, auto-open the main file.
-					if (OctMethods.vars.bucketInfo && OctMethods.vars.bucketInfo.main) {
-						var filename = OctMethods.vars.bucketInfo.main;
+					if (viewModel.currentBucket() && viewModel.currentBucket().main) {
+						var filename = viewModel.currentBucket().main;
 						var octfile = viewModel.getOctFileFromName(filename);
 						if (octfile) {
 							octfile.open();
@@ -1034,7 +1050,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				viewModel.instructorPrograms.push(data);
 			},
 			bucketInfo: function(data){
-				OctMethods.vars.bucketInfo = data;
+				viewModel.currentBucket(data);
 			},
 			bucketCreated: function(data) {
 				var bucket = Bucket.fromBucketInfo(data.bucket);
@@ -1365,8 +1381,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					$("#vars_panel").showSafe();
 
 					// Initial bucket command
-					if (OctMethods.vars.bucketInfo && OctMethods.vars.bucketInfo.main && OctMethods.vars.bucketInfo.main !== ".octaverc") {
-						initCmd += "source(\"" + OctMethods.vars.bucketInfo.main + "\"); ";
+					if (viewModel.currentBucket() && viewModel.currentBucket().main && viewModel.currentBucket().main !== ".octaverc") {
+						initCmd += "source(\"" + viewModel.currentBucket().main + "\"); ";
 					}
 
 					// Evaluate the query string command (uses purl)
@@ -1423,7 +1439,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			wsId: null,
 			studentId: null,
 			bucketId: null,
-			bucketInfo: null
 		}
 	};
 

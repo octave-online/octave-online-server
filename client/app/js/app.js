@@ -184,7 +184,6 @@ define(
 			if (match) {
 				OctMethods.vars.bucketId = match[1];
 				viewModel.purpose("project");
-				viewModel.selectedSkin(OctMethods.ko.availableSkins[3]);
 			}
 		}
 
@@ -270,8 +269,14 @@ define(
 					newSkin = OctMethods.ko.availableSkins[2];
 					break;
 				case "bucket":
-				case "project":
 					newSkin = OctMethods.ko.availableSkins[3];
+					break;
+				case "project":
+					if (viewModel.currentBucket() && viewModel.currentBucket().butype === "collab") {
+						newSkin = OctMethods.ko.availableSkins[2];
+					} else {
+						newSkin = OctMethods.ko.availableSkins[3];
+					}
 					break;
 				case "default":
 				default:
@@ -288,6 +293,9 @@ define(
 		});
 		window.matchMedia("(prefers-color-scheme: dark)").addListener(function(updated) {
 			toggleTheme(updated.matches);
+		});
+		viewModel.currentBucket.subscribe(function() {
+			toggleTheme(viewModel.prefersDarkMode());
 		});
 
 		// Callouts positioned relative to non-top-level elements

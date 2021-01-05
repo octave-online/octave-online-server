@@ -111,13 +111,19 @@ export class OtDocument extends EventEmitter {
 			if (err) this._log.error("REDIS ERROR", err);
 			else {
 				this._log.trace("Loaded doc: rev", rev);
-				this.emit("data", "ot.doc", {
-					docId: this.id,
-					rev,
-					content
-				});
-				if (rev === 0 && this.initialContent) {
-					this.setContent(this.initialContent, false);
+				if (rev === -1) {
+					this.setContent(this.initialContent);
+					this.emit("data", "ot.doc", {
+						docId: this.id,
+						rev: 0,
+						content: this.initialContent
+					});
+				} else {
+					this.emit("data", "ot.doc", {
+						docId: this.id,
+						rev,
+						content
+					});
 				}
 			}
 		});
@@ -209,10 +215,10 @@ export class OtDocument extends EventEmitter {
 		this.opsReceivedCounter++;
 	}
 
-	private setContent(content: string, overwrite: boolean) {
+	private setContent(content: string) {
 		const chgId = Uuid.v4();
 
-		this._log.trace("Setting content", content.length, overwrite);
+		this._log.trace("Setting content", content.length);
 
 		const message = {
 			type: "operation",
@@ -221,7 +227,7 @@ export class OtDocument extends EventEmitter {
 		};
 
 		// note: don't push chgId to this.chgIds so that the operation reply gets sent to our own client
-		redisMessenger.setOtDocContent(this.id, content, overwrite, message);
+		redisMessenger.setOtDocContent(this.id, content, message);
 		this.setContentCounter++;
 	}
 }

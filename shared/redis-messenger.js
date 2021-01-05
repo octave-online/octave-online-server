@@ -403,7 +403,7 @@ class RedisMessenger extends EventEmitter {
 		multi.get(redisUtil.chan.otDoc(docId));
 		multi.exec((err, res) => {
 			if (err) return next(err);
-			const rev = Number(res[0]) || 0;
+			const rev = Number(res[0]) || -1;
 			const content = res[1] || "";
 			next(err, rev, content);
 		});
@@ -427,7 +427,7 @@ class RedisMessenger extends EventEmitter {
 			this._handleError.bind(this));
 	}
 
-	setOtDocContent(docId, content, overwrite, message) {
+	setOtDocContent(docId, content, message) {
 		const ops_key = redisUtil.chan.otOps(docId);
 		const doc_key = redisUtil.chan.otDoc(docId);
 		const sub_key = redisUtil.chan.otSub(docId);
@@ -441,7 +441,6 @@ class RedisMessenger extends EventEmitter {
 				JSON.stringify(message),
 				config.ot.operation_expire/1000,
 				config.ot.document_expire.timeout/1000,
-				(overwrite?"overwrite":"retain")
 			],
 			this._handleError.bind(this));
 	}

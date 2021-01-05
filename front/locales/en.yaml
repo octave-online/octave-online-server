@@ -24,8 +24,10 @@ header:
     changelayout#btn: Change/Reset Layout
     changepassword#btn: Change Password
     changetheme#btn: Change Theme
-    disablesharing#btn: Disable Sharing
-    enablesharing#btn: Share Workspace
+    disablesharing#btn@2: Disable Collaboration
+    enablesharing#btn@2: Enable Collaboration
+    enablesharing#tooltip: Enabling collaboration allows others to edit your home workspace in real time.
+    enablesharingp#tooltip: Enabling collaboration allows others to edit this project in real time.
     github#btn: GitHub Project
     inlineplots#btn: Render New Plots Inline
     legal#btn: Privacy Policy and EULA
@@ -135,7 +137,7 @@ promos:
     p2: Click the icon to create a new bucket.
   sharing:
     subhead1: "Tip:"
-    p1: Set up sharing so you can collaboratively edit your script files in real time, like Google Docs.
+    p1@2: Enable collaboration to allow others to edit your script files in real time, like Google Docs.
   login:
     p1: Want to use scripts?
     p2: Sign in to create and share script files.
@@ -216,6 +218,7 @@ javascript:
       p3: "Error: Could not find the course code:"
     unenroll:
       p1: Are you sure that you want to remove the following student from your course?
+  # Not currently used:
   togglesharing:
     p1: "You cannot disable sharing as a student enrolled in an {{config.client.app_name}} course code:"
     p2: "You need to remove yourself by running this command at at the command prompt:"

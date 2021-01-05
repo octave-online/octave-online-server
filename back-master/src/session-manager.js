@@ -162,6 +162,7 @@ class SessionManager extends EventEmitter {
 		}
 
 		// Determine which tier to use
+		// Important: the user in content.user is not necesarilly the currently authenticated user; it could be the owner of a shared workspace.
 		const user = content.user;
 		const tier = content.tier ? content.tier : user ? user.tier : Object.keys(this._pool)[0];
 		const poolTier = config2.tier(tier)["sessionManager.poolTier"] || tier;
