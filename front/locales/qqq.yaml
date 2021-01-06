@@ -20,11 +20,14 @@ header:
   sidebar:
     changeemail#body: (OBSOLETE) Paragraph of body text
     sharedesc#body: Paragraph of body text
+    createnewproject#btn: Button text
     changelayout#btn: Button text
     changepassword#btn: Button text
     changetheme#btn: Button text
-    disablesharing#btn: Button text
-    enablesharing#btn: Button text
+    disablesharing#btn@2: Button text
+    enablesharing#btn@2: Button text
+    enablesharing#tooltip: "Tooltip (additional explanation of what a button will do)"
+    enablesharingp#tooltip: "Tooltip (additional explanation of what a button will do)"
     github#btn: Link text
     inlineplots#btn: Button text
     legal#btn: Button text
@@ -37,8 +40,8 @@ header:
     textwrap#btn: Button text
     twitter#btn: Button text
   buckets:
-    delete#btn: Button text
-    title: Label, followed by a number
+    delete#btn@2: Button text
+    title@2: Label, followed by a number
   meta:
     official:
       title: Site Title
@@ -134,7 +137,7 @@ promos:
     p2: Call to action, paragraph of body text
   sharing:
     subhead1: Section header
-    p1: Call to action, paragraph of body text
+    p1@2: Call to action, paragraph of body text
   login:
     p1: Rhetorical question asked of the user
     p2: Call to action, paragraph of body text
@@ -154,16 +157,21 @@ modals:
     submit#btn: Button text
   createbucket:
     title: Button text
-    p1: Paragraph of body text
-    subhead1: Call to action, section header
+    titlep: Button text
+    p1@2: Paragraph of body text
+    subhead1@2: Call to action, section header
+    subhead1p: Call to action, section header
     p2: Call to action, paragraph of body text
     subhead2: Section header, followed by a list
     subhead3: Section header, followed by a list
+    subhead3p: Section header, followed by a list
     subhead4: Call to action, section header
     p3: Paragraph of body text
     label1: Section header, followed by a list
     p4: Paragraph of body text
+    p4p: Paragraph of body text
     submit#btn: Button text
+    submitp#btn: Button text
   upgrade:
     title: Button text
     btn1: Button text
@@ -223,3 +231,5 @@ common:
   https#p: Paragraph of body text
   loading#ui: Filler text when a component is not ready yet
   dismiss#btn: Button text
+  bucket: Name for a collection of files shared with other users; do not translate in Latin-script languages
+  project: Name for a workspace with files for editing and collaboration

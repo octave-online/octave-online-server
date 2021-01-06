@@ -313,7 +313,11 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		if (viewModel.purpose() === "student") {
 			return currentUser() && currentUser().name;
 		} else if (viewModel.currentBucket()) {
-			return oo_translations["common.project"] + " " + viewModel.currentBucket().bucket_id.slice(0, 4);
+			if (viewModel.purpose() === "project") {
+				return oo_translations["common.project"] + " " + viewModel.currentBucket().bucket_id.slice(0, 4);
+			} else {
+				return viewModel.currentBucket().bucket_id.slice(0, 4);
+			}
 		} else {
 			return null;
 		}
