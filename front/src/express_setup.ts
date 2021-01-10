@@ -69,6 +69,47 @@ export interface BuildData {
 	locales?: string[];
 }
 
+function getT(req: Express.Request) {
+	let t = (req as any).t as I18next.TFunction;
+	const requestedLanguage = (req as any).language as string;
+	if (requestedLanguage === "en-XA") {
+		let old_t = t;
+		t = function(key: string, options: any) {
+			return PseudoLocalization.localize(old_t(key, options));
+		};
+	}
+	return t;
+}
+
+function getCurrentLanguage(req: Express.Request, buildData: BuildData) {
+	// Figure out the current language from the resource bundles
+	const resolvedLanguages = (req as any).languages as string[];
+	let currentLanguage;
+	for (let language of resolvedLanguages) {
+		if (buildData.locales!.indexOf(language) !== -1) {
+			currentLanguage = language;
+			break;
+		}
+	}
+	return currentLanguage;
+}
+
+function getJSTranslations(req: Express.Request, t: I18next.TFunction) {
+	// Get the JavaScript translations
+	let oo_translations: {[key: string]: string} = {};
+	let jsKeys: {[key: string]: unknown} = Flatten((req as any).i18n.getDataByLanguage("en").translation.javascript);
+	for (let key of Object.keys(jsKeys)) {
+		let key_string = key as string;
+		oo_translations[key_string] = t(`javascript.${key_string}`, { config });
+	}
+	let commonKeys: {[key: string]: unknown} = Flatten((req as any).i18n.getDataByLanguage("en").translation.common);
+	for (let key of Object.keys(commonKeys)) {
+		let key_string = key as string;
+		oo_translations["common." + key_string] = t(`common.${key_string}`, { config });
+	}
+	return oo_translations;
+}
+
 export function init(buildData: BuildData){
 	log.info("Serving static files from:", STATIC_PATH_1);
 	log.info("Loading locales from:", buildData.locales_path);
@@ -134,41 +175,13 @@ export function init(buildData: BuildData){
 		})
 		.get(["/", "/index.html"], function(req, res) {
 			res.setHeader("Cache-Control", "public, max-age=0");
-			let t = (req as any).t as I18next.TFunction;
-			const requestedLanguage = (req as any).language as string;
-			if (requestedLanguage === "en-XA") {
-				let old_t = t;
-				t = function(key: string, options: any) {
-					return PseudoLocalization.localize(old_t(key, options));
-				};
-			}
-			// Figure out the current language from the resource bundles
-			const resolvedLanguages = (req as any).languages as string[];
-			let currentLanguage;
-			for (let language of resolvedLanguages) {
-				if (buildData.locales!.indexOf(language) !== -1) {
-					currentLanguage = language;
-					break;
-				}
-			}
-			// Get the JavaScript translations
-			let oo_translations: {[key: string]: string} = {};
-			let jsKeys: {[key: string]: unknown} = Flatten((req as any).i18n.getDataByLanguage("en").translation.javascript);
-			for (let key of Object.keys(jsKeys)) {
-				let key_string = key as string;
-				oo_translations[key_string] = t(`javascript.${key_string}`, { config });
-			}
-			let commonKeys: {[key: string]: unknown} = Flatten((req as any).i18n.getDataByLanguage("en").translation.common);
-			for (let key of Object.keys(commonKeys)) {
-				let key_string = key as string;
-				oo_translations["common." + key_string] = t(`common.${key_string}`, { config });
-			}
+			const t = getT(req);
 			res.status(200).render("index", {
 				config,
 				buildData,
 				t,
-				oo_translations,
-				currentLanguage,
+				oo_translations: getJSTranslations(req, t),
+				currentLanguage: getCurrentLanguage(req, buildData),
 			});
 		})
 		.post("/auth/persona", Passport.authenticate("persona"), function(req, res){
