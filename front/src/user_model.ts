@@ -20,6 +20,7 @@
 
 // Mongoose User: stores OpenID information for a user.
 
+import Async = require("async");
 import Bcrypt = require("bcrypt");
 import Crypto = require("crypto");
 import Mongoose = require("mongoose");
@@ -42,11 +43,6 @@ const userSchema = new Mongoose.Schema({
 	repo_key: String,
 	share_key: String,
 	password_hash: String,
-	tier_override: String,
-	legal_time_override: Number,
-	payload_limit_override: Number,
-	countdown_extra_time_override: Number,
-	countdown_request_time_override: Number,
 	flavors_enabled: Boolean,
 	patreon: {
 		user_id: String,
@@ -59,7 +55,15 @@ const userSchema = new Mongoose.Schema({
 		default: Date.now
 	},
 	program: String,
-	instructor: [String]
+	instructor: [String],
+
+	// Feature overrides
+	tier_override: String,
+	legal_time_override: Number,
+	payload_limit_override: Number,
+	countdown_extra_time_override: Number,
+	countdown_request_time_override: Number,
+	ads_disabled_override: Boolean,
 });
 
 // Workaround to make TypeScript apply signatures to the method definitions
@@ -69,7 +73,8 @@ interface IUserMethods {
 	setPassword(password: string, next?: (err: Err) => void): void;
 	checkPassword(password: string, next: (err: Err, success: boolean) => void): void;
 	touchLastActivity(next: (err: Err) => void): void;
-	loadDependencies(next: (err: Err, user?: IUser) => void): void;
+	loadProgramModel(next: (err: Err, user: IUser) => void): void;
+	loadInstructorModels(next: (err: Err, user: IUser) => void): void;
 	isFlavorOK(flavor: string, next: (err: Err, result: boolean) => void): void;
 	logf(): ILogger;
 }
@@ -86,11 +91,6 @@ export interface IUser extends Mongoose.Document, IUserMethods {
 	repo_key: string;
 	share_key?: string;
 	password_hash: string;
-	tier_override: string;
-	legal_time_override: number;
-	payload_limit_override: number;
-	countdown_extra_time_override: number;
-	countdown_request_time_override: number;
 	flavors_enabled: boolean;
 	patreon?: {
 		user_id: string;
@@ -103,13 +103,24 @@ export interface IUser extends Mongoose.Document, IUserMethods {
 	program: string;
 	instructor: string[];
 
+	// Feature overrides
+	tier_override?: string;
+	legal_time_override?: number;
+	payload_limit_override?: number;
+	countdown_extra_time_override?: number;
+	countdown_request_time_override?: number;
+	ads_disabled_override?: boolean;
+
 	// Virtuals
 	displayName: string;
 	consoleText: string;
 	tier: string;
+	programModel: IProgram | null | undefined;
+	instructorModels: IProgram[] | undefined;
 
-	// Extra internal slots
-	_program: IProgram | null;
+	// Cached sub-models
+	_programModel?: IProgram | null;
+	_instructorModels?: IProgram[];
 }
 
 // Parametrization function used by Octave Online,
@@ -176,7 +187,6 @@ userSchema.virtual("tier").get(function(this: IUser) {
 	// First try: tier_override
 	let candidate: string|undefined = this.tier_override;
 	if (candidate && validTiers.indexOf(candidate) !== -1) {
-		this.logf().trace("Tier from tier_override:", candidate);
 		return candidate;
 	}
 
@@ -186,15 +196,13 @@ userSchema.virtual("tier").get(function(this: IUser) {
 		// <any> cast: https://stackoverflow.com/a/35209016/1407170
 		candidate = (config.patreon.tiers as any)[patreonTier].oo_tier;
 		if (candidate && validTiers.indexOf(candidate) !== -1) {
-			this.logf().trace("Tier from Patreon:", candidate);
 			return candidate;
 		}
 	}
 
 	// Third try: program
-	candidate = this._program?.tier_override;
+	candidate = this.programModel?.tier_override;
 	if (candidate && validTiers.indexOf(candidate) !== -1) {
-		this.logf().trace("Tier from program:", candidate);
 		return candidate;
 	}
 
@@ -209,6 +217,14 @@ userSchema.virtual("patreon.tier_name").get(function(this: IUser) {
 		// <any> cast: https://stackoverflow.com/a/35209016/1407170
 		return (config.patreon.tiers as any)[patreonTier].name;
 	}
+});
+
+// Virtuals for return results from sub-models
+userSchema.virtual("programModel").get(function(this: IUser) {
+	return this._programModel;
+});
+userSchema.virtual("instructorModels").get(function(this: IUser) {
+	return this._instructorModels;
 });
 
 // Add all of the resource-specific overrides to work in the same way.
@@ -237,6 +253,12 @@ userSchema.virtual("patreon.tier_name").get(function(this: IUser) {
 		tierKey: "session.countdownRequestTime",
 		defaultValue: config.session.countdownRequestTime
 	},
+	{
+		field: "adsDisabled",
+		overrideKey: "ads_disabled_override",
+		tierKey: "ads.disabled",
+		defaultValue: config.ads.disabled
+	}
 ].forEach(({field, overrideKey, tierKey, defaultValue})=>{
 	userSchema.virtual(field).get(function(this: IUser) {
 		// <any> cast: https://stackoverflow.com/a/35209016/1407170
@@ -245,7 +267,7 @@ userSchema.virtual("patreon.tier_name").get(function(this: IUser) {
 			return candidate;
 		}
 		// <any> cast: https://stackoverflow.com/a/35209016/1407170
-		candidate = (this._program as any|null)?.[overrideKey];
+		candidate = (this.programModel as any|null)?.[overrideKey];
 		if (candidate) {
 			return candidate;
 		}
@@ -335,15 +357,36 @@ class UserMethods implements IUserMethods {
 		this.save(next);
 	}
 
-	loadDependencies(this: IUser, next: (err: Err, user?: IUser) => void): void {
+	loadProgramModel(this: IUser, next: (err: Err, user: IUser) => void): void {
 		if (!this.program) {
 			return next(null, this);
 		}
 		Program.findOne({
 			program_name: this.program
-		}, (err, _program) => {
-			if (err) return next(err);
-			this._program = _program;
+		}, (err, results) => {
+			if (err) return next(err, this);
+			this.logf().trace("Loaded program model");
+			this._programModel = results;
+			next(null, this);
+		});
+	}
+
+	loadInstructorModels(this: IUser, next: (err: Err, user: IUser) => void): void {
+		Async.map<string, IProgram>(this.instructor, (program_name, __next) => {
+			Program.findOne({ program_name }, (err, program) => {
+				if (err) {
+					return __next(err);
+				}
+				if (!program) {
+					program = new Program();
+					program.program_name = program_name;
+				}
+				program.loadStudents(__next);
+			});
+		}, (err, results) => {
+			if (err) return next(err, this);
+			this.logf().trace("Loaded instructor models:", results?.length);
+			this._instructorModels = results!.map((v) => v!);
 			next(null, this);
 		});
 	}
@@ -374,7 +417,8 @@ userSchema.methods.removeShareKey = UserMethods.prototype.removeShareKey;
 userSchema.methods.setPassword = UserMethods.prototype.setPassword;
 userSchema.methods.checkPassword = UserMethods.prototype.checkPassword;
 userSchema.methods.touchLastActivity = UserMethods.prototype.touchLastActivity;
-userSchema.methods.loadDependencies = UserMethods.prototype.loadDependencies;
+userSchema.methods.loadProgramModel = UserMethods.prototype.loadProgramModel;
+userSchema.methods.loadInstructorModels = UserMethods.prototype.loadInstructorModels;
 userSchema.methods.isFlavorOK = UserMethods.prototype.isFlavorOK;
 userSchema.methods.logf = UserMethods.prototype.logf;
 
@@ -392,7 +436,7 @@ userSchema.post("init", function(this: IUser){
 // Also leave out the *_override fields since the information in those fields is available via the corresponding camel-case virtuals.
 userSchema.set("toJSON", {
 	virtuals: true,
-	transform: function(doc, ret /* , options */) {
+	transform: function(doc: IUser, ret /* , options */) {
 		delete ret.password_hash;
 		delete ret.tier_override;
 		if (ret.patreon) {

@@ -101,7 +101,7 @@ export class SocketHandler implements IDestroyable {
 			},
 			user: ["raw_user", ({raw_user}, next) => {
 				if (!raw_user) return next(null, null);
-				raw_user.loadDependencies(next);
+				raw_user.loadProgramModel(next);
 			}],
 
 			// 2. Process init data from client and load bucket info
@@ -184,6 +184,10 @@ export class SocketHandler implements IDestroyable {
 				this.loadUserBuckets();
 				this.touchUser();
 				this.touchBucket();
+
+				if (this.user) {
+					this._log.info("Tier:", this.user.tier);
+				}
 
 				switch (action) {
 					case "workspace":
@@ -392,12 +396,15 @@ export class SocketHandler implements IDestroyable {
 		if (!this.user || !this.user.instructor || !this.user.instructor.length)
 			return;
 
-		const programs = this.user.instructor;
-		programs.forEach((program: string) => {
-			User.find({ program: program }, (err,users) => {
+		this.user.loadInstructorModels((err, user) => {
+			if (err) {
+				this._log.error("LOAD INSTRUCTOR ERROR", err);
+				return;
+			}
+			user.instructorModels?.forEach((program) => {
 				this.socket.emit("instructor", {
-					program: program,
-					users: users
+					program: program.program_name,
+					users: program.students,
 				});
 			});
 		});

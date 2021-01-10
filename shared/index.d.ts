@@ -197,9 +197,10 @@ export class StdioMessenger {
 }
 
 export const config: {
-    adsense: {
-        adsense_html: string;
-        adsense_id: string;
+    ads: {
+        abox_html: string;
+        disabled: boolean;
+        head_html: string;
     };
     auth: {
         easy: {

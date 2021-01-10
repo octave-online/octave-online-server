@@ -358,6 +358,7 @@ selinux: {
 # Tiers allow you to customize a number of different settings for different groups of users.  For example, this could be used to implement a free tier and a paid tier, where the paid tier gets more resources.
 # A default tier, named _default, is always available.
 # The following settings are customizable by tier:
+#  - ads.disabled
 #  - sessionManager.poolSize
 #  - sessionManager.poolTier
 #  - sessionManager.queueBoostTime
@@ -493,6 +494,9 @@ ot: {
 
 # Advertisement settings
 ads: {
+	# Whether to hide ads from an authenticated user.
+	disabled: false,
+
 	# HTML code for the <head> block.
 	# Example for AdSense:
 	#     '''
