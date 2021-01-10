@@ -21,7 +21,6 @@
 import EasyNoPassword = require("easy-no-password");
 import GoogleOAuth = require("passport-google-oauth");
 import Local = require("passport-local");
-import Mailgun = require("mailgun-js");
 import Passport = require("passport");
 import Postmark = require("postmark");
 
@@ -36,14 +35,10 @@ const log = logger("passport-setup");
 const baseUrl = `${config.front.protocol}://${config.front.hostname}:${config.front.port}/`;
 const googCallbackUrl = baseUrl + "auth/google/callback";
 
-let mailgunClient: Mailgun.Mailgun|null = null;
 let postmarkClient: Postmark.ServerClient|null = null;
 
 if (config.email.provider === "mailgun") {
-	mailgunClient = Mailgun({
-		apiKey: config.mailgun.api_key,
-		domain: config.mailgun.domain
-	});
+	log.warn("Mailgun is no longer supported. Feel free to open a PR to add support. See #43");
 } else {
 	postmarkClient = new Postmark.ServerClient(config.postmark.serverToken);
 }
@@ -130,21 +125,7 @@ function (req) {
 },
 function (email, token, done) {
 	const url = `${baseUrl}auth/tok?u=${encodeURIComponent(email)}&t=${token}`;
-	if (mailgunClient) {
-		mailgunClient.messages().send({
-			from: config.email.from,
-			to: email,
-			subject: "Octave Online Login",
-			text: `Your login token for Octave Online is: ${token}\n\nYou can also click the following link.\n\n${url}\n\nOnce you have signed into your account, you may optionally set a password to speed up the sign-in process.  To do this, open the menu and click Change Password.`
-		}, (err, info) => {
-			if (err) {
-				log.warn("Failed sending email:", email, info);
-			} else {
-				log.trace("Sent token email:", Utils.emailHash(email));
-			}
-			done(null);
-		});
-	} else if (postmarkClient) {
+	if (postmarkClient) {
 		postmarkClient.sendEmailWithTemplate({
 			TemplateAlias: config.postmark.templateAlias,
 			From: config.email.from,
@@ -162,6 +143,8 @@ function (email, token, done) {
 			log.error("Failed sending email:", email, err);
 			done(err);
 		});
+	} else {
+		log.error("Unable to send email: please configure an email client for Octave Online");
 	}
 },
 function (email: string, done: (err: Err, user?: unknown, info?: any) => void) {
