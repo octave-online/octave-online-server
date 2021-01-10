@@ -66,6 +66,10 @@ const userSchema = new Mongoose.Schema({
 	ads_disabled_override: Boolean,
 });
 
+userSchema.index({
+	share_key: 1
+});
+
 // Workaround to make TypeScript apply signatures to the method definitions
 interface IUserMethods {
 	createShareKey(next?: (err: Err) => void): void;
@@ -73,7 +77,6 @@ interface IUserMethods {
 	setPassword(password: string, next?: (err: Err) => void): void;
 	checkPassword(password: string, next: (err: Err, success: boolean) => void): void;
 	touchLastActivity(next: (err: Err) => void): void;
-	loadProgramModel(next: (err: Err, user: IUser) => void): void;
 	loadInstructorModels(next: (err: Err, user: IUser) => void): void;
 	isFlavorOK(flavor: string, next: (err: Err, result: boolean) => void): void;
 	logf(): ILogger;
@@ -119,7 +122,6 @@ export interface IUser extends Mongoose.Document, IUserMethods {
 	instructorModels: IProgram[] | undefined;
 
 	// Cached sub-models
-	_programModel?: IProgram | null;
 	_instructorModels?: IProgram[];
 }
 
@@ -219,9 +221,12 @@ userSchema.virtual("patreon.tier_name").get(function(this: IUser) {
 	}
 });
 
-// Virtuals for return results from sub-models
-userSchema.virtual("programModel").get(function(this: IUser) {
-	return this._programModel;
+// Virtuals to return results from sub-models
+userSchema.virtual("programModel", {
+	ref: "Program",
+	localField: "program",
+	foreignField: "program_name",
+	justOne: true,
 });
 userSchema.virtual("instructorModels").get(function(this: IUser) {
 	return this._instructorModels;
@@ -357,20 +362,6 @@ class UserMethods implements IUserMethods {
 		this.save(next);
 	}
 
-	loadProgramModel(this: IUser, next: (err: Err, user: IUser) => void): void {
-		if (!this.program) {
-			return next(null, this);
-		}
-		Program.findOne({
-			program_name: this.program
-		}, (err, results) => {
-			if (err) return next(err, this);
-			this.logf().trace("Loaded program model");
-			this._programModel = results;
-			next(null, this);
-		});
-	}
-
 	loadInstructorModels(this: IUser, next: (err: Err, user: IUser) => void): void {
 		Async.map<string, IProgram>(this.instructor, (program_name, __next) => {
 			Program.findOne({ program_name }, (err, program) => {
@@ -381,7 +372,9 @@ class UserMethods implements IUserMethods {
 					program = new Program();
 					program.program_name = program_name;
 				}
-				program.loadStudents(__next);
+				program.populate("students").execPopulate()
+					.then(() => { __next(null, program!) })
+					.catch(__next);
 			});
 		}, (err, results) => {
 			if (err) return next(err, this);
@@ -417,7 +410,6 @@ userSchema.methods.removeShareKey = UserMethods.prototype.removeShareKey;
 userSchema.methods.setPassword = UserMethods.prototype.setPassword;
 userSchema.methods.checkPassword = UserMethods.prototype.checkPassword;
 userSchema.methods.touchLastActivity = UserMethods.prototype.touchLastActivity;
-userSchema.methods.loadProgramModel = UserMethods.prototype.loadProgramModel;
 userSchema.methods.loadInstructorModels = UserMethods.prototype.loadInstructorModels;
 userSchema.methods.isFlavorOK = UserMethods.prototype.isFlavorOK;
 userSchema.methods.logf = UserMethods.prototype.logf;
@@ -451,3 +443,8 @@ userSchema.set("toJSON", {
 });
 
 export const User = Mongoose.model<IUser>("User", userSchema);
+
+User.on("index", err => {
+	if (err) logger("user-index").error(err);
+	else logger("user-index").info("Init Success");
+});

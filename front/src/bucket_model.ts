@@ -59,6 +59,10 @@ const bucketSchema = new Mongoose.Schema({
 	},
 });
 
+bucketSchema.index({
+	bucket_id: 1
+});
+
 // Workaround to make TypeScript apply signatures to the method definitions
 interface IBucketMethods {
 	checkAccessPermissions(user: IUser|null): boolean;
@@ -162,3 +166,8 @@ bucketSchema.set("toJSON", {
 });
 
 export const Bucket = Mongoose.model<IBucket>("Bucket", bucketSchema);
+
+Bucket.on("index", err => {
+	if (err) logger("bucket-index").error(err);
+	else logger("bucket-index").info("Init Success");
+});

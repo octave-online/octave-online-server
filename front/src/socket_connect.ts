@@ -45,7 +45,6 @@ interface InitData {
 }
 
 interface SocketAsyncAuto {
-	raw_user: IUser|null;
 	user: IUser|null;
 	raw_init: any;
 	init: InitData;
@@ -92,17 +91,15 @@ export class SocketHandler implements IDestroyable {
 		Async.auto<SocketAsyncAuto>({
 
 			// 1. Load user from database
-			raw_user: (next) => {
+			user: (next) => {
 				const sess = this.socket.request.session;
 				const userId = sess && sess.passport && sess.passport.user;
 
-				if (userId) User.findById(userId, next);
+				if (userId) User.findById(userId)
+					.populate("programModel")
+					.exec(next);
 				else next(null, null);
 			},
-			user: ["raw_user", ({raw_user}, next) => {
-				if (!raw_user) return next(null, null);
-				raw_user.loadProgramModel(next);
-			}],
 
 			// 2. Process init data from client and load bucket info
 			raw_init: (next) => {

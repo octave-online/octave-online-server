@@ -22,9 +22,7 @@
 
 import Mongoose = require("mongoose");
 import { logger, ILogger } from "./shared_wrap";
-import { User, IUser } from "./user_model";
-
-type Err = Error | null;
+import { IUser } from "./user_model";
 
 // Initialize the schema
 const programSchema = new Mongoose.Schema({
@@ -39,9 +37,12 @@ const programSchema = new Mongoose.Schema({
 	ads_disabled_override: Boolean,
 });
 
+programSchema.index({
+	program_name: 1
+});
+
 // Workaround to make TypeScript apply signatures to the method definitions
 interface IProgramMethods {
-	loadStudents(next: (err: Err, program: IProgram) => void): void;
 	logf(): ILogger;
 }
 
@@ -59,34 +60,24 @@ export interface IProgram extends Mongoose.Document, IProgramMethods {
 
 	// Virtuals
 	students: IUser[] | undefined;
-
-	// Cached sub-models
-	_students?: IUser[];
 }
 
-// Virtuals for return results from sub-models
-programSchema.virtual("students").get(function(this: IProgram) {
-	return this._students;
+// Virtuals to return results from sub-models
+programSchema.virtual("students", {
+	ref: "User",
+	localField: "program_name",
+	foreignField: "program",
+	justOne: false,
 });
 
 // Define the methods in a class to help TypeScript
 class ProgramMethods implements IProgramMethods {
-	loadStudents(this: IProgram, next: (err: Err, program: IProgram) => void): void {
-		User.find({ program: this.program_name }, (err, students) => {
-			if (err) return next(err, this);
-			this.logf().trace("Loaded students:", students?.length);
-			this._students = students;
-			next(err, this);
-		});
-	}
-
 	logf(this: IProgram): ILogger {
 		return logger("program:" + this.id.valueOf());
 	}
 }
 
 // Copy the methods into programSchema
-programSchema.methods.loadStudents = ProgramMethods.prototype.loadStudents;
 programSchema.methods.logf = ProgramMethods.prototype.logf;
 
 programSchema.set("toJSON", {
@@ -94,3 +85,8 @@ programSchema.set("toJSON", {
 });
 
 export const Program = Mongoose.model<IProgram>("Program", programSchema);
+
+Program.on("index", err => {
+	if (err) logger("program-index").error(err);
+	else logger("program-index").info("Init Success");
+});
