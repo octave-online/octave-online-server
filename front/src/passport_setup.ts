@@ -56,10 +56,11 @@ async function findOrCreateUser(email: string, profile: any) {
 
 	// Make a new user
 	log.trace("Creating New User");
-	user = await User.create({
+	user = new User({
 		email: email,
 		profile: profile
 	});
+	await user.save();
 	log.info("New User", user.consoleText);
 	return user;
 }
