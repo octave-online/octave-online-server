@@ -66,7 +66,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		</h1>
 		<!-- ko if: extraHeaderText -->
 		<small>
-			<span data-bind="text: extraHeaderText"></span>
+			<span id="extra_header_text" data-bind="text: extraHeaderText, class: purpose, click: extraHeaderTextClick"></span>
 		</small>
 		<!-- /ko -->
 		<div class="hamburger" id="hamburger" aria-label="Menu" role="button" aria-controls="navigation">
@@ -490,6 +490,52 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<p><strong><%= t("common.caution#label") %></strong> <%= t("common.https#p") %> <a data-bind="attr: { href: 'https:' + window.location.href.substr(5) }"><%= t("common.https#btn") %></a></p>
 	<!-- /ko -->
 	<button id="save-password-btn"><%= t("modals.changepwd.submit#btn") %></button>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
+
+<div id="bucket_info" data-purpose="popover" aria-hidden="true"><div><div>
+	<!-- ko with: currentBucket -->
+	<h2 class="popover-title-bar">
+		<!-- ko if: butype() === "readonly" -->
+		<%= t("common.bucket") %>
+		<!-- /ko -->
+		<!-- ko ifnot: butype() === "readonly" -->
+		<%= t("common.project") %>
+		<!-- /ko -->
+		<span data-bind="text: shortId"></span>
+	</h2>
+	<p>
+		<%= t("modals.bucketinfo.p1") %>
+	</p>
+	<p>
+		<a class="action-link" data-bind="click: $root.showCloneAsProject">
+			<!-- ko if: butype() === "readonly" -->
+			<%= t("modals.bucketinfo.btn1") %>
+			<!-- /ko -->
+			<!-- ko ifnot: butype() === "readonly" -->
+			<%= t("modals.bucketinfo.btn1p") %>
+			<!-- /ko -->
+		</a>
+	</p>
+	<!-- ko with: baseModel -->
+	<p>
+		<%= t("modals.bucketinfo.label2") %>
+		<a data-bind="attr: { href: url }" target="_blank">
+			<!-- ko if: butype() === "readonly" -->
+			<%= t("common.bucket") %>
+			<!-- /ko -->
+			<!-- ko ifnot: butype() === "readonly" -->
+			<%= t("common.project") %>
+			<!-- /ko -->
+			<span data-bind="text: shortId"></span>
+		</a>
+	</p>
+	<!-- /ko -->
+	<p>
+		<%= t("modals.bucketinfo.label1") %>
+		<span data-bind="text: createdTimeString"></span>
+	</p>
+	<!-- /ko -->
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 

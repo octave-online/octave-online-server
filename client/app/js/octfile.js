@@ -135,7 +135,7 @@ define([
 			OctMethods.editor.download(self);
 		};
 		self.share = function(){
-			OctMethods.editor.startNewBucket(self);
+			OctMethods.ko.viewModel.startNewBucket(self);
 		};
 		self.isActive = ko.computed(function(){
 			return self === OctMethods.ko.viewModel.openFile();

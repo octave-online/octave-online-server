@@ -160,7 +160,16 @@ popover(_width, _height, _zindex){
 	}
 }
 
-// Create Bucket
+// Bucket/Project Info
+#bucket_info {
+	popover(50%, 50%, 320)
+	
+	.action-link {
+		display: inline-block
+	}
+}
+
+// Create Bucket/Project
 #create_bucket {
 	popover(80%, 80%, 310)
 	bucket_bar_height = 40px
@@ -309,17 +318,9 @@ popover(_width, _height, _zindex){
 	}
 
 	.action-links a {
-		background-color: color2
-		color: colorfgd
-		padding: 0.5em
-		border-radius: 0.5em
-
-		&:hover{
-			background-color: colorfg1
-		}
-		&:active{
-			background-color: colorfg4
-		}
+		@extend .action-link
+		display: inline-block
+		white-space: nowrap
 	}
 
 	.minor-action-links {

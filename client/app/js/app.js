@@ -272,7 +272,7 @@ define(
 					newSkin = OctMethods.ko.availableSkins[3];
 					break;
 				case "project":
-					if (viewModel.currentBucket() && viewModel.currentBucket().butype === "collab") {
+					if (viewModel.currentBucket() && viewModel.currentBucket().butype() === "collab") {
 						newSkin = OctMethods.ko.availableSkins[2];
 					} else {
 						newSkin = OctMethods.ko.availableSkins[3];

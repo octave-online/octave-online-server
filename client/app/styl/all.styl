@@ -61,6 +61,24 @@ a img {
 	text-decoration: underline
 	cursor: pointer
 }
+.action-link {
+	padding: 0.5em
+	border-radius: 0.5em
+	color: colorfgd
+	background-color: color2
+	cursor: pointer
+	text-decoration: underline
+
+	& > * {
+		color: inherit
+	}
+	&:hover{
+		background-color: colorfg1
+	}
+	&:active{
+		background-color: colorfg4
+	}
+}
 
 @require("flexbox.styl")
 @require("header.styl")

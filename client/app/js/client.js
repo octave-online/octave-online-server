@@ -249,7 +249,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		sharingEnabled: ko.computed(function() {
 			var bucket = currentBucket();
 			if (bucket) {
-				return bucket.butype === "collab";
+				return bucket.butype() === "collab";
 			}
 			var user = currentUser();
 			if (user) {
@@ -265,11 +265,44 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			anal.sitecontrol("upgradetierbtn");
 			$("#upgrade_to_tier").showSafe();
 		},
+		startNewBucket: function(octfile){
+			anal.sitecontrol("startnewbucketbtn");
+			var bucket = new Bucket();
+			bucket.files.push(octfile);
+			bucket.main(octfile);
+			if (currentBucket()) {
+				bucket.base_bucket_id(currentBucket().id());
+			}
+			viewModel.newBucket(bucket);
+			$("#create_bucket").showSafe();
+		},
 		showCreateNewProject: function() {
 			anal.sitecontrol("createnewprojectbtn");
-			var project = new Bucket();
-			project.butype("editable");
-			viewModel.newBucket(project);
+			var bucket = new Bucket();
+			bucket.butype("editable");
+			if (currentBucket()) {
+				bucket.base_bucket_id(currentBucket().id());
+			}
+			viewModel.newBucket(bucket);
+			$("#create_bucket").showSafe();
+		},
+		showCloneAsProject: function() {
+			anal.sitecontrol("cloneasprojectbtn");
+			if (!currentUser()) {
+				alert(oo_translations["common.loginrequired"]);
+				console.error("Auth user required to create bucket");
+				return;
+			}
+			if (!currentBucket()) {
+				console.error("Cannot clone non-bucket");
+				return;
+			}
+			var bucket = new Bucket();
+			bucket.butype("editable");
+			bucket.files(allOctFiles());
+			bucket.base_bucket_id(currentBucket().id());
+			viewModel.newBucket(bucket);
+			$("#bucket_info").hideSafe();
 			$("#create_bucket").showSafe();
 		},
 
@@ -307,21 +340,26 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		}
 	};
 	viewModel.isCollabProject = ko.computed(function(){
-		return viewModel.currentBucket() && viewModel.currentBucket().butype === "collab";
+		return viewModel.currentBucket() && viewModel.currentBucket().butype() === "collab";
 	});
 	viewModel.extraHeaderText = ko.computed(function(){
 		if (viewModel.purpose() === "student") {
 			return currentUser() && currentUser().name;
 		} else if (viewModel.currentBucket()) {
 			if (viewModel.purpose() === "project") {
-				return oo_translations["common.project"] + " " + viewModel.currentBucket().bucket_id.slice(0, 4);
+				return oo_translations["common.project"] + " " + viewModel.currentBucket().shortId();
 			} else {
-				return viewModel.currentBucket().bucket_id.slice(0, 4);
+				return viewModel.currentBucket().shortId();
 			}
 		} else {
 			return null;
 		}
 	});
+	viewModel.extraHeaderTextClick = function() {
+		if (viewModel.currentBucket()) {
+			$("#bucket_info").showSafe();
+		}
+	};
 	viewModel.shareLink = ko.computed(function(){
 		if (!viewModel.currentUser()) return "";
 		return window.location.origin + "/workspace~" + viewModel.currentUser().share_key;
@@ -769,6 +807,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					}),
 					main: bucket.mainFilename(),
 					butype: bucket.butype(),
+					base_bucket_id: bucket.base_bucket_id(),
 				});
 			},
 			deleteBucket: function(bucket) {
@@ -970,8 +1009,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					window.dispatchEvent(evt);
 
 					// If we are in a bucket, auto-open the main file.
-					if (viewModel.currentBucket() && viewModel.currentBucket().main) {
-						var filename = viewModel.currentBucket().main;
+					if (viewModel.currentBucket() && viewModel.currentBucket().main()) {
+						var filename = viewModel.currentBucket().mainFilename();
 						var octfile = viewModel.getOctFileFromName(filename);
 						if (octfile) {
 							octfile.open();
@@ -1054,7 +1093,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				viewModel.instructorPrograms.push(data);
 			},
 			bucketInfo: function(data){
-				viewModel.currentBucket(data);
+				viewModel.currentBucket(Bucket.fromBucketInfo(data));
 			},
 			bucketCreated: function(data) {
 				var bucket = Bucket.fromBucketInfo(data.bucket);
@@ -1195,7 +1234,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			bucketWarned: false,
 			save: function(octfile){
 				if (viewModel.purpose() === "bucket" && !OctMethods.editor.bucketWarned) {
-					utils.alert(oo_translations["console.readonly#alert"]);
+					utils.alert(oo_translations["console.readonly#alert@2"]+"\n\n"+(viewModel.currentBucket()&&viewModel.currentBucket().shortId()));
 					OctMethods.editor.bucketWarned = true;
 				}
 				return OctMethods.socket.save(octfile);
@@ -1320,13 +1359,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				viewModel.openFile(null);
 				allOctFiles.removeAll();
 			},
-			startNewBucket: function(octfile){
-				var bucket = new Bucket();
-				bucket.files.push(octfile);
-				bucket.main(octfile);
-				viewModel.newBucket(bucket);
-				$("#create_bucket").showSafe();
-			}
 		},
 
 		// Editor Callback Functions
@@ -1385,8 +1417,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					$("#vars_panel").showSafe();
 
 					// Initial bucket command
-					if (viewModel.currentBucket() && viewModel.currentBucket().main && viewModel.currentBucket().main !== ".octaverc") {
-						initCmd += "source(\"" + viewModel.currentBucket().main + "\"); ";
+					if (viewModel.currentBucket() && viewModel.currentBucket().mainFilename() && viewModel.currentBucket().mainFilename() !== ".octaverc") {
+						initCmd += "source(\"" + viewModel.currentBucket().mainFilename() + "\"); ";
 					}
 
 					// Evaluate the query string command (uses purl)

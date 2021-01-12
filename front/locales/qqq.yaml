@@ -155,9 +155,15 @@ modals:
     title: Button text
     p1: Call to action, paragraph of body text
     submit#btn: Button text
+  bucketinfo:
+    p1: Call to action, paragraph of body text
+    label1: Label, followed by a date and time
+    label2: Label, followed by a link
+    btn1: Button text
+    btn1p: Button text
   createbucket:
-    title: Button text
-    titlep: Button text
+    title: Title of dialog box
+    titlep: Title of dialog box
     p1@2: Paragraph of body text
     subhead1@2: Call to action, section header
     subhead1p: Call to action, section header
@@ -190,7 +196,7 @@ javascript:
     exited#alert: Label, followed by an error code
     payload#alert: Paragraph of body text
     plotwindow#alert: Paragraph of body text with call to action
-    readonly#alert: Paragraph of body text
+    readonly#alert@2: Error message
     reconnecting#alert: Paragraph of body text
     refresh#alert: Paragraph of body text
     reconnect#btn: Button text
@@ -231,5 +237,6 @@ common:
   https#p: Paragraph of body text
   loading#ui: Filler text when a component is not ready yet
   dismiss#btn: Button text
+  loginrequired: Error message
   bucket: Name for a collection of files shared with other users; do not translate in Latin-script languages
   project: Name for a workspace with files for editing and collaboration

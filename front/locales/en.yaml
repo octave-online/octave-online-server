@@ -155,6 +155,12 @@ modals:
     title: Change Password
     p1: Enter your new password below.  To remove your password and disable password-based logins, leave the password field blank and click "Save Password".
     submit#btn: Save Password
+  bucketinfo:
+    p1: Click below to make your own copy of this bucket or project.
+    label1: "Created at:"
+    label2: "Forked From:"
+    btn1: "Fork This Bucket"
+    btn1p: "Fork This Project"
   createbucket:
     title: Customize Bucket
     titlep: Customize Project
@@ -190,7 +196,7 @@ javascript:
     exited#alert: "Octave Exited. Message:"
     payload#alert: "NOTICE: Execution paused due to large payload"
     plotwindow#alert: This button shows and hides the plot window.  Enter an expression that generates a plot.
-    readonly#alert: "Note: This is a read-only bucket. Changes you make will not be persisted after you close your browser window."
+    readonly#alert@2: "Note: This is a read-only bucket; your edits are temporary. To make your edits permanent, fork the bucket by clicking the bucket name:"
     reconnecting#alert: "Connection lost.  Attempting to reconnect..."
     refresh#alert: "This will reload your files from the server. Any unsaved changes will be lost."
     reconnect#btn: Click Here to Reconnect
@@ -232,5 +238,6 @@ common:
   https#p: You are using an unsecured connection (http). People might be able to see what you submit.
   loading#ui: Loading…
   dismiss#btn: dismiss
+  loginrequired: Please sign in to perform this action
   bucket: Bucket
   project: Project

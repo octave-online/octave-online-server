@@ -32,6 +32,9 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 		self.files = ko.observableArray();
 		self.main = ko.observable(null);
 		self.id = ko.observable(null);
+		self.shortId = ko.computed(function() {
+			return self.id() && self.id().slice(0, 4);
+		})
 		self.createdTime = ko.observable(new Date());
 		self.mainFilename = ko.pureComputed({
 			read: function() {
@@ -46,6 +49,8 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 			}
 		});
 		self.butype = ko.observable("readonly");
+		self.base_bucket_id = ko.observable(null);
+		self.baseModel = ko.observable(null);
 		self.url = ko.computed(function() {
 			var prefix = (self.butype() === "readonly") ? "bucket" : "project";
 			return window.location.origin + "/" + prefix + "~" + self.id();
@@ -100,6 +105,10 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 		bucket.mainFilename(info.main);
 		bucket.createdTime(new Date(info.createdTime));
 		bucket.butype(info.butype);
+		bucket.base_bucket_id(info.base_bucket_id);
+		if (info.baseModel) {
+			bucket.baseModel(Bucket.fromBucketInfo(info.baseModel));
+		}
 		return bucket;
 	};
 

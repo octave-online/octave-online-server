@@ -49,9 +49,8 @@ const bucketSchema = new Mongoose.Schema({
 		default: "readonly",
 	},
 
-	// TODO
-	/// base_id is the bucket from which this bucket was cloned, if applicable
-	// base_id: Mongoose.Schema.Types.ObjectId,
+	/// base_bucket_id is the bucket from which this bucket was cloned, if applicable
+	base_bucket_id: String,
 
 	last_activity: {
 		type: Date,
@@ -79,12 +78,14 @@ export interface IBucket extends Mongoose.Document, IBucketMethods {
 	user_id: Mongoose.Types.ObjectId;
 	main?: string;
 	butype: string;
-	base_id?: Mongoose.Types.ObjectId;
+	base_bucket_id?: string|null;
 	last_activity: Date;
 
 	// Virtuals
 	createdTime: Date;
 	consoleText: string;
+	baseModel: IBucket;
+	ownerModel: IUser;
 }
 
 // Define the methods in a class to help TypeScript
@@ -153,12 +154,24 @@ bucketSchema.methods.touchLastActivity = BucketMethods.prototype.touchLastActivi
 bucketSchema.methods.removeRepo = BucketMethods.prototype.removeRepo;
 bucketSchema.methods.logf = BucketMethods.prototype.logf;
 
+// Virtuals
 bucketSchema.virtual("createdTime").get(function (this: IBucket) {
 	return this._id.getTimestamp();
 });
-
 bucketSchema.virtual("consoleText").get(function(this: IBucket) {
-	return "[Bucket " + this.bucket_id + "; " + this.butype + "]";
+	return `[Bucket ${this.bucket_id}; ${this.butype}${this.base_bucket_id?`; Base ${this.base_bucket_id}`:``}]`;
+});
+bucketSchema.virtual("baseModel", {
+	ref: "Bucket",
+	localField: "base_bucket_id",
+	foreignField: "bucket_id",
+	justOne: true,
+});
+bucketSchema.virtual("ownerModel", {
+	ref: "User",
+	localField: "user_id",
+	foreignField: "_id",
+	justOne: true,
 });
 
 bucketSchema.set("toJSON", {

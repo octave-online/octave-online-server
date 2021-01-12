@@ -146,7 +146,9 @@ export class SocketHandler implements IDestroyable {
 					next(null, null);
 					return;
 				}
-				Bucket.findOne({ bucket_id: info as string }, next);
+				Bucket.findOne({ bucket_id: info as string })
+					.populate("baseModel")
+					.exec(next);
 			}],
 
 			// Callback (depends on 1 and 2)
@@ -460,6 +462,7 @@ export class SocketHandler implements IDestroyable {
 		bucket.bucket_id = obj.bucket_id;
 		bucket.user_id = this.user._id;
 		bucket.butype = obj.butype;
+		bucket.base_bucket_id = obj.base_bucket_id;
 		if (obj.butype === "readonly") {
 			bucket.main = obj.main;
 		}
