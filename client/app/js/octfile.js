@@ -174,8 +174,8 @@ define([
 	OctFile.regexps = {};
 	OctFile.regexps.isFunction = /^(?:[\t\f ]*(?:[\%\#].*)?\n)*\s*function\s/;
 	OctFile.regexps.matchParameters = /function[^\(]+\(\s*([^\)]*?)\s*\)/;
-	OctFile.regexps.filename = /^(([\w_\-]+\/){0,3}[\w_\-]+\.\w+|\.octaverc)$/;
-	OctFile.regexps.functionname = /([\w_\-]+)\.m$/;
+	OctFile.regexps.filename = /^(?:\.?[^\/\.\0]+\/){0,3}\.?[^\/\.\0]+[^\/\0]*$/;
+	OctFile.regexps.functionname = /([^\/\.\0]+)\.m$/;
 
 	// Expose interface
 	return OctFile;
