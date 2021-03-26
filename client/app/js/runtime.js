@@ -57,6 +57,10 @@ require.config({
 			"https://www.recaptcha.net/recaptcha/api",
 			"/js-default/recaptcha"
 		],
+		"fuse": [
+			"https://cdn.fuseplatform.net/publift/tags/2/2356/fuse",
+			"/js-default/fuse"
+		]
 	},
 	shim:{
 		"twitter": {
@@ -110,6 +114,6 @@ setTimeout(function(){
 
 // Load Social Bloatware (lowest priority)
 setTimeout(function(){
-	require(["uservoice"]);
+	require(["uservoice", "fuse"]);
 }, 500);
 
