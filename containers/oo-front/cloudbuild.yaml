@@ -33,6 +33,7 @@ steps:
       # Copy AppEngine files to the root directory
       # Log the current commit info in the build log
       gcloud source repos clone oo-misc1 &&
+      (cd oo-misc1 && git checkout fuse) &&
       (cd oo-misc1 && git log -n1) &&
       cp oo-misc1/gcp_config.hjson config.hjson &&
       cp oo-misc1/octave-online-866c0deeb0d1.json . &&
