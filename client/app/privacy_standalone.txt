@@ -17,7 +17,9 @@ California Consumer Privacy Act (“CCPA”): Under CCPA, Californian residents 
 
 <div data-fuse-privacy-tool></div>
 
-We use a third-party to provide monetisation technologies for our site. You can review their privacy and cookie policy here.
+We use a third-party to provide monetisation technologies for our site. You can review their privacy and cookie policy here:
+
+https://www.publift.com/privacy-policy
 
 Unless required by law, we do not give or sell personally identifiable information to third parties. 
 
