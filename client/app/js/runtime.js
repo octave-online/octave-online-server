@@ -114,6 +114,6 @@ setTimeout(function(){
 
 // Load Social Bloatware (lowest priority)
 setTimeout(function(){
-	require(["uservoice", "fuse"]);
+	require(["uservoice"]);
 }, 500);
 

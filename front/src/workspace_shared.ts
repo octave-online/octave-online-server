@@ -301,7 +301,8 @@ export class SharedWorkspace
 			ready: ["user", ({user}, next) => {
 				this.user = user;
 				if (user) {
-					this.emit("data", "userinfo", user);
+					// TODO(#41): Make sure this is actually the workspace owner.
+					this.emit("data", "oo.wsuser", { user });
 					if (!this.wsId) {
 						this.setWsId(user.parametrized, true);
 						this._log.info("Connecting to student:", user.consoleText);

@@ -628,7 +628,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				}
 			},
 			askForEnroll: function(program){
-				if(!OctMethods.editor.initialized){
+				if(!viewModel.currentUser()){
 					utils.alert(oo_translations["students.enroll.p1"]);
 					return;
 				}
@@ -844,7 +844,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				socket.on("deleted", OctMethods.socketListeners.deleted);
 				// TODO: Stop this event from operating on everyone in a shared workspace
 				socket.on("binary", OctMethods.socketListeners.binary);
-				socket.on("userinfo", OctMethods.socketListeners.userinfo);
+				socket.on("oo.authuser", OctMethods.socketListeners.authuser);
+				socket.on("oo.wsuser", OctMethods.socketListeners.wsuser);
 				// The inconsistent naming convention here ("user" vs. "filelist") is for backwards compatibility.  At some point I would like to rename this and other events all the way through the stack.
 				socket.on("user", OctMethods.socketListeners.filelist);
 				socket.on("fileadd", OctMethods.socketListeners.fileadd);
@@ -950,10 +951,44 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				var blob = b64ToBlob(data.base64data, data.mime);
 				return download(blob, octfile.filename());
 			},
-			userinfo: function(data){
-				// One-time methods
-				if (!OctMethods.editor.initialized && data) {
-					OctMethods.editor.initialized = true;
+			authuser: function(data){
+				data = data && data.user;
+
+				if (!OctMethods.editor.seenAuthUser) {
+					OctMethods.editor.seenAuthUser = true;
+
+					// Ads setup
+					if (data && data.adsDisabled) {
+						$("#abox").hideSafe();
+						$("#main").css("top", 0);
+						$("#main").css("right", 0);
+					} else {
+						// TODO: Generalize this.
+						require(["fuse"]);
+					}
+
+					if (!data) {
+						return;
+					}
+
+					// Set up the UI
+					onboarding.showUserPromo(data);
+					onboarding.hideScriptPromo();
+					onboarding.hideBucketPromo();
+
+					// Analytics
+					anal.signedin();
+				}
+			},
+			wsuser: function(data) {
+				data = data && data.user;
+
+				if (!OctMethods.editor.seenWsUser) {
+					OctMethods.editor.seenWsUser = true;
+
+					if (!data) {
+						return;
+					}
 
 					// Trigger Knockout
 					data.name = data.name || data.displayName;
@@ -964,20 +999,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					OctMethods.prompt.countdownExtraTime = data.countdownExtraTime;
 					OctMethods.prompt.countdownRequestTime = data.countdownRequestTime;
 					viewModel.countdownExtraTimeSeconds(data.countdownExtraTime/1000);
-
-					// Set up the UI
-					onboarding.showUserPromo(data);
-					onboarding.hideScriptPromo();
-					onboarding.hideBucketPromo();
-					if (data.adsDisabled) {
-						$(".adsbygoogle").css("display", "none");
-						$("#abox").hideSafe();
-						$("#main").css("top", 0);
-						$("#main").css("right", 0);
-					}
-
-					// Analytics
-					anal.signedin();
 				}
 			},
 			filelist: function(data){
@@ -1230,7 +1251,9 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			defaultFilename: "my_script.m",
 			defaultContent: "disp(\"" + oo_translations["newfile.helloworld"] + "\");\n",
 			running: false,
-			initialized: false,
+			// AuthUser is the user who is currently signed in; WsUser is the user who owns the currently loaded workspace.
+			seenAuthUser: false,
+			seenWsUser: false,
 			bucketWarned: false,
 			save: function(octfile){
 				if (viewModel.purpose() === "bucket" && !OctMethods.editor.bucketWarned) {

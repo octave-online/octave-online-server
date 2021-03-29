@@ -50,7 +50,7 @@ export class NormalWorkspace
 		this._log = logger("workspace-nrm:uninitialized");
 
 		process.nextTick(()=>{
-			this.emit("data", "userinfo", user);
+			this.emit("data", "oo.wsuser", { user });
 		});
 	}
 

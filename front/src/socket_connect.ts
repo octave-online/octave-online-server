@@ -110,6 +110,9 @@ export class SocketHandler implements IDestroyable {
 			init: ["user", "raw_init", ({user, raw_init}, next) => {
 				raw_init = raw_init || {};
 
+				// Send back auth user info
+				this.socket.emit("oo.authuser", { user });
+
 				// Process the user's requested action
 				let action = raw_init.action;
 				let info = raw_init.info;
@@ -204,7 +207,7 @@ export class SocketHandler implements IDestroyable {
 					case "project":
 						if (!bucket) return;
 						if (bucket.butype === "collab") {
-							// TODO: Should we start the collaborative session with the current user's tier or with the project owner's tier? For now, start it with the current user's tier.
+							// TODO(#41): Initialize the shared workspace with the project owner, not the auth user. Maybe pass null as the user here and then load the project owner inside SharedWorkspace.
 							this._log.info("Attaching to a collaborative project:", bucket.consoleText);
 							this.workspace = new SharedWorkspace(null, user, bucket, socket.id);
 						} else {
