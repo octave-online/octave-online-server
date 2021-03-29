@@ -67,6 +67,7 @@ export let server: Http.Server;
 export interface BuildData {
 	locales_path?: string;
 	locales?: string[];
+	privacy_html?: string;
 }
 
 function getT(req: Express.Request) {

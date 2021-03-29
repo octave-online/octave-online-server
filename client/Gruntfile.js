@@ -31,10 +31,6 @@ function getJsTimestamp() {
 	return fs.statSync("dist/js/app.js").mtime.valueOf();
 }
 
-function getPrivacyTimestamp() {
-	return fs.statSync("app/privacy_standalone.txt").mtime.valueOf() + fs.statSync("app/eula.txt").mtime.valueOf();
-}
-
 function getFileUtf8(filepath) {
 	return function() {
 		return fs.readFileSync(filepath).toString("utf-8");
@@ -160,12 +156,6 @@ module.exports = function (grunt) {
 						name: "css-timestamp",
 						search: "\\{!css-timestamp!\\}",
 						replace: getCssTimestamp,
-						flags: "g"
-					},
-					{
-						name: "privacy-timestamp",
-						search: "\\{!privacy-timestamp!\\}",
-						replace: getPrivacyTimestamp,
 						flags: "g"
 					},
 					{

@@ -18,6 +18,7 @@
  * <https://www.gnu.org/licenses/>.
  */
 
+import Fs = require("fs");
 import Path = require("path");
 
 import { config, logger } from "./shared_wrap";
@@ -55,6 +56,8 @@ async function main() {
 	if (!buildData.locales) {
 		buildData.locales = config.front.locales;
 	}
+
+	buildData.privacy_html = await Fs.promises.readFile(Path.join(__dirname, "..", "..", config.front.static_path, "privacy.txt"), { encoding: "utf-8" });
 
 	try {
 		log.trace("Connecting to Mongo...");
