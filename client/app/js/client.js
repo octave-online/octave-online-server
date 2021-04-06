@@ -962,9 +962,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 						$("#abox").hideSafe();
 						$("#main").css("top", 0);
 						$("#main").css("right", 0);
-					} else {
-						// TODO: Generalize this.
-						require(["fuse"]);
+					} else if (window.oo_enableAds) {
+						window.oo_enableAds();
 					}
 
 					if (!data) {
