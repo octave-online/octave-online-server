@@ -58,6 +58,7 @@ require.config({
 			"/js-default/recaptcha"
 		],
 		"fuse": [
+			// TODO: Make this URL configurable
 			"https://cdn.fuseplatform.net/publift/tags/2/2356/fuse",
 			"/js-default/fuse"
 		]
