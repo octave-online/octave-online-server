@@ -51,7 +51,7 @@ export async function sendLoginToken(email: string, token: string, url: string) 
 	}
 }
 
-export async function sendZipArchive(email: string, url: string) {
+export async function sendZipArchive(email: string, desc: string, url: string) {
 	if (postmarkClient) {
 		const response = await postmarkClient.sendEmailWithTemplate({
 			TemplateAlias: config.postmark.onDemandSnapshots.template,
@@ -59,6 +59,7 @@ export async function sendZipArchive(email: string, url: string) {
 			To: email,
 			TemplateModel: {
 				product_name: config.email.productName,
+				archive_desc: desc,
 				action_url: url,
 				support_url: config.email.supportUrl
 			},

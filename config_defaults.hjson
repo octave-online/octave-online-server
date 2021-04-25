@@ -87,7 +87,7 @@ postmark: {
 	serverToken: xxxx-xxxx-xxxx
 	# Postmark is configured to send email using a template. Please create a template in Postmark with the fields product_name, token_string, action_url, and support_url.
 	templateAlias: xxxxxxxxx
-	# MessageStream and Template to use for on-demand file snapshot emails. The template should have fields product_name, action_url, and support_url.
+	# MessageStream and Template to use for on-demand file snapshot emails. The template should have fields product_name, archive_desc, action_url, and support_url.
 	onDemandSnapshots: {
 		stream: "on-demand-file-snapshots",
 		template: "on-demand-file-snapshots",

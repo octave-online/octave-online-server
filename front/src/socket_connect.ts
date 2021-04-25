@@ -718,13 +718,15 @@ export class SocketHandler implements IDestroyable {
 		const user = this.user;
 		const log = logger("create-repo-snapshot:" + this.socket.id).log;
 
-		gcp.uploadRepoSnapshot(log, "repos", user.parametrized).then((url: any) => {
+		let [tld, name, desc] = (this.bucket) ? ["buckets", this.bucket.bucket_id, this.bucket.displayName] : ["repos", user.parametrized, user.displayName];
+
+		gcp.uploadRepoSnapshot(log, tld, name).then((url: any) => {
 			this.socket.emit("data", {
 				type: "url",
 				url: url,
 				linkText: "Zip Archive Ready",
 			});
-			sendZipArchive(user.email, url).catch((err) => {
+			sendZipArchive(user.email, desc, url).catch((err) => {
 				log("Error sending email:", err);
 			});
 		}).catch((err: any) => {
