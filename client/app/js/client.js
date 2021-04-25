@@ -305,6 +305,18 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			$("#bucket_info").hideSafe();
 			$("#create_bucket").showSafe();
 		},
+		openGit: function() {
+			anal.sitecontrol("opengit");
+			var currentUser = window.viewModel.currentUser();
+			var parametrized = currentUser ? currentUser.parametrized : "unknown";
+			var email = currentUser ? currentUser.email : "";
+			window.open("{!file_history_url!}?next=" + parametrized + ".git&user=" + email);
+		},
+		generateZip: function() {
+			anal.sitecontrol("generatezip");
+			OctMethods.socket.generateZip();
+			$("#file_history_box").hideSafe();
+		},
 
 		getOctFileFromName: function(filename){
 			// Since allOctFiles is always sorted, we can do binary search.
@@ -471,12 +483,14 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				$("#console").append(document.createTextNode("\n"));
 				OctMethods.console.scroll();
 			},
-			writeUrl: function(url){
+			writeUrl: function(url, linkText){
+				if (!linkText) linkText = url;
 				var el = $("<a></a>");
 				el.attr("href", url);
 				el.attr("target", "_blank");
-				el.append(document.createTextNode(url));
+				el.append(document.createTextNode(linkText));
 				$("#console").append(document.createTextNode(oo_translations["console.seeurl#label"]));
+				$("#console").append(document.createTextNode(" "));
 				$("#console").append(el);
 				$("#console").append(document.createTextNode("\n"));
 				OctMethods.console.scroll();
@@ -815,6 +829,9 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					bucket_id: bucket.id()
 				});
 			},
+			generateZip: function() {
+				return OctMethods.socket.emit("oo.generate_zip", {});
+			},
 			emit: function(message, data){
 				if (!OctMethods.socket.instance
 					|| !OctMethods.socket.instance.connected) {
@@ -881,6 +898,9 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					case "stderr":
 						OctMethods.console.writeError(data.data);
 						break;
+					case "url":
+						OctMethods.console.writeUrl(data.url, data.linkText);
+						break;
 					case "exit":
 						console.log("exit status: " + JSON.stringify(data.code));
 						break;
@@ -943,13 +963,10 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				OctMethods.editor.remove(octfile);
 			},
 			binary: function(data){
-				var octfile = viewModel.getOctFileFromName(data.filename);
-				if(!octfile) return;
-
 				// Attempt to download the file
 				console.log("Downloading binary file", octfile);
 				var blob = b64ToBlob(data.base64data, data.mime);
-				return download(blob, octfile.filename());
+				return download(blob, data.filename);
 			},
 			authuser: function(data){
 				data = data && data.user;
@@ -1399,10 +1416,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				}
 			},
 			info: function(){
-				var currentUser = window.viewModel.currentUser();
-				var parametrized = currentUser ? currentUser.parametrized : "unknown";
-				var email = currentUser ? currentUser.email : "";
-				window.open("{!file_history_url!}?next=" + parametrized + ".git&user=" + email);
+				anal.sitecontrol("showfilehistory");
+				$("#file_history_box").showSafe();
 			},
 			run: function(){
 				OctMethods.editor.run(viewModel.openFile());

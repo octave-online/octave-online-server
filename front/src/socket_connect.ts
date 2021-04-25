@@ -710,25 +710,30 @@ export class SocketHandler implements IDestroyable {
 	}
 
 	private onGenerateZip(obj: any): void {
-		if (!this.user) return;
+		if (!this.user && !this.bucket) {
+			this._log.error("Nothing to archive:", obj);
+			return;
+		}
 		if (!gcp) {
 			this._log.warn("Cannot generate zip: gcp unavailable");
 			return;
 		}
-		const user = this.user;
 		const log = logger("create-repo-snapshot:" + this.socket.id).log;
 
-		let [tld, name, desc] = (this.bucket) ? ["buckets", this.bucket.bucket_id, this.bucket.displayName] : ["repos", user.parametrized, user.displayName];
+		let [tld, name, desc] = (this.bucket) ? ["buckets", this.bucket.bucket_id, this.bucket.displayName] : ["repos", this.user!.parametrized, this.user!.displayName];
 
+		this.sendMessage("Your zip archive is being generated…");
 		gcp.uploadRepoSnapshot(log, tld, name).then((url: any) => {
 			this.socket.emit("data", {
 				type: "url",
 				url: url,
 				linkText: "Zip Archive Ready",
 			});
-			sendZipArchive(user.email, desc, url).catch((err) => {
-				log("Error sending email:", err);
-			});
+			if (this.user) {
+				sendZipArchive(this.user.email, desc, url).catch((err) => {
+					log("Error sending email:", err);
+				});
+			}
 		}).catch((err: any) => {
 			this._log.error("onGenerateZip:", err);
 		});

@@ -187,6 +187,14 @@ modals:
     p2: Want to transfer your pledge?
     btn4: Unlink Patreon Account
     p3: Each week, {{config.client.app_name}} connects tens of thousands of students, educators, and researchers in over 100 countries.  We have no paywall.  If you believe in our mission to provide educational software free of charge, please join us by supporting {{config.client.app_name}} on Patreon.
+  history:
+    title: File History
+    subtitle1: Version Control
+    p1: Revisions to your files are tracked by a Git version control system.
+    btn1: Launch Version Control
+    subtitle2: Download Snapshot
+    p2: To request a ZIP file snapshot sent to your email, click the link below. Note: If you edited your files this session, click the "Refresh Files" button first to ensure you receive the most up-to-date snapshot.
+    btn2: Generate ZIP Archive
   patience:
     p1: Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.
     p2: Thanks for waiting.  It's not supposed to take this long.  Please double-check your internet connection.  If you are sure that your internet is working, consider contacting support.
