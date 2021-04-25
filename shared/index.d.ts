@@ -302,6 +302,8 @@ export const config: {
         i18next_locales_tar_gz: string;
         instance_group_name: string;
         instance_group_removal_method: string;
+        snapshots_bucket: string;
+        snapshots_duration: number;
         zone: string;
     };
     git: {
@@ -373,6 +375,10 @@ export const config: {
         webhook_secret: string;
     };
     postmark: {
+        onDemandSnapshots: {
+            stream: string;
+            template: string;
+        };
         serverToken: string;
         templateAlias: string;
     };
@@ -450,10 +456,12 @@ export const config: {
     };
     tiers: {
         root: {
+            "ads.disabled": boolean;
             "sessionManager.poolTier": string;
             "sessionManager.queueBoostTime": number;
         };
         vip: {
+            "ads.disabled": boolean;
             "selinux.cgroup.name": string;
             "selinux.prlimit.addressSpace": number;
             "session.countdownExtraTime": number;
@@ -803,6 +811,13 @@ export namespace config2 {
     function flavor(flavor: any): any;
 
     function tier(tier: any): any;
+
+}
+
+export namespace gitarchive {
+    function createRepoSnapshot(tld: any, name: any, outStream: any): any;
+
+    function generateFilename(name: any): any;
 
 }
 

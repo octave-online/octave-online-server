@@ -24,7 +24,7 @@ const Compute = require("@google-cloud/compute");
 const { Storage } = require("@google-cloud/storage");
 const gcpMetadata = require("gcp-metadata");
 
-const { config } = require("@oo/shared");
+const { config, gitarchive } = require("@oo/shared");
 
 ///// Compute /////
 
@@ -126,9 +126,30 @@ async function downloadFile(log, bucketName, srcPath, destination) {
 	log(`gs://${bucketName}/${srcPath} downloaded to ${destination}.`);
 }
 
+async function uploadRepoSnapshot(log, tld, name) {
+	const filename = gitarchive.generateFilename(name);
+	const bucketName = config.gcp.snapshots_bucket;
+	const bucketPath = `zips/${tld}/${filename}`;
+	log(`Streaming to gs://${bucketName}/${bucketPath}`);
+
+	const file = getStorageClient()
+		.bucket(bucketName)
+		.file(bucketPath);
+	const stream = file.createWriteStream({
+		resumable: false,
+	});
+	await gitarchive.createRepoSnapshot(tld, name, stream);
+	return (await file.getSignedUrl({
+		version: "v4",
+		action: "read",
+		expires: Date.now() + config.gcp.snapshots_duration,
+	}))[0];
+}
+
 
 module.exports = {
 	getAutoscalerInfo,
 	removeSelfFromGroup,
-	downloadFile
+	downloadFile,
+	uploadRepoSnapshot,
 };

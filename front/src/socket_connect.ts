@@ -22,12 +22,13 @@ import Async = require("async");
 
 import { BackServerHandler } from "./back_server_handler";
 import { Bucket, IBucket } from "./bucket_model";
-import { logger, ILogger } from "./shared_wrap";
+import { logger, ILogger, gcp } from "./shared_wrap";
 import { FlavorRecord } from "./flavor_record_model";
 import { IDestroyable, IWorkspace } from "./utils";
 import { NormalWorkspace } from "./workspace_normal";
 import { SharedWorkspace } from "./workspace_shared";
 import { User, IUser } from "./user_model";
+import { sendZipArchive } from "./email";
 
 const TOKEN_REGEX = /^\w*$/;
 
@@ -346,6 +347,9 @@ export class SocketHandler implements IDestroyable {
 				return;
 			case "oo.flavor_upgrade":
 				this.onFlavorUpgrade(data);
+				return;
+			case "oo.generate_zip":
+				this.onGenerateZip(data);
 				return;
 
 			default:
@@ -702,6 +706,29 @@ export class SocketHandler implements IDestroyable {
 			this.flavor = flavor;
 			this.workspace.destroyD("Flavor Upgrade");
 			this.workspace.beginOctaveRequest(this.flavor);
+		});
+	}
+
+	private onGenerateZip(obj: any): void {
+		if (!this.user) return;
+		if (!gcp) {
+			this._log.warn("Cannot generate zip: gcp unavailable");
+			return;
+		}
+		const user = this.user;
+		const log = logger("create-repo-snapshot:" + this.socket.id).log;
+
+		gcp.uploadRepoSnapshot(log, "repos", user.parametrized).then((url: any) => {
+			this.socket.emit("data", {
+				type: "url",
+				url: url,
+				linkText: "Zip Archive Ready",
+			});
+			sendZipArchive(user.email, url).catch((err) => {
+				log("Error sending email:", err);
+			});
+		}).catch((err: any) => {
+			this._log.error("onGenerateZip:", err);
 		});
 	}
 }

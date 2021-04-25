@@ -24,6 +24,9 @@ import * as Shared from "@oo/shared";
 
 export { config, config2, rack, redisUtil } from "@oo/shared";
 
+const gcp = require("../../shared/gcp/index.js");
+export { gcp };
+
 // Workaround for EventEmitter not being added to shared/index.d.ts
 
 export interface IRedisMessenger extends Shared.RedisMessenger, EventEmitter {}
