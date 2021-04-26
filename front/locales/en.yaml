@@ -193,7 +193,7 @@ modals:
     p1: Revisions to your files are tracked by a Git version control system.
     btn1: Launch Version Control
     subtitle2: Download Snapshot
-    p2: To request a ZIP file snapshot sent to your email, click the link below. Note: If you edited your files this session, click the "Refresh Files" button first to ensure you receive the most up-to-date snapshot.
+    p2: "To request a ZIP file snapshot sent to your email, click the link below. Note: If you edited your files this session, click the \"Refresh Files\" button first to ensure you receive the most up-to-date snapshot."
     btn2: Generate ZIP Archive
   patience:
     p1: Hmm, looks like the server is busy today!  We'll get you connected before you know it.  Thanks for your patience.

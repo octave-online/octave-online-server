@@ -718,12 +718,12 @@ export class SocketHandler implements IDestroyable {
 			this._log.warn("Cannot generate zip: gcp unavailable");
 			return;
 		}
-		const log = logger("create-repo-snapshot:" + this.socket.id).log;
+		const log = logger("create-repo-snapshot:" + this.socket.id);
 
 		let [tld, name, desc] = (this.bucket) ? ["buckets", this.bucket.bucket_id, this.bucket.displayName] : ["repos", this.user!.parametrized, this.user!.displayName];
 
 		this.sendMessage("Your zip archive is being generated…");
-		gcp.uploadRepoSnapshot(log, tld, name).then((url: any) => {
+		gcp.uploadRepoSnapshot(log.log, tld, name).then((url: any) => {
 			this.socket.emit("data", {
 				type: "url",
 				url: url,
@@ -731,7 +731,7 @@ export class SocketHandler implements IDestroyable {
 			});
 			if (this.user) {
 				sendZipArchive(this.user.email, desc, url).catch((err) => {
-					log("Error sending email:", err);
+					log.error("Error sending email:", err);
 				});
 			}
 		}).catch((err: any) => {

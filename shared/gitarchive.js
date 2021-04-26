@@ -29,9 +29,7 @@ async function createRepoSnapshot(tld, name, outStream) {
 	const remote = `git://${config.git.hostname}:${config.git.gitDaemonPort}/${tld}/${name}.git`;
 	log.info(`Archiving ${remote}`);
 
-	const p = child_process.execFile("git", ["archive", "--format=zip", "--remote="+remote, "master"], {
-		encoding: "buffer",
-	});
+	const p = child_process.spawn("git", ["archive", "--format=zip", "--remote="+remote, "master"]);
 	p.stdout.pipe(outStream);
 	p.stderr.on("data", (data) => {
 		log.log(data);
@@ -39,7 +37,9 @@ async function createRepoSnapshot(tld, name, outStream) {
 
 	return new Promise(function(resolve, reject) {
 		p.on("close", (code) => {
-			log.trace("Git exited with code " + code);
+			if (code) {
+				log.error("Git exited with code " + code);
+			}
 			resolve();
 		});
 		p.on("error", reject);
