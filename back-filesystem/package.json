@@ -11,10 +11,10 @@
     "@oo/shared": "file:../shared",
     "async": "^1.5.2",
     "debug-logger": "^0.4.1",
-    "got": "^10.2.1",
+    "got": "^10.7.0",
     "iconv": "^2.1.11",
     "mime": "^1.3.4",
-    "mkdirp": "^0.5.1",
+    "mkdirp": "^0.5.5",
     "node-icu-charset-detector": "^0.1.4",
     "socketio-file-upload": "^0.4.4",
     "sprintf-js": "^1.0.3"
