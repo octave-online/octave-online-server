@@ -16,9 +16,9 @@
     "ejs": "~2.6.1",
     "express": "~4.16.1",
     "express-basic-auth": "^1.2.0",
-    "got": "^11.8.0",
+    "got": "^11.8.2",
     "http-errors": "~1.6.3",
-    "mongodb": "^3.5.3",
+    "mongodb": "^3.6.10",
     "morgan": "~1.9.1"
   }
 }
