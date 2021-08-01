@@ -93,7 +93,7 @@ define(["js/client", "js/ot-handler", "js/polyfill"], function(OctMethods, OtHan
 
 	function forEachDocClient(cb){
 		for (var filename in documentClients) {
-			if (!documentClients.hasOwnProperty(filename)) continue;
+			if (!Object.prototype.hasOwnProperty.call(documentClients, filename)) continue;
 			cb(filename, documentClients[filename]);
 		}
 	}

@@ -964,7 +964,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			},
 			binary: function(data){
 				// Attempt to download the file
-				console.log("Downloading binary file", octfile);
+				console.log("Downloading binary file", data.filename);
 				var blob = b64ToBlob(data.base64data, data.mime);
 				return download(blob, data.filename);
 			},

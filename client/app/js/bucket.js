@@ -34,7 +34,7 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 		self.id = ko.observable(null);
 		self.shortId = ko.computed(function() {
 			return self.id() && self.id().slice(0, 4);
-		})
+		});
 		self.createdTime = ko.observable(new Date());
 		self.mainFilename = ko.pureComputed({
 			read: function() {
