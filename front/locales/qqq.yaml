@@ -179,7 +179,7 @@ modals:
     submit#btn: Button text
     submitp#btn: Button text
   upgrade:
-    title: Button text
+    title: Title of dialog box
     btn1: Button text
     btn2: Button text; "Patreon" should not be translated
     p1: Paragraph of body text
@@ -187,6 +187,14 @@ modals:
     p2: Rhetorical question asked of the user
     btn4: Button text; "Patreon" should not be translated
     p3: Paragraph of body text; "Patreon" should not be translated
+  history:
+    title: Title of dialog box
+    subtitle1: Section title
+    p1: Paragraph of body text
+    btn1: Button text
+    subtitle2: Section title
+    p2: Paragraph of body text
+    btn2: Button text
   patience:
     p1: Paragraph of body text
     p2: Paragraph of body text

@@ -84,6 +84,7 @@ export interface IBucket extends Mongoose.Document, IBucketMethods {
 	// Virtuals
 	createdTime: Date;
 	consoleText: string;
+	displayName: string;
 	baseModel: IBucket;
 	ownerModel: IUser;
 }
@@ -160,6 +161,14 @@ bucketSchema.virtual("createdTime").get(function (this: IBucket) {
 });
 bucketSchema.virtual("consoleText").get(function(this: IBucket) {
 	return `[Bucket ${this.bucket_id}; ${this.butype}${this.base_bucket_id?`; Base ${this.base_bucket_id}`:``}]`;
+});
+bucketSchema.virtual("displayName").get(function(this: IBucket) {
+	// TODO: Localize these strings
+	if (this.butype === "editable" || this.butype === "collab") {
+		return `Project ${this.bucket_id.slice(0, 4)}`;
+	} else {
+		return `Bucket ${this.bucket_id.slice(0, 4)}`;
+	}
 });
 bucketSchema.virtual("baseModel", {
 	ref: "Bucket",

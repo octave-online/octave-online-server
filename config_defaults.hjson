@@ -87,6 +87,11 @@ postmark: {
 	serverToken: xxxx-xxxx-xxxx
 	# Postmark is configured to send email using a template. Please create a template in Postmark with the fields product_name, token_string, action_url, and support_url.
 	templateAlias: xxxxxxxxx
+	# MessageStream and Template to use for on-demand file snapshot emails. The template should have fields product_name, archive_desc, action_url, and support_url.
+	onDemandSnapshots: {
+		stream: "on-demand-file-snapshots",
+		template: "on-demand-file-snapshots",
+	}
 }
 
 # ReCAPTCHA connection info
@@ -150,6 +155,10 @@ gcp: {
 	# Cloud Storage Bucket for artifacts used for i18next locales; see cloudbuild.yaml in https://github.com/octave-online/oos-translations
 	artifacts_bucket: artifacts.PROJECT_ID.appspot.com
   i18next_locales_tar_gz: objects/oos-translations/i18next_locales.tar.gz
+  # Cloud Storage Bucket for user file snapshots
+  snapshots_bucket: reposnapshots.PROJECT_ID.appspot.com
+  # Amount of time for snapshot links to be valid (default: 72 hours = 259,200 seconds)
+  snapshots_duration: 259200000
 }
 
 # StatsD connection info

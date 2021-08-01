@@ -650,6 +650,25 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
+<div id="file_history_box" data-purpose="popover" aria-hidden="true"><div><div>
+	<h2 class="popover-title-bar">
+		<%= t("modals.history.title") %>
+	</h2>
+	<!-- ko if: purpose() !== "project" -->
+	<h3><%= t("modals.history.subtitle1") %></h3>
+	<p>
+		<%= t("modals.history.p1") %>
+	</p>
+	<button data-bind="click: openGit"><%= t("modals.history.btn1") %></button>
+	<!-- /ko -->
+	<h3><%= t("modals.history.subtitle2") %></h3>
+	<p>
+		<%= t("modals.history.p2") %>
+	</p>
+	<button data-bind="click: generateZip"><%= t("modals.history.btn2") %></button>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
+
 <div id="site_loading">
 	<div id="cosine-pulse"></div>
 	<div id="site_loading_patience" class="patience" aria-hidden="true"><%= t("modals.patience.p1") %></div>

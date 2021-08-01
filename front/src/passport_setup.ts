@@ -22,11 +22,11 @@ import EasyNoPassword = require("easy-no-password");
 import GoogleOAuth = require("passport-google-oauth");
 import Local = require("passport-local");
 import Passport = require("passport");
-import Postmark = require("postmark");
 
 import * as Utils from "./utils";
 import { config, logger } from "./shared_wrap";
 import { User, IUser } from "./user_model";
+import { sendLoginToken } from "./email";
 
 type Err = Error | null;
 
@@ -34,14 +34,6 @@ const log = logger("passport-setup");
 
 const baseUrl = `${config.front.protocol}://${config.front.hostname}:${config.front.port}/`;
 const googCallbackUrl = baseUrl + "auth/google/callback";
-
-let postmarkClient: Postmark.ServerClient|null = null;
-
-if (config.email.provider === "mailgun") {
-	log.warn("Mailgun is no longer supported. Feel free to open a PR to add support. See #43");
-} else {
-	postmarkClient = new Postmark.ServerClient(config.postmark.serverToken);
-}
 
 async function findOrCreateUser(email: string, profile: any) {
 	let user = await User.findOne({
@@ -126,27 +118,14 @@ function (req) {
 },
 function (email, token, done) {
 	const url = `${baseUrl}auth/tok?u=${encodeURIComponent(email)}&t=${token}`;
-	if (postmarkClient) {
-		postmarkClient.sendEmailWithTemplate({
-			TemplateAlias: config.postmark.templateAlias,
-			From: config.email.from,
-			To: email,
-			TemplateModel: {
-				product_name: config.email.productName,
-				token_string: token,
-				action_url: url,
-				support_url: config.email.supportUrl
-			}
-		}).then((response) => {
-			log.trace(response);
+	sendLoginToken(email, token, url)
+		.then(() => {
 			done(null);
-		}).catch((err) => {
+		})
+		.catch((err: any) => {
 			log.error("Failed sending email:", email, err);
 			done(err);
 		});
-	} else {
-		log.error("Unable to send email: please configure an email client for Octave Online");
-	}
 },
 function (email: string, done: (err: Err, user?: unknown, info?: any) => void) {
 	log.info("Easy Callback", Utils.emailHash(email));

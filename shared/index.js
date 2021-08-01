@@ -24,6 +24,7 @@ module.exports = {
 	asyncCache: require("./async-cache"),
 	config: require("./config"),
 	config2: require("./config-helper"),
+	gitarchive: require("./gitarchive"),
 	hostname: require("./hostname"),
 	JSONStreamSafe: require("./json-stream-safe"),
 	logger: require("./logger"),
