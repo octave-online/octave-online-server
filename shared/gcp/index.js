@@ -126,9 +126,28 @@ async function downloadFile(log, bucketName, srcPath, destination) {
 	log(`gs://${bucketName}/${srcPath} downloaded to ${destination}.`);
 }
 
+async function uploadRepoArchive(log, tld, name) {
+	const needsArchive = await gitarchive.repoContainsRefs(tld, name);
+	if (!needsArchive) {
+		log(`Empty or nonexistant repo: ${tld}/${name}`);
+		return;
+	}
+	const bucketName = config.gcp.archive_bucket;
+	await doUploadRepo(log, tld, name, bucketName);
+}
+
 async function uploadRepoSnapshot(log, tld, name) {
-	const filename = gitarchive.generateFilename(name);
 	const bucketName = config.gcp.snapshots_bucket;
+	const file = await doUploadRepo(log, tld, name, bucketName);
+	return (await file.getSignedUrl({
+		version: "v4",
+		action: "read",
+		expires: Date.now() + config.gcp.snapshots_duration,
+	}))[0];
+}
+
+async function doUploadRepo(log, tld, name, bucketName) {
+	const filename = gitarchive.generateFilename(name);
 	const bucketPath = `zips/${tld}/${filename}`;
 	log(`Streaming to gs://${bucketName}/${bucketPath}`);
 
@@ -139,11 +158,7 @@ async function uploadRepoSnapshot(log, tld, name) {
 		resumable: false,
 	});
 	await gitarchive.createRepoSnapshot(tld, name, stream);
-	return (await file.getSignedUrl({
-		version: "v4",
-		action: "read",
-		expires: Date.now() + config.gcp.snapshots_duration,
-	}))[0];
+	return file;
 }
 
 
@@ -151,5 +166,6 @@ module.exports = {
 	getAutoscalerInfo,
 	removeSelfFromGroup,
 	downloadFile,
+	uploadRepoArchive,
 	uploadRepoSnapshot,
 };

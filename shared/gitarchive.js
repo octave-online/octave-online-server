@@ -25,6 +25,32 @@ const child_process = require("child_process");
 const config = require("./config");
 const log = require("./logger")("gitarchive");
 
+async function repoContainsRefs(tld, name) {
+	const remote = `git://${config.git.hostname}:${config.git.gitDaemonPort}/${tld}/${name}.git`;
+
+	let stdoutLen = 0;
+	const p = child_process.spawn("git", ["ls-remote", remote, "master"]);
+	p.stdout.on("data", (data) => {
+		stdoutLen += data.length;
+	});
+	p.stderr.on("data", (data) => {
+		log.log(data);
+	});
+
+	return new Promise(function(resolve, reject) {
+		p.on("close", (code) => {
+			if (code) {
+				log.trace("Git exited with code " + code);
+				resolve(false);
+			} else {
+				log.trace("Number of bytes from stdout:", stdoutLen);
+				resolve(!!stdoutLen);
+			}
+		});
+		p.on("error", reject);
+	});
+}
+
 async function createRepoSnapshot(tld, name, outStream) {
 	const remote = `git://${config.git.hostname}:${config.git.gitDaemonPort}/${tld}/${name}.git`;
 	log.info(`Archiving ${remote}`);
@@ -51,6 +77,7 @@ function generateFilename(name) {
 }
 
 module.exports = {
+	repoContainsRefs,
 	createRepoSnapshot,
 	generateFilename,
 };

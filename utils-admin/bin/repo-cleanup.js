@@ -26,10 +26,11 @@
 const config = require("@oo/shared").config;
 const db = require("../src/db");
 const debug = require("debug")("oo:repo-cleanup");
+const gcp = require("../../shared/gcp/index.js");
 const repo = require("../src/repo");
 
 const command = process.argv[2];
-if (command !== "run" && command != "dryrun") {
+if (command !== "run" && command !== "dryrun") {
 	console.log("Usage: DEBUG=oo:* bin/repo-cleanup.js [dry]run [30 [200]]");
 	return;
 }
@@ -42,10 +43,10 @@ if (command !== "run" && command != "dryrun") {
 	await db.connect(mongoUrl, mongoDb);
 	debug("Connected to MongoDB:", mongoUrl, mongoDb);
 
-	let numDays = parseInt(process.argv[3]) || 30;
+	let numDays = process.argv[3] ? parseInt(process.argv[3]) : 30;
 	debug("Number of days to clean:", numDays);
 
-	let skipDays = parseInt(process.argv[4]) || 200;
+	let skipDays = process.argv[4] ? parseInt(process.argv[4]) : 200;
 	debug("End at this many days in the past:", skipDays);
 
 	let startTime = new Date();
@@ -68,6 +69,7 @@ if (command !== "run" && command != "dryrun") {
 	for await (let user of db.findAll("users", query, { parametrized: 1, last_activity: 1 })) {
 		debug("Processing:", JSON.stringify(user));
 		if (command === "run") {
+			await gcp.uploadRepoArchive(debug, "repos", user.parametrized);
 			await repo.deleteRepo(user);
 		}
 	}

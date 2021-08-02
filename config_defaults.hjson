@@ -157,6 +157,8 @@ gcp: {
   i18next_locales_tar_gz: objects/oos-translations/i18next_locales.tar.gz
   # Cloud Storage Bucket for user file snapshots
   snapshots_bucket: reposnapshots.PROJECT_ID.appspot.com
+  # Cloud Storage Bucket for user file archive
+  archive_bucket: repoarchive.PROJECT_ID.appspot.com
   # Amount of time for snapshot links to be valid (default: 72 hours = 259,200 seconds)
   snapshots_duration: 259200000
 }
