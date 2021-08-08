@@ -40,6 +40,7 @@ steps:
 # Perform build steps using same distro as the production VM:
 - name: centos:centos8
   entrypoint: bash
+  timeout: 7200s
   args:
     - -c
     - |
@@ -74,6 +75,8 @@ steps:
       tar zcf /tmp/$_OUTPUT_FILENAME . &&
       mv /tmp/$_OUTPUT_FILENAME . &&
       ls -ldh `pwd`;
+
+timeout: 7200s
 
 # Save the tar.gz package to storage
 substitutions:
