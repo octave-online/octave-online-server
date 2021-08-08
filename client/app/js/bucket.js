@@ -51,6 +51,7 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 		self.butype = ko.observable("readonly");
 		self.base_bucket_id = ko.observable(null);
 		self.baseModel = ko.observable(null);
+		self.shortlink = ko.observable(null);
 		self.url = ko.computed(function() {
 			var prefix = (self.butype() === "readonly") ? "bucket" : "project";
 			return window.location.origin + "/" + prefix + "~" + self.id();
@@ -88,6 +89,19 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 			});
 		});
 
+		self.setAutoShortlink = function() {
+			var shortlink = "";
+			// 5 lowercase letters
+			for (var i = 0; i < 5; i++) {
+				shortlink += String.fromCharCode(97 + Math.floor(Math.random() * 26));
+			}
+			// 3 numbers
+			for (var i = 0; i < 3; i++) {
+				shortlink += Math.floor(Math.random() * 10);
+			}
+			self.shortlink(shortlink);
+		};
+
 		self.createOnServer = function() {
 			OctMethods.socket.createBucket(self);
 			self.showCreateButton(false);
@@ -106,6 +120,7 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 		bucket.createdTime(new Date(info.createdTime));
 		bucket.butype(info.butype);
 		bucket.base_bucket_id(info.base_bucket_id);
+		bucket.shortlink(info.shortlink);
 		if (info.baseModel) {
 			bucket.baseModel(Bucket.fromBucketInfo(info.baseModel));
 		}

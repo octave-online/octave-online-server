@@ -273,6 +273,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			if (currentBucket()) {
 				bucket.base_bucket_id(currentBucket().id());
 			}
+			bucket.setAutoShortlink();
 			viewModel.newBucket(bucket);
 			$("#create_bucket").showSafe();
 		},
@@ -283,6 +284,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			if (currentBucket()) {
 				bucket.base_bucket_id(currentBucket().id());
 			}
+			bucket.setAutoShortlink();
 			viewModel.newBucket(bucket);
 			$("#create_bucket").showSafe();
 		},
@@ -301,6 +303,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			bucket.butype("editable");
 			bucket.files(allOctFiles());
 			bucket.base_bucket_id(currentBucket().id());
+			bucket.setAutoShortlink();
 			viewModel.newBucket(bucket);
 			$("#bucket_info").hideSafe();
 			$("#create_bucket").showSafe();
@@ -822,6 +825,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					main: bucket.mainFilename(),
 					butype: bucket.butype(),
 					base_bucket_id: bucket.base_bucket_id(),
+					shortlink: bucket.shortlink(),
 				});
 			},
 			deleteBucket: function(bucket) {
@@ -881,6 +885,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				socket.on("bucket-created", OctMethods.socketListeners.bucketCreated);
 				socket.on("bucket-deleted", OctMethods.socketListeners.bucketDeleted);
 				socket.on("all-buckets", OctMethods.socketListeners.allBuckets);
+				socket.on("oo.create-bucket-error", OctMethods.socketListeners.createBucketError);
 				socket.on("oo.pong", OctMethods.socketListeners.pong);
 				// Flavors are no longer supported:
 				// socket.on("oo.flavor-list", OctMethods.socketListeners.flavorList);
@@ -1159,6 +1164,14 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 						viewModel.allBuckets.push(Bucket.fromBucketInfo(bucketInfo));
 					}
 				});
+			},
+			createBucketError: function(data) {
+				if (data.type === "invalid-shortlink") {
+					alert("Error: invalid short link. Please use letters, numbers, -, and _.");
+				} else if (data.type === "duplicate-key") {
+					alert("Error: \"" + Object.values(data.data)[0] + "\" is already taken. Please try again.");
+				}
+				viewModel.newBucket().showCreateButton(true);
 			},
 			pong: function(data) {
 				var startTime = parseInt(data.startTime);

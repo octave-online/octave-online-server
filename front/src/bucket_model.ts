@@ -21,8 +21,6 @@
 // Mongoose Bucket: stores metadata about a bucket or project.
 
 import Mongoose = require("mongoose");
-// const got = require("got");
-// import { Got } from "got";
 import { IUser } from "./user_model";
 import { logger, ILogger } from "./shared_wrap";
 
@@ -30,7 +28,7 @@ type Err = Error | null;
 
 // Initialize the schema
 const bucketSchema = new Mongoose.Schema({
-	/// bucket_id is the public ID for the bucket. Generated in octave-session.js
+	/// bucket_id is the public ID for the bucket. Generated in socket_connect.ts (formerly in octave-session.js)
 	bucket_id: String,
 
 	/// user_id is the owner of the bucket.
@@ -52,6 +50,9 @@ const bucketSchema = new Mongoose.Schema({
 	/// base_bucket_id is the bucket from which this bucket was cloned, if applicable
 	base_bucket_id: String,
 
+	/// shortlink is a String accepted by the shortlink service, optimized for ease of manual entry. Can be custom, but the default is generated in client/app/js/bucket.js
+	shortlink: String,
+
 	last_activity: {
 		type: Date,
 		default: Date.now
@@ -60,6 +61,14 @@ const bucketSchema = new Mongoose.Schema({
 
 bucketSchema.index({
 	bucket_id: 1
+}, {
+	unique: true
+});
+
+bucketSchema.index({
+	shortlink: 1
+}, {
+	unique: true
 });
 
 // Workaround to make TypeScript apply signatures to the method definitions
@@ -79,6 +88,7 @@ export interface IBucket extends Mongoose.Document, IBucketMethods {
 	main?: string;
 	butype: string;
 	base_bucket_id?: string|null;
+	shortlink?: string;
 	last_activity: Date;
 
 	// Virtuals

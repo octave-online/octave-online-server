@@ -590,6 +590,12 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 			<strong><%= t("modals.createbucket.label1") %></strong>
 			<select data-bind="options: textFiles, optionsText: 'filename', optionsCaption: 'none', value: main"></select>
 		</label></p>
+		<h3>Optional: Custom URL / Short Link</h3>
+		<p>You can set a custom URL for your bucket via our short-link service at <tt>octav.onl</tt>.</p>
+		<p><label>
+			<tt>http://octav.onl/</tt>
+			<input type="text" data-bind="value: shortlink" />
+		</label></p>
 		<!-- /ko -->
 		<p class="last">
 			<!-- ko if: butype() === "readonly" -->
@@ -603,10 +609,10 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<div id="create-bucket-bar">
 		<button id="create-bucket-btn" data-bind="click: createOnServer, visible: showCreateButton">
 			<!-- ko if: butype() === "readonly" -->
-			<%= t("modals.createbucket.submit#btn") %> 🡺
+			<%= t("modals.createbucket.submit#btn") %> ➡
 			<!-- /ko -->
 			<!-- ko ifnot: butype() === "readonly" -->
-			<%= t("modals.createbucket.submitp#btn") %> 🡺
+			<%= t("modals.createbucket.submitp#btn") %> ➡
 			<!-- /ko -->
 		</button>
 	</div>

@@ -19,6 +19,9 @@
  */
 
 import Async = require("async");
+import BaseX = require("base-x");
+import Hjson = require("hjson");
+import Uuid = require("uuid");
 
 import { BackServerHandler } from "./back_server_handler";
 import { Bucket, IBucket } from "./bucket_model";
@@ -31,6 +34,9 @@ import { User, IUser } from "./user_model";
 import { sendZipArchive } from "./email";
 
 const TOKEN_REGEX = /^\w*$/;
+const SHORTLINK_REGEX = /^[\p{L}\p{Nd}_-]+$/u;
+
+const Base58 = BaseX("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz");
 
 interface ISocketCustom extends SocketIO.Socket {
 	handler: SocketHandler;
@@ -351,6 +357,9 @@ export class SocketHandler implements IDestroyable {
 			case "oo.generate_zip":
 				this.onGenerateZip(data);
 				return;
+			case "oo.create_bucket":
+				this.onCreateBucket(data);
+				return;
 
 			default:
 				break;
@@ -379,7 +388,7 @@ export class SocketHandler implements IDestroyable {
 
 		switch(name){
 			case "bucket-repo-created":
-				this.onBucketCreated(data);
+				this.onBucketRepoCreated(data);
 				return;
 
 			case "oo.touch-flavor":
@@ -457,27 +466,64 @@ export class SocketHandler implements IDestroyable {
 		});
 	}
 
-	private onBucketCreated(obj: any): void {
+	private onCreateBucket(obj: any): void {
 		if (!obj) return;
-		if (!obj.bucket_id) return;
-		if (!this.user) {
-			this._log.error("ERROR: No user but got bucket-created message!", obj.bucket_id);
+		if (!this.user) return;
+		if (!obj.shortlink) return;
+
+		// Validate the shortlink
+		if (!SHORTLINK_REGEX.test(obj.shortlink)) {
+			this.socket.emit("oo.create-bucket-error", {
+				type: "invalid-shortlink"
+			});
 			return;
 		}
 
+		// Generate the Bucket ID
+		const bucketIdBuffer = new Buffer(16);
+		Uuid.v4(null, bucketIdBuffer, 0);
+		const bucketId = Base58.encode(bucketIdBuffer);
+
 		const bucket = new Bucket();
-		bucket.bucket_id = obj.bucket_id;
+		bucket.bucket_id = bucketId;
 		bucket.user_id = this.user._id;
 		bucket.butype = obj.butype;
 		bucket.base_bucket_id = obj.base_bucket_id;
+		bucket.shortlink = obj.shortlink;
 		if (obj.butype === "readonly") {
 			bucket.main = obj.main;
 		}
-		this._log.info("Creating bucket:", bucket.consoleText, this.user.consoleText);
 		bucket.save((err) => {
-			if (err) return this._log.error("ERROR creating bucket:", err);
-			this.socket.emit("bucket-created", { bucket });
+			if (err && err.message.indexOf("duplicate key error") !== -1) {
+				let dup;
+				try {
+					this._log.trace("Caught duplicate key error:", err.message);
+					dup = Hjson.parse(err.message.substr(err.message.indexOf("dup key:") + 9));
+				} catch(e) {
+					this._log.error("ERROR: Could not parse duplicate key error:", e, err);
+					return;
+				}
+				this._log.info("Failed to create bucket with duplicate key:", dup, bucket.consoleText, this.user!.consoleText);
+				this.socket.emit("oo.create-bucket-error", {
+					type: "duplicate-key",
+					data: dup,
+				});
+				return;
+			} else if (err) {
+				this._log.error("ERROR from Mongo:", err);
+				return;
+			}
+
+			// Success creating the Mongo entry. Now create the repo.
+			this._log.info("Created bucket:", bucket.consoleText, this.user!.consoleText);
+			const backData = bucket.toJSON();
+			backData.filenames = obj.filenames;
+			this.back.dataD("oo.create_bucket", backData);
 		});
+	}
+
+	private onBucketRepoCreated(bucket: any): void {
+		this.socket.emit("bucket-created", { bucket });
 	}
 
 	private onDeleteBucket(obj: any): void {
