@@ -394,10 +394,11 @@ class OctaveSession extends OnlineOffline {
 
 		// Create the bucket ID.
 		// Note: Starting 2021-08-07, the bucket ID is generated on the front server instead. The if statement here is for backwards compatibility.
-		if (!bucketInfo.bucket_id) {
+		let bucketId = bucketInfo.bucket_id;
+		if (!bucketId) {
 			const bucketIdBuffer = new Buffer(16);
 			uuid.v4({}, bucketIdBuffer, 0);
-			const bucketId = base58.encode(bucketIdBuffer);
+			bucketId = base58.encode(bucketIdBuffer);
 			bucketInfo.bucket_id = bucketId;
 		}
 
