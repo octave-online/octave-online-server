@@ -178,7 +178,7 @@ Here are some critical user journeys that test a fairly wide cross-section of th
 	1. Click the "DELETE File" button to delete the file
 	1. Upload the file again, this time using the "Upload file" button in the file list toolbar
 	1. In the command prompt, run the following command: `imshow(imread("mandrill.png"))`; you should see the full-color image appear in the console output window (there is a surprisingly large amount of code that is needed to make this happen)
-1. Buckets and static file sharing
+1. Buckets and Projects
 	1. Sign in if necessary
 	1. Create or upload multiple files if you don't already have files in your workspace
 	1. Open a script file that runs by itself (not a function file)
@@ -186,12 +186,21 @@ Here are some critical user journeys that test a fairly wide cross-section of th
 	1. Play around with the options, adding new files and selecting a main file
 	1. Click "Create Bucket"
 	1. Ensure that the bucket creates successfully and that the main file runs
-	1. Save the link to the bucket
-	1. Go back to the main Octave Online Server window, signed in to your account
-	1. Open the side bar menu
-	1. Find the bucket you created; ensure that the timestamp is correct
-	1. Press the "⌫" button to delete the bucket
-	1. Once deleted, go back to the bucket with the link you saved a few steps above, and ensure that the bucket is deleted
+	1. Click the bucket ID in the title bar. An information panel should appear with details about the bucket. Make sure they look correct
+	1. Click the pencil icon to edit the shortlink; change it to "test999"
+	1. Go to "octav.onl/test999"; the redirect should work and the same bucket page should open
+	1. Click "Fork This Bucket"
+	1. Enter "test999" as the custom URL in the "Create Project" screen. Click "Create Project"; a second or two later, you should see an alert box saying that there is a duplicate link
+	1. Change the shortlink so that it contains illegal characters, like "$". Click "Create Project" again; a second or two later, you should see an alert saying that the shortlink has invalid characters
+	1. Close the "Customize Project" dialog box, then reopen it by clicking "Fork This Bucket" again
+	1. This time, click "Create Project" without changing any other settings. Your browser should refresh into the new project
+	1. Ensure that you can edit and save files in the project
+	1. Open the info panel for the project by clicking it in the title bar. You should see the bucket name under "Forked From"
+	1. Close the info bar, then open the side bar menu
+	1. Find the bucket and project you created; ensure that the timestamps is correct
+	1. Save the links to both the bucket and the project
+	1. Press the "⌫" button to delete the bucket and then the project
+	1. Once deleted, go back to the bucket and the project with the links you saved, and ensure that the bucket and project are actaully deleted
 1. Small interpreter features
 	1. Run a few lines of code and then run `clc`; it should clear all output from the console window
 	1. Run `doc fplot`; it should produce a working link
