@@ -362,9 +362,9 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			return currentUser() && currentUser().name;
 		} else if (viewModel.currentBucket()) {
 			if (viewModel.purpose() === "project") {
-				return oo_translations["common.project"] + " " + viewModel.currentBucket().shortId();
+				return oo_translations["common.project"] + " " + viewModel.currentBucket().shortlink();
 			} else {
-				return viewModel.currentBucket().shortId();
+				return viewModel.currentBucket().shortlink();
 			}
 		} else {
 			return null;
@@ -833,6 +833,12 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					bucket_id: bucket.id()
 				});
 			},
+			changeBucketShortlink: function(bucket, newShortlink) {
+				return OctMethods.socket.emit("oo.change_bucket_shortlink", {
+					old_shortlink: bucket.shortlink(),
+					new_shortlink: newShortlink,
+				});
+			},
 			generateZip: function() {
 				return OctMethods.socket.emit("oo.generate_zip", {});
 			},
@@ -886,6 +892,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				socket.on("bucket-deleted", OctMethods.socketListeners.bucketDeleted);
 				socket.on("all-buckets", OctMethods.socketListeners.allBuckets);
 				socket.on("oo.create-bucket-error", OctMethods.socketListeners.createBucketError);
+				socket.on("oo.change-bucket-shortlink-response", OctMethods.socketListeners.changeBucketShortlinkResponse);
 				socket.on("oo.pong", OctMethods.socketListeners.pong);
 				// Flavors are no longer supported:
 				// socket.on("oo.flavor-list", OctMethods.socketListeners.flavorList);
@@ -1167,11 +1174,26 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			},
 			createBucketError: function(data) {
 				if (data.type === "invalid-shortlink") {
-					alert("Error: invalid short link. Please use letters, numbers, -, and _.");
+					// Note: These requirements should match the regex in socket_connect.ts
+					alert("Error: invalid short link. Use at least 5 letters, numbers, -, and _.");
 				} else if (data.type === "duplicate-key") {
 					alert("Error: \"" + Object.values(data.data)[0] + "\" is already taken. Please try again.");
 				}
 				viewModel.newBucket().showCreateButton(true);
+			},
+			changeBucketShortlinkResponse: function(data) {
+				if (data.success) {
+					if (viewModel.currentBucket().id() === data.bucket.bucket_id) {
+						viewModel.currentBucket().shortlink(data.bucket.shortlink);
+					} else {
+						console.error("Inconsistent bucket:", viewModel.currentBucket(), data.bucket);
+					}
+				} else if (data.type === "invalid-shortlink") {
+					// Note: These requirements should match the regex in socket_connect.ts
+					alert("Error: invalid short link. Use at least 5 letters, numbers, -, and _.");
+				} else if (data.type === "duplicate-key") {
+					alert("Error: \"" + Object.values(data.data)[0] + "\" is already taken. Please try again.");
+				}
 			},
 			pong: function(data) {
 				var startTime = parseInt(data.startTime);
@@ -1286,7 +1308,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			bucketWarned: false,
 			save: function(octfile){
 				if (viewModel.purpose() === "bucket" && !OctMethods.editor.bucketWarned) {
-					utils.alert(oo_translations["console.readonly#alert@2"]+"\n\n"+(viewModel.currentBucket()&&viewModel.currentBucket().shortId()));
+					utils.alert(oo_translations["console.readonly#alert@2"]+"\n\n"+(viewModel.currentBucket()&&viewModel.currentBucket().shortlink()));
 					OctMethods.editor.bucketWarned = true;
 				}
 				return OctMethods.socket.save(octfile);

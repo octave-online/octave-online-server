@@ -32,9 +32,6 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 		self.files = ko.observableArray();
 		self.main = ko.observable(null);
 		self.id = ko.observable(null);
-		self.shortId = ko.computed(function() {
-			return self.id() && self.id().slice(0, 4);
-		});
 		self.createdTime = ko.observable(new Date());
 		self.mainFilename = ko.pureComputed({
 			read: function() {
@@ -56,11 +53,19 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 			var prefix = (self.butype() === "readonly") ? "bucket" : "project";
 			return window.location.origin + "/" + prefix + "~" + self.id();
 		});
+		self.shortUrl = ko.computed(function() {
+			return "https://octav.onl/" + self.shortlink();
+		});
 		self.displayName = ko.computed(function() {
-			return self.mainFilename() ? self.mainFilename() : self.id() ? self.id() : "headless bucket";
+			return "octav.onl/" + self.shortlink();
 		});
 		self.createdTimeString = ko.computed(function() {
 			return self.createdTime().toLocaleString();
+		});
+		self.isOwnedByCurrentUser = ko.computed(function() {
+			return !!ko.utils.arrayFirst(OctMethods.ko.viewModel.allBuckets(), function(bucket) {
+				return bucket.id() === self.id();
+			}, null);
 		});
 
 		// Bindings used during bucket creation
@@ -101,6 +106,12 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 			}
 			self.shortlink(shortlink);
 		};
+		self.editShortlink = function() {
+			var result = window.prompt("Enter a new short link:\n\nhttps://octav.onl/…", self.shortlink());
+			if (result) {
+				OctMethods.socket.changeBucketShortlink(self, result);
+			}
+		}
 
 		self.createOnServer = function() {
 			OctMethods.socket.createBucket(self);

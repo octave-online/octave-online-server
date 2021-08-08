@@ -170,7 +170,7 @@ bucketSchema.virtual("createdTime").get(function (this: IBucket) {
 	return this._id.getTimestamp();
 });
 bucketSchema.virtual("consoleText").get(function(this: IBucket) {
-	return `[Bucket ${this.bucket_id}; ${this.butype}${this.base_bucket_id?`; Base ${this.base_bucket_id}`:``}]`;
+	return `[Bucket ${this.bucket_id}; ${this.shortlink}; ${this.butype}${this.base_bucket_id?`; Base ${this.base_bucket_id}`:``}]`;
 });
 bucketSchema.virtual("displayName").get(function(this: IBucket) {
 	// TODO: Localize these strings

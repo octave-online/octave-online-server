@@ -34,7 +34,7 @@ import { User, IUser } from "./user_model";
 import { sendZipArchive } from "./email";
 
 const TOKEN_REGEX = /^\w*$/;
-const SHORTLINK_REGEX = /^[\p{L}\p{Nd}_-]+$/u;
+const SHORTLINK_REGEX = /^[\p{L}\p{Nd}_-]{5,}$/u;
 
 const Base58 = BaseX("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz");
 
@@ -360,6 +360,9 @@ export class SocketHandler implements IDestroyable {
 			case "oo.create_bucket":
 				this.onCreateBucket(data);
 				return;
+			case "oo.change_bucket_shortlink":
+				this.onChangeBucketShortlink(data);
+				return;
 
 			default:
 				break;
@@ -466,6 +469,20 @@ export class SocketHandler implements IDestroyable {
 		});
 	}
 
+	private parseDuplicateKeyError(err: Error): object | void {
+		if (err.message.indexOf("duplicate key error") !== -1) {
+			let dup;
+			try {
+				this._log.trace("Caught duplicate key error:", err.message);
+				dup = Hjson.parse(err.message.substr(err.message.indexOf("dup key:") + 9));
+			} catch(e) {
+				this._log.error("ERROR: Could not parse duplicate key error:", e, err);
+				return;
+			}
+			return dup;
+		}
+	}
+
 	private onCreateBucket(obj: any): void {
 		if (!obj) return;
 		if (!this.user) return;
@@ -494,24 +511,19 @@ export class SocketHandler implements IDestroyable {
 			bucket.main = obj.main;
 		}
 		bucket.save((err) => {
-			if (err && err.message.indexOf("duplicate key error") !== -1) {
-				let dup;
-				try {
-					this._log.trace("Caught duplicate key error:", err.message);
-					dup = Hjson.parse(err.message.substr(err.message.indexOf("dup key:") + 9));
-				} catch(e) {
-					this._log.error("ERROR: Could not parse duplicate key error:", e, err);
+			if (err) {
+				let dup = this.parseDuplicateKeyError(err);
+				if (dup) {
+					this._log.info("Failed to create bucket with duplicate key:", dup, bucket.consoleText, this.user!.consoleText);
+					this.socket.emit("oo.create-bucket-error", {
+						type: "duplicate-key",
+						data: dup,
+					});
+					return;
+				} else {
+					this._log.error("ERROR from Mongo:", err);
 					return;
 				}
-				this._log.info("Failed to create bucket with duplicate key:", dup, bucket.consoleText, this.user!.consoleText);
-				this.socket.emit("oo.create-bucket-error", {
-					type: "duplicate-key",
-					data: dup,
-				});
-				return;
-			} else if (err) {
-				this._log.error("ERROR from Mongo:", err);
-				return;
 			}
 
 			// Success creating the Mongo entry. Now create the repo.
@@ -524,6 +536,57 @@ export class SocketHandler implements IDestroyable {
 
 	private onBucketRepoCreated(bucket: any): void {
 		this.socket.emit("bucket-created", { bucket });
+	}
+
+	private onChangeBucketShortlink(obj: any): void {
+		const bucket = this.bucket;
+		if (!bucket) return;
+		if (!this.user) return;
+		if (!this.user._id.equals(bucket.user_id)) {
+			this._log.warn("Attempt to change shortlink for another user's bucket");
+			return;
+		}
+		if (bucket.shortlink !== obj.old_shortlink) {
+			this._log.warn("Attempt to change stale shortlink:", bucket.consoleText, obj);
+			return;
+		}
+
+		// Validate the shortlink
+		if (!SHORTLINK_REGEX.test(obj.new_shortlink)) {
+			this.socket.emit("oo.change-bucket-shortlink-response", {
+				success: false,
+				type: "invalid-shortlink"
+			});
+			return;
+		}
+
+		// Attempt to save the new shortlink
+		this._log.info("Changing shortlink:", bucket.consoleText, obj.new_shortlink);
+		bucket.shortlink = obj.new_shortlink;
+		bucket.save((err) => {
+			if (err) {
+				let dup = this.parseDuplicateKeyError(err);
+				if (dup) {
+					this._log.info("Failed to update bucket with duplicate key:", dup, bucket.consoleText, this.user!.consoleText);
+					this.socket.emit("oo.change-bucket-shortlink-response", {
+						success: false,
+						type: "duplicate-key",
+						data: dup,
+					});
+					// Reset the shortlink for future calls
+					bucket.shortlink = obj.old_shortlink;
+					return;
+				} else {
+					this._log.error("ERROR from Mongo:", err);
+					return;
+				}
+			}
+
+			this.socket.emit("oo.change-bucket-shortlink-response", {
+				success: true,
+				bucket
+			});
+		});
 	}
 
 	private onDeleteBucket(obj: any): void {

@@ -398,7 +398,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 							<span class="bucket-icon-project" title="<%= t("common.project") %>"></span>
 							<!-- /ko -->
 
-							<a data-bind="attr: { href: url }, text: displayName" target="_blank" class="bucket-name"></a>
+							<a data-bind="attr: { href: url }" target="_blank" class="bucket-name"><span class="bucket-shortlink-prefix">octav.onl/</span><span class="bucket-shortlink-suffix" data-bind="text: shortlink"></span></a>
 							<br/>
 							<span data-bind="text: createdTimeString" class="bucket-time"></span>
 						</li>
@@ -502,8 +502,14 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 		<!-- ko ifnot: butype() === "readonly" -->
 		<%= t("common.project") %>
 		<!-- /ko -->
-		<span data-bind="text: shortId"></span>
+		<span data-bind="text: shortlink"></span>
 	</h2>
+	<div class="shortlink">
+		<span class="shortlink-url" data-bind="text: shortUrl"></span>
+		<!-- ko if: isOwnedByCurrentUser -->
+		<span class="edit-shortlink" title="Change Short Link" data-bind="click: editShortlink"></span>
+		<!-- /ko -->
+	</div>
 	<p>
 		<%= t("modals.bucketinfo.p1") %>
 	</p>
@@ -527,7 +533,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 			<!-- ko ifnot: butype() === "readonly" -->
 			<%= t("common.project") %>
 			<!-- /ko -->
-			<span data-bind="text: shortId"></span>
+			<span data-bind="text: shortlink"></span>
 		</a>
 	</p>
 	<!-- /ko -->
@@ -583,18 +589,18 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 			<button data-bind="click: moveRightToLeft">⇦</button>
 			<button data-bind="click: moveLeftToRight">⇨</button>
 		</p>
+		<h3>Optional: Custom URL / Short Link</h3>
+		<p>You can set a custom URL for your bucket or project via our short-link service at <tt>octav.onl</tt>.</p>
+		<p><label>
+			<tt>https://octav.onl/</tt>
+			<input type="text" data-bind="value: shortlink" />
+		</label></p>
 		<!-- ko if: butype() === "readonly" -->
 		<h3><%= t("modals.createbucket.subhead4") %></h3>
 		<p><%= t("modals.createbucket.p3") %></p>
 		<p><label>
 			<strong><%= t("modals.createbucket.label1") %></strong>
 			<select data-bind="options: textFiles, optionsText: 'filename', optionsCaption: 'none', value: main"></select>
-		</label></p>
-		<h3>Optional: Custom URL / Short Link</h3>
-		<p>You can set a custom URL for your bucket via our short-link service at <tt>octav.onl</tt>.</p>
-		<p><label>
-			<tt>http://octav.onl/</tt>
-			<input type="text" data-bind="value: shortlink" />
 		</label></p>
 		<!-- /ko -->
 		<p class="last">
