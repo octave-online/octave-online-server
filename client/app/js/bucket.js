@@ -54,10 +54,7 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 			return window.location.origin + "/" + prefix + "~" + self.id();
 		});
 		self.shortUrl = ko.computed(function() {
-			return "https://octav.onl/" + self.shortlink();
-		});
-		self.displayName = ko.computed(function() {
-			return "octav.onl/" + self.shortlink();
+			return oo_translations["constants.shortlink_prefix"] + self.shortlink();
 		});
 		self.createdTimeString = ko.computed(function() {
 			return self.createdTime().toLocaleString();
@@ -118,7 +115,7 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 			self.showCreateButton(false);
 		};
 		self.deleteit = function() {
-			if (confirm("Are you sure you want to delete this bucket?\n\n" + self.displayName())) {
+			if (confirm("Are you sure you want to delete this bucket?\n\n" + self.shortUrl())) {
 				OctMethods.socket.deleteBucket(self);
 			}
 		};

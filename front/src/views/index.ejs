@@ -391,7 +391,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 							<span class="bucket-icon-project" title="<%= t("common.project") %>"></span>
 							<!-- /ko -->
 
-							<a data-bind="attr: { href: url }" target="_blank" class="bucket-name"><span class="bucket-shortlink-prefix">octav.onl/</span><span class="bucket-shortlink-suffix" data-bind="text: shortlink"></span></a>
+							<a data-bind="attr: { href: url }" target="_blank" class="bucket-name"><span class="bucket-shortlink-prefix"><%= config.redirect.hostname %>/</span><span class="bucket-shortlink-suffix" data-bind="text: shortlink"></span></a>
 							<br/>
 							<span data-bind="text: createdTimeString" class="bucket-time"></span>
 						</li>
