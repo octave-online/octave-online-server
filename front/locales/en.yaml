@@ -155,12 +155,17 @@ modals:
     title: Change Password
     p1: Enter your new password below.  To remove your password and disable password-based logins, leave the password field blank and click "Save Password".
     submit#btn: Save Password
+  welcome_back:
+    title: Welcome Back!
+    p1: It has been a while since you've visited {{config.client.app_name}}. You have a clean workspace for a fresh start. To restore your data from last time, please contact support using the button in the menu.
+    btn1: OK
   bucketinfo:
     p1: Click below to make your own copy of this bucket or project.
     label1: "Created at:"
     label2: "Forked From:"
     btn1: "Fork This Bucket"
     btn1p: "Fork This Project"
+    btn2: "Change Short Link"
   createbucket:
     title: Customize Bucket
     titlep: Customize Project
@@ -174,6 +179,8 @@ modals:
     subhead4: "Optional: Select Main File"
     p3: The "main" script is automatically run when someone views the bucket.
     label1: "Main File:"
+    subhead5: "Optional: Custom URL / Short Link"
+    p5: You can set a custom URL for your bucket or project via our short-link service at {{config.redirect.hostname}}.
     p4: After clicking below, your browser will refresh into your new bucket.  You can share the URL of the page to which you are redirected.
     p4p: After clicking below, your browser will refresh into your new project.
     submit#btn: Create Bucket
@@ -232,6 +239,11 @@ javascript:
       p3: "Error: Could not find the course code:"
     unenroll:
       p1: Are you sure that you want to remove the following student from your course?
+  buckets:
+    # Note: These requirements should match the regex in socket_connect.ts
+    error1: "Error: invalid short link. Use at least 5 letters, numbers, -, and _."
+    error2: "Error: That short link is already taken. Please try again."
+    label1: "Enter a new short link:"
   # Not currently used:
   togglesharing:
     p1: "You cannot disable sharing as a student enrolled in an {{config.client.app_name}} course code:"
@@ -249,3 +261,6 @@ common:
   loginrequired: Please sign in to perform this action
   bucket: Bucket
   project: Project
+
+constants:
+  shortlink_prefix: https://{{config.redirect.hostname}}/

@@ -488,6 +488,13 @@ front: {
 	view_cache_clear_interval: 120000
 }
 
+# Redirect Service settings
+# These settings power "octav.onl" in official Octave Online.
+redirect: {
+	# e.g., "octav.onl"
+	hostname: localhost
+}
+
 # Operational Transformation settings
 # These are timeouts (in ms) that control the lifecycle of OT operations in Redis, used for shared workspaces.
 ot: {

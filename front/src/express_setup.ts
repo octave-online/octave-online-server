@@ -108,6 +108,11 @@ function getJSTranslations(req: Express.Request, t: I18next.TFunction) {
 		let key_string = key as string;
 		oo_translations["common." + key_string] = t(`common.${key_string}`, { config });
 	}
+	let constantsKeys: {[key: string]: unknown} = Flatten((req as any).i18n.getDataByLanguage("en").translation.constants);
+	for (let key of Object.keys(constantsKeys)) {
+		let key_string = key as string;
+		oo_translations["constants." + key_string] = t(`constants.${key_string}`, { config });
+	}
 	return oo_translations;
 }
 

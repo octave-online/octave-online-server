@@ -1208,10 +1208,9 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			},
 			createBucketError: function(data) {
 				if (data.type === "invalid-shortlink") {
-					// Note: These requirements should match the regex in socket_connect.ts
-					alert("Error: invalid short link. Use at least 5 letters, numbers, -, and _.");
+					alert(oo_translations["buckets.error1"]);
 				} else if (data.type === "duplicate-key") {
-					alert("Error: \"" + Object.values(data.data)[0] + "\" is already taken. Please try again.");
+					alert(oo_translations["buckets.error2"] + "\n\n" + Object.values(data.data)[0]);
 				}
 				viewModel.newBucket().showCreateButton(true);
 			},
@@ -1223,10 +1222,9 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 						console.error("Inconsistent bucket:", viewModel.currentBucket(), data.bucket);
 					}
 				} else if (data.type === "invalid-shortlink") {
-					// Note: These requirements should match the regex in socket_connect.ts
-					alert("Error: invalid short link. Use at least 5 letters, numbers, -, and _.");
+					alert(oo_translations["buckets.error1"]);
 				} else if (data.type === "duplicate-key") {
-					alert("Error: \"" + Object.values(data.data)[0] + "\" is already taken. Please try again.");
+					alert(oo_translations["buckets.error2"] + "\n\n" + Object.values(data.data)[0]);
 				}
 			},
 			pong: function(data) {

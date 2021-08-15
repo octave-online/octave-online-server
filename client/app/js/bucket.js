@@ -107,7 +107,7 @@ define(["knockout", "require", "js/octfile", "js/utils"], function(ko, require, 
 			self.shortlink(shortlink);
 		};
 		self.editShortlink = function() {
-			var result = window.prompt("Enter a new short link:\n\nhttps://octav.onl/…", self.shortlink());
+			var result = window.prompt(oo_translations["buckets.label1"] + "\n\n" + oo_translations["constants.shortlink_prefix"] + "…", self.shortlink());
 			if (result) {
 				OctMethods.socket.changeBucketShortlink(self, result);
 			}

@@ -444,10 +444,10 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 
 <div id="welcome_back" data-purpose="popover" aria-hidden="true"><div><div>
 	<h2 class="popover-title-bar">
-		Welcome Back!
+		<%= t("modals.welcome_back.title") %>
 	</h2>
-	<p>It has been a while since you've visited Octave Online. You have a clean workspace for a fresh start. To restore your data from last time, please contact support using the button in the menu.</p>
-	<button data-purpose="close">OK</button>
+	<p><%= t("modals.welcome_back.p1", { config }) %></p>
+	<button data-purpose="close"><%= t("modals.welcome_back.btn1") %></button>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
@@ -509,7 +509,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<div class="shortlink">
 		<span class="shortlink-url" data-bind="text: shortUrl"></span>
 		<!-- ko if: isOwnedByCurrentUser -->
-		<span class="edit-shortlink" title="Change Short Link" data-bind="click: editShortlink"></span>
+		<span class="edit-shortlink" title="<%= t('modals.bucketinfo.btn2') %>" data-bind="click: editShortlink"></span>
 		<!-- /ko -->
 	</div>
 	<p>
@@ -591,10 +591,10 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 			<button data-bind="click: moveRightToLeft">⇦</button>
 			<button data-bind="click: moveLeftToRight">⇨</button>
 		</p>
-		<h3>Optional: Custom URL / Short Link</h3>
-		<p>You can set a custom URL for your bucket or project via our short-link service at <tt>octav.onl</tt>.</p>
+		<h3><%= t("modals.createbucket.subhead5") %></h3>
+		<p><%= t("modals.createbucket.p5", { config }) %></p>
 		<p><label>
-			<tt>https://octav.onl/</tt>
+			<tt><%= t("constants.shortlink_prefix", { config }) %></tt>
 			<input type="text" data-bind="value: shortlink" />
 		</label></p>
 		<!-- ko if: butype() === "readonly" -->

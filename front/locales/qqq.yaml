@@ -155,12 +155,17 @@ modals:
     title: Button text
     p1: Call to action, paragraph of body text
     submit#btn: Button text
+  welcome_back:
+    title: Title of dialog box
+    p1: Paragraph of body text
+    btn1: Button text
   bucketinfo:
     p1: Call to action, paragraph of body text
     label1: Label, followed by a date and time
     label2: Label, followed by a link
     btn1: Button text
     btn1p: Button text
+    btn2: Button text
   createbucket:
     title: Title of dialog box
     titlep: Title of dialog box
@@ -174,6 +179,8 @@ modals:
     subhead4: Call to action, section header
     p3: Paragraph of body text
     label1: Section header, followed by a list
+    subhead5: Call to action, section header
+    p5: Paragraph of body text
     p4: Paragraph of body text
     p4p: Paragraph of body text
     submit#btn: Button text
@@ -232,6 +239,10 @@ javascript:
       p3: Label, followed by a course code (like "Math_101")
     unenroll:
       p1: Rhetorical question asked of the user
+  buckets:
+    error1: Paragraph of body text
+    error2: Paragraph of body text
+    label1: Label for form field
   togglesharing:
     p1: Paragraph of body text, followed by a course code (like "Math_101")
     p2: Call to action, followed by a computer command
@@ -248,3 +259,6 @@ common:
   loginrequired: Error message
   bucket: Name for a collection of files shared with other users; do not translate in Latin-script languages
   project: Name for a workspace with files for editing and collaboration
+
+constants:
+  shortlink_prefix: DO NOT TRANSLATE
