@@ -567,6 +567,8 @@ client: {
 	app_name: Octave Online Server
 	# Whether to show the splash screen and other onboarding bubbles to help new users learn how to use the software.
 	onboarding: false
+	# Number of milliseconds since the user's last_activity before displaying the Welcome Back message. Defaults to 200 days.
+	welcome_back_ms: 17280000000
 
 	# ANNOUNCEMENT MESSAGE
 	# Set announcement_display to enable a dialog that is shown to users when visiting the page.  There are three options:

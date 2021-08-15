@@ -183,6 +183,12 @@ module.exports = function (grunt) {
 						flags: "g"
 					},
 					{
+						name: "config-client-welcome_back_ms",
+						search: "parseInt\\(\"\\d+!config.client.welcome_back_ms\"\\)",
+						replace: "" + config.client.welcome_back_ms,
+						flags: "g"
+					},
+					{
 						name: "gacode",
 						search: "\\{!gacode!\\}",
 						replace: config.client.gacode,

@@ -173,6 +173,28 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			var user = authUser();
 			return user && user.patreon && user.patreon.currently_entitled_amount_cents;
 		}),
+		openUserVoice: function() {
+			require(["uservoice"], function() {
+				window.UserVoice.push(["showLightbox", "classic_widget", {
+					mode: "full",
+					primary_color: "#cc6d00",
+					link_color: "#007dbf",
+					default_mode: "support",
+					forum_id: 211888,
+				}]);
+			});
+		},
+		/*
+		openUserVoiceSupport: function() {
+			require(["uservoice"], function() {
+				window.UserVoice.push(["showLightbox", "classic_widget", {
+					mode: "support",
+					primary_color: "#cc6d00",
+					link_color: "#007dbf"
+				}]);
+			});
+		},
+		*/
 
 		// More for plots
 		currentPlot: ko.computed(function(){
@@ -1009,6 +1031,12 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					onboarding.showUserPromo(data);
 					onboarding.hideScriptPromo();
 					onboarding.hideBucketPromo();
+
+					// Welcome Back?
+					var welcome_back_ms = parseInt("86400000!config.client.welcome_back_ms");
+					if (new Date() - new Date(data.last_activity) >= welcome_back_ms) {
+						$("#welcome_back").showSafe();
+					}
 
 					// Analytics
 					anal.signedin();

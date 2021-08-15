@@ -347,16 +347,9 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					</ul>
 				</div>
 			<!-- /ko -->
-			<div class="site-control-item" id="feedback-btn">
-				<a href="javascript:void(0)"
-				data-uv-lightbox="classic_widget"
-				data-uv-mode="full"
-				data-uv-primary-color="#cc6d00"
-				data-uv-link-color="#007dbf"
-				data-uv-default-mode="feedback"
-				data-uv-forum-id="211888">
-				<%= t("header.sidebar.support#btn") %>
-			</a></div>
+			<div class="site-control-item" id="feedback-btn" data-bind="click: openUserVoice">
+				<a href="javascript:void(0)"><%= t("header.sidebar.support#btn") %></a>
+			</div>
 			<div class="site-control-item">
 				<a id="showprivacy"><%= t("header.sidebar.legal#btn") %></a>
 			</div>
@@ -446,6 +439,15 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 
 <div id="announcement-box" data-purpose="popover" data-announcement-display="<%= config.client.announcement_display %>" aria-hidden="true"><div><div>
 	<%- config.client.announcement_html %>
+	<span class="closebtn" data-purpose="close"></span>
+</div></div></div>
+
+<div id="welcome_back" data-purpose="popover" aria-hidden="true"><div><div>
+	<h2 class="popover-title-bar">
+		Welcome Back!
+	</h2>
+	<p>It has been a while since you've visited Octave Online. You have a clean workspace for a fresh start. To restore your data from last time, please contact support using the button in the menu.</p>
+	<button data-purpose="close">OK</button>
 	<span class="closebtn" data-purpose="close"></span>
 </div></div></div>
 
