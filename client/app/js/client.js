@@ -136,7 +136,8 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 	var vars = ko.observableArray([]);
 	var plotHistory = ko.observableArray([]);
 	var currentPlotIdx = ko.observable(-1);
-	var currentUser = ko.observable();
+	var authUser = ko.observable(); // user who is currently logged in
+	var currentUser = ko.observable(); // user who owns the workspace (may or may not be the same as authUser)
 	var currentBucket = ko.observable();
 	var viewModel = window.viewModel = {
 		files: allOctFiles,
@@ -169,7 +170,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 			}
 		}),
 		patreonValue: ko.computed(function() {
-			var user = currentUser();
+			var user = authUser();
 			return user && user.patreon && user.patreon.currently_entitled_amount_cents;
 		}),
 
@@ -216,6 +217,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 		},
 
 		// Sign In / Sign Out
+		authUser: authUser,
 		currentUser: currentUser,
 		doLogout: function(){
 			onboarding.reset();
@@ -645,7 +647,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				}
 			},
 			askForEnroll: function(program){
-				if(!viewModel.currentUser()){
+				if(!viewModel.authUser()){
 					utils.alert(oo_translations["students.enroll.p1"]);
 					return;
 				}
@@ -653,7 +655,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				if(confirm(
 					oo_translations["students.enroll.p2"] + "\n\nenroll('default')\n\n" + oo_translations["students.enroll.p3"])){
 					OctMethods.socket.enroll(program);
-					viewModel.currentUser().program = program; // note: this is not observable
+					viewModel.authUser().program = program; // note: this is not observable
 				}
 			},
 			addTime: function() {
@@ -998,6 +1000,10 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					if (!data) {
 						return;
 					}
+
+					// Trigger Knockout
+					data.name = data.name || data.displayName;
+					viewModel.authUser(data);
 
 					// Set up the UI
 					onboarding.showUserPromo(data);
@@ -1407,7 +1413,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 				// Add a credit line at the bottom
 				var creditDiv = $("<div></div>");
-				creditDiv.append(oo_translations["print.p1"] + " " + (viewModel.currentUser() || { name: "Anonymous" }).name);
+				creditDiv.append(oo_translations["print.p1"] + " " + (viewModel.authUser() || { name: "Anonymous" }).name);
 				creditDiv.append("<br/>");
 				creditDiv.append(oo_translations["print.p2"]);
 				creditDiv.append("<br/>");

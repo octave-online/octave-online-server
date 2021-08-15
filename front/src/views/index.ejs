@@ -129,7 +129,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					<!-- ko if: editable -->
 					<span id="editor_print" title="<%= t("editor.toolbar.print#btn") %>" data-bind="click: print"></span>
 					<label id="wrap_checkbox" title="<%= t("editor.toolbar.wrap#btn") %>"><input type="checkbox" data-bind="checked: wrap" /></label>
-					<!-- ko if: $root.purpose() !== "bucket" && $root.currentUser -->
+					<!-- ko if: $root.purpose() !== "bucket" && $root.authUser -->
 					<span id="editor_share" title="<%= t("editor.toolbar.share#btn") %>" data-bind="click: share"></span>
 					<!-- /ko -->
 					<span id="editor_save" title="<%= t("editor.toolbar.save#btn") %>" data-bind="click: save"></span>
@@ -229,7 +229,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					<div id="console_output_container">
 						<pre id="console" data-bind="css: { 'console-wrap': consoleWhiteSpaceWrap }"></pre>
 						<!-- ko if: patreonValue() > 0 -->
-						<div id="tier_background"><div data-bind="class: currentUser().patreon.tier_name, click: showUpgradeTier" title="<%= t("panel.output.upgraded#ui") %>"></div></div>
+						<div id="tier_background"><div data-bind="class: authUser().patreon.tier_name, click: showUpgradeTier" title="<%= t("panel.output.upgraded#ui") %>"></div></div>
 						<!-- /ko -->
 						<% if (config.client.onboarding) { %>
 						<div id="instructor-promo" aria-hidden="true">
@@ -242,7 +242,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 						<div id="type_here" aria-hidden="true">
 							<span class="l1"><%= t("promos.prompt.title") %></span>
 							<span class="l2"><%= t("promos.prompt.p1") %></span>
-							<!-- ko ifnot: currentUser() -->
+							<!-- ko ifnot: authUser() -->
 							<span class="l3"><%= t("promos.prompt.p2") %> <a href="javascript:void(0)" id="sign_in_shortcut"><%= t("promos.prompt.btn1") %></a></span>
 							<!-- /ko -->
 						</div>
@@ -267,7 +267,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 							</span>
 							<span id="add_time_container">
 								<span class="clickable" data-bind="click: addTime"><%- t("panel.prompt.add#btn", { numSecondsHTML: '<span data-bind="text: countdownExtraTimeSeconds"></span>' }) %></span>
-								<!-- ko if: (currentUser() && (!currentUser().patreon || !currentUser().patreon.currently_entitled_tier)) -->
+								<!-- ko if: (authUser() && (!authUser().patreon || !authUser().patreon.currently_entitled_tier)) -->
 								/ <span class="clickable" data-bind="click: showUpgradeTier"><%= t("panel.prompt.upgrade#btn") %></span>
 								<!-- /ko -->
 							</span>
@@ -291,7 +291,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 						}, value: currentLanguage"></select>
 				</div>
 			<% } %>
-			<!-- ko if: (!currentUser() && purpose() !== "student") -->
+			<!-- ko if: (!authUser() && purpose() !== "student") -->
 				<svg width="200" height="40" class="login_btn" id="sign_in_with_google">
 					<image xlink:href="images/sign-in-with-google.svg" src="images/sign-in-with-google.png" width="200" height="40" alt="<%= t("header.sidebar.signingoogle#btn") %>" />
 				</svg>
@@ -302,9 +302,9 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 					<image xlink:href="images/sign-in-with-email.svg" src="images/sign-in-with-email.png" width="200" height="40" alt="<%= t("header.sidebar.signinemail#btn") %>" />
 				</svg>
 			<!-- /ko -->
-			<!-- ko if: (currentUser() && purpose() !== "student") -->
+			<!-- ko if: (authUser() && purpose() !== "student") -->
 				<div id="userbox">
-					<span data-bind="text: currentUser().name"></span>
+					<span data-bind="text: authUser().name"></span>
 					<a id="logout_icon" href="javascript:void(0)" title="Sign Out" data-bind="click: doLogout"><%= t("header.sidebar.signout#btn") %></a>
 				</div>
 				<div class="site-control-item" data-bind="click: showUpgradeTier">
@@ -631,12 +631,12 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	<h2 class="popover-title-bar">
 		<%= t("modals.upgrade.title") %>
 	</h2>
-	<!-- ko ifnot: currentUser -->
+	<!-- ko ifnot: authUser -->
 	<p class="action-links">
 		<a href="/auth/patreon/plans" target="_blank"><%= t("modals.upgrade.btn1") %></a> / <a href="/auth/patreon"><%= t("modals.upgrade.btn2") %></a>
 	</p>
 	<!-- /ko -->
-	<!-- ko with: currentUser -->
+	<!-- ko with: authUser -->
 	<!-- ko ifnot: $data.patreon -->
 	<p class="action-links">
 		<a href="/auth/patreon/plans" target="_blank"><%= t("modals.upgrade.btn1") %></a> / <a href="/auth/patreon"><%= t("modals.upgrade.btn2") %></a>
