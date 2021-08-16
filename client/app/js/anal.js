@@ -68,6 +68,9 @@ define(function(){
 		signedin: function(){
 			_ga("send", "event", "accounts", "signed-in");
 		},
+		welcomeback: function() {
+			_ga("send", "event", "accounts", "welcome-back");
+		},
 		sitecontrol: function(which){
 			_ga("send", "event", "site-control", which);
 		},

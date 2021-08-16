@@ -1036,6 +1036,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 					var welcome_back_ms = parseInt("86400000!config.client.welcome_back_ms");
 					if (new Date() - new Date(data.last_activity) >= welcome_back_ms) {
 						$("#welcome_back").showSafe();
+						anal.welcomeback();
 					}
 
 					// Analytics
