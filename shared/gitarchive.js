@@ -84,13 +84,14 @@ async function restoreRepoFromZipFile(log, tld, name, branchName, zipFileBlob) {
 	const zip = await jszip.loadAsync(zipFileBlob, { createFolders: true });
 	const tmpdir = await fsPromises.mkdtemp(path.join(os.tmpdir(), "oo-reporestore-"));
 	const gitdir = path.join(tmpdir, "work");
+	const gitoptbase = ["-c", "user.email='webmaster@octave-online.net'", "-c", "user.name='Octave Online'"];
 	log("tmpdir:", tmpdir);
 	try {
 		log("A-clone",
 			await execFilePromise("git", ["clone", remote, "work"],
 				{ cwd: tmpdir }));
 		log("A-commit-0",
-			await execFilePromise("git", ["-c", "user.email='webmaster@octave-online.net'", "-c", "user.name='Octave Online'", "commit", "--allow-empty", "-m", "Prep for restoration"],
+			await execFilePromise("git", gitoptbase.concat(["commit", "--allow-empty", "-m", "Prep for restoration"]),
 				{ cwd: gitdir }));
 		log("A-co-orphan",
 			await execFilePromise("git", ["checkout", "--no-guess", "--orphan", branchName],
@@ -119,13 +120,13 @@ async function restoreRepoFromZipFile(log, tld, name, branchName, zipFileBlob) {
 			await execFilePromise("git", ["add", "-A"],
 				{ cwd: gitdir }));
 		log("A-commit-1",
-			await execFilePromise("git", ["-c", "user.email='webmaster@octave-online.net'", "-c", "user.name='Octave Online'", "commit", "-m", "Snapshot: " + branchName],
+			await execFilePromise("git", gitoptbase.concat(["commit", "-m", "Snapshot: " + branchName]),
 				{ cwd: gitdir }));
 		log("A-checkout-master",
 			await execFilePromise("git", ["checkout", "master"],
 				{ cwd: gitdir }));
 		const mergeOutput = await new Promise((resolve, reject) => {
-			child_process.execFile("git", ["merge", "--allow-unrelated-histories", "--squash", "--no-commit", branchName],
+			child_process.execFile("git", gitoptbase.concat(["merge", "--allow-unrelated-histories", "--squash", "--no-commit", branchName]),
 				{ cwd: gitdir },
 				function(err, stdout, stderr) {
 					// Errors are expected here if there was a merge conflict; ignore them gracefully.
@@ -137,10 +138,7 @@ async function restoreRepoFromZipFile(log, tld, name, branchName, zipFileBlob) {
 			await execFilePromise("git", ["add", "-A"],
 				{ cwd: gitdir }));
 		log("A-commit-2",
-			await execFilePromise("git", ["-c", "user.email='webmaster@octave-online.net'", "-c", "user.name='Octave Online'", "commit", "-m", "Restoring: " + branchName + "\n\nGit Merge Output:\n-----\n" + mergeOutput.stdout],
-				{ cwd: gitdir }));
-		log("A-push",
-			await execFilePromise("git", ["push", "origin", "master"],
+			await execFilePromise("git", gitoptbase.concat(["commit", "-m", "Restoring: " + branchName + "\n\nGit Merge Output:\n-----\n" + mergeOutput.stdout]),
 				{ cwd: gitdir }));
 	} catch (e) {
 		throw e;
