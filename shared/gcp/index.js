@@ -20,6 +20,8 @@
 
 "use strict";
 
+const path = require("path");
+
 const Compute = require("@google-cloud/compute");
 const { Storage } = require("@google-cloud/storage");
 const gcpMetadata = require("gcp-metadata");
@@ -161,6 +163,16 @@ async function doUploadRepo(log, tld, name, bucketName) {
 	return file;
 }
 
+async function restoreRepoFromCloudStorage(log, tld, name, bucketName, bucketPath) {
+	log(`Fetching gs://${bucketName}/${bucketPath}`);
+
+	const file = getStorageClient()
+		.bucket(bucketName)
+		.file(bucketPath);
+	const fileContents = await file.download();
+	await gitarchive.restoreRepoFromZipFile(log, tld, name, path.basename(bucketPath), fileContents);
+}
+
 
 module.exports = {
 	getAutoscalerInfo,
@@ -168,4 +180,5 @@ module.exports = {
 	downloadFile,
 	uploadRepoArchive,
 	uploadRepoSnapshot,
+	restoreRepoFromCloudStorage,
 };

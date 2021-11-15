@@ -24,7 +24,7 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "@oo/shared": "../shared",
+    "@oo/shared": "file:../shared",
     "dts-gen": "^0.6.0"
   }
 }
