@@ -140,6 +140,9 @@ async function restoreRepoFromZipFile(log, tld, name, branchName, zipFileBlob) {
 		log("A-commit-2",
 			await execFilePromise("git", gitoptbase.concat(["commit", "-m", "Restoring: " + branchName + "\n\nGit Merge Output:\n-----\n" + mergeOutput.stdout]),
 				{ cwd: gitdir }));
+		log("A-push",
+			await execFilePromise("git", ["push", "origin", "master"],
+				{ cwd: gitdir }));
 	} catch (e) {
 		throw e;
 	} finally {
