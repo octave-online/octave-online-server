@@ -95,9 +95,14 @@ async function restoreRepoFromZipFile(log, tld, name, branchName, zipFileBlob) {
 		log("A-co-orphan",
 			await execFilePromise("git", ["checkout", "--no-guess", "--orphan", branchName],
 				{ cwd: gitdir }));
-		log("A-git-rm",
-			await execFilePromise("git", ["rm", "-rf", "."],
-				{ cwd: gitdir }));
+		log("A-git-rm", await new Promise((resolve, reject) => {
+			child_process.execFile("git", ["rm", "-rf", "."],
+				{ cwd: gitdir },
+				function(err, stdout, stderr) {
+					// Errors are expected here if the repo is empty
+					resolve({ stdout, stderr });
+				});
+		}));
 		for (let [relativePath, file] of Object.entries(zip.files)) {
 			const fullPath = path.join(gitdir, relativePath);
 			if (file.dir) {
