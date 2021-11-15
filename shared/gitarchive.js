@@ -21,6 +21,13 @@
 "use strict";
 
 const child_process = require("child_process");
+const fsPromises = require("fs").promises;
+const jszip = require("jszip");
+const os = require("os");
+const path = require("path");
+const util = require("util");
+
+const execFilePromise = util.promisify(child_process.execFile);
 
 const config = require("./config");
 const log = require("./logger")("gitarchive");
@@ -72,6 +79,69 @@ async function createRepoSnapshot(tld, name, outStream) {
 	});
 }
 
+async function restoreRepoFromZipFile(log, tld, name, branchName, zipFileBlob) {
+	const remote = `git://${config.git.hostname}:${config.git.gitDaemonPort}/${tld}/${name}.git`;
+	const zip = await jszip.loadAsync(zipFileBlob, { createFolders: true });
+	const tmpdir = await fsPromises.mkdtemp(path.join(os.tmpdir(), "oo-reporestore-"));
+	const gitdir = path.join(tmpdir, "work");
+	log("tmpdir:", tmpdir);
+	try {
+		log("A-clone",
+			await execFilePromise("git", ["clone", remote, "work"],
+				{ cwd: tmpdir }));
+		log("A-commit-0",
+			await execFilePromise("git", ["commit", "--author", "Octave Online <webmaster@octave-online.net>", "--allow-empty", "-m", "Prep for restoration"],
+				{ cwd: gitdir }));
+		log("A-co-orphan",
+			await execFilePromise("git", ["checkout", "--no-guess", "--orphan", branchName],
+				{ cwd: gitdir }));
+		log("A-git-rm",
+			await execFilePromise("git", ["rm", "-rf", "."],
+				{ cwd: gitdir }));
+		for (let [relativePath, file] of Object.entries(zip.files)) {
+			const fullPath = path.join(gitdir, relativePath);
+			if (file.dir) {
+				await fsPromises.mkdir(fullPath);
+			} else {
+				const fileData = await zip.file(relativePath).async("nodebuffer");
+				// TODO: Should we restore "date", "unixPermissions", ... ?
+				await fsPromises.writeFile(fullPath, fileData);
+			}
+		}
+		log("A-add-1",
+			await execFilePromise("git", ["add", "-A"],
+				{ cwd: gitdir }));
+		log("A-commit-1",
+			await execFilePromise("git", ["commit", "--author", "Octave Online <webmaster@octave-online.net>", "-m", "Snapshot: " + branchName],
+				{ cwd: gitdir }));
+		log("A-checkout-master",
+			await execFilePromise("git", ["checkout", "master"],
+				{ cwd: gitdir }));
+		const mergeOutput = await new Promise((resolve, reject) => {
+			child_process.execFile("git", ["merge", "--allow-unrelated-histories", "--squash", "--no-commit", branchName],
+				{ cwd: gitdir },
+				function(err, stdout, stderr) {
+					// Errors are expected here if there was a merge conflict; ignore them gracefully.
+					resolve({ stdout, stderr });
+				});
+		});
+		log("A-merge", mergeOutput);
+		log("A-add-2",
+			await execFilePromise("git", ["add", "-A"],
+				{ cwd: gitdir }));
+		log("A-commit-2",
+			await execFilePromise("git", ["commit", "--author", "Octave Online <webmaster@octave-online.net>", "-m", "Restoring: " + branchName + "\n\nGit Merge Output:\n-----\n" + mergeOutput.stdout],
+				{ cwd: gitdir }));
+		log("A-push",
+			await execFilePromise("git", ["push", "origin", "master"],
+				{ cwd: gitdir }));
+	} catch (e) {
+		throw e;
+	} finally {
+		log("C1", await execFilePromise("rm", ["-rf", tmpdir]));
+	}
+}
+
 function generateFilename(name) {
 	return `oo_${new Date().toISOString()}_${name}.zip`;
 }
@@ -80,4 +150,5 @@ module.exports = {
 	repoContainsRefs,
 	createRepoSnapshot,
 	generateFilename,
+	restoreRepoFromZipFile,
 };
