@@ -10,6 +10,7 @@
   "dependencies": {
     "@awaitjs/express": "^0.4.0",
     "@oo/shared": "file:../shared",
+    "@oo/shared_gcp": "file:../shared/gcp",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
