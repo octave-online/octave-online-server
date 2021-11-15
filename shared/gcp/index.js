@@ -169,8 +169,10 @@ async function restoreRepoFromCloudStorage(log, tld, name, bucketName, bucketPat
 	const file = getStorageClient()
 		.bucket(bucketName)
 		.file(bucketPath);
-	const fileContents = await file.download();
-	await gitarchive.restoreRepoFromZipFile(log, tld, name, path.basename(bucketPath), fileContents);
+	const fileContents = (await file.download())[0];
+	log("Zip file downloaded: # of bytes:", fileContents.length);
+	const branchName = path.basename(bucketPath).replace(/:/g, "");
+	await gitarchive.restoreRepoFromZipFile(log, tld, name, branchName, fileContents);
 }
 
 

@@ -25,8 +25,9 @@ const bcryptjs = require("bcryptjs");
 const express = require("express");
 const { addAsync } = require("@awaitjs/express");
 
-const config = require("@oo/shared").config;
+const { config, logger } = require("@oo/shared");
 const db = require("../src/db");
+const gcp = require("@oo/shared_gcp");
 const repo = require("../src/repo");
 
 const router = addAsync(express.Router());
@@ -121,6 +122,27 @@ router.postAsync("/:userId/delete-data.do", async function(req, res) {
 			parametrized: user.parametrized,
 		};
 		await db.replaceById("users", userId, newDoc);
+	}
+	res.redirect(".");
+});
+
+router.postAsync("/:userId/restore-from-storage.do", async function(req, res) {
+	const userId = req.params.userId || "";
+	const user = await db.findById("users", userId);
+	const gsUri = req.body.gsUri;
+	const matches = /^gs:\/\/([^\/]+)\/(.+)$/.exec(gsUri);
+	if (!matches) {
+		res.status(400).type("txt").send(`gsUri is not valid: ${gsUri}`);
+		return;
+	}
+	const log = logger(`restore:${userId}`);
+	log.info("Beginning restoration process:", gsUri);
+	try {
+		await gcp.restoreRepoFromCloudStorage(log.log, "repos", user.parametrized, matches[1], matches[2]);
+	} catch(e) {
+		res.status(500).type("txt").send(`Error while restoring files:\n\n${e}`);
+		log.error(e);
+		return;
 	}
 	res.redirect(".");
 });

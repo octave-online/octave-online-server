@@ -66,6 +66,16 @@ along with Octave Online Server.  If not, see
 	<a href="<%= `${config.git.httpUrl}${user.parametrized}.git/` %>">Open Repo Viewer</a>
 </p>
 
+<form action="<%= `/users/${user._id}/restore-from-storage.do` %>" method="post" class="pure-form">
+	<input type="hidden" name="id" value="<%= user._id %>" />
+	<p>
+		<input type="text" name="gsUri" placeholder="gs://..." />
+	</p>
+	<p>
+		<input type="submit" class="pure-button" value="Restore Data from Google Cloud Storage URI" />
+	</p>
+</form>
+
 <h2>Delete User Data</h2>
 
 <form action="<%= `/users/${user._id}/delete-data.do` %>" method="post" class="pure-form">

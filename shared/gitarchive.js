@@ -101,8 +101,10 @@ async function restoreRepoFromZipFile(log, tld, name, branchName, zipFileBlob) {
 		for (let [relativePath, file] of Object.entries(zip.files)) {
 			const fullPath = path.join(gitdir, relativePath);
 			if (file.dir) {
+				log("Creating directory:", relativePath);
 				await fsPromises.mkdir(fullPath);
 			} else {
+				log("Writing file:", relativePath);
 				const fileData = await zip.file(relativePath).async("nodebuffer");
 				// TODO: Should we restore "date", "unixPermissions", ... ?
 				await fsPromises.writeFile(fullPath, fileData);
