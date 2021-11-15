@@ -90,7 +90,7 @@ async function restoreRepoFromZipFile(log, tld, name, branchName, zipFileBlob) {
 			await execFilePromise("git", ["clone", remote, "work"],
 				{ cwd: tmpdir }));
 		log("A-commit-0",
-			await execFilePromise("git", ["commit", "--author", "Octave Online <webmaster@octave-online.net>", "--allow-empty", "-m", "Prep for restoration"],
+			await execFilePromise("git", ["-c", "user.email='webmaster@octave-online.net'", "-c", "user.name='Octave Online'", "commit", "--allow-empty", "-m", "Prep for restoration"],
 				{ cwd: gitdir }));
 		log("A-co-orphan",
 			await execFilePromise("git", ["checkout", "--no-guess", "--orphan", branchName],
@@ -114,7 +114,7 @@ async function restoreRepoFromZipFile(log, tld, name, branchName, zipFileBlob) {
 			await execFilePromise("git", ["add", "-A"],
 				{ cwd: gitdir }));
 		log("A-commit-1",
-			await execFilePromise("git", ["commit", "--author", "Octave Online <webmaster@octave-online.net>", "-m", "Snapshot: " + branchName],
+			await execFilePromise("git", ["-c", "user.email='webmaster@octave-online.net'", "-c", "user.name='Octave Online'", "commit", "-m", "Snapshot: " + branchName],
 				{ cwd: gitdir }));
 		log("A-checkout-master",
 			await execFilePromise("git", ["checkout", "master"],
@@ -132,7 +132,7 @@ async function restoreRepoFromZipFile(log, tld, name, branchName, zipFileBlob) {
 			await execFilePromise("git", ["add", "-A"],
 				{ cwd: gitdir }));
 		log("A-commit-2",
-			await execFilePromise("git", ["commit", "--author", "Octave Online <webmaster@octave-online.net>", "-m", "Restoring: " + branchName + "\n\nGit Merge Output:\n-----\n" + mergeOutput.stdout],
+			await execFilePromise("git", ["-c", "user.email='webmaster@octave-online.net'", "-c", "user.name='Octave Online'", "commit", "-m", "Restoring: " + branchName + "\n\nGit Merge Output:\n-----\n" + mergeOutput.stdout],
 				{ cwd: gitdir }));
 		log("A-push",
 			await execFilePromise("git", ["push", "origin", "master"],
