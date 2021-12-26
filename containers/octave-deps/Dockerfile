@@ -31,6 +31,7 @@ RUN yum install -y \
 	git \
 	mercurial \
 	net-tools \
+	librsvg2-tools \
 	traceroute \
 	wget \
 	yum-utils
@@ -74,7 +75,7 @@ RUN git clone https://github.com/Tencent/rapidjson.git && \
 	mkdir build && \
 	cd build && \
 	cmake .. && \
-	make -j4 && \
+	time make -j8 && \
 	make install
 
 # TODO: It's not clear which is the "correct" way to set the environment variable
