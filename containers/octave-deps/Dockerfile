@@ -34,7 +34,7 @@ RUN yum install -y \
 	traceroute \
 	wget \
 	yum-utils
-RUN dnf config-manager --set-enabled PowerTools
+RUN dnf config-manager --set-enabled powertools
 
 # Library dependencies for Octave
 RUN yum install -y \
