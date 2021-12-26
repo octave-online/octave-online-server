@@ -26,6 +26,7 @@ RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 # Development tools for Octave
 RUN yum groupinstall -y "Development Tools"
 RUN yum install -y \
+	cmake \
 	epel-release \
 	git \
 	mercurial \
@@ -42,6 +43,7 @@ RUN yum install -y \
 	eigen3-devel \
 	fftw-devel \
 	fltk-devel \
+	gl2ps-devel \
 	glpk-devel \
 	gnuplot \
 	gperf \
@@ -63,6 +65,17 @@ RUN yum install -y \
 	texinfo-tex \
 	transfig \
 	zlib-devel
+
+# Manually install rapidjson; see comments in configure.ac
+RUN git clone https://github.com/Tencent/rapidjson.git && \
+	cd rapidjson && \
+	git reset --hard fd3dc29a5c2852df569e1ea81dbde2c412ac5051 && \
+	git submodule update --init && \
+	mkdir build && \
+	cd build && \
+	cmake .. && \
+	make -j4 && \
+	make install
 
 # TODO: It's not clear which is the "correct" way to set the environment variable
 RUN echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk" > /etc/profile.d/oo.sh
