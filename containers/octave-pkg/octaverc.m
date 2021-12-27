@@ -49,19 +49,18 @@ setenv("PYTHON", "python3")
 % Auto-load packages (no more pkg-auto since 4.2.1)
 % Packages that are installed but not auto-loaded have a reason, such as shadows.
 
+pkg load communications;
 pkg load control;
 pkg load dataframe;
 pkg load general;
 pkg load geometry;
 pkg load image;
-pkg load interval;
 pkg load linear-algebra;
 pkg load miscellaneous;
 pkg load mvn;
 pkg load signal;
 pkg load struct;
 pkg load symbolic;
-pkg load tablicious;
 pkg load video;
 
 % Packages not auto-loaded because of the JVM dependency:
@@ -72,10 +71,11 @@ pkg load video;
 % pkg load statistics;
 
 % Packages not auto-loaded for performance or other reasons:
-% pkg load communications;
 % pkg load ltfat;
 % pkg load nan;
 % pkg load netcdf;
 % pkg load stk;
 % pkg load tsa;
 % pkg load mapping;
+% pkg load tablicious;
+% pkg load interval;
