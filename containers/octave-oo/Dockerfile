@@ -83,7 +83,8 @@ RUN cd back-octave && make && make install
 
 ### 6.4.0 (based on 8d7671609955) ###
 RUN cd octave && \
-	hg import ../back-octave/oo-changesets/320-8d4683a83238.hg.txt
+	hg import ../back-octave/oo-changesets/320-8d4683a83238.hg.txt && \
+	hg import ../back-octave/oo-changesets/321-faad58416a3a.hg.txt
 
 ### 7.0.1 (based on 117ebe363f56) ###
 # RUN cd octave && \
