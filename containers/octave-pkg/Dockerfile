@@ -55,8 +55,8 @@ RUN cd pkg-downloads && wget $PKG_BASE_URL/signal-1.4.1.tar.gz && \
 # https://sourceforge.net/p/octave/signal/merge-requests/3/
 # RUN cd pkg-downloads && \
 # 	hg clone -r o7compat http://hg.code.sf.net/u/octave-online/signal && \
-# 	cd signal && hg archive signal.tar.gz && \
-# 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install signal.tar.gz;"
+# 	(cd signal && hg archive signal.tar.gz) && \
+# 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install signal/signal.tar.gz;"
 
 RUN cd pkg-downloads && wget $PKG_BASE_URL/communications-1.2.3.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install communications-1.2.3.tar.gz;"
@@ -87,6 +87,13 @@ RUN cd pkg-downloads && wget $PKG_BASE_URL/linear-algebra-2.2.3.tar.gz && \
 
 RUN cd pkg-downloads && wget $PKG_BASE_URL/geometry-4.0.0.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install geometry-4.0.0.tar.gz;"
+
+# NOTE: The geometry package has a compile error with modern GCC:
+# https://sourceforge.net/p/octave/geometry/ci/04965cda30b5f9e51774194c67879e7336df1710/
+RUN cd pkg-downloads && \
+	hg clone -r 04965c http://hg.code.sf.net/p/octave/geometry && \
+	(cd geometry && hg archive geometry.tar.gz) && \
+	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install geometry/geometry.tar.gz;"
 
 RUN cd pkg-downloads && wget $PKG_BASE_URL/data-smoothing-1.3.0.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install data-smoothing-1.3.0.tar.gz;"
@@ -138,6 +145,9 @@ RUN cd pkg-downloads && wget $PKG_BASE_URL/dataframe-1.2.0.tar.gz && \
 RUN cd pkg-downloads && wget $PKG_BASE_URL/mvn-1.1.0.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install mvn-1.1.0.tar.gz;"
 
+RUN cd pkg-downloads && wget $PKG_BASE_URL/fuzzy-logic-toolkit-0.4.6.tar.gz && \
+	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install fuzzy-logic-toolkit-0.4.6.tar.gz;"
+
 # Package for additional MATLAB compatibility; not on Octave Forge
 RUN cd pkg-downloads && wget https://github.com/apjanke/octave-tablicious/releases/download/v0.3.6/tablicious-0.3.6.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install tablicious-0.3.6.tar.gz;"
@@ -145,12 +155,6 @@ RUN cd pkg-downloads && wget https://github.com/apjanke/octave-tablicious/releas
 # Policy for adding or removing packages:
 # - Add packages that garner at least 30 downloads/week
 # - Remove packages that fall below 10 downloads/week
-
-# TODO: Package to consider adding:
-# - fuzzy-logic-toolkit-0.4.5
-#   - Present in older versions of Octave Online Server
-#   - 55 downloads/week
-#   - "error: parse error near line 165 of file defuzz.m"
 
 # Former packages:
 # - mechanics-1.3.1 (dropped due to only 4 downloads/week)
