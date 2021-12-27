@@ -51,6 +51,13 @@ RUN cd pkg-downloads && wget $PKG_BASE_URL/control-3.3.1.tar.gz && \
 RUN cd pkg-downloads && wget $PKG_BASE_URL/signal-1.4.1.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install signal-1.4.1.tar.gz;"
 
+# NOTE: The signal package is not compatible with Octave 7.0.1:
+# https://sourceforge.net/p/octave/signal/merge-requests/3/
+# RUN cd pkg-downloads && \
+# 	hg clone -r o7compat http://hg.code.sf.net/u/octave-online/signal && \
+# 	cd signal && hg archive signal.tar.gz && \
+# 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install signal.tar.gz;"
+
 RUN cd pkg-downloads && wget $PKG_BASE_URL/communications-1.2.3.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install communications-1.2.3.tar.gz;"
 
@@ -87,6 +94,7 @@ RUN cd pkg-downloads && wget $PKG_BASE_URL/data-smoothing-1.3.0.tar.gz && \
 RUN cd pkg-downloads && wget $PKG_BASE_URL/nan-3.6.1.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install nan-3.6.1.tar.gz;"
 
+# TODO: Remove?
 RUN cd pkg-downloads && wget $PKG_BASE_URL/tsa-4.6.3.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install tsa-4.6.3.tar.gz;"
 
@@ -96,6 +104,7 @@ RUN cd pkg-downloads && wget $PKG_BASE_URL/miscellaneous-1.3.0.tar.gz && \
 RUN cd pkg-downloads && wget $PKG_BASE_URL/interval-3.2.0.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install interval-3.2.0.tar.gz;"
 
+# TODO: Remove?
 RUN cd pkg-downloads && wget $PKG_BASE_URL/stk-2.6.1.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install stk-2.6.1.tar.gz;"
 
@@ -132,6 +141,10 @@ RUN cd pkg-downloads && wget $PKG_BASE_URL/mvn-1.1.0.tar.gz && \
 # Package for additional MATLAB compatibility; not on Octave Forge
 RUN cd pkg-downloads && wget https://github.com/apjanke/octave-tablicious/releases/download/v0.3.6/tablicious-0.3.6.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install tablicious-0.3.6.tar.gz;"
+
+# Policy for adding or removing packages:
+# - Add packages that garner at least 30 downloads/week
+# - Remove packages that fall below 10 downloads/week
 
 # TODO: Package to consider adding:
 # - fuzzy-logic-toolkit-0.4.5
