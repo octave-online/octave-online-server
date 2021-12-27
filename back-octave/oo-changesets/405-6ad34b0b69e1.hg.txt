@@ -1,0 +1,87 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1640576162 21600
+#      Sun Dec 26 21:36:02 2021 -0600
+# Branch oo-7.0.1
+# Node ID 6ad34b0b69e19c2ce3086daf148fce7bc7d51b2e
+# Parent  acb523f25bb964dbc67a871ea27b7b7366203f26
+Support more methods in octave-json-link
+
+diff -r acb523f25bb9 -r 6ad34b0b69e1 libinterp/corefcn/octave-json-link.cc
+--- a/libinterp/corefcn/octave-json-link.cc	Sun Dec 26 21:18:03 2021 -0600
++++ b/libinterp/corefcn/octave-json-link.cc	Sun Dec 26 21:36:02 2021 -0600
+@@ -205,6 +205,34 @@
+ 	return debug_cd_or_addpath_error_queue.dequeue();
+ }
+ 
++void octave_json_link::focus_window(const std::string& win_name) {
++	// Triggered in "commandhistory", "commandwindow", "filebrowser", "workspace"
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, win_name, string);
++	_publish_message("focus-window", json_util::from_map(m));
++}
++
++void octave_json_link::display_exception(const execution_exception& ee, bool beep) {
++	// Triggered in various places in libinterp
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, ee, string);
++	JSON_MAP_SET(m, beep, boolean);
++	_publish_message("display-exception", json_util::from_map(m));
++}
++
++void octave_json_link::gui_status_update(const std::string& feature, const std::string& status) {
++	// Triggered in __profiler_enable__
++	JSON_MAP_T m;
++	JSON_MAP_SET(m, feature, string);
++	JSON_MAP_SET(m, status, string);
++	_publish_message("gui-status-update", json_util::from_map(m));
++}
++
++void octave_json_link::update_gui_lexer(void) {
++	// Triggered in "load_packages_and_dependencies"
++	_publish_message("update-gui-lexer", json_util::empty());
++}
++
+ void octave_json_link::directory_changed(const std::string& dir) {
+ 	// This endpoint might be unused?  (References appear only in libgui)
+ 	JSON_MAP_T m;
+diff -r acb523f25bb9 -r 6ad34b0b69e1 libinterp/corefcn/octave-json-link.h
+--- a/libinterp/corefcn/octave-json-link.h	Sun Dec 26 21:18:03 2021 -0600
++++ b/libinterp/corefcn/octave-json-link.h	Sun Dec 26 21:36:02 2021 -0600
+@@ -112,7 +112,7 @@
+   // TODO:
+   // void show_command_history (void);
+ 
+-  void show_workspace (void);
++  void show_workspace (void) override;
+ 
+   // TODO:
+   // void show_community_news (int serial);
+@@ -143,8 +143,7 @@
+ 
+   bool copy_image_to_clipboard (const std::string& file) override;
+ 
+-  // TODO:
+-  // void focus_window (const std::string win_name);
++  void focus_window (const std::string win_name);
+ 
+   void execute_command_in_terminal (const std::string& command) override;
+ 
+@@ -155,14 +154,11 @@
+   // TODO:
+   // void interpreter_output (const std::string& msg);
+ 
+-  // TODO:
+-  // void display_exception (const execution_exception& ee, bool beep);
++  void display_exception (const execution_exception& ee, bool beep) override;
+ 
+-  // TODO:
+-  // void gui_status_update (const std::string& feature, const std::string& status);
++  void gui_status_update (const std::string& feature, const std::string& status);
+ 
+-  // TODO:
+-  // void update_gui_lexer (void);
++  void update_gui_lexer (void);
+ 
+   void directory_changed (const std::string& dir) override;
+ 

@@ -1,0 +1,180 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1640575083 21600
+#      Sun Dec 26 21:18:03 2021 -0600
+# Branch oo-7.0.1
+# Node ID acb523f25bb964dbc67a871ea27b7b7366203f26
+# Parent  2813cb96e10f0a2b1ec6903a6dbf7c368ac323a1
+Update methods in octave-json-link.h
+
+diff -r 2813cb96e10f -r acb523f25bb9 libinterp/corefcn/octave-json-link.cc
+--- a/libinterp/corefcn/octave-json-link.cc	Sun Dec 26 20:02:12 2021 -0600
++++ b/libinterp/corefcn/octave-json-link.cc	Sun Dec 26 21:18:03 2021 -0600
+@@ -189,6 +189,11 @@
+ 	return file_dialog_queue.dequeue();
+ }
+ 
++void octave_json_link::update_path_dialog(void) {
++	// Triggered in "rehash"
++	_publish_message("update-path-dialog", json_util::empty());
++}
++
+ int octave_json_link::debug_cd_or_addpath_error(const std::string& file, const std::string& dir, bool addpath_option) {
+ 	// This endpoint might be unused?  (No references)
+ 	JSON_MAP_T m;
+diff -r 2813cb96e10f -r acb523f25bb9 libinterp/corefcn/octave-json-link.h
+--- a/libinterp/corefcn/octave-json-link.h	Sun Dec 26 20:02:12 2021 -0600
++++ b/libinterp/corefcn/octave-json-link.h	Sun Dec 26 21:18:03 2021 -0600
+@@ -61,15 +61,9 @@
+ 
+   ~octave_json_link (void);
+ 
+-  std::string request_input (const std::string& prompt) override;
+-  std::string request_url (const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success) override;
+-
+-  bool confirm_shutdown (void) override;
+-
+-  bool copy_image_to_clipboard (const std::string& file) override;
+-
+-  bool edit_file (const std::string& file) override;
+-  bool prompt_new_edit_file (const std::string& file) override;
++  // TODO
++  // void start_gui (bool gui_app = false);
++  // void close_gui (void);
+ 
+   bool have_dialogs (void) override;
+ 
+@@ -100,57 +94,115 @@
+                   const std::string &filename, const std::string &pathname,
+                   const std::string& multimode) override;
+ 
++  void update_path_dialog (void) override;
++
++  void show_preferences (void) override;
++
++  // TODO:
++  // void apply_preferences (void) override;
++
++  // TODO:
++  // void show_terminal_window (void) override;
++
++  bool show_documentation (const std::string& file) override;
++
++  // TODO:
++  // void show_file_browser (void);
++
++  // TODO:
++  // void show_command_history (void);
++
++  void show_workspace (void);
++
++  // TODO:
++  // void show_community_news (int serial);
++  // void show_release_notes (void);
++
++  bool edit_file (const std::string& file) override;
++
++  void edit_variable (const std::string& name, const octave_value& val) override;
++
++  std::string request_input (const std::string& prompt) override;
++
++  std::string request_url (const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success) override;
++
++  void show_static_plot (const std::string& term, const std::string& content) override;
++
++  bool confirm_shutdown (void) override;
++
++  bool prompt_new_edit_file (const std::string& file) override;
++
+   int
+   debug_cd_or_addpath_error (const std::string& file,
+                                 const std::string& dir,
+                                 bool addpath_option) override;
+ 
++  uint8NDArray get_named_icon (const std::string& icon_name) override;
++
++  std::string gui_preference (const std::string& key, const std::string& value) override;
++
++  bool copy_image_to_clipboard (const std::string& file) override;
++
++  // TODO:
++  // void focus_window (const std::string win_name);
++
++  void execute_command_in_terminal (const std::string& command) override;
++
++  void register_documentation (const std::string& file) override;
++
++  void unregister_documentation (const std::string& file) override;
++
++  // TODO:
++  // void interpreter_output (const std::string& msg);
++
++  // TODO:
++  // void display_exception (const execution_exception& ee, bool beep);
++
++  // TODO:
++  // void gui_status_update (const std::string& feature, const std::string& status);
++
++  // TODO:
++  // void update_gui_lexer (void);
++
+   void directory_changed (const std::string& dir) override;
+ 
+   void file_remove (const std::string& old_name, const std::string& new_name) override;
++
+   void file_renamed (bool) override;
+ 
+-  void execute_command_in_terminal (const std::string& command) override;
+-
+-  uint8NDArray get_named_icon (const std::string& icon_name) override;
+-
+   void set_workspace (bool top_level, bool debug,
+                          const symbol_info_list& ws,
+                          bool update_variable_editor) override;
+ 
+   void clear_workspace (void) override;
+ 
++  // TODO:
++  // void update_prompt (const std::string& prompt);
++
+   void set_history (const string_vector& hist) override;
++
+   void append_history (const std::string& hist_entry) override;
++
+   void clear_history (void) override;
+ 
+   void clear_screen (void) override;
+ 
+   void pre_input_event (void) override;
++
+   void post_input_event (void) override;
+ 
+   void enter_debugger_event (const std::string& fcn_name, const std::string& fcn_file_name, int line) override;
++
+   void execute_in_debugger_event (const std::string& file, int line) override;
++
+   void exit_debugger_event (void) override;
+ 
+   void update_breakpoint (bool insert,
+                              const std::string& file, int line,
+                              const std::string& cond) override;
+ 
+-  void show_preferences (void) override;
+-
+-  std::string gui_preference (const std::string& key, const std::string& value) override;
+-
+-  bool show_documentation (const std::string& file) override;
+-
+-  void register_documentation (const std::string& file) override;
+-
+-  void unregister_documentation (const std::string& file) override;
+-
+-  void edit_variable (const std::string& name, const octave_value& val) override;
+-
+-  void show_static_plot (const std::string& term,
+-                            const std::string& content) override;
++  // TODO:
++  // void interpreter_interrupted (void) override;
+ 
+   // Custom methods
+   void receive_message (const std::string& name, JSON_OBJECT_T jobj);

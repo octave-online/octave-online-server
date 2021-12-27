@@ -1,0 +1,38 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1640581778 21600
+#      Sun Dec 26 23:09:38 2021 -0600
+# Branch oo-7.0.1
+# Node ID 8184a51579f351cfe3809445b795d601143cd3c6
+# Parent  df206dd113996f60a2559ad898b96b1467a596b5
+Remove gnuplot warning
+
+diff -r df206dd11399 -r 8184a51579f3 libinterp/dldfcn/__init_gnuplot__.cc
+--- a/libinterp/dldfcn/__init_gnuplot__.cc	Sun Dec 26 23:09:26 2021 -0600
++++ b/libinterp/dldfcn/__init_gnuplot__.cc	Sun Dec 26 23:09:38 2021 -0600
+@@ -65,25 +65,6 @@
+   gnuplot_graphics_toolkit (octave::interpreter& interp)
+     : octave::base_graphics_toolkit ("gnuplot"), m_interpreter (interp)
+   {
+-    static bool warned = false;
+-
+-    if (! warned)
+-      {
+-        warning_with_id
+-          ("Octave:gnuplot-graphics",
+-           "using the gnuplot graphics toolkit is discouraged\n\
+-\n\
+-The gnuplot graphics toolkit is not actively maintained and has a number\n\
+-of limitations that are unlikely to be fixed.  Communication with gnuplot\n\
+-uses a one-directional pipe and limited information is passed back to the\n\
+-Octave interpreter so most changes made interactively in the plot window\n\
+-will not be reflected in the graphics properties managed by Octave.  For\n\
+-example, if the plot window is closed with a mouse click, Octave will not\n\
+-be notified and will not update its internal list of open figure windows.\n\
+-The qt toolkit is recommended instead.\n");
+-
+-        warned = true;
+-      }
+   }
+ 
+   ~gnuplot_graphics_toolkit (void) = default;

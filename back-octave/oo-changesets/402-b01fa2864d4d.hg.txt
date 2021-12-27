@@ -1,0 +1,45 @@
+# HG changeset patch
+# User Octave Online Team <webmaster@octave-online.net>
+# Date 1640569694 21600
+#      Sun Dec 26 19:48:14 2021 -0600
+# Branch oo-7.0.1
+# Node ID b01fa2864d4d45ba10bcb1e59fe84bb54330ab17
+# Parent  1b33dc797ec9b06aa971361d838f656fb7cc41ac
+Fix linker errors
+
+diff -r 1b33dc797ec9 -r b01fa2864d4d libinterp/corefcn/event-manager.cc
+--- a/libinterp/corefcn/event-manager.cc	Sun Dec 26 19:16:04 2021 -0600
++++ b/libinterp/corefcn/event-manager.cc	Sun Dec 26 19:48:14 2021 -0600
+@@ -887,8 +887,6 @@
+   return ovl ();
+ }
+ 
+-OCTAVE_NAMESPACE_END
+-
+ DEFMETHOD (__event_manager_plot_destination__, interp, , ,
+            doc: /* -*- texinfo -*-
+ @deftypefn {} {} __event_manager_plot_destination__ ()
+@@ -912,3 +910,5 @@
+   std::string content = args(1).string_value();
+   return ovl (interp.get_event_manager().show_static_plot(term, content));
+ }
++
++OCTAVE_NAMESPACE_END
+diff -r 1b33dc797ec9 -r b01fa2864d4d libinterp/corefcn/input.cc
+--- a/libinterp/corefcn/input.cc	Sun Dec 26 19:16:04 2021 -0600
++++ b/libinterp/corefcn/input.cc	Sun Dec 26 19:48:14 2021 -0600
+@@ -1670,8 +1670,6 @@
+   return input_sys.auto_repeat_debug_command (args, nargout);
+ }
+ 
+-OCTAVE_NAMESPACE_END
+-
+ DEFUN (current_command_number, args, ,
+        doc: /* -*- texinfo -*-
+ @deftypefn  {} {@var{val} =} current_command_number ()
+@@ -1700,3 +1698,5 @@
+     return ovl(n);
+   }
+ }
++
++OCTAVE_NAMESPACE_END

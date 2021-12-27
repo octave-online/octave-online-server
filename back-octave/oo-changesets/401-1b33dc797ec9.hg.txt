@@ -1,0 +1,165 @@
+# HG changeset patch
+# User Octave Online Team <webmaster@octave-online.net>
+# Date 1640567764 21600
+#      Sun Dec 26 19:16:04 2021 -0600
+# Branch oo-7.0.1
+# Node ID 1b33dc797ec9b06aa971361d838f656fb7cc41ac
+# Parent  7ade2492e0237c2557ae6e67ee1be88cce8e6982
+Fix compile errors
+
+diff -r 7ade2492e023 -r 1b33dc797ec9 libinterp/corefcn/event-manager.h
+--- a/libinterp/corefcn/event-manager.h	Sun Dec 26 18:20:44 2021 -0600
++++ b/libinterp/corefcn/event-manager.h	Sun Dec 26 19:16:04 2021 -0600
+@@ -183,11 +183,16 @@
+     // using the question_dialog action?
+ 
+     bool _request_input_enabled;
+-    virtual std::string request_input (const std::string&) = 0;
+-    virtual std::string request_url (const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success) = 0;
++    virtual std::string request_input (const std::string&)
++    {
++      return "";
++    }
++    virtual std::string request_url (const std::string& /*url*/, const std::list<std::string>& /*param*/, const std::string& /*action*/, bool& /*success*/) {
++      return "";
++    }
+ 
+     plot_destination_t _plot_destination;
+-    virtual void show_static_plot (const std::string& term, const std::string& content) = 0;
++    virtual void show_static_plot (const std::string& /*term*/, const std::string& /*content*/) { }
+ 
+     virtual bool confirm_shutdown (void) { return true; }
+ 
+@@ -463,12 +468,12 @@
+ 
+     bool request_input_enabled (void)
+     {
+-      return enabled () ? instance->_request_input_enabled : false;
++      return enabled () ? m_instance->_request_input_enabled : false;
+     }
+ 
+     plot_destination_t plot_destination (void)
+     {
+-      return enabled () ? instance->_plot_destination : TERMINAL_ONLY;
++      return enabled () ? m_instance->_plot_destination : TERMINAL_ONLY;
+     }
+ 
+     bool
+@@ -476,7 +481,7 @@
+     {
+       if (enabled ())
+         {
+-          instance->show_static_plot (term, content);
++          m_instance->show_static_plot (term, content);
+           return true;
+         }
+       else
+@@ -746,7 +751,7 @@
+     void clear_screen (void)
+     {
+       if (enabled ())
+-        instance->clear_screen ();
++        m_instance->clear_screen ();
+     }
+ 
+     void pre_input_event (void)
+@@ -765,14 +770,14 @@
+     std::string request_input (const std::string& prompt)
+     {
+       return request_input_enabled ()
+-        ? instance->request_input (prompt)
++        ? m_instance->request_input (prompt)
+         : std::string ();
+     }
+ 
+     std::string request_url (const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success)
+     {
+       return request_input_enabled ()
+-        ? instance->request_url (url, param, action, success)
++        ? m_instance->request_url (url, param, action, success)
+         : std::string ();
+     }
+ 
+diff -r 7ade2492e023 -r 1b33dc797ec9 libinterp/corefcn/octave-json-link.cc
+--- a/libinterp/corefcn/octave-json-link.cc	Sun Dec 26 18:20:44 2021 -0600
++++ b/libinterp/corefcn/octave-json-link.cc	Sun Dec 26 19:16:04 2021 -0600
+@@ -325,17 +325,18 @@
+ 	return retval;
+ }
+ 
+-void octave_json_link::show_doc(const std::string& file) {
++bool octave_json_link::show_documentation(const std::string& file) {
+ 	// Triggered on "doc" command
+ 	_publish_message("show-doc", json_util::from_string(file));
++	return true;
+ }
+ 
+-void octave_json_link::register_doc (const std::string& file) {
++void octave_json_link::register_documentation (const std::string& file) {
+ 	// Triggered by the GUI documentation viewer?
+ 	_publish_message("register-doc", json_util::from_string(file));
+ }
+ 
+-void octave_json_link::unregister_doc (const std::string& file) {
++void octave_json_link::unregister_documentation (const std::string& file) {
+ 	// Triggered by the GUI documentation viewer?
+ 	_publish_message("unregister-doc", json_util::from_string(file));
+ }
+diff -r 7ade2492e023 -r 1b33dc797ec9 libinterp/corefcn/octave-json-link.h
+--- a/libinterp/corefcn/octave-json-link.h	Sun Dec 26 18:20:44 2021 -0600
++++ b/libinterp/corefcn/octave-json-link.h	Sun Dec 26 19:16:04 2021 -0600
+@@ -139,11 +139,11 @@
+ 
+   std::string gui_preference (const std::string& key, const std::string& value) override;
+ 
+-  void show_doc (const std::string& file) override;
++  bool show_documentation (const std::string& file) override;
+ 
+-  void register_doc (const std::string& file) override;
++  void register_documentation (const std::string& file) override;
+ 
+-  void unregister_doc (const std::string& file) override;
++  void unregister_documentation (const std::string& file) override;
+ 
+   void edit_variable (const std::string& name, const octave_value& val) override;
+ 
+diff -r 7ade2492e023 -r 1b33dc797ec9 libinterp/octave.h
+--- a/libinterp/octave.h	Sun Dec 26 18:20:44 2021 -0600
++++ b/libinterp/octave.h	Sun Dec 26 19:16:04 2021 -0600
+@@ -331,7 +331,7 @@
+ 
+     static bool is_link_enabled (void)
+     {
+-      return instance ? instance->link_enabled () : false;
++      return s_instance ? s_instance->link_enabled () : false;
+     }
+ 
+     // Convenience functions.
+diff -r 7ade2492e023 -r 1b33dc797ec9 liboctave/util/url-transfer.cc
+--- a/liboctave/util/url-transfer.cc	Sun Dec 26 18:20:44 2021 -0600
++++ b/liboctave/util/url-transfer.cc	Sun Dec 26 19:16:04 2021 -0600
+@@ -31,12 +31,12 @@
+ #include <iomanip>
+ #include <iostream>
+ 
++#include "base64-wrappers.h"
+ #include "dir-ops.h"
+ #include "file-ops.h"
+ #include "file-stat.h"
+ #include "lo-sysdep.h"
+ #include "oct-env.h"
+-#include "gnulib/lib/base64.h"
+ #include "unwind-prot.h"
+ #include "url-transfer.h"
+ #include "version.h"
+@@ -300,8 +300,8 @@
+     // Use the base64 implementation from gnulib, which is already an Octave dependency.
+     const char *inc = &(result[0]);
+     char *out;
+-    size_t outlen;
+-    bool b64_ok = base64_decode_alloc(inc, result.length(), &out, &outlen);
++    std::ptrdiff_t outlen;
++    bool b64_ok = octave_base64_decode_alloc_wrapper(inc, result.length(), &out, &outlen);
+     if (!b64_ok) {
+       m_ok = false;
+       m_errmsg = "failed decoding base64 from octave_link";

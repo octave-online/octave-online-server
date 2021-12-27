@@ -1,0 +1,132 @@
+# HG changeset patch
+# User Octave Online Team <webmaster@octave-online.net>
+# Date 1640581133 21600
+#      Sun Dec 26 22:58:53 2021 -0600
+# Branch oo-7.0.1
+# Node ID d0df6f16f41ed3d39e4e40bf8080d143e4726098
+# Parent  6ad34b0b69e19c2ce3086daf148fce7bc7d51b2e
+Fixing build issues
+
+diff -r 6ad34b0b69e1 -r d0df6f16f41e libinterp/corefcn/json-main.cc
+--- a/libinterp/corefcn/json-main.cc	Sun Dec 26 21:36:02 2021 -0600
++++ b/libinterp/corefcn/json-main.cc	Sun Dec 26 22:58:53 2021 -0600
+@@ -37,6 +37,7 @@
+   // Note: this passes ownership to octave_link
+   event_manager& evmgr = interp.get_event_manager ();
+   evmgr.connect_link (_octave_json_link);
++  evmgr.install_qt_event_handlers (_octave_json_link);
+   evmgr.enable ();
+ 
+   // Open UNIX socket file descriptor
+diff -r 6ad34b0b69e1 -r d0df6f16f41e libinterp/corefcn/octave-json-link.cc
+--- a/libinterp/corefcn/octave-json-link.cc	Sun Dec 26 21:36:02 2021 -0600
++++ b/libinterp/corefcn/octave-json-link.cc	Sun Dec 26 22:58:53 2021 -0600
+@@ -127,9 +127,7 @@
+ 
+ bool octave_json_link::have_dialogs() const {
+ 	// Triggered in "inputdlg" and similar functions to check for dialog support
+-	_publish_message("have-dialog", json_util::empty());
+-
+-	return have_dialogs_queue.dequeue();
++	return true;
+ }
+ 
+ std::string octave_json_link::question_dialog(const std::string& msg, const std::string& title, const std::string& btn1, const std::string& btn2, const std::string& btn3, const std::string& btndef) {
+@@ -205,7 +203,7 @@
+ 	return debug_cd_or_addpath_error_queue.dequeue();
+ }
+ 
+-void octave_json_link::focus_window(const std::string& win_name) {
++void octave_json_link::focus_window(const std::string win_name) {
+ 	// Triggered in "commandhistory", "commandwindow", "filebrowser", "workspace"
+ 	JSON_MAP_T m;
+ 	JSON_MAP_SET(m, win_name, string);
+@@ -214,8 +212,11 @@
+ 
+ void octave_json_link::display_exception(const execution_exception& ee, bool beep) {
+ 	// Triggered in various places in libinterp
++        std::ostringstream buf;
++        ee.display (buf);
++        std::string ee_str = buf.str();
+ 	JSON_MAP_T m;
+-	JSON_MAP_SET(m, ee, string);
++	JSON_MAP_SET(m, ee_str, string);
+ 	JSON_MAP_SET(m, beep, boolean);
+ 	_publish_message("display-exception", json_util::from_map(m));
+ }
+diff -r 6ad34b0b69e1 -r d0df6f16f41e libinterp/corefcn/octave-json-link.h
+--- a/libinterp/corefcn/octave-json-link.h	Sun Dec 26 21:36:02 2021 -0600
++++ b/libinterp/corefcn/octave-json-link.h	Sun Dec 26 22:58:53 2021 -0600
+@@ -62,10 +62,10 @@
+   ~octave_json_link (void);
+ 
+   // TODO
+-  // void start_gui (bool gui_app = false);
+-  // void close_gui (void);
++  // void start_gui (bool gui_app = false) override;
++  // void close_gui (void) override;
+ 
+-  bool have_dialogs (void) override;
++  bool have_dialogs (void) const override;
+ 
+   std::string
+   question_dialog (const std::string& msg, const std::string& title,
+@@ -107,16 +107,17 @@
+   bool show_documentation (const std::string& file) override;
+ 
+   // TODO:
+-  // void show_file_browser (void);
++  // void show_file_browser (void) override;
++
++  // TODO:
++  // void show_command_history (void) override;
+ 
+   // TODO:
+-  // void show_command_history (void);
+-
+-  void show_workspace (void) override;
++  // void show_workspace (void) override;
+ 
+   // TODO:
+-  // void show_community_news (int serial);
+-  // void show_release_notes (void);
++  // void show_community_news (int serial) override;
++  // void show_release_notes (void) override;
+ 
+   bool edit_file (const std::string& file) override;
+ 
+@@ -143,7 +144,7 @@
+ 
+   bool copy_image_to_clipboard (const std::string& file) override;
+ 
+-  void focus_window (const std::string win_name);
++  void focus_window (const std::string win_name) override;
+ 
+   void execute_command_in_terminal (const std::string& command) override;
+ 
+@@ -152,13 +153,13 @@
+   void unregister_documentation (const std::string& file) override;
+ 
+   // TODO:
+-  // void interpreter_output (const std::string& msg);
++  // void interpreter_output (const std::string& msg) override;
+ 
+   void display_exception (const execution_exception& ee, bool beep) override;
+ 
+-  void gui_status_update (const std::string& feature, const std::string& status);
++  void gui_status_update (const std::string& feature, const std::string& status) override;
+ 
+-  void update_gui_lexer (void);
++  void update_gui_lexer (void) override;
+ 
+   void directory_changed (const std::string& dir) override;
+ 
+@@ -173,7 +174,7 @@
+   void clear_workspace (void) override;
+ 
+   // TODO:
+-  // void update_prompt (const std::string& prompt);
++  // void update_prompt (const std::string& prompt) override;
+ 
+   void set_history (const string_vector& hist) override;
+ 

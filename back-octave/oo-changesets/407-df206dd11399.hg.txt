@@ -1,0 +1,34 @@
+# HG changeset patch
+# User Shane F. Carr <shane.carr@wustl.edu>
+# Date 1640581766 21600
+#      Sun Dec 26 23:09:26 2021 -0600
+# Branch oo-7.0.1
+# Node ID df206dd113996f60a2559ad898b96b1467a596b5
+# Parent  d0df6f16f41ed3d39e4e40bf8080d143e4726098
+Remove unused queue
+
+diff -r d0df6f16f41e -r df206dd11399 libinterp/corefcn/octave-json-link.cc
+--- a/libinterp/corefcn/octave-json-link.cc	Sun Dec 26 22:58:53 2021 -0600
++++ b/libinterp/corefcn/octave-json-link.cc	Sun Dec 26 23:09:26 2021 -0600
+@@ -413,10 +413,6 @@
+ 		bool answer = json_util::to_boolean(jobj);
+ 		confirm_shutdown_queue.enqueue(answer);
+ 	}
+-	else if (name == "have-dialogs-answer"){
+-		bool answer = json_util::to_boolean(jobj);
+-		have_dialogs_queue.enqueue(answer);
+-	}
+ 	else if (name == "prompt-new-edit-file-answer"){
+ 		bool answer = json_util::to_boolean(jobj);
+ 		prompt_new_edit_file_queue.enqueue(answer);
+diff -r d0df6f16f41e -r df206dd11399 libinterp/corefcn/octave-json-link.h
+--- a/libinterp/corefcn/octave-json-link.h	Sun Dec 26 22:58:53 2021 -0600
++++ b/libinterp/corefcn/octave-json-link.h	Sun Dec 26 23:09:26 2021 -0600
+@@ -212,7 +212,6 @@
+   json_queue<std::string> request_input_queue;
+   json_queue<std::pair<bool, std::string> > request_url_queue;
+   json_queue<bool> confirm_shutdown_queue;
+-  json_queue<bool> have_dialogs_queue;
+   json_queue<bool> prompt_new_edit_file_queue;
+   json_queue<int> message_dialog_queue;
+   json_queue<std::string> question_dialog_queue;
