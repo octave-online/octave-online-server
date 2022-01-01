@@ -153,7 +153,7 @@ RUN cd pkg-downloads && wget https://github.com/apjanke/octave-tablicious/releas
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install tablicious-0.3.6.tar.gz;"
 
 # Policy for adding or removing packages:
-# - Add packages that garner at least 30 downloads/week
+# - Add packages that garner at least 40 downloads/week
 # - Remove packages that fall below 10 downloads/week
 
 # Former packages:
@@ -167,6 +167,3 @@ RUN cd /usr/local/share/octave/site/m && /usr/local/bin/octave -q --eval "\
 		packages = {packages{:} pkg('describe', '-verbose', p{1}.name){:}}; \
 	endfor; \
 	save('package_metadata.mat', 'packages'); "
-
-# Install site octaverc.m (formerly part of "install-site-m" in Makefile)
-COPY containers/octave-pkg/octaverc.m /usr/local/share/octave/site/m/startup/octaverc

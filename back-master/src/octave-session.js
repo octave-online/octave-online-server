@@ -688,6 +688,8 @@ class OctaveSession extends OnlineOffline {
 				this._sendMessageToHost("debug-cd-or-addpath-error-answer", 0);
 				break;
 
+			// TODO: Add support for Octave 7 messages, like "display-exception"!
+
 			default:
 				break;
 		}

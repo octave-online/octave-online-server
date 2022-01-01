@@ -109,3 +109,5 @@ RUN cd octave/build-oo && make install
 # # Monkey-patch json-c runtime errors
 # ENV LD_LIBRARY_PATH /usr/local/lib
 
+# Install site octaverc.m (formerly part of "install-site-m" in Makefile)
+COPY containers/octave-pkg/octaverc.m /usr/local/share/octave/site/m/startup/octaverc
