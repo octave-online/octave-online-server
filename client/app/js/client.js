@@ -20,7 +20,7 @@
 
 // Client-Side JavaScript for Octave Online
 
-define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_highlight", "js/anal", "base64-toblob", "ismobile", "exports", "js/octfile", "js/bucket", "js/vars", "ko-takeArray", "require", "js/onboarding", "js/ws-shared", "js/utils", "blob", "jquery.md5", "jquery.purl", "ace/theme/crimson_editor", "ace/theme/merbivore_soft", "js/ko-ace"], function($, ko, canvg, Base64, download, aceStaticHighlight, anal, b64ToBlob, isMobile, exports, OctFile, Bucket, Var, koTakeArray, require, onboarding, WsShared, utils){
+define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_highlight", "js/anal", "base64-toblob", "ismobile", "exports", "js/octfile", "js/bucket", "js/vars", "ko-takeArray", "require", "js/onboarding", "js/ws-shared", "js/utils", "blob", "jquery.md5", "ace/theme/crimson_editor", "ace/theme/merbivore_soft", "js/ko-ace"], function($, ko, canvg, Base64, download, aceStaticHighlight, anal, b64ToBlob, isMobile, exports, OctFile, Bucket, Var, koTakeArray, require, onboarding, WsShared, utils){
 
 	if (!window.oo_translations) {
 		console.error("WARNING: Translations not found. UI text will be unavailable.");
@@ -755,7 +755,6 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				OctMethods.prompt.focus();
 			},
 			permalink: function(){
-				// TODO: Add this directly into purl
 				var cmd = $(this).text();
 				window.location.hash = "cmd=" + encodeURIComponent(cmd);
 			}
@@ -1526,9 +1525,10 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 						initCmd += "source(\"" + viewModel.currentBucket().mainFilename() + "\"); ";
 					}
 
-					// Evaluate the query string command (uses purl)
+					// Evaluate the query string command
 					try{
-						var purlCmd = $.url().fparam("cmd");
+						var hashParams = new URLSearchParams(new URL(window.location.href).hash.slice(1));
+						var purlCmd = hashParams.get("cmd");
 						if (purlCmd) initCmd += purlCmd;
 					}catch(e){
 						console.log(e);

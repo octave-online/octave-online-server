@@ -19,7 +19,7 @@
  */
 
 define(
-	["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile", "splittr", "SocketIOFileUpload", "js/anal", "js/onboarding", "js/ot-handler", "js/ws-shared", "js/utils", "jquery.purl", "ko-flash", "ace/mode/octave", "ace/ext/language_tools", "js/ko-ace", "js/flex-resize"],
+	["knockout", "socket.io", "js/client", "ace/ace", "jquery", "ismobile", "splittr", "SocketIOFileUpload", "js/anal", "js/onboarding", "js/ot-handler", "js/ws-shared", "js/utils", "ko-flash", "ace/mode/octave", "ace/ext/language_tools", "js/ko-ace", "js/flex-resize"],
 	function (ko, io, OctMethods, ace, $, isMobile, splittr, SocketIOFileUpload, anal, onboarding, OtHandler, WsShared) {
 
 		// Initial GUI setup
@@ -147,8 +147,10 @@ define(
 			console.error(e);
 		}
 
+		var currentUrl = new URL(window.location.href);
+
 		// Shared workspace setup
-		var wsId = $.url().param("w");
+		var wsId = currentUrl.searchParams.get("w");
 		if (wsId) {
 			OctMethods.vars.wsId = wsId;
 			viewModel.purpose("shared");
@@ -156,10 +158,10 @@ define(
 		}
 
 		// Student workspace setup
-		var studentId = $.url().param("s");
+		var studentId = currentUrl.searchParams.get("s");
 		var match;
 		if (!studentId) {
-			match = $.url().attr("path").match(/^\/workspace~(\w+)$/);
+			match = currentUrl.pathname.match(/^\/workspace~(\w+)$/);
 			if (match) studentId = match[1];
 		}
 		if (studentId) {
@@ -169,9 +171,9 @@ define(
 		}
 
 		// Bucket setup
-		var bucketId = $.url().param("b");
+		var bucketId = currentUrl.searchParams.get("b");
 		if (!bucketId) {
-			match = $.url().attr("path").match(/^\/bucket~(\w+)$/);
+			match = currentUrl.pathname.match(/^\/bucket~(\w+)$/);
 			if (match) bucketId = match[1];
 		}
 		if (bucketId) {
@@ -180,7 +182,7 @@ define(
 			viewModel.selectedSkin(OctMethods.ko.availableSkins[3]);
 			onboarding.showBucketPromo();
 		} else {
-			match = $.url().attr("path").match(/^\/project~(\w+)$/);
+			match = currentUrl.pathname.match(/^\/project~(\w+)$/);
 			if (match) {
 				OctMethods.vars.bucketId = match[1];
 				viewModel.purpose("project");

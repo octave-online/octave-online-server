@@ -27,7 +27,6 @@ require.config({
 		"jquery": "vendor/jquery/dist/jquery",
 		"jquery.cookie": "vendor/jquery.cookie/jquery.cookie",
 		"jquery.md5": "vendor/jquery-md5/jquery.md5",
-		"jquery.purl": "vendor/purl/purl",
 
 		// Vendor Libraries
 		"canvg": "vendor/canvg/dist/canvg.bundle",
@@ -59,7 +58,6 @@ require.config({
 	shim: {
 		// jQuery Plugins
 		"jquery.md5": ["jquery"],
-		"jquery.purl": ["jquery"],
 
 		// CanVG
 		"canvg": {
