@@ -16,12 +16,9 @@
 # along with Octave Online Server.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-FROM centos:centos8
+FROM rockylinux:8.5
 
 WORKDIR /root
-
-# Fix for https://forums.centos.org/viewtopic.php?t=72574&p=305439
-RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 
 # Development tools for Octave
 RUN yum groupinstall -y "Development Tools"
