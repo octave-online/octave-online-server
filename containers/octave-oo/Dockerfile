@@ -19,9 +19,6 @@
 ARG FULL_BASE_IMAGE
 FROM $FULL_BASE_IMAGE
 
-# Add extra repository to get libuv-devel
-RUN rpm -ivh http://repo.okay.com.mx/centos/8/x86_64/release/okay-release-1-3.el8.noarch.rpm
-
 RUN yum install -y \
 	json-c-devel \
 	libuv-devel
