@@ -25,10 +25,12 @@
 let writeStackdriverLog = function() {};
 
 try {
-	const stackdriver = require("@oo/shared_stackdriver");
+	const stackdriver = require("./stackdriver");
 	writeStackdriverLog = stackdriver.writeLog;
+	console.log("Note: Stackdriver logging enabled");
 } catch(err) {
 	// Don't log to stackdriver
+	console.log("Note: Stackdriver logging disabled");
 }
 
 // Use debug-logger with all logs going to stderr

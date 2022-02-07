@@ -53,18 +53,25 @@ steps:
       # Build Node.js projects for oo-back
       # Use npm ci to install deps from lockfiles
       (
+        echo "oo npm ci: shared" &&
         cd shared &&
-        npm ci &&
-        npm install ./stackdriver
+        npm ci --verbose
       ) && (
+        echo "oo npm ci: back-filesystem" &&
         cd back-filesystem &&
-        npm ci
+        npm ci --verbose
       ) && (
+        echo "oo npm ci: back-master" &&
         cd back-master &&
-        npm ci
+        npm ci --verbose
       ) && (
+        echo "oo npm ci: shared/stackdriver" &&
+        cd shared/stackdriver &&
+        npm ci --verbose
+      ) && (
+        echo "oo npm ci: shared/gcp" &&
         cd shared/gcp &&
-        npm ci
+        npm ci --verbose
       );
       [[ $? == 0 ]] || exit $?;  # exit if failure
 
