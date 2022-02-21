@@ -24,15 +24,6 @@
 
 let writeStackdriverLog = function() {};
 
-try {
-	const stackdriver = require("./stackdriver");
-	writeStackdriverLog = stackdriver.writeLog;
-	console.log("Note: Stackdriver logging enabled");
-} catch(err) {
-	// Don't log to stackdriver
-	console.log("Note: Stackdriver logging disabled");
-}
-
 // Use debug-logger with all logs going to stderr
 const debugLogger = require("debug-logger").config({
 	levels: {
@@ -44,6 +35,15 @@ const debugLogger = require("debug-logger").config({
 		error: { fd: 2 }
 	}
 });
+
+try {
+	const stackdriver = require("./stackdriver");
+	writeStackdriverLog = stackdriver.writeLog;
+	debugLogger("oo:logger").info("Note: Stackdriver logging enabled");
+} catch(err) {
+	// Don't log to stackdriver
+	debugLogger("oo:logger").info("Note: Stackdriver logging disabled");
+}
 
 module.exports = function(id) {
 	const impl = debugLogger("oo:" + id);
