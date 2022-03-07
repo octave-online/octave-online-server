@@ -1,0 +1,5 @@
+-Xms4m
+-Xmx32m
+-XX:MetaspaceSize=4m
+-XX:MaxMetaspaceSize=32m
+-XX:-TieredCompilation

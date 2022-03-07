@@ -44,7 +44,9 @@ function clear (varargin)
 endfunction
 
 % Set environment variables
-setenv("PYTHON", "python3")
+% 2022-03-06: Java does not have enough memory to support xlsopen, so disable it by default
+setenv("PYTHON", "python3");
+setenv("OCTAVE_JAVA_DIR", "/dev/null");
 
 % Auto-load packages (no more pkg-auto since 4.2.1)
 % Packages that are installed but not auto-loaded have a reason, such as shadows.

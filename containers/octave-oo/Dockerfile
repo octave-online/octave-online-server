@@ -108,3 +108,6 @@ RUN cd octave/build-oo && make install
 
 # Install site octaverc.m (formerly part of "install-site-m" in Makefile)
 COPY containers/octave-pkg/octaverc.m /usr/local/share/octave/site/m/startup/octaverc
+
+# Install the java.opts file
+COPY containers/octave-oo/java.opts /usr/local/share/octave/6.4.0/m/java/java.opts
