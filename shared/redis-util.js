@@ -20,7 +20,9 @@
 
 "use strict";
 
+const EventEmitter = require("events");
 const redis = require("redis");
+const log = require("./logger")("redis-util");
 const mlog = require("./logger")("redis-util:minor");
 const config = require("./config");
 // const log = require("./logger")("redis-util");
@@ -29,11 +31,65 @@ const PORT = config.redis.port;
 const HOSTNAME = config.redis.hostname;
 const OPTIONS = config.redis.options;
 
-module.exports = {
-	createClient: () => {
+class MockRedisClient extends EventEmitter {
+	psubscribe(name, ...args) {
+		mlog.trace("Ignoring psubscribe:", name);
+	}
+	subscribe(name, ...args) {
+		mlog.trace("Ignoring subscribe:", name);
+	}
+	multi() {
+		mlog.trace("Ignoring multi");
+		return new MockRedisClient();
+	}
+	send_command(name, ...args) {
+		mlog.trace("Ignoring send_command:", name);
+	}
+	del(name, ...args) {
+		mlog.trace("Ignoring del:", name);
+	}
+	publish(name, ...args) {
+		mlog.trace("Ignoring publish:", name);
+	}
+	zadd(name, ...args) {
+		mlog.trace("Ignoring zadd:", name);
+	}
+	zrem(name, ...args) {
+		mlog.trace("Ignoring zrem:", name);
+	}
+	hget(name, ...args) {
+		mlog.trace("Ignoring hget:", name);
+	}
+	hset(name, ...args) {
+		mlog.trace("Ignoring hset:", name);
+	}
+	set(name, ...args) {
+		mlog.trace("Ignoring set:", name);
+	}
+	expire(name, ...args) {
+		mlog.trace("Ignoring expire:", name);
+	}
+	exec() {
+		mlog.trace("Ignoring exec");
+	}
+}
+
+let createClient;
+if (config.redis.hostname) {
+	createClient = () => {
 		mlog.debug("Connecting to Redis");
 		return redis.createClient(PORT, HOSTNAME, OPTIONS);
-	},
+	};
+} else {
+	log.warn("Redis is disabled; using mock");
+	createClient = () => {
+		mlog.debug("Creating mock Redis client");
+		return new MockRedisClient();
+	}
+}
+
+module.exports = {
+	createClient,
 
 	chan: {
 		needsOctave: "oo:needs-octave",

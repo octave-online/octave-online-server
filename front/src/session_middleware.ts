@@ -34,9 +34,14 @@ export let store: ExpressSession.Store;
 
 export function init() {
 	// Make the store instance
-	store = new MongoStore({
-		mongooseConnection: Mongo.connection
-	});
+	if (config.mongo.hostname) {
+		store = new MongoStore({
+			mongooseConnection: Mongo.connection
+		});
+	} else {
+		log.warn("mongo disabled; using MemoryStore");
+		store = new ExpressSession.MemoryStore() as ExpressSession.Store;
+	}
 
 	// Make the middleware instance
 	middleware = ExpressSession({

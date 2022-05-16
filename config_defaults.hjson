@@ -37,6 +37,7 @@
 # # # # # # # # # # # # #
 
 # Redis connection info
+# To disable Redis (for testing only), set the hostname to ""
 redis: {
 	hostname: redis
 	port: 6379
@@ -57,6 +58,7 @@ redis: {
 }
 
 # MongoDB connection info
+# To disable MongoDB (for testing only), set the hostname to ""
 mongo: {
 	hostname: mongod
 	port: 27017
