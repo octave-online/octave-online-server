@@ -118,7 +118,7 @@ You are welcome to send pull requests for consideration for addition to Octave O
 
 ### Contributor License Agreement
 
-Like many projects distributed with copyleft licenses such as AGPL, contributors to Octave Online Server must sign a Contributor License Agreement (CLA).  The terms of the [Octave Online CLA](cla-assistant.io/octave-online/octave-online-server) are taken from [The Apache Software Foundation CLA](https://www.apache.org/licenses/contributor-agreements.html).  Having a CLA in place enables Octave Online Server to be distributed with alternate licensing schemes, including commercial licenses that help keep the project afloat.
+Like many projects distributed with copyleft licenses such as AGPL, contributors to Octave Online Server must sign a Contributor License Agreement (CLA).  The terms of the [Octave Online CLA](https://cla-assistant.io/octave-online/octave-online-server) are taken from [The Apache Software Foundation CLA](https://www.apache.org/licenses/contributor-agreements.html).  Having a CLA in place enables Octave Online Server to be distributed with alternate licensing schemes, including commercial licenses that help keep the project afloat.
 
 ### Style
 
