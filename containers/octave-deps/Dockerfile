@@ -16,7 +16,7 @@
 # along with Octave Online Server.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-FROM rockylinux:8.5
+FROM rockylinux:9
 
 WORKDIR /root
 
@@ -26,15 +26,14 @@ RUN yum install -y \
 	cmake \
 	epel-release \
 	git \
-	mercurial \
 	net-tools \
 	librsvg2-tools \
 	traceroute \
 	wget \
 	yum-utils
-RUN dnf config-manager --set-enabled powertools
+RUN dnf config-manager --set-enabled crb
 
-# Library dependencies for Octave
+# Library dependencies for Octave (and other deps only in EPEL)
 RUN yum install -y \
 	arpack-devel \
 	bzip2-devel \
@@ -48,21 +47,32 @@ RUN yum install -y \
 	GraphicsMagick-c++-devel \
 	hdf5-devel \
 	icoutils \
-	java-11-openjdk-devel \
+	java-17-openjdk-devel \
 	lapack-devel \
 	libqhull \
 	libsndfile-devel \
 	llvm-devel \
+	mercurial \
 	openblas-devel \
 	pcre-devel \
 	qhull-devel \
 	qrupdate-devel \
 	suitesparse-devel \
-	sundials-devel \
 	texinfo \
 	texinfo-tex \
 	transfig \
 	zlib-devel
+
+# sundials-devel is missing from EPEL 9, so we need to install it separately.
+# https://github.com/LLNL/sundials/issues/244
+RUN git clone -b v6.5.0 --depth 1 https://github.com/LLNL/sundials.git && \
+	cd sundials && \
+	git submodule update --init && \
+	mkdir BUILDDIR && \
+	cd BUILDDIR && \
+	cmake -DENABLE_KLU=ON -DKLU_INCLUDE_DIR=/usr/include/suitesparse -DKLU_LIBRARY_DIR=/usr/lib64 .. && \
+	time make -j8 && \
+	make install
 
 # Manually install rapidjson; see comments in configure.ac
 RUN git clone https://github.com/Tencent/rapidjson.git && \
@@ -76,8 +86,8 @@ RUN git clone https://github.com/Tencent/rapidjson.git && \
 	make install
 
 # TODO: It's not clear which is the "correct" way to set the environment variable
-RUN echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk" > /etc/profile.d/oo.sh
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk
+RUN echo "export JAVA_HOME=/usr/lib/jvm/java-17-openjdk" > /etc/profile.d/oo.sh
+ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
 
 # TODO
 # arpack-devel
