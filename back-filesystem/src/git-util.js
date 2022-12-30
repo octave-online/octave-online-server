@@ -22,7 +22,7 @@
 
 const async = require("async");
 const child_process = require("child_process");
-const got = require("got");
+const fetch = require("node-fetch");
 const logger = require("@oo/shared").logger;
 const config = require("@oo/shared").config;
 const silent = require("@oo/shared").silent;
@@ -190,11 +190,9 @@ class GitUtil {
 				_next();
 			},
 			(_next) => {
-				got(`http://${config.git.hostname}:${config.git.createRepoPort}`, {
-					searchParams: {
-						type: "repos",
-						name: user.parametrized
-					}
+				fetch(`http://${config.git.hostname}:${config.git.createRepoPort}/?` + new URLSearchParams({
+					type: "repos",
+					name: user.parametrized
 				}).then(() => {
 					_next();
 				}).catch(_next);
@@ -209,11 +207,9 @@ class GitUtil {
 				_next();
 			},
 			(_next) => {
-				got(`http://${config.git.hostname}:${config.git.createRepoPort}`, {
-					searchParams: {
-						type: "buckets",
-						name: bucketId
-					}
+				fetch(`http://${config.git.hostname}:${config.git.createRepoPort}/?` + new URLSearchParams({
+					type: "buckets",
+					name: bucketId
 				}).then(() => {
 					_next();
 				}).catch(_next);

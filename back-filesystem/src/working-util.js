@@ -24,7 +24,7 @@ const async = require("async");
 const fs = require("fs");
 const path = require("path");
 const mime = require("mime");
-const charsetDetector = require("node-icu-charset-detector");
+const charsetDetector = require("charset-detector");
 const Iconv = require("iconv").Iconv;
 const logger = require("@oo/shared").logger;
 const config = require("@oo/shared").config;
@@ -175,9 +175,10 @@ class WorkingUtil {
 		// Detect and attempt to convert charset
 		if (buf.length > 0) {
 			try {
-				encoding = charsetDetector.detectCharset(buf);
-				if (encoding.toString() !== "UTF-8"){
-					buf = new Iconv(encoding.toString(), "UTF-8").convert(buf);
+				encoding = charsetDetector(buf)[0].toString() || "UTF-8";
+				if (encoding !== "UTF-8"){
+					this._log.info("Converting charset:", encoding);
+					buf = new Iconv(encoding, "UTF-8").convert(buf);
 				}
 			} catch(err) {
 				this._log.warn("Could not convert encoding:", encoding);
