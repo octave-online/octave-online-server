@@ -1,0 +1,368 @@
+# HG changeset patch
+# User Octave Online Team <webmaster@octave-online.net>
+# Date 1672385388 21600
+#      Fri Dec 30 01:29:48 2022 -0600
+# Branch oo-7.4
+# Node ID de16dd99ab0ec3baee489d7187cfd184df64aca6
+# Parent  41ff58a98cd0078da6f5de9cfec0b9064dedbafa
+Moving URL event manager to libinterp, and other minor changes for 7.4
+
+diff -r 41ff58a98cd0 -r de16dd99ab0e libinterp/corefcn/event-manager-url.cc
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/libinterp/corefcn/event-manager-url.cc	Fri Dec 30 01:29:48 2022 -0600
+@@ -0,0 +1,127 @@
++#if defined (HAVE_CONFIG_H)
++#  include "config.h"
++#endif
++
++#include <iostream>
++
++#include "event-manager.h"
++#include "url-transfer.h"
++#include "interpreter-private.h"
++#include "base64-wrappers.h"
++
++OCTAVE_BEGIN_NAMESPACE(octave)
++
++bool __event_manager_request_input_enabled__() {
++  event_manager& evmgr = __get_event_manager__ ();
++  return evmgr.request_input_enabled();
++}
++
++std::string __event_manager_request_url__(const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success) {
++  event_manager& evmgr = __get_event_manager__ ();
++  return evmgr.request_url(url, param, action, success);
++}
++
++class link_transfer : public base_url_transfer
++{
++public:
++
++  link_transfer (void)
++      : base_url_transfer () {
++    m_valid = true;
++  }
++
++  link_transfer (const std::string& host, const std::string& user_arg,
++                 const std::string& passwd, std::ostream& os)
++      : base_url_transfer (host, user_arg, passwd, os) {
++    m_valid = true;
++    // url = "ftp://" + host;
++  }
++
++  link_transfer (const std::string& url_str, std::ostream& os)
++      : base_url_transfer (url_str, os) {
++    m_valid = true;
++  }
++
++  ~link_transfer (void) {}
++
++  void http_get (const Array<std::string>& param) {
++    perform_action (param, "get");
++  }
++
++  void http_post (const Array<std::string>& param) {
++    perform_action (param, "post");
++  }
++
++  void http_action (const Array<std::string>& param, const std::string& action) {
++    perform_action (param, action);
++  }
++
++private:
++  void perform_action(const Array<std::string>& param, const std::string& action) {
++    std::string url = m_host_or_url;
++
++    // Convert from Array to std::list
++    std::list<std::string> paramList;
++    for (int i = 0; i < param.numel(); i ++) {
++      std::string value = param(i);
++      paramList.push_back(value);
++    }
++
++    if (__event_manager_request_input_enabled__()) {
++      bool success;
++      std::string result = __event_manager_request_url__(url, paramList, action, success);
++      if (success) {
++        process_success(result);
++      } else {
++        m_ok = false;
++        m_errmsg = result;
++      }
++    } else {
++      m_ok = false;
++      m_errmsg = "octave_link not connected for link_transfer";
++    }
++  }
++
++  void process_success(const std::string& result) {
++    // If success, the result is returned as a base64 string, and we need to decode it.
++    // Use the base64 implementation from gnulib, which is already an Octave dependency.
++    const char *inc = &(result[0]);
++    char *out;
++    std::ptrdiff_t outlen;
++    bool b64_ok = octave_base64_decode_alloc_wrapper(inc, result.length(), &out, &outlen);
++    if (!b64_ok) {
++      m_ok = false;
++      m_errmsg = "failed decoding base64 from octave_link";
++    } else {
++      m_curr_ostream->write(out, outlen);
++      ::free(out);
++    }
++  }
++};
++
++url_transfer::url_transfer (void) {
++  if (__event_manager_request_input_enabled__()) {
++    m_rep.reset(new link_transfer());
++  } else {
++    m_rep.reset(new base_url_transfer());
++  }
++}
++
++url_transfer::url_transfer (const std::string& host, const std::string& user,
++                            const std::string& passwd, std::ostream& os) {
++  if (__event_manager_request_input_enabled__()) {
++    m_rep.reset(new link_transfer(host, user, passwd, os));
++  } else {
++    m_rep.reset(new base_url_transfer(host, user, passwd, os));
++  }
++}
++
++url_transfer::url_transfer (const std::string& url, std::ostream& os) {
++  if (__event_manager_request_input_enabled__()) {
++    m_rep.reset(new link_transfer(url, os));
++  } else {
++    m_rep.reset(new base_url_transfer(url, os));
++  }
++}
++
++OCTAVE_END_NAMESPACE(octave)
+diff -r 41ff58a98cd0 -r de16dd99ab0e libinterp/corefcn/event-manager.cc
+--- a/libinterp/corefcn/event-manager.cc	Fri Dec 30 00:39:40 2022 -0600
++++ b/libinterp/corefcn/event-manager.cc	Fri Dec 30 01:29:48 2022 -0600
+@@ -46,16 +46,6 @@
+ 
+ OCTAVE_BEGIN_NAMESPACE(octave)
+ 
+-bool __event_manager_request_input_enabled__() {
+-  event_manager& evmgr = __get_event_manager__ ("request_input_enabled");
+-  return evmgr.request_input_enabled();
+-}
+-
+-std::string __event_manager_request_url__(const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success) {
+-  event_manager& evmgr = __get_event_manager__ ("request_url");
+-  return evmgr.request_url(url, param, action, success);
+-}
+-
+ static int readline_event_hook (void)
+ {
+   event_manager& evmgr = __get_event_manager__ ();
+@@ -889,8 +879,6 @@
+   return ovl ();
+ }
+ 
+-OCTAVE_END_NAMESPACE(octave)
+-
+ DEFMETHOD (__event_manager_plot_destination__, interp, , ,
+            doc: /* -*- texinfo -*-
+ @deftypefn {} {} __event_manager_plot_destination__ ()
+@@ -914,3 +902,5 @@
+   std::string content = args(1).string_value();
+   return ovl (interp.get_event_manager().show_static_plot(term, content));
+ }
++
++OCTAVE_END_NAMESPACE(octave)
+diff -r 41ff58a98cd0 -r de16dd99ab0e libinterp/corefcn/input.cc
+--- a/libinterp/corefcn/input.cc	Fri Dec 30 00:39:40 2022 -0600
++++ b/libinterp/corefcn/input.cc	Fri Dec 30 01:29:48 2022 -0600
+@@ -1683,8 +1683,6 @@
+   return input_sys.auto_repeat_debug_command (args, nargout);
+ }
+ 
+-OCTAVE_END_NAMESPACE(octave)
+-
+ DEFUN (current_command_number, args, ,
+        doc: /* -*- texinfo -*-
+ @deftypefn  {} {@var{val} =} current_command_number ()
+@@ -1713,3 +1711,5 @@
+     return ovl(n);
+   }
+ }
++
++OCTAVE_END_NAMESPACE(octave)
+diff -r 41ff58a98cd0 -r de16dd99ab0e libinterp/corefcn/json-util.cc
+--- a/libinterp/corefcn/json-util.cc	Fri Dec 30 00:39:40 2022 -0600
++++ b/libinterp/corefcn/json-util.cc	Fri Dec 30 01:29:48 2022 -0600
+@@ -245,7 +245,7 @@
+ 	}
+ 
+ 	json_tokener_free(tok);
+-	delete buf;
++	delete[] buf;
+ }
+ 
+ void json_util::process_message(JSON_OBJECT_T jobj, void (*cb)(std::string, JSON_OBJECT_T, void*), void* arg) {
+diff -r 41ff58a98cd0 -r de16dd99ab0e libinterp/corefcn/module.mk
+--- a/libinterp/corefcn/module.mk	Fri Dec 30 00:39:40 2022 -0600
++++ b/libinterp/corefcn/module.mk	Fri Dec 30 01:29:48 2022 -0600
+@@ -166,6 +166,7 @@
+   %reldir%/error.cc \
+   %reldir%/errwarn.cc \
+   %reldir%/event-manager.cc \
++  %reldir%/event-manager-url.cc \
+   %reldir%/event-queue.cc \
+   %reldir%/fcn-info.cc \
+   %reldir%/fft.cc \
+diff -r 41ff58a98cd0 -r de16dd99ab0e libinterp/corefcn/sysdep.cc
+--- a/libinterp/corefcn/sysdep.cc	Fri Dec 30 00:39:40 2022 -0600
++++ b/libinterp/corefcn/sysdep.cc	Fri Dec 30 01:29:48 2022 -0600
+@@ -748,7 +748,7 @@
+   set_interrupt_handler (saved_interrupt_handler, false);
+ 
+   int c;
+-  event_manager& evmgr = __get_event_manager__ ("kbhit");
++  event_manager& evmgr = __get_event_manager__ ();
+   if (evmgr.request_input_enabled ()) {
+     std::string line = evmgr.request_input (prompt);
+     if (line.length() >= 1) {
+@@ -822,7 +822,7 @@
+ {
+   bool skip_redisplay = true;
+ 
+-  octave::event_manager& evmgr = octave::__get_event_manager__ ("clc");
++  octave::event_manager& evmgr = octave::__get_event_manager__ ();
+   evmgr.clear_screen();
+ 
+   command_editor::clear_screen (skip_redisplay);
+diff -r 41ff58a98cd0 -r de16dd99ab0e liboctave/util/url-transfer.cc
+--- a/liboctave/util/url-transfer.cc	Fri Dec 30 00:39:40 2022 -0600
++++ b/liboctave/util/url-transfer.cc	Fri Dec 30 01:29:48 2022 -0600
+@@ -49,10 +49,6 @@
+ 
+ OCTAVE_BEGIN_NAMESPACE(octave)
+ 
+-// Forward declaration for event_manager
+-extern bool __event_manager_request_input_enabled__();
+-extern std::string __event_manager_request_url__(const std::string& url, const std::list<std::string>& param, const std::string& action, bool& success);
+-
+ base_url_transfer::base_url_transfer (void)
+   : m_host_or_url (), m_valid (false), m_ftp (false),
+     m_ascii_mode (false), m_ok (true), m_errmsg (),
+@@ -234,84 +230,6 @@
+ }
+ 
+ 
+-class link_transfer : public base_url_transfer
+-{
+-public:
+-
+-  link_transfer (void)
+-      : base_url_transfer () {
+-    m_valid = true;
+-  }
+-
+-  link_transfer (const std::string& host, const std::string& user_arg,
+-                 const std::string& passwd, std::ostream& os)
+-      : base_url_transfer (host, user_arg, passwd, os) {
+-    m_valid = true;
+-    // url = "ftp://" + host;
+-  }
+-
+-  link_transfer (const std::string& url_str, std::ostream& os)
+-      : base_url_transfer (url_str, os) {
+-    m_valid = true;
+-  }
+-
+-  ~link_transfer (void) {}
+-
+-  void http_get (const Array<std::string>& param) {
+-    perform_action (param, "get");
+-  }
+-
+-  void http_post (const Array<std::string>& param) {
+-    perform_action (param, "post");
+-  }
+-
+-  void http_action (const Array<std::string>& param, const std::string& action) {
+-    perform_action (param, action);
+-  }
+-
+-private:
+-  void perform_action(const Array<std::string>& param, const std::string& action) {
+-    std::string url = m_host_or_url;
+-
+-    // Convert from Array to std::list
+-    std::list<std::string> paramList;
+-    for (int i = 0; i < param.numel(); i ++) {
+-      std::string value = param(i);
+-      paramList.push_back(value);
+-    }
+-
+-    if (__event_manager_request_input_enabled__()) {
+-      bool success;
+-      std::string result = __event_manager_request_url__(url, paramList, action, success);
+-      if (success) {
+-        process_success(result);
+-      } else {
+-        m_ok = false;
+-        m_errmsg = result;
+-      }
+-    } else {
+-      m_ok = false;
+-      m_errmsg = "octave_link not connected for link_transfer";
+-    }
+-  }
+-
+-  void process_success(const std::string& result) {
+-    // If success, the result is returned as a base64 string, and we need to decode it.
+-    // Use the base64 implementation from gnulib, which is already an Octave dependency.
+-    const char *inc = &(result[0]);
+-    char *out;
+-    std::ptrdiff_t outlen;
+-    bool b64_ok = octave_base64_decode_alloc_wrapper(inc, result.length(), &out, &outlen);
+-    if (!b64_ok) {
+-      m_ok = false;
+-      m_errmsg = "failed decoding base64 from octave_link";
+-    } else {
+-      m_curr_ostream->write(out, outlen);
+-      ::free(out);
+-    }
+-  }
+-};
+-
+ 
+ #if defined (HAVE_CURL)
+ 
+@@ -1003,31 +921,6 @@
+ #  define REP_CLASS base_url_transfer
+ #endif
+ 
+-url_transfer::url_transfer (void) {
+-  if (__event_manager_request_input_enabled__()) {
+-    m_rep.reset(new link_transfer());
+-  } else {
+-    m_rep.reset(new REP_CLASS());
+-  }
+-}
+-
+-url_transfer::url_transfer (const std::string& host, const std::string& user,
+-                            const std::string& passwd, std::ostream& os) {
+-  if (__event_manager_request_input_enabled__()) {
+-    m_rep.reset(new link_transfer(host, user, passwd, os));
+-  } else {
+-    m_rep.reset(new REP_CLASS(host, user, passwd, os));
+-  }
+-}
+-
+-url_transfer::url_transfer (const std::string& url, std::ostream& os) {
+-  if (__event_manager_request_input_enabled__()) {
+-    m_rep.reset(new link_transfer(url, os));
+-  } else {
+-    m_rep.reset(new REP_CLASS(url, os));
+-  }
+-}
+-
+ #undef REP_CLASS
+ 
+ OCTAVE_END_NAMESPACE(octave)
