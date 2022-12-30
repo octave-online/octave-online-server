@@ -33,35 +33,39 @@ FROM $FULL_BASE_IMAGE
 # RUN hg clone --insecure -r 171a2857d6d1 http://www.octave.org/hg/octave
 
 ### 6.4.0 ###
-RUN hg clone --insecure -r 8d7671609955 http://www.octave.org/hg/octave
+# RUN hg clone --insecure -r 8d7671609955 http://www.octave.org/hg/octave
 
 ### 7.0.1 ###
 # RUN hg clone --insecure -r 117ebe363f56 http://www.octave.org/hg/octave
 
+### 7.4 ###
+RUN hg clone -r 601e7a142a15 https://hg.octave.org/octave
+
 RUN cd octave && \
 	./bootstrap && \
-	mkdir build-oo
+	mkdir .build
 
 ### 4.0.1-rc1 ###
-# RUN	cd octave/build-oo && \
+# RUN	cd octave/.build && \
 # 	../configure --disable-readline --disable-gui --disable-docs
 
 ### 4.2.1 ###
 # Note: set GNUPLOT=... if you are using a custom gnuplot!
-# RUN cd octave/build-oo && \
+# RUN cd octave/.build && \
 # 	../configure --disable-readline --disable-docs --disable-atomic-refcount --without-qt
 
 ### 5.2-rc ###
 # Note: rsvg-convert is not to be found in the CentOS repos, but it is not really necessary for a command-line build, so replace it with "echo"
-# RUN cd octave/build-oo && \
+# RUN cd octave/.build && \
 # 	RSVG_CONVERT=echo ICOTOOL=echo ../configure --disable-readline --disable-docs --disable-atomic-refcount --without-qt --without-opengl
 
 ### 6.4.0 ###
 ### 7.0.1 ###
-RUN cd octave/build-oo && \
+### 7.4 ###
+RUN cd octave/.build && \
 	ICOTOOL=echo ../configure --disable-readline --disable-docs --without-qt --without-opengl
 
 # Build Octave
 # This is the slowest part of the Dockerfile
-RUN cd octave/build-oo && make -j8
-RUN cd octave/build-oo && make install
+RUN cd octave/.build && make -j8
+RUN cd octave/.build && make install

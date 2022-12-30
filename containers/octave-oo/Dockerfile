@@ -79,9 +79,9 @@ RUN cd back-octave && make && make install
 # 	hg import ../back-octave/oo-changesets/310-1e1c91e6cddc.hg.txt
 
 ### 6.4.0 (based on 8d7671609955) ###
-RUN cd octave && \
-	hg import ../back-octave/oo-changesets/320-8d4683a83238.hg.txt && \
-	hg import ../back-octave/oo-changesets/321-faad58416a3a.hg.txt
+# RUN cd octave && \
+# 	hg import ../back-octave/oo-changesets/320-8d4683a83238.hg.txt && \
+# 	hg import ../back-octave/oo-changesets/321-faad58416a3a.hg.txt
 
 ### 7.0.1 (based on 117ebe363f56) ###
 # RUN cd octave && \
@@ -95,9 +95,14 @@ RUN cd octave && \
 # 	hg import ../back-octave/oo-changesets/407-df206dd11399.hg.txt && \
 # 	hg import ../back-octave/oo-changesets/408-8184a51579f3.hg.txt
 
+### 7.4 (based on 601e7a142a15) ###
+RUN cd octave && \
+	hg import ../back-octave/oo-changesets/420-4c3d80dd9e65.hg.txt && \
+	hg import ../back-octave/oo-changesets/421-de16dd99ab0e.hg.txt
+
 # Re-build with patches
-RUN cd octave/build-oo && make -j8
-RUN cd octave/build-oo && make install
+RUN cd octave/.build && make -j8
+RUN cd octave/.build && make install
 
 # Monkey-patch bug #42352
 # https://savannah.gnu.org/bugs/?42352
