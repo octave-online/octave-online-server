@@ -32,7 +32,6 @@ module.exports = {
 	onceMessage: require("./once-message"),
 	OnlineOffline: require("./online-offline"),
 	Queue: require("./queue"),
-	rack: require("./rack/operations"),
 	RedisMessenger: require("./redis-messenger"),
 	RedisQueue: require("./redis-queue"),
 	redisUtil: require("./redis-util"),

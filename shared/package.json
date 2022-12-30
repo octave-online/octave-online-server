@@ -13,18 +13,16 @@
     "async": "^1.5.2",
     "debug-logger": "^0.4.1",
     "deepmerge": "^2.1.1",
-    "got": "^8.3.2",
     "hjson": "^3.1.1",
     "jszip": "^3.7.1",
     "lynx": "^0.2.0",
     "redis": "^3.1.2",
     "redis-scripto2": "^0.2",
     "stream-json": "^1.3.1",
-    "url-join": "^4.0.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
     "@oo/shared": "file:../shared",
-    "dts-gen": "^0.6.0"
+    "dts-gen": "^0.6.1"
   }
 }
