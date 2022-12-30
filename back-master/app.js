@@ -194,7 +194,7 @@ function doGracefulExit() {
 			);
 		},
 		(_next) => {
-			log.info("All user sessions are closed.");
+			log.info("All user sessions are closed. Send SIGINT to fully terminate.");
 			_next(null);
 		}
 	], (err) => {
