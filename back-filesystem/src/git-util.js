@@ -193,7 +193,7 @@ class GitUtil {
 				fetch(`http://${config.git.hostname}:${config.git.createRepoPort}/?` + new URLSearchParams({
 					type: "repos",
 					name: user.parametrized
-				}).then(() => {
+				})).then(() => {
 					_next();
 				}).catch(_next);
 			}
@@ -210,7 +210,7 @@ class GitUtil {
 				fetch(`http://${config.git.hostname}:${config.git.createRepoPort}/?` + new URLSearchParams({
 					type: "buckets",
 					name: bucketId
-				}).then(() => {
+				})).then(() => {
 					_next();
 				}).catch(_next);
 			}
