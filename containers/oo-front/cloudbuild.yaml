@@ -42,7 +42,7 @@ steps:
       rm -rf oo-misc1;
 
 # Build the client project and the front server typescript
-- name: node:10
+- name: node:16
   entrypoint: bash
   args:
     - -c

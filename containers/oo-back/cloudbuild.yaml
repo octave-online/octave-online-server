@@ -38,14 +38,14 @@ steps:
       rm -rf oo-misc1;
 
 # Perform build steps using same distro as the production VM:
-- name: rockylinux:8.5
+- name: rockylinux:9
   entrypoint: bash
   timeout: 7200s
   args:
     - -c
     - |
       # Install dependencies, including Node.js
-      dnf module install -y nodejs:10 &&
+      dnf module install -y nodejs:16 &&
       yum install -y gcc-c++ make libicu-devel python2 &&
       npm config set prefix /workspace &&
       [[ $? == 0 ]] || exit $?;  # exit if failure
@@ -88,7 +88,7 @@ timeout: 7200s
 
 # Save the tar.gz package to storage
 substitutions:
-  _OUTPUT_FILENAME: oo_back_rockylinux_8_5.tar.gz
+  _OUTPUT_FILENAME: oo_back_rockylinux_9.tar.gz
 artifacts:
   objects:
     location: gs://artifacts.octave-online.appspot.com/objects/oo-back/

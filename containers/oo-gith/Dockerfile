@@ -27,7 +27,7 @@
 # BOILERPLATE #
 ###############
 
-FROM ubuntu:bionic
+FROM ubuntu:jammy
 
 WORKDIR /root
 
@@ -54,8 +54,8 @@ RUN \
 # NodeSource
 RUN \
 	curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - && \
-	echo 'deb https://deb.nodesource.com/node_10.x bionic main' > /etc/apt/sources.list.d/nodesource.list && \
-	echo 'deb-src https://deb.nodesource.com/node_10.x bionic main' >> /etc/apt/sources.list.d/nodesource.list
+	echo 'deb https://deb.nodesource.com/node_16.x jammy main' > /etc/apt/sources.list.d/nodesource.list && \
+	echo 'deb-src https://deb.nodesource.com/node_16.x jammy main' >> /etc/apt/sources.list.d/nodesource.list
 
 ####################
 # MAIN BUILD RULES #

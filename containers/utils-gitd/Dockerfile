@@ -27,7 +27,7 @@
 # BOILERPLATE #
 ###############
 
-FROM ubuntu:bionic
+FROM ubuntu:jammy
 
 WORKDIR /root
 
