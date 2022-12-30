@@ -25,7 +25,7 @@ FROM $FULL_BASE_IMAGE
 # Note: The package list gets written to /usr/local/share/octave/octave_packages
 
 # rpmfusion is required for ffmpeg
-RUN dnf install -y --nogpgcheck https://download1.rpmfusion.org/free/el/rpmfusion-free-release-8.noarch.rpm
+RUN dnf install -y --nogpgcheck https://download1.rpmfusion.org/free/el/rpmfusion-free-release-9.noarch.rpm
 RUN yum install -y \
 	units \
 	mpfr-devel \
