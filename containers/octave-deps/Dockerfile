@@ -55,6 +55,7 @@ RUN yum install -y \
 	mercurial \
 	openblas-devel \
 	pcre-devel \
+	portaudio-devel \
 	qhull-devel \
 	qrupdate-devel \
 	suitesparse-devel \
