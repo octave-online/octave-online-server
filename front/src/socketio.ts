@@ -35,7 +35,8 @@ const log = logger("oo-socketio");
 
 export function init(){
 	const io = SocketIO(ExpressApp.server, {
-			path: config.front.socket_io_path
+			path: config.front.socket_io_path,
+			allowEIO3: true
 		})
 		.use(SocketIOWildcard())
 		.use((socket,next)=>{
