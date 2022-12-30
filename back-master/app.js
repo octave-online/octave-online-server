@@ -27,9 +27,8 @@ const MessageTranslator = require("./src/message-translator");
 const RedisMessenger = require("@oo/shared").RedisMessenger;
 const SessionManager = require("./src/session-manager");
 const config = require("@oo/shared").config;
-const gcStats = (require("gc-stats"))();
+const gcStats = (require("@sematext/gc-stats"))();
 const fs = require("fs");
-const mkdirp = require("mkdirp");
 const path = require("path");
 const async = require("async");
 const http = require("http");
@@ -66,7 +65,7 @@ function makeSessionLogDir(tokens) {
 			mlog.trace(dirname);
 		}
 		sessionLogDirCount++;
-		mkdirp.sync(dirname);
+		fs.mkdirSync(dirname, { recursive: true });
 	} else {
 		for (let a of "0123456789abcdef") {
 			makeSessionLogDir(tokens.concat([a]));
