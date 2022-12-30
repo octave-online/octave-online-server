@@ -28,7 +28,6 @@ const charsetDetector = require("charset-detector");
 const Iconv = require("iconv").Iconv;
 const logger = require("@oo/shared").logger;
 const config = require("@oo/shared").config;
-const mkdirp = require("mkdirp");
 const crypto = require("crypto");
 
 // Load extra MIME types
@@ -197,7 +196,7 @@ class WorkingUtil {
 		async.waterfall([
 			(_next) => {
 				let dirname = path.dirname(this._safePath(filename));
-				mkdirp(dirname, _next);
+				fs.mkdir(dirname, { recursive: true }, _next);
 			},
 			(_, _next) => {
 				fs.readFile(
