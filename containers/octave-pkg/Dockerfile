@@ -33,11 +33,16 @@ RUN yum install -y \
 	patch \
 	ncurses-devel \
 	libicu-devel \
-	compat-ffmpeg4-devel \
 	netcdf-devel \
 	nettle-devel \
 	gdal-devel \
 	python3-pip
+
+# EL 8:
+RUN yum install -y ffmpeg-devel;
+
+# EL 9:
+# RUN yum install -y compat-ffmpeg4-devel;
 
 RUN pip3 install sympy==1.11.1
 
