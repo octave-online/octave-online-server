@@ -25,8 +25,9 @@ VOLUME \
 	/tmp
 
 # Install dependencies, including Node.js
-RUN yum install -y nodejs-16 gcc-c++ make libicu-devel python2 && \
-	npm config set prefix /workspace
+RUN dnf module install -y nodejs:18/common
+RUN dnf install -y gcc-c++ make
+RUN npm config set prefix /workspace
 
 # Copy the application code into the container
 RUN mkdir -p /srv/oo/projects
