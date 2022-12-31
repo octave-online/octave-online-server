@@ -9,9 +9,9 @@
   "private": true,
   "dependencies": {
     "@oo/shared": "file:../shared",
+    "@sematext/gc-stats": "^1.5.8",
     "async": "^1.5.2",
     "base-x": "^3.0.8",
-    "@sematext/gc-stats": "^1.5.7",
     "ps-tree": "^1.2.0",
     "temp": "^0.8.4",
     "tmp": "0.0.28",

@@ -22,7 +22,6 @@
 
 const async = require("async");
 const child_process = require("child_process");
-const fetch = require("node-fetch");
 const logger = require("@oo/shared").logger;
 const config = require("@oo/shared").config;
 const silent = require("@oo/shared").silent;
