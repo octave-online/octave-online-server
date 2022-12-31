@@ -39,11 +39,11 @@ RUN yum install -y \
 	python3-pip
 
 # EL 8:
-RUN yum install -y ffmpeg-devel;
+RUN yum install -y ffmpeg-devel
+RUN pip3 install sympy==1.9
 
 # EL 9:
 # RUN yum install -y compat-ffmpeg4-devel;
-
 RUN pip3 install sympy==1.11.1
 
 ARG PKG_BASE_URL=https://downloads.sourceforge.net/project/octave/Octave%20Forge%20Packages/Individual%20Package%20Releases
