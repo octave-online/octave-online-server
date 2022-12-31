@@ -16,7 +16,7 @@
 # along with Octave Online Server.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-FROM rockylinux:9
+FROM rockylinux:8
 
 WORKDIR /root
 
@@ -31,7 +31,12 @@ RUN yum install -y \
 	traceroute \
 	wget \
 	yum-utils
-RUN dnf config-manager --set-enabled crb
+
+# EL 8:
+RUN dnf config-manager --set-enabled powertools
+
+# EL 9:
+# RUN dnf config-manager --set-enabled crb
 
 # Library dependencies for Octave (and other deps only in EPEL)
 RUN yum install -y \
@@ -64,16 +69,19 @@ RUN yum install -y \
 	transfig \
 	zlib-devel
 
+# sundials-devel is in EPEL 8:
+RUN yum install -y sundials-devel
+
 # sundials-devel is missing from EPEL 9, so we need to install it separately.
 # https://github.com/LLNL/sundials/issues/244
-RUN git clone -b v6.5.0 --depth 1 https://github.com/LLNL/sundials.git && \
-	cd sundials && \
-	git submodule update --init && \
-	mkdir BUILDDIR && \
-	cd BUILDDIR && \
-	cmake -DENABLE_KLU=ON -DKLU_INCLUDE_DIR=/usr/include/suitesparse -DKLU_LIBRARY_DIR=/usr/lib64 .. && \
-	time make -j8 && \
-	make install
+# RUN git clone -b v6.5.0 --depth 1 https://github.com/LLNL/sundials.git && \
+#	cd sundials && \
+#	git submodule update --init && \
+#	mkdir BUILDDIR && \
+#	cd BUILDDIR && \
+#	cmake -DENABLE_KLU=ON -DKLU_INCLUDE_DIR=/usr/include/suitesparse -DKLU_LIBRARY_DIR=/usr/lib64 .. && \
+#	time make -j8 && \
+#	make install
 
 # Manually install rapidjson; see comments in configure.ac
 RUN git clone https://github.com/Tencent/rapidjson.git && \
