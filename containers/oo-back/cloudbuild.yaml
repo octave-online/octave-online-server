@@ -46,7 +46,7 @@ steps:
     - |
       # Install dependencies, including Node.js
       dnf module install -y nodejs:18 &&
-      yum install -y gcc-c++ make libicu-devel python2 &&
+      yum install -y gcc-c++ make &&
       npm config set prefix /workspace &&
       [[ $? == 0 ]] || exit $?;  # exit if failure
 
