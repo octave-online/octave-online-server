@@ -26,7 +26,7 @@ VOLUME \
 
 # Install dependencies, including Node.js
 RUN dnf module install -y nodejs:18/common
-RUN dnf install -y gcc-c++ make
+RUN dnf install -y gcc-c++ make python3
 RUN npm config set prefix /workspace
 
 # Copy the application code into the container
