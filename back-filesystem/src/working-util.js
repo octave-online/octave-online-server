@@ -196,9 +196,10 @@ class WorkingUtil {
 		async.waterfall([
 			(_next) => {
 				let dirname = path.dirname(this._safePath(filename));
-				fs.mkdir(dirname, { recursive: true }, _next);
+				// Callback to a function to remove/normalize extra arguments
+				fs.mkdir(dirname, { recursive: true }, (e) => _next(e));
 			},
-			(_, _next) => {
+			(_next) => {
 				fs.readFile(
 					this._safePath(filename),
 					(err, buf) => {
