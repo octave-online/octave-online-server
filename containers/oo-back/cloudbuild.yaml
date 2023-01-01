@@ -88,7 +88,7 @@ timeout: 7200s
 
 # Save the tar.gz package to storage
 substitutions:
-  _OUTPUT_FILENAME: oo_back_rockylinux_8_node_18.tar.gz
+  _OUTPUT_FILENAME: oo_back_snapshot_rocky8_node18.tar.gz
 artifacts:
   objects:
     location: gs://artifacts.octave-online.appspot.com/objects/oo-back/
