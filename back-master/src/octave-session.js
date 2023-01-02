@@ -635,6 +635,10 @@ class OctaveSession extends OnlineOffline {
 				if (this._onDeletedBinary(content)) return;
 				break;
 
+			case "display-exception":
+				name = "err";
+				content = content.ee_str;
+
 			default:
 				break;
 		}
@@ -687,8 +691,6 @@ class OctaveSession extends OnlineOffline {
 			case "debug-cd-or-addpath-error":
 				this._sendMessageToHost("debug-cd-or-addpath-error-answer", 0);
 				break;
-
-			// TODO: Add support for Octave 7 messages, like "display-exception"!
 
 			default:
 				break;
