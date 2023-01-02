@@ -37,6 +37,7 @@ install-selinux-policy:
 	semodule -i entrypoint/policy/octave_online.pp
 	restorecon -R -v /usr/local/lib/octave
 	restorecon -R -v /tmp
+	restorecon -R -v /srv/oo
 	setenforce enforcing
 	echo "For maximum security, make sure to put SELinux in enforcing mode by default in /etc/selinux/config."
 

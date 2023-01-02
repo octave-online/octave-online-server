@@ -19,6 +19,7 @@
 /usr/local/lib/octave(/.*)?                 gen_context(system_u:object_r:octave_site_t,s0)
 /tmp/oo-.*(/.*)?                            gen_context(unconfined_u:object_r:oo_tmp_t,s0)
 /tmp/.sandbox-*(/.*)?                       gen_context(unconfined_u:object_r:oo_tmp_t,s0)
+/srv/oo(/.*)?                               gen_context(system_u:object_r:srv_oo_t,s0)
 
 # See supplement.te/if
 #/usr/local/bin/oo-back-selinux          --  gen_context(system_u:object_r:oo_exec_t,s0)

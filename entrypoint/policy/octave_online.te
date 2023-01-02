@@ -16,7 +16,7 @@
 # along with Octave Online Server.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-policy_module(octave_online, 1.8);
+policy_module(octave_online, 1.9);
 
 ### TO SETUP THIS POLICY FILE:
 #
@@ -66,6 +66,10 @@ files_type(octave_site_t);
 # Create file type for temporary files
 type oo_tmp_t;
 files_type(oo_tmp_t);
+
+# Create file type for OO server files.
+type srv_oo_t;
+files_type(srv_oo_t);
 
 # Create domains for running the Octave Online process (see supplement.te/if)
 # type oo_t;
