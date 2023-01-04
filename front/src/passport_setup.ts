@@ -25,7 +25,7 @@ import Passport = require("passport");
 
 import * as Utils from "./utils";
 import { config, logger } from "./shared_wrap";
-import { User, IUser } from "./user_model";
+import { User, IUser, HydratedUser } from "./user_model";
 import { sendLoginToken } from "./email";
 
 type Err = Error | null;
@@ -59,27 +59,49 @@ async function findOrCreateUser(email: string, profile: any) {
 
 enum PasswordStatus { UNKNOWN, INCORRECT, VALID }
 
-function findWithPassword(email: string, password: string, done: (err: Err, status?: PasswordStatus, user?: IUser) => void) {
-	User.findOne({
-		email: email
-	}, (err, user) => {
-		if (err) return done(err);
+interface UserWithPasswordResponse {
+	user?: HydratedUser;
+	status: PasswordStatus;
+}
 
-		if (user) {
+async function findWithPasswordPromise(email: string, password: string): Promise<UserWithPasswordResponse> {
+	let user = await User.findOne({
+		email: email
+	});
+
+	// Returning user
+	if (user) {
+		return new Promise((resolve, reject) => {
 			// Returning user.  Check password
+			if (!user) throw new Error("unreachable");
 			user.checkPassword(password, function(err, valid) {
-				if (err) return done(err);
+				if (!user) throw new Error("unreachable");
+				if (err) reject(err);
 				if (valid) {
-					return done(null, PasswordStatus.VALID, user);
+					resolve({
+						user,
+						status: PasswordStatus.VALID
+					});
 				} else {
-					return done(null, PasswordStatus.INCORRECT, user);
+					resolve({
+						user,
+						status: PasswordStatus.INCORRECT
+					});
 				}
 			});
+		})
+	} else {
+		return {
+			status: PasswordStatus.UNKNOWN
+		};
+	}
+}
 
-		} else {
-			// User creation is not supported
-			return done(null, PasswordStatus.UNKNOWN);
-		}
+function findWithPassword(email: string, password: string, done: (err: Err, status?: PasswordStatus, user?: IUser) => void) {
+	findWithPasswordPromise(email, password).then((response) => {
+		done(null, response.status, response.user);
+	}).catch((err) => {
+		done(err);
 	});
 }
 
@@ -147,9 +169,9 @@ function(username, password, done) {
 			log.info("Password Callback Unknown User", status, username);
 			return done(null, false);
 		} else if (status === PasswordStatus.INCORRECT) {
-			log.info("Password Callback Incorrect", status, (user as IUser).consoleText);
+			log.info("Password Callback Incorrect", status, user!.consoleText);
 		} else {
-			log.info("Password Callback Success", status, (user as IUser).consoleText);
+			log.info("Password Callback Success", status, user!.consoleText);
 			return done(null, user);
 		}
 	});
@@ -160,10 +182,10 @@ export function init(){
 	Passport.use(googleStrategy);
 	Passport.use(easyStrategy);
 	Passport.use(passwordStrategy);
-	Passport.serializeUser((user: IUser, cb) => {
+	Passport.serializeUser((user: HydratedUser, cb) => {
 		cb(null, user.id);
 	});
-	Passport.deserializeUser((user: IUser, cb) => {
+	Passport.deserializeUser((user: HydratedUser, cb) => {
 		User.findById(user, cb);
 	});
 

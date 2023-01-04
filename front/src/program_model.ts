@@ -24,8 +24,10 @@ import Mongoose = require("mongoose");
 import { logger, ILogger } from "./shared_wrap";
 import { IUser } from "./user_model";
 
+type ProgramModel = Mongoose.Model<IProgram, {}, IProgramMethods>;
+
 // Initialize the schema
-const programSchema = new Mongoose.Schema({
+const programSchema = new Mongoose.Schema<IProgram, ProgramModel, IProgramMethods>({
 	program_name: String,
 
 	// Feature overrides
@@ -46,7 +48,7 @@ interface IProgramMethods {
 	logf(): ILogger;
 }
 
-export interface IProgram extends Mongoose.Document, IProgramMethods {
+export interface IProgram {
 	_id: Mongoose.Types.ObjectId;
 	program_name: string;
 
@@ -70,21 +72,17 @@ programSchema.virtual("students", {
 	justOne: false,
 });
 
-// Define the methods in a class to help TypeScript
-class ProgramMethods implements IProgramMethods {
-	logf(this: IProgram): ILogger {
+programSchema.method("logf",
+	function(): ILogger {
 		return logger("program:" + this.id.valueOf());
 	}
-}
-
-// Copy the methods into programSchema
-programSchema.methods.logf = ProgramMethods.prototype.logf;
+);
 
 programSchema.set("toJSON", {
 	virtuals: true
 });
 
-export const Program = Mongoose.model<IProgram>("Program", programSchema);
+export const Program = Mongoose.model<IProgram, ProgramModel>("Program", programSchema);
 
 Program.on("index", err => {
 	if (err) logger("program-index").error(err);

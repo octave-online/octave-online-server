@@ -30,9 +30,11 @@ import { config, logger, ILogger } from "./shared_wrap";
 import { Program, IProgram } from "./program_model";
 
 type Err = Error | null;
+type UserModel = Mongoose.Model<IUser, {}, IUserMethods>;
+export type HydratedUser = Mongoose.HydratedDocument<IUser>;
 
 // Initialize the schema
-const userSchema = new Mongoose.Schema({
+const userSchema = new Mongoose.Schema<IUser, UserModel, IUserMethods>({
 	email: String,
 	parametrized: String,
 	profile: Mongoose.Schema.Types.Mixed,
@@ -70,7 +72,6 @@ userSchema.index({
 	share_key: 1
 });
 
-// Workaround to make TypeScript apply signatures to the method definitions
 interface IUserMethods {
 	createShareKey(next?: (err: Err) => void): void;
 	removeShareKey(next?: (err: Err) => void): void;
@@ -82,7 +83,7 @@ interface IUserMethods {
 	logf(): ILogger;
 }
 
-export interface IUser extends Mongoose.Document, IUserMethods {
+export interface IUser {
 	_id: Mongoose.Types.ObjectId;
 	email: string;
 	parametrized: string;
@@ -167,7 +168,7 @@ function v2Parametrize(id: Mongoose.Types.ObjectId, email: string) {
 }
 
 // Returns the user's display name
-userSchema.virtual("displayName").get(function(this: IUser) {
+userSchema.virtual("displayName").get(function() {
 	if (this.profile && this.profile.displayName) return this.profile.displayName;
 	if (this.openid && this.openid.profile && this.openid.profile.displayName)
 		return this.openid.profile.displayName;
@@ -177,7 +178,7 @@ userSchema.virtual("displayName").get(function(this: IUser) {
 
 // Returns a string containing information about this user
 // May 2018: Do not log email in consoleText
-userSchema.virtual("consoleText").get(function(this: IUser) {
+userSchema.virtual("consoleText").get(function() {
 	const safeEmail = Utils.emailHash(this.email);
 	const safeParameterized = this.parametrized && this.parametrized.substr(0, 8);
 	return "[User " + this.id + "; " + safeEmail + "; param:" + safeParameterized + "_…]";
@@ -185,7 +186,7 @@ userSchema.virtual("consoleText").get(function(this: IUser) {
 
 // Return the tier for this user, including resource-specific overrides.  These items usually fall back to the default unless a value is explicitly set in the database.  The camel-case name of these fields is for backwards compatibility.
 const validTiers = Object.keys(config.tiers);
-userSchema.virtual("tier").get(function(this: IUser) {
+userSchema.virtual("tier").get(function() {
 	// First try: tier_override
 	let candidate: string|undefined = this.tier_override;
 	if (candidate && validTiers.indexOf(candidate) !== -1) {
@@ -213,7 +214,7 @@ userSchema.virtual("tier").get(function(this: IUser) {
 });
 
 // Returns the Patreon tier name for the user
-userSchema.virtual("patreon.tier_name").get(function(this: IUser) {
+userSchema.virtual("patreon.tier_name").get(function() {
 	const patreonTier = this.patreon?.currently_entitled_tier;
 	if (patreonTier) {
 		// <any> cast: https://stackoverflow.com/a/35209016/1407170
@@ -228,7 +229,7 @@ userSchema.virtual("programModel", {
 	foreignField: "program_name",
 	justOne: true,
 });
-userSchema.virtual("instructorModels").get(function(this: IUser) {
+userSchema.virtual("instructorModels").get(function() {
 	return this._instructorModels;
 });
 
@@ -265,7 +266,7 @@ userSchema.virtual("instructorModels").get(function(this: IUser) {
 		defaultValue: config.ads.disabled
 	}
 ].forEach(({field, overrideKey, tierKey, defaultValue})=>{
-	userSchema.virtual(field).get(function(this: IUser) {
+	userSchema.virtual(field).get(function() {
 		// <any> cast: https://stackoverflow.com/a/35209016/1407170
 		let candidate: any = (this as any)[overrideKey];
 		if (candidate) {
@@ -298,7 +299,7 @@ function randomAlphaString(length: number): string {
 }
 
 // Auto-fill static fields once, upon creation (or update for old users)
-userSchema.pre("save", function(this: IUser, next){
+userSchema.pre("save", function(next){
 	if (!this.parametrized) {
 		this.parametrized = v2Parametrize(this.id, this.email);
 	}
@@ -309,24 +310,26 @@ userSchema.pre("save", function(this: IUser, next){
 	next();
 });
 
-// Define the methods in a class to help TypeScript
-class UserMethods implements IUserMethods {
-
+userSchema.method("createShareKey",
 	// Instance methods for shared workspace keys
-	createShareKey(this: IUser, next?: (err: Err) => void): void {
+	function(next?: (err: Err) => void): void {
 		this.share_key = randomAlphaString(48);
 		this.logf().trace("Creating share key", this.consoleText, this.share_key);
 		this.save(next);
 	}
+);
 
-	removeShareKey(this: IUser, next?: (err: Err) => void): void {
+userSchema.method("removeShareKey",
+	function(next?: (err: Err) => void): void {
 		this.share_key = undefined;
 		this.logf().trace("Removing share key", this.consoleText);
 		this.save(next);
 	}
+);
 
+userSchema.method("setPassword",
 	// Instance methods for password hashes
-	setPassword(this: IUser, password: string, next?: (err: Err) => void): void {
+	function(password: string, next?: (err: Err) => void): void {
 		this.logf().trace("Setting password", this.consoleText);
 		if (!password) {
 			process.nextTick(() => {
@@ -342,8 +345,10 @@ class UserMethods implements IUserMethods {
 			});
 		}
 	}
+);
 
-	checkPassword(this: IUser, password: string, next: (err: Err, success: boolean) => void): void {
+userSchema.method("checkPassword",
+	function(password: string, next: (err: Err, success: boolean) => void): void {
 		this.logf().trace("Checking password", this.consoleText);
 		if (!this.password_hash || !password) {
 			// Fail if no password is set on user
@@ -354,15 +359,19 @@ class UserMethods implements IUserMethods {
 			Bcrypt.compare(password, this.password_hash, next);
 		}
 	}
+);
 
+userSchema.method("touchLastActivity",
 	// Other instance methods
-	touchLastActivity(this: IUser, next: (err: Err) => void): void {
+	function(next: (err: Err) => void): void {
 		this.logf().trace("Touching last activity", this.consoleText);
 		this.last_activity = new Date();
 		this.save(next);
 	}
+);
 
-	loadInstructorModels(this: IUser, next: (err: Err, user: IUser) => void): void {
+userSchema.method("loadInstructorModels",
+	function(next: (err: Err, user: IUser) => void): void {
 		Async.map<string, IProgram>(this.instructor, (program_name, __next) => {
 			Program.findOne({ program_name }, (err, program) => {
 				if (err) {
@@ -383,8 +392,10 @@ class UserMethods implements IUserMethods {
 			next(null, this);
 		});
 	}
+);
 
-	isFlavorOK(this: IUser, flavor: string, next: (err: Err, result: boolean) => void): void {
+userSchema.method("isFlavorOK",
+	function(flavor: string, next: (err: Err, result: boolean) => void): void {
 		// Note: This function must at least validate that the flavor is valid; to this point, the flavor is unsanitized user input.
 		const availableFlavors = Object.keys(config.flavors);
 		if (availableFlavors.indexOf(flavor) !== -1) {
@@ -398,25 +409,16 @@ class UserMethods implements IUserMethods {
 			next(null, false);
 		}
 	}
+);
 
-	logf(this: IUser): ILogger {
+userSchema.method("logf",
+	function(): ILogger {
 		return logger("user:" + this.id.valueOf());
 	}
-}
-
-// Copy the methods into userSchema
-userSchema.methods.createShareKey = UserMethods.prototype.createShareKey;
-userSchema.methods.removeShareKey = UserMethods.prototype.removeShareKey;
-userSchema.methods.setPassword = UserMethods.prototype.setPassword;
-userSchema.methods.checkPassword = UserMethods.prototype.checkPassword;
-userSchema.methods.touchLastActivity = UserMethods.prototype.touchLastActivity;
-userSchema.methods.loadInstructorModels = UserMethods.prototype.loadInstructorModels;
-userSchema.methods.isFlavorOK = UserMethods.prototype.isFlavorOK;
-userSchema.methods.logf = UserMethods.prototype.logf;
-
+);
 
 // Make sure the fields are initialized
-userSchema.post("init", function(this: IUser){
+userSchema.post("init", function(){
 	if (this.program && this.program !== "default" && !this.share_key) {
 		this.createShareKey();
 	}
@@ -442,7 +444,7 @@ userSchema.set("toJSON", {
 	}
 });
 
-export const User = Mongoose.model<IUser>("User", userSchema);
+export const User = Mongoose.model<IUser, UserModel>("User", userSchema);
 
 User.on("index", err => {
 	if (err) logger("user-index").error(err);

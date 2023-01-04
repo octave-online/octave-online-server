@@ -18,14 +18,12 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import ConnectMongo = require("connect-mongo");
+import MongoStore = require("connect-mongo");
 import Express = require("express");
 import ExpressSession = require("express-session");
 
 import * as Mongo from "./mongo";
 import { config, logger } from "./shared_wrap";
-
-const MongoStore = ConnectMongo(ExpressSession);
 
 const log = logger("session-middleware");
 
@@ -35,8 +33,8 @@ export let store: ExpressSession.Store;
 export function init() {
 	// Make the store instance
 	if (config.mongo.hostname) {
-		store = new MongoStore({
-			mongooseConnection: Mongo.connection
+		store = MongoStore.create({
+			client: Mongo.connection.getClient()
 		});
 	} else {
 		log.warn("mongo disabled; using MemoryStore");
