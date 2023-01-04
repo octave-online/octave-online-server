@@ -71,25 +71,19 @@ async function findWithPasswordPromise(email: string, password: string): Promise
 
 	// Returning user
 	if (user) {
-		return new Promise((resolve, reject) => {
-			// Returning user.  Check password
-			if (!user) throw new Error("unreachable");
-			user.checkPassword(password, function(err, valid) {
-				if (!user) throw new Error("unreachable");
-				if (err) reject(err);
-				if (valid) {
-					resolve({
-						user,
-						status: PasswordStatus.VALID
-					});
-				} else {
-					resolve({
-						user,
-						status: PasswordStatus.INCORRECT
-					});
-				}
-			});
-		})
+		// Returning user.  Check password
+		let valid = await user.checkPassword(password);
+		if (valid) {
+			return {
+				user,
+				status: PasswordStatus.VALID
+			};
+		} else {
+			return {
+				user,
+				status: PasswordStatus.INCORRECT
+			};
+		}
 	} else {
 		return {
 			status: PasswordStatus.UNKNOWN

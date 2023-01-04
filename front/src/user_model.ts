@@ -76,7 +76,7 @@ interface IUserMethods {
 	createShareKey(next?: (err: Err) => void): void;
 	removeShareKey(next?: (err: Err) => void): void;
 	setPassword(password: string, next?: (err: Err) => void): void;
-	checkPassword(password: string, next: (err: Err, success: boolean) => void): void;
+	checkPassword(password: string): Promise<boolean>;
 	touchLastActivity(next: (err: Err) => void): void;
 	loadInstructorModels(next: (err: Err, user: IUser) => void): void;
 	isFlavorOK(flavor: string, next: (err: Err, result: boolean) => void): void;
@@ -348,15 +348,13 @@ userSchema.method("setPassword",
 );
 
 userSchema.method("checkPassword",
-	function(password: string, next: (err: Err, success: boolean) => void): void {
+	async function(password: string): Promise<boolean> {
 		this.logf().trace("Checking password", this.consoleText);
 		if (!this.password_hash || !password) {
 			// Fail if no password is set on user
-			process.nextTick(function() {
-				next(null, false);
-			});
+			return false;
 		} else {
-			Bcrypt.compare(password, this.password_hash, next);
+			return Bcrypt.compare(password, this.password_hash);
 		}
 	}
 );
