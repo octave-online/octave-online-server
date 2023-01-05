@@ -100,8 +100,8 @@ export class SocketHandler implements IDestroyable {
 
 			// 1. Load user from database
 			user: (next) => {
-				const sess = this.socket.request.session;
-				const userId = sess && sess.passport && sess.passport.user;
+				const sess = (this.socket.request as any).session;
+				const userId = sess?.passport?.sess.passport.user;
 
 				if (userId) User.findById(userId)
 					.populate("programModel")
@@ -139,14 +139,12 @@ export class SocketHandler implements IDestroyable {
 				const init = { action, info, oldSessCode, skipCreate, flavor: null };
 
 				if (flavor && user) {
-					user.isFlavorOK(flavor, (err, flavorOK) => {
-						if (err) return next(err);
-						if (flavorOK) {
-							this._log.info("User connected with flavor:", flavor);
-							init.flavor = flavor;
-						}
-						next(null, init);
-					});
+					let flavorOK = user.isFlavorOK(flavor);
+					if (flavorOK) {
+						this._log.info("User connected with flavor:", flavor);
+						init.flavor = flavor;
+					}
+					next(null, init);
 				} else {
 					next(null, init);
 				}
@@ -411,32 +409,24 @@ export class SocketHandler implements IDestroyable {
 
 	//// OTHER UTILITY FUNCTIONS ////
 
-	private loadInstructor(): void {
+	private async loadInstructor(): Promise<void> {
 		if (!this.user || !this.user.instructor || !this.user.instructor.length)
 			return;
 
-		this.user.loadInstructorModels().then((user) => {
-			user.instructorModels?.forEach((program) => {
-				this.socket.emit("instructor", {
-					program: program.program_name,
-					users: program.students,
-				});
+		let user = await this.user.loadInstructorModels();
+		user.instructorModels?.forEach((program) => {
+			this.socket.emit("instructor", {
+				program: program.program_name,
+				users: program.students,
 			});
-		}).catch((err) => {
-			this._log.error("LOAD INSTRUCTOR ERROR", err);
 		});
 	}
 
-	private loadUserBuckets(): void {
+	private async loadUserBuckets(): Promise<void> {
 		if (!this.user) return;
-		Bucket.find({ user_id: this.user._id }, (err, buckets) => {
-			if (err) {
-				this._log.error("LOAD USER BUCKETS ERROR", err);
-				return;
-			}
-			this._log.trace("Loaded", buckets.length, "buckets for user", this.user!.consoleText);
-			this.socket.emit("all-buckets", { buckets });
-		});
+		let buckets = await Bucket.find({ user_id: this.user._id });
+		this._log.trace("Loaded", buckets.length, "buckets for user", this.user!.consoleText);
+		this.socket.emit("all-buckets", { buckets });
 	}
 
 	private touchUser(): void {
@@ -699,24 +689,20 @@ export class SocketHandler implements IDestroyable {
 		return this.sendMessage("The update_students command has been replaced.\nOpen a support ticket for more information.");
 	}
 
-	private onUnenrollStudent(obj: any): void {
+	private async onUnenrollStudent(obj: any): Promise<void> {
 		if (!obj) return;
 		if (!obj.userId) return;
 		if (!this.user) return;
-		User.findById(obj.userId, (err, student)=> {
-			if (err) return this._log.error("MONGO ERROR", err);
-			if (!student) return this._log.warn("Warning: student not found", obj.userId);
-			if (this.user!.instructor.indexOf(student.program) === -1) return this._log.warn("Warning: illegal call to unenroll student");
-			this._log.info("Un-enrolling", this.user!.consoleText, "from program", student.program);
-			student.program = "default";
-			student.save((err1) =>{
-				if (err1) return this._log.error("MONGO ERROR", err1);
-				this.sendMessage("Student successfully unenrolled: " + student.displayName);
-			});
-		});
+		let student = await User.findById(obj.userId);
+		if (!student) return this._log.warn("Warning: student not found", obj.userId);
+		if (this.user!.instructor.indexOf(student.program) === -1) return this._log.warn("Warning: illegal call to unenroll student");
+		this._log.info("Un-enrolling", this.user!.consoleText, "from program", student.program);
+		student.program = "default";
+		await student.save();
+		this.sendMessage("Student successfully unenrolled: " + student.displayName);
 	}
 
-	private onReenrollStudent(obj: any): void {
+	private async onReenrollStudent(obj: any): Promise<void> {
 		if (!obj) return;
 		if (!obj.userId) return;
 		if (!obj.program) return;
@@ -725,17 +711,13 @@ export class SocketHandler implements IDestroyable {
 			this.sendMessage("Student not re-enrolled: Cannot use the course code " + obj.program);
 			return this._log.warn("Warning: illegal call to re-enroll student");
 		}
-		User.findById(obj.userId, (err, student)=> {
-			if (err) return this._log.error("ERROR ON REENROLL STUDENT", err);
-			if (!student) return this._log.warn("Warning: student not found", obj.userId);
-			if (this.user!.instructor.indexOf(student.program) === -1) return this._log.warn("Warning: illegal call to reenroll student");
-			this._log.info("Re-enrolling", this.user!.consoleText, "from program", student.program, "to program", obj.program);
-			student.program = obj.program;
-			student.save((err1) =>{
-				if (err1) return this._log.error("MONGO ERROR", err1);
-				this.sendMessage("Student successfully re-enrolled: " + student.displayName);
-			});
-		});
+		let student = await User.findById(obj.userId);
+		if (!student) return this._log.warn("Warning: student not found", obj.userId);
+		if (this.user!.instructor.indexOf(student.program) === -1) return this._log.warn("Warning: illegal call to reenroll student");
+		this._log.info("Re-enrolling", this.user!.consoleText, "from program", student.program, "to program", obj.program);
+		student.program = obj.program;
+		await student.save();
+		this.sendMessage("Student successfully re-enrolled: " + student.displayName);
 	}
 
 	private onPing(obj: any): void {

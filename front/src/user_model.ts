@@ -29,11 +29,12 @@ import { config, logger, ILogger } from "./shared_wrap";
 import { Program, IProgram } from "./program_model";
 
 type Err = Error | null;
-type UserModel = Mongoose.Model<IUser, {}, IUserMethods>;
-export type HydratedUser = Mongoose.HydratedDocument<IUser, IUserMethods>;
+type UserModel = Mongoose.Model<IUser, {}, IUserMethods, IUserVirtuals>;
+type UserSchema = Mongoose.Schema<IUser, UserModel, IUserMethods, {}, IUserVirtuals>;
+export type HydratedUser = Mongoose.HydratedDocument<IUser, IUserMethods, IUserVirtuals>;
 
 // Initialize the schema
-const userSchema = new Mongoose.Schema<IUser, UserModel, IUserMethods>({
+const userSchema: UserSchema = new Mongoose.Schema({
 	email: String,
 	parametrized: String,
 	profile: Mongoose.Schema.Types.Mixed,
@@ -82,6 +83,14 @@ interface IUserMethods {
 	logf(): ILogger;
 }
 
+interface IUserVirtuals {
+	displayName: string;
+	consoleText: string;
+	tier: string;
+	programModel: IProgram | null | undefined;
+	instructorModels: IProgram[] | undefined;
+}
+
 export interface IUser {
 	_id: Mongoose.Types.ObjectId;
 	email: string;
@@ -113,13 +122,6 @@ export interface IUser {
 	countdown_extra_time_override?: number;
 	countdown_request_time_override?: number;
 	ads_disabled_override?: boolean;
-
-	// Virtuals
-	displayName: string;
-	consoleText: string;
-	tier: string;
-	programModel: IProgram | null | undefined;
-	instructorModels: IProgram[] | undefined;
 
 	// Cached sub-models
 	_instructorModels?: IProgram[];
@@ -185,7 +187,9 @@ userSchema.virtual("consoleText").get(function() {
 
 // Return the tier for this user, including resource-specific overrides.  These items usually fall back to the default unless a value is explicitly set in the database.  The camel-case name of these fields is for backwards compatibility.
 const validTiers = Object.keys(config.tiers);
-userSchema.virtual("tier").get(function() {
+// TODO: Remove the unnecessary `this: HydratedUser`:
+// https://github.com/Automattic/mongoose/pull/12874
+userSchema.virtual("tier").get(function(this: HydratedUser) {
 	// First try: tier_override
 	let candidate: string|undefined = this.tier_override;
 	if (candidate && validTiers.indexOf(candidate) !== -1) {
@@ -203,7 +207,7 @@ userSchema.virtual("tier").get(function() {
 	}
 
 	// Third try: program
-	candidate = this.programModel?.tier_override;
+	candidate = (this as HydratedUser).programModel?.tier_override;
 	if (candidate && validTiers.indexOf(candidate) !== -1) {
 		return candidate;
 	}
@@ -265,7 +269,9 @@ userSchema.virtual("instructorModels").get(function() {
 		defaultValue: config.ads.disabled
 	}
 ].forEach(({field, overrideKey, tierKey, defaultValue})=>{
-	userSchema.virtual(field).get(function() {
+	// TODO: Remove the unnecessary `this: HydratedUser`:
+	// https://github.com/Automattic/mongoose/pull/12874
+	userSchema.virtual(field).get(function(this: HydratedUser) {
 		// <any> cast: https://stackoverflow.com/a/35209016/1407170
 		let candidate: any = (this as any)[overrideKey];
 		if (candidate) {

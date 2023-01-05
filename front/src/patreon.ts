@@ -27,7 +27,7 @@ import EasyNoPassword = require("easy-no-password");
 import SimpleOAuth2 = require("simple-oauth2");
 
 import { config, logger } from "./shared_wrap";
-import { User, IUser } from "./user_model";
+import { User, HydratedUser } from "./user_model";
 
 interface PatreonInfo {
 	user_id: string;
@@ -37,24 +37,24 @@ interface PatreonInfo {
 
 interface PatreonPhase1AsyncAuto {
 	enp: string;
-	raw_user: IUser|null;
-	user: IUser;
+	raw_user: HydratedUser|null;
+	user: HydratedUser;
 	resolve: any;
 }
 
 interface PatreonPhase2AsyncAuto {
 	enp: boolean;
-	raw_user: IUser|null;
-	user: IUser;
+	raw_user: HydratedUser|null;
+	user: HydratedUser;
 	tokenObject: any;
 	patreonInfo: PatreonInfo;
-	existingUser: IUser|null;
+	existingUser: HydratedUser|null;
 	resolve: any;
 }
 
 interface PatreonRevokeAsyncAuto {
-	raw_user: IUser|null;
-	user: IUser;
+	raw_user: HydratedUser|null;
+	user: HydratedUser;
 	revoke: any;
 	resolve: any;
 }
@@ -322,10 +322,7 @@ export function webhook(req: any, res: any, next: any) {
 		return next(e);
 	}
 
-	User.findOne({ "patreon.user_id": patreonInfo.user_id }, (err, user) => {
-		if (err) {
-			return next(err);
-		}
+	User.findOne({ "patreon.user_id": patreonInfo.user_id }).then((user) => {
 		if (!user) {
 			log.info("Patreon user does not exist in database:", JSON.stringify(patreonInfo));
 			res.sendStatus(204);
@@ -336,5 +333,5 @@ export function webhook(req: any, res: any, next: any) {
 		user.save().then(() => {
 			res.sendStatus(200);
 		}).catch(next);
-	});
+	}).catch(next);
 }

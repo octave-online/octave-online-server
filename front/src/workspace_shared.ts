@@ -28,11 +28,11 @@ import { config, newRedisMessenger, logger, ILogger } from "./shared_wrap";
 import { IWorkspace } from "./utils";
 import { octaveHelper, SessionState } from "./octave_session_helper";
 import { OtDocument } from "./ot_document";
-import { User, IUser } from "./user_model";
+import { User, HydratedUser } from "./user_model";
 import { IBucket } from "./bucket_model";
 
 interface BeginOctaveRequestAsyncAuto {
-	user: IUser|null;
+	user: HydratedUser|null;
 	ready: void;
 }
 
@@ -54,7 +54,7 @@ export class SharedWorkspace
 	public sessCode: string|null = null;
 	public destroyed = false;
 	private shareKey: string|null = null;
-	private user: IUser|null = null;
+	private user: HydratedUser|null = null;
 	private bucket: IBucket|null = null;
 	private docs: { [key: string]: OtDocument } = {};
 	private msgIds: string[] = [];
@@ -65,7 +65,7 @@ export class SharedWorkspace
 	private _log: ILogger;
 	private logId: string;
 
-	constructor(shareKey: string|null, user: IUser|null, bucket: IBucket|null, logId: string) {
+	constructor(shareKey: string|null, user: HydratedUser|null, bucket: IBucket|null, logId: string) {
 		super();
 
 		this._log = logger(`workspace-shr:${logId}:uninitialized`);

@@ -24,7 +24,7 @@ import Async = require("async");
 
 import { IDestroyable, IWorkspace } from "./utils";
 import { IBucket } from "./bucket_model";
-import { IUser } from "./user_model";
+import { HydratedUser } from "./user_model";
 import { config, newRedisMessenger, logger, ILogger } from "./shared_wrap";
 import { octaveHelper, SessionState } from "./octave_session_helper";
 
@@ -38,11 +38,11 @@ export class NormalWorkspace
 	implements IWorkspace, IDestroyable {
 	public sessCode: string|null;
 	public destroyed = false;
-	private user: IUser|null;
+	private user: HydratedUser|null;
 	private bucket: IBucket|null;
 	private _log: ILogger;
 
-	constructor(sessCode: string|null, user: IUser|null, bucket: IBucket|null){
+	constructor(sessCode: string|null, user: HydratedUser|null, bucket: IBucket|null){
 		super();
 		this.sessCode = sessCode;
 		this.user = user;

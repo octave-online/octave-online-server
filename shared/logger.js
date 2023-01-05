@@ -45,6 +45,11 @@ try {
 	debugLogger("oo:logger").info("Note: Stackdriver logging disabled");
 }
 
+process.on("unhandledRejection", (reason, promise) => {
+	debugLogger("oo:unhandledRejection").error("Unhandled Rejection at:", promise, "reason:", reason);
+	writeStackdriverLog("error", "unhandledRejection", [promise, reason]);
+});
+
 module.exports = function(id) {
 	const impl = debugLogger("oo:" + id);
 	return {
