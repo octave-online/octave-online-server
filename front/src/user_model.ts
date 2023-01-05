@@ -30,7 +30,7 @@ import { Program, IProgram } from "./program_model";
 
 type Err = Error | null;
 type UserModel = Mongoose.Model<IUser, {}, IUserMethods>;
-export type HydratedUser = Mongoose.HydratedDocument<IUser>;
+export type HydratedUser = Mongoose.HydratedDocument<IUser, IUserMethods>;
 
 // Initialize the schema
 const userSchema = new Mongoose.Schema<IUser, UserModel, IUserMethods>({
@@ -78,7 +78,7 @@ interface IUserMethods {
 	checkPassword(password: string): Promise<boolean>;
 	touchLastActivity(next: (err: Err) => void): void;
 	loadInstructorModels(): Promise<HydratedUser>;
-	isFlavorOK(flavor: string, next: (err: Err, result: boolean) => void): void;
+	isFlavorOK(flavor: string): boolean;
 	logf(): ILogger;
 }
 
@@ -386,18 +386,18 @@ userSchema.method("loadInstructorModels",
 );
 
 userSchema.method("isFlavorOK",
-	function(flavor: string, next: (err: Err, result: boolean) => void): void {
+	function(flavor: string): boolean {
 		// Note: This function must at least validate that the flavor is valid; to this point, the flavor is unsanitized user input.
 		const availableFlavors = Object.keys(config.flavors);
 		if (availableFlavors.indexOf(flavor) !== -1) {
 			// TODO: Implement this when more interesting logic is available.
-			// next(null, !!this.flavors_enabled);
-			next(null, true);
+			// return !!this.flavors_enabled;
+			return true;
 		} else if (flavor) {
 			this.logf().trace("WARNING: User requested illegal flavor", flavor);
-			next(null, false);
+			return false;
 		} else {
-			next(null, false);
+			return false;
 		}
 	}
 );

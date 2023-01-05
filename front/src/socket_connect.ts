@@ -21,6 +21,7 @@
 import Async = require("async");
 import BaseX = require("base-x");
 import Hjson = require("hjson");
+import SocketIO = require("socket.io");
 import Uuid = require("uuid");
 
 import { BackServerHandler } from "./back_server_handler";
@@ -30,7 +31,7 @@ import { FlavorRecord } from "./flavor_record_model";
 import { IDestroyable, IWorkspace } from "./utils";
 import { NormalWorkspace } from "./workspace_normal";
 import { SharedWorkspace } from "./workspace_shared";
-import { User, IUser } from "./user_model";
+import { User, HydratedUser } from "./user_model";
 import { sendZipArchive } from "./email";
 
 const TOKEN_REGEX = /^\w*$/;
@@ -52,7 +53,7 @@ interface InitData {
 }
 
 interface SocketAsyncAuto {
-	user: IUser|null;
+	user: HydratedUser|null;
 	raw_init: any;
 	init: InitData;
 	bucket: IBucket|null;
@@ -69,7 +70,7 @@ export class SocketHandler implements IDestroyable {
 	public socket: ISocketCustom;
 	public back: BackServerHandler;
 	public workspace: IWorkspace|null = null;
-	public user: IUser|null = null;
+	public user: HydratedUser|null = null;
 	public bucket: IBucket|null = null;
 	public flavor: string|null = null;
 	public destroyed = false;
@@ -799,21 +800,19 @@ export class SocketHandler implements IDestroyable {
 		if (!this.user || !obj) return;
 		const flavor = obj.flavor;
 
-		this.user.isFlavorOK(flavor, (err, flavorOK) => {
-			if (err) this._log.error("FLAVOR OK ERROR", err);
-			if (!flavorOK) {
-				this._log.warn("Failed to upgrade user to flavor:", flavor);
-				return;
-			}
-			if (!this.workspace) {
-				this._log.warn("No workspace on flavor upgrade attempt");
-				return;
-			}
-			this._log.info("User upgraded to flavor:", flavor);
-			this.flavor = flavor;
-			this.workspace.destroyD("Flavor Upgrade");
-			this.workspace.beginOctaveRequest(this.flavor);
-		});
+		const flavorOK = this.user.isFlavorOK(flavor);
+		if (!flavorOK) {
+			this._log.warn("Failed to upgrade user to flavor:", flavor);
+			return;
+		}
+		if (!this.workspace) {
+			this._log.warn("No workspace on flavor upgrade attempt");
+			return;
+		}
+		this._log.info("User upgraded to flavor:", flavor);
+		this.flavor = flavor;
+		this.workspace.destroyD("Flavor Upgrade");
+		this.workspace.beginOctaveRequest(this.flavor);
 	}
 
 	private onGenerateZip(obj: any): void {

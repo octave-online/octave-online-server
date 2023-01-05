@@ -33,15 +33,22 @@ type Err = Error|null|undefined;
 const ALL_FLAVORS = Object.keys(config.flavors);
 const log = logger("oo-socketio");
 
+// TODO: Consider using proper TypeScript types:
+// https://socket.io/docs/v4/typescript/
+
 export function init(){
-	const io = SocketIO(ExpressApp.server, {
+	const io = new SocketIO.Server(ExpressApp.server, {
 			path: config.front.socket_io_path,
 			allowEIO3: true
 		})
 		.use(SocketIOWildcard())
-		.use((socket,next)=>{
+		.use((socket, next)=>{
 			// Parse the session using middleware
-			Middleware.middleware(socket.request, {} as Express.Response, next);
+			Middleware.middleware(
+				socket.request as Express.Request,
+				{} as Express.Response,
+				next
+			);
 		})
 		.on("connection", SocketHandler.onConnection);
 
@@ -53,7 +60,7 @@ export function init(){
 	log.info("Initialized Socket.IO Server", config.front.socket_io_path);
 }
 
-export function watchFlavorServers(io: SocketIO.Namespace) {
+export function watchFlavorServers(io: SocketIO.Server) {
 	Async.forever(
 		(next: () => void) => {
 			Async.map(ALL_FLAVORS, (flavor, _next) => {
