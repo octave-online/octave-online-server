@@ -22,12 +22,10 @@ import Mongoose = require("mongoose");
 
 import { config } from "./shared_wrap";
 
-export function connect() {
+export async function connect() {
 	const url = `mongodb://${config.mongo.hostname}:${config.mongo.port}/${config.mongo.db}`;
 
-	return Mongoose.connect(url, {
-		useNewUrlParser: true,
-	});
+	return Mongoose.connect(url);
 }
 
 export const connection = Mongoose.connection;

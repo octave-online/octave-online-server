@@ -20,7 +20,6 @@
 
 // Mongoose User: stores OpenID information for a user.
 
-import Async = require("async");
 import Bcrypt = require("bcrypt");
 import Crypto = require("crypto");
 import Mongoose = require("mongoose");
@@ -78,7 +77,7 @@ interface IUserMethods {
 	setPassword(password: string, next?: (err: Err) => void): void;
 	checkPassword(password: string): Promise<boolean>;
 	touchLastActivity(next: (err: Err) => void): void;
-	loadInstructorModels(next: (err: Err, user: IUser) => void): void;
+	loadInstructorModels(): Promise<HydratedUser>;
 	isFlavorOK(flavor: string, next: (err: Err, result: boolean) => void): void;
 	logf(): ILogger;
 }
@@ -369,26 +368,20 @@ userSchema.method("touchLastActivity",
 );
 
 userSchema.method("loadInstructorModels",
-	function(next: (err: Err, user: IUser) => void): void {
-		Async.map<string, IProgram>(this.instructor, (program_name, __next) => {
-			Program.findOne({ program_name }, (err, program) => {
-				if (err) {
-					return __next(err);
-				}
+	async function(): Promise<HydratedUser> {
+		let programs = await Promise.all(
+			this.instructor.map(async (program_name: string) => {
+				let program = await Program.findOne({ program_name });
 				if (!program) {
 					program = new Program();
 					program.program_name = program_name;
 				}
-				program.populate("students").execPopulate()
-					.then(() => { __next(null, program!) })
-					.catch(__next);
-			});
-		}, (err, results) => {
-			if (err) return next(err, this);
-			this.logf().trace("Loaded instructor models:", results?.length);
-			this._instructorModels = results!.map((v) => v!);
-			next(null, this);
-		});
+				await program.populate("students");
+				return program;
+			})
+		);
+		this._instructorModels = programs;
+		return this;
 	}
 );
 

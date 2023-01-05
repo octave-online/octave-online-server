@@ -414,17 +414,15 @@ export class SocketHandler implements IDestroyable {
 		if (!this.user || !this.user.instructor || !this.user.instructor.length)
 			return;
 
-		this.user.loadInstructorModels((err, user) => {
-			if (err) {
-				this._log.error("LOAD INSTRUCTOR ERROR", err);
-				return;
-			}
+		this.user.loadInstructorModels().then((user) => {
 			user.instructorModels?.forEach((program) => {
 				this.socket.emit("instructor", {
 					program: program.program_name,
 					users: program.students,
 				});
 			});
+		}).catch((err) => {
+			this._log.error("LOAD INSTRUCTOR ERROR", err);
 		});
 	}
 

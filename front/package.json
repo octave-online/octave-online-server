@@ -55,7 +55,6 @@
     "@types/express-session": "^1.15.16",
     "@types/flat": "^5.0.1",
     "@types/hjson": "^2.4.3",
-    "@types/mongodb": "^3.6.3",
     "@types/passport": "^1.0.2",
     "@types/passport-google-oauth": "^1.0.41",
     "@types/passport-local": "^1.0.33",
