@@ -19,7 +19,6 @@
  */
 
 import Async = require("async");
-import Express = require("express");
 import SocketIO = require("socket.io");
 import SocketIOWildcard = require("socketio-wildcard");
 
@@ -44,11 +43,8 @@ export function init(){
 		.use(SocketIOWildcard())
 		.use((socket, next)=>{
 			// Parse the session using middleware
-			Middleware.middleware(
-				socket.request as Express.Request,
-				{} as Express.Response,
-				next
-			);
+			// Bypass TypeScript since this isn't legal
+			(<any>Middleware.middleware)(socket.request, {}, next);
 		})
 		.on("connection", SocketHandler.onConnection);
 

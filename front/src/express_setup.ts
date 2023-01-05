@@ -272,9 +272,11 @@ export function init(buildData: BuildData){
 		.get("/auth/failure", function(req, res) {
 			res.status(400).render("login_error", { config });
 		})
-		.get("/logout", function(req, res){
-			req.logout();
-			res.redirect("/");
+		.get("/logout", function(req, res, next){
+			req.logout((err) => {
+				if (err) return next(err);
+				res.redirect("/");
+			});
 		})
 		.get("/js-default/:id.js", function(req, res){
 			res.setHeader("Content-Type", "text/javascript");

@@ -35,17 +35,17 @@ async function main() {
 	try {
 		buildData = require(Path.join(__dirname, "..", "..", config.front.static_path, "build_data.json"));
 		log.trace("Loaded buildData:", buildData);
-	} catch(err) {
-		log.warn("Failed to load buildData; will serve development resources:", err.message);
+	} catch(err: any) {
+		log.warn("Failed to load buildData; will serve development resources:", err?.message);
 	}
 
 	try {
 		const setupFn = require("../../entrypoint/front_setup");
 		await setupFn(buildData);
 		log.trace("Successfully ran front_setup. New buildData:", buildData);
-	} catch (err) {
-		if (/Cannot find module/.test(err.message)) {
-			log.warn("Tip: create entrypoint/front_setup.js to run code at startup:", err.message);
+	} catch (err: any) {
+		if (/Cannot find module/.test(err?.message)) {
+			log.warn("Tip: create entrypoint/front_setup.js to run code at startup:", err?.message);
 		} else {
 			log.error("front_setup error:", err);
 		}

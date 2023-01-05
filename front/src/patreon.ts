@@ -20,8 +20,6 @@
 
 import Crypto = require("crypto");
 
-const got = require("got");
-import { Got } from "got";
 import Async = require("async");
 import EasyNoPassword = require("easy-no-password");
 import SimpleOAuth2 = require("simple-oauth2");
@@ -186,16 +184,16 @@ export function phase2(req: any, res: any, next: any) {
 		}],
 		patreonInfo: ["tokenObject", ({tokenObject}, _next) => {
 			log.trace(tokenObject);
-			(got as Got)("https://www.patreon.com/api/oauth2/v2/identity", {
+			fetch("https://www.patreon.com/api/oauth2/v2/identity" + new URLSearchParams({
+				"include": "memberships,memberships.currently_entitled_tiers",
+				"fields[member]": "currently_entitled_amount_cents"
+			}), {
 				headers: {
 					"Authorization": "Bearer " + tokenObject.access_token
 				},
-				searchParams: {
-					"include": "memberships,memberships.currently_entitled_tiers",
-					"fields[member]": "currently_entitled_amount_cents"
-				},
-				responseType: "json",
-			}).then((response) => {
+			})
+			.then((response) => response.json())
+			.then((response) => {
 				const body: any = response.body;
 				try {
 					const user_id = (body.data.id) as string;
@@ -204,8 +202,9 @@ export function phase2(req: any, res: any, next: any) {
 					const membership = (memberships.length > 0) ? body.included[0] : null;
 					const patreonInfo = processMembership(membership, user_id);
 					_next(null, patreonInfo);
-				} catch(e) {
-					log.error("Invalid identity response:", JSON.stringify(body));
+				} catch(cause) {
+					let e = Error("Invalid identity response", { cause });
+					log.error(e);
 					_next(e);
 				}
 			}).catch(_next);
@@ -329,7 +328,7 @@ export function webhook(req: any, res: any, next: any) {
 			return;
 		}
 		log.info("Updating user with Webhook Patreon info", user.consoleText, JSON.stringify(patreonInfo));
-		Object.assign(user.patreon, patreonInfo);
+		Object.assign(user.patreon!, patreonInfo);
 		user.save().then(() => {
 			res.sendStatus(200);
 		}).catch(next);

@@ -21,8 +21,8 @@
 import MongoStore = require("connect-mongo");
 import Express = require("express");
 import ExpressSession = require("express-session");
+import Mongoose = require("mongoose");
 
-import * as Mongo from "./mongo";
 import { config, logger } from "./shared_wrap";
 
 const log = logger("session-middleware");
@@ -33,9 +33,13 @@ export let store: ExpressSession.Store;
 export function init() {
 	// Make the store instance
 	if (config.mongo.hostname) {
-		store = MongoStore.create({
-			client: Mongo.connection.getClient()
-		});
+		let options = {
+			client: Mongoose.connection.getClient()
+		};
+		// Can't solve the following TS error:
+		// "src/session_middleware.ts:39:20 - error TS2589: Type instantiation is excessively deep and possibly infinite"
+		let mongoStore = (<any>MongoStore).create(options);
+		store = mongoStore;
 	} else {
 		log.warn("mongo disabled; using MemoryStore");
 		store = new ExpressSession.MemoryStore() as ExpressSession.Store;

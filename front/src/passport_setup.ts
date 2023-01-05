@@ -19,13 +19,14 @@
  */
 
 import EasyNoPassword = require("easy-no-password");
+import Mongoose = require("mongoose");
 import GoogleOAuth = require("passport-google-oauth");
 import Local = require("passport-local");
 import Passport = require("passport");
 
 import * as Utils from "./utils";
 import { config, logger } from "./shared_wrap";
-import { User, IUser, HydratedUser } from "./user_model";
+import { User, HydratedUser } from "./user_model";
 import { sendLoginToken } from "./email";
 
 type Err = Error | null;
@@ -91,7 +92,7 @@ async function findWithPasswordPromise(email: string, password: string): Promise
 	}
 }
 
-function findWithPassword(email: string, password: string, done: (err: Err, status?: PasswordStatus, user?: IUser) => void) {
+function findWithPassword(email: string, password: string, done: (err: Err, status?: PasswordStatus, user?: HydratedUser) => void) {
 	findWithPasswordPromise(email, password).then((response) => {
 		done(null, response.status, response.user);
 	}).catch((err) => {
@@ -176,11 +177,11 @@ export function init(){
 	Passport.use(googleStrategy);
 	Passport.use(easyStrategy);
 	Passport.use(passwordStrategy);
-	Passport.serializeUser((user: HydratedUser, cb) => {
-		cb(null, user.id);
+	Passport.serializeUser((user: any, cb) => {
+		cb(null, user?.id);
 	});
-	Passport.deserializeUser((user: HydratedUser, cb) => {
-		User.findById(user, cb);
+	Passport.deserializeUser((id: Mongoose.Types.ObjectId, cb) => {
+		User.findById(id, cb);
 	});
 
 	log.info("Initialized Passport");
