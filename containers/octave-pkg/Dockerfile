@@ -50,6 +50,9 @@ ARG PKG_BASE_URL=https://downloads.sourceforge.net/project/octave/Octave%20Forge
 
 RUN mkdir pkg-downloads
 
+RUN cd pkg-downloads && wget https://github.com/apjanke/octave-tablicious/releases/download/v0.3.7/tablicious-0.3.7.tar.gz && \
+	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install tablicious-0.3.7.tar.gz;"
+
 RUN cd pkg-downloads && wget $PKG_BASE_URL/symbolic-3.0.1.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install symbolic-3.0.1.tar.gz;"
 
@@ -148,12 +151,6 @@ RUN cd pkg-downloads && wget $PKG_BASE_URL/mvn-1.1.0.tar.gz && \
 
 RUN cd pkg-downloads && wget $PKG_BASE_URL/fuzzy-logic-toolkit-0.4.6.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install fuzzy-logic-toolkit-0.4.6.tar.gz;"
-
-#RUN cd pkg-downloads && wget https://github.com/apjanke/octave-tablicious/releases/download/v0.3.6/tablicious-0.3.6.tar.gz && \
-#	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install tablicious-0.3.6.tar.gz;"
-
-RUN cd pkg-downloads && wget -O tablicious-master.tar.gz https://github.com/apjanke/octave-tablicious/archive/refs/heads/master.tar.gz && \
-	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install tablicious-master.tar.gz;"
 
 # Policy for adding or removing packages:
 # - Add packages that garner at least 40 downloads/week

@@ -115,4 +115,4 @@ RUN cd octave/.build && make install
 COPY containers/octave-pkg/octaverc.m /usr/local/share/octave/site/m/startup/octaverc
 
 # Install the java.opts file
-COPY containers/octave-oo/java.opts /usr/local/share/octave/6.4.0/m/java/java.opts
+COPY containers/octave-oo/java.opts /usr/local/share/octave/8.0.1/m/java/java.opts
