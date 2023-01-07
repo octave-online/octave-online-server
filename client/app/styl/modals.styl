@@ -40,8 +40,10 @@ popover(_width, _height, _zindex){
 
 		& > div {
 			position: absolute
-			top: calc("50% - (%s / 2)" % _height, 10%)
-			left: calc("50% - (%s / 2)" % _width, 10%)
+			top: 10%
+			left: 10%
+			top: s("calc(50% - (%s / 2))", _height)
+			left: s("calc(50% - (%s / 2))", _width)
 			width: _width
 			height: _height
 			overflow: auto
@@ -452,7 +454,7 @@ popover(_width, _height, _zindex){
 	pointer-events: none
 
 	#cosine-pulse {
-		background-image: inline-image("cosine.svg")
+		background-image: embedurl("../images/logo_collections/"+logo_collection+"/cosine.svg")
 		background-repeat: repeat-x
 		background-size: 2000px 100%
 		// TODO: Change to side-relative values when browser support is better

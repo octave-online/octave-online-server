@@ -63,17 +63,6 @@ module.exports = function (grunt) {
 			dev: {
 				options: {
 					compress: false,
-					use: [
-						require("kouto-swiss")
-					],
-					urlfunc: {
-						name: "inline-image",
-						paths: [
-							"app/images",
-							"app/images/logo_collections/" + config.client.theme_collection
-						]
-					},
-					// "include css": true,
 				},
 				files: [
 					{
@@ -88,17 +77,6 @@ module.exports = function (grunt) {
 			dist: {
 				options: {
 					compress: true,
-					use: [
-						require("kouto-swiss")
-					],
-					urlfunc: {
-						name: "inline-image",
-						paths: [
-							"app/images",
-							"app/images/logo_collections/" + config.client.theme_collection
-						]
-					},
-					// "include css": true,
 				},
 				files: [
 					{

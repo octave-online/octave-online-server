@@ -43,7 +43,7 @@ narrow_font_family = "Arial Narrow", "Abadi MT Condensed Light", "Helvetica CY",
 
 // Flaticons
 flaticon(name) {
-	background-image: inline-image("flaticons/"+icon_name+"/"+name+".svg")
+	background-image: embedurl("../images/flaticons/"+icon_name+"/"+name+".svg")
 }
 flaticon-button(name, dim=16px) {
 	flaticon(name)

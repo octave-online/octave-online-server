@@ -5,7 +5,10 @@
   "main": "app/main.js",
   "scripts": {
     "grunt": "grunt",
-    "bower": "bower"
+    "bower": "bower",
+    "stylus-watch": "npm run stylus-watch:server",
+    "stylus-watch:server": "stylus --watch -o app/css/themes app/styl/themes/server",
+    "stylus-watch:server": "stylus --watch -o app/css/themes app/styl/themes/server"
   },
   "author": "Octave Online LLC",
   "license": "AGPL-3.0",
@@ -17,10 +20,9 @@
     "grunt-contrib-stylus": "^1.2.0",
     "grunt-contrib-uglify": "^4.0.1",
     "grunt-contrib-watch": "^1.1.0",
-    "grunt-postcss": "^0.9.0",
     "grunt-regex-replace": "^0.4.0",
     "grunt-sync": "^0.8.2",
-    "kouto-swiss": "^1.0.0"
+    "normalize-styl": "^8.0.1"
   },
   "dependencies": {
     "bower": "^1.8.12",
