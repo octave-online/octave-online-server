@@ -457,9 +457,8 @@ popover(_width, _height, _zindex){
 		background-size: 2000px 100%
 		// TODO: Change to side-relative values when browser support is better
 		background-position-x: -3000px
-		animation: cosine-width 4s infinite cubic-bezier(.75,0,1,.75) alternate forwards,
-			cosine-position 8s infinite ease-in-out alternate forwards
-		animation-delay: 4s, 0s
+		animation: 6s cosine-width infinite cubic-bezier(.8,0,.8,1) alternate forwards, 12s cosine-position infinite ease-in-out alternate forwards
+		animation-delay: 6s, 0s
 		position: absolute
 		top: 30%
 		left: 0
@@ -472,7 +471,7 @@ popover(_width, _height, _zindex){
 			background-size: 2000px 100%
 		}
 		to {
-			background-size: 50px 100%
+			background-size: 150px 100%
 		}
 	}
 
