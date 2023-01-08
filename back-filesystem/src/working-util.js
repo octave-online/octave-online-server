@@ -174,7 +174,9 @@ class WorkingUtil {
 		// Detect and attempt to convert charset
 		if (buf.length > 0) {
 			try {
-				encoding = charsetDetector(buf)[0].toString() || "UTF-8";
+				let charsetResults = charsetDetector(buf);
+				this._log.debug("Charset detection upon upload:", charsetResults);
+				encoding = charsetResults?.[0]?.charsetName || "UTF-8";
 				if (encoding !== "UTF-8"){
 					this._log.info("Converting charset:", encoding);
 					buf = new Iconv(encoding, "UTF-8").convert(buf);
