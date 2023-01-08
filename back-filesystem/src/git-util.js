@@ -192,7 +192,10 @@ class GitUtil {
 				fetch(`http://${config.git.hostname}:${config.git.createRepoPort}/?` + new URLSearchParams({
 					type: "repos",
 					name: user.parametrized
-				})).then(() => {
+				})).then((response) => {
+					if (!response.ok) {
+						return _next(new Error("Not 2xx response", { cause: response }));
+					}
 					_next();
 				}).catch(_next);
 			}
@@ -209,7 +212,10 @@ class GitUtil {
 				fetch(`http://${config.git.hostname}:${config.git.createRepoPort}/?` + new URLSearchParams({
 					type: "buckets",
 					name: bucketId
-				})).then(() => {
+				})).then((response) => {
+					if (!response.ok) {
+						return _next(new Error("Not 2xx response", { cause: response }));
+					}
 					_next();
 				}).catch(_next);
 			}

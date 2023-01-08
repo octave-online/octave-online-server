@@ -194,6 +194,9 @@ export function phase2(req: any, res: any, next: any) {
 			})
 			.then((response) => response.json())
 			.then((response) => {
+				if (!response.ok) {
+					return _next(new Error("Not 2xx response", { cause: response }));
+				}
 				const body: any = response.body;
 				try {
 					const user_id = (body.data.id) as string;
