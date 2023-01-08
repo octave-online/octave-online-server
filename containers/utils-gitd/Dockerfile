@@ -27,7 +27,10 @@
 # BOILERPLATE #
 ###############
 
-FROM ubuntu:jammy
+# NOTE: The version of git in newer Ubuntus no longer prints "fatal: no matching remote head"
+# when fetching an empty repository, which OO needs in order to ignore the errorful exit.
+# For now, use an older Ubuntu LTS release for this container.
+FROM ubuntu:bionic
 
 WORKDIR /root
 
