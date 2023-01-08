@@ -639,22 +639,23 @@ class OctaveSession extends OnlineOffline {
 				}
 				name = "err";
 				content = content.formatted;
+				break;
 
 			case "display-exception":
 				name = "err";
 				content = content.ee_str;
-
-			case "err":
-				// Filter out some error messages
-				if (/warning: readline is not linked/.test(content)) return;
-				if (/warning: docstring file/.test(content)) return;
-				if (/error: unable to open .+macros\.texi/.test(content)) return;
-				if (/^\/tmp\/octave-help-/.test(content)) return;
-				if (/built-in-docstrings' not found/.test(content)) return;
 				break;
 
 			default:
 				break;
+		}
+		if (name === "err") {
+			// Filter out some error messages
+			if (/warning: readline is not linked/.test(content)) return;
+			if (/warning: docstring file/.test(content)) return;
+			if (/error: unable to open .+macros\.texi/.test(content)) return;
+			if (/^\/tmp\/octave-help-/.test(content)) return;
+			if (/built-in-docstrings' not found/.test(content)) return;
 		}
 		if (/^multi-binary:[\w-]+$/.test(name)) return;
 
