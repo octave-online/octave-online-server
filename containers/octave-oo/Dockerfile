@@ -98,7 +98,8 @@ RUN cd back-octave && make && make install
 ### 7.4 (based on 601e7a142a15) ###
 RUN cd octave && \
 	hg import ../back-octave/oo-changesets/420-4c3d80dd9e65.hg.txt && \
-	hg import ../back-octave/oo-changesets/421-de16dd99ab0e.hg.txt
+	hg import ../back-octave/oo-changesets/421-de16dd99ab0e.hg.txt && \
+	hg import ../back-octave/oo-changesets/422-de16dd99ab0e.hg.txt
 
 # Re-build with patches
 RUN cd octave/.build && make -j8

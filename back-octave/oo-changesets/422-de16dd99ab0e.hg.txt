@@ -1,0 +1,100 @@
+# HG changeset patch
+# User Octave Online Team <webmaster@octave-online.net>
+# Date 1673173830 21600
+#      Sun Jan 08 04:30:30 2023 -0600
+# Branch oo-7.4
+# Node ID a602982ec42d2e26dd5f1b127afb64011033348d
+# Parent  de16dd99ab0ec3baee489d7187cfd184df64aca6
+Redirect warnings to new display-warning message
+
+diff -r de16dd99ab0e -r a602982ec42d libinterp/corefcn/error.cc
+--- a/libinterp/corefcn/error.cc	Fri Dec 30 01:29:48 2022 -0600
++++ b/libinterp/corefcn/error.cc	Sun Jan 08 04:30:30 2023 -0600
+@@ -533,7 +533,9 @@
+   if (! quiet_warning ())
+     {
+       octave_diary << msg_string;
+-      std::cerr << msg_string;
++      //std::cerr << msg_string;
++      event_manager& evmgr = m_interpreter.get_event_manager ();
++      evmgr.display_warning (id, name, base_msg, msg_string);
+ 
+       if (! fmt_suppresses_backtrace && in_user_code
+           && backtrace_on_warning ()
+diff -r de16dd99ab0e -r a602982ec42d libinterp/corefcn/event-manager.cc
+--- a/libinterp/corefcn/event-manager.cc	Fri Dec 30 01:29:48 2022 -0600
++++ b/libinterp/corefcn/event-manager.cc	Sun Jan 08 04:30:30 2023 -0600
+@@ -64,6 +64,11 @@
+   ee.display (std::cerr);
+ }
+ 
++void interpreter_events::display_warning (const std::string&, const std::string&, const std::string&, const std::string& formatted)
++{
++  std::cerr << formatted;
++}
++
+ event_manager::event_manager (interpreter& interp)
+   : m_event_queue_mutex (new mutex ()), m_gui_event_queue (),
+     m_debugging (false), m_link_enabled (true),
+diff -r de16dd99ab0e -r a602982ec42d libinterp/corefcn/event-manager.h
+--- a/libinterp/corefcn/event-manager.h	Fri Dec 30 01:29:48 2022 -0600
++++ b/libinterp/corefcn/event-manager.h	Sun Jan 08 04:30:30 2023 -0600
+@@ -246,6 +246,8 @@
+ 
+   virtual void display_exception (const execution_exception& ee, bool beep);
+ 
++  virtual void display_warning (const std::string& id, const std::string& name, const std::string& message, const std::string& formatted);
++
+   virtual void gui_status_update (const std::string& /*feature*/,
+                                   const std::string& /*status*/) { }
+ 
+@@ -667,6 +669,17 @@
+       return false;
+   }
+ 
++  bool display_warning (const std::string& id, const std::string& name, const std::string& message, const std::string& formatted)
++  {
++    if (enabled ())
++      {
++       	m_instance->display_warning (id, name, message, formatted);
++        return true;
++      }
++    else
++      return false;
++  }
++
+   bool gui_status_update (const std::string& feature,
+                           const std::string& status)
+   {
+diff -r de16dd99ab0e -r a602982ec42d libinterp/corefcn/octave-json-link.cc
+--- a/libinterp/corefcn/octave-json-link.cc	Fri Dec 30 01:29:48 2022 -0600
++++ b/libinterp/corefcn/octave-json-link.cc	Sun Jan 08 04:30:30 2023 -0600
+@@ -221,6 +221,16 @@
+ 	_publish_message("display-exception", json_util::from_map(m));
+ }
+ 
++void octave_json_link::display_warning(const std::string& id, const std::string& name, const std::string& message, const std::string& formatted) {
++       	// Redirected warnings from std::cerr
++       	JSON_MAP_T m;
++       	JSON_MAP_SET(m, id, string);
++       	JSON_MAP_SET(m, name, string);
++       	JSON_MAP_SET(m, message, string);
++       	JSON_MAP_SET(m, formatted, string);
++	_publish_message("display-warning", json_util::from_map(m));
++}
++
+ void octave_json_link::gui_status_update(const std::string& feature, const std::string& status) {
+ 	// Triggered in __profiler_enable__
+ 	JSON_MAP_T m;
+diff -r de16dd99ab0e -r a602982ec42d libinterp/corefcn/octave-json-link.h
+--- a/libinterp/corefcn/octave-json-link.h	Fri Dec 30 01:29:48 2022 -0600
++++ b/libinterp/corefcn/octave-json-link.h	Sun Jan 08 04:30:30 2023 -0600
+@@ -157,6 +157,8 @@
+ 
+   void display_exception (const execution_exception& ee, bool beep) override;
+ 
++  void display_warning (const std::string& id, const std::string& name, const std::string& message, const std::string& formatted) override;
++
+   void gui_status_update (const std::string& feature, const std::string& status) override;
+ 
+   void update_gui_lexer (void) override;
