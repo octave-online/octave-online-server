@@ -54,30 +54,32 @@ setenv("OCTAVE_JAVA_DIR", "/dev/null");
 pkg load communications;
 pkg load control;
 pkg load dataframe;
+pkg load fuzzy-logic-toolkit;
 pkg load general;
-pkg load geometry;
 pkg load image;
+pkg load interval;
 pkg load linear-algebra;
 pkg load miscellaneous;
 pkg load mvn;
 pkg load signal;
+pkg load statistics;
 pkg load struct;
 pkg load symbolic;
 pkg load video;
 
-% Packages not auto-loaded because of the JVM dependency:
+% Packages not auto-loaded because of the JVM dependency or other performance tradeoff:
 % pkg load data-smoothing;
 % pkg load financial;
 % pkg load io;
-% pkg load optim;
-% pkg load statistics;
-
-% Packages not auto-loaded for performance or other reasons:
-% pkg load ltfat;
-% pkg load nan;
-% pkg load netcdf;
-% pkg load stk;
-% pkg load tsa;
 % pkg load mapping;
+% pkg load netcdf;
+% pkg load optim;
+% pkg load stk;
+
+% Packages not auto-loaded due to shadow functions:
+% pkg load geometry;
+% pkg load ltfat;
+% pkg load matgeom;
+% pkg load nan;
 % pkg load tablicious;
-% pkg load interval;
+% pkg load tsa;
