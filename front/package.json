@@ -31,6 +31,7 @@
     "i18next-fs-backend": "^1.0.7",
     "i18next-http-middleware": "^3.0.2",
     "mongoose": "^6.8.2",
+    "npm": "^8.19.3",
     "ot": "0.0.15",
     "passport": "^0.6",
     "passport-google-oauth": "^2.0.0",

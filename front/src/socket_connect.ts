@@ -101,7 +101,7 @@ export class SocketHandler implements IDestroyable {
 			// 1. Load user from database
 			user: (next) => {
 				const sess = (this.socket.request as any).session;
-				const userId = sess?.passport?.sess.passport.user;
+				const userId = sess?.passport?.user;
 
 				if (userId) User.findById(userId)
 					.populate("programModel")

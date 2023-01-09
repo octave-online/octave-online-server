@@ -42,12 +42,14 @@ steps:
       rm -rf oo-misc1;
 
 # Build the client project and the front server typescript
-- name: node:16
+- name: node:18
   entrypoint: bash
   args:
     - -c
     - |
       (
+        node -v &&
+        npm -v &&
         cd client &&
         npm ci &&
         npm install ../shared &&

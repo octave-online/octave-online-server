@@ -34,7 +34,7 @@ export function init() {
 	// Make the store instance
 	if (config.mongo.hostname) {
 		let options = {
-			client: Mongoose.connection.getClient()
+			client: Mongoose.connection.getClient(),
 		};
 		// Can't solve the following TS error:
 		// "src/session_middleware.ts:39:20 - error TS2589: Type instantiation is excessively deep and possibly infinite"
@@ -52,7 +52,9 @@ export function init() {
 		cookie: {
 			maxAge: config.front.cookie.max_age
 		},
-		store: store
+		store: store,
+		saveUninitialized: false,
+		resave: false,
 	});
 
 	log.info("Initialized Session Store");
