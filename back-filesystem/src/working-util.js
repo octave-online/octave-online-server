@@ -175,10 +175,10 @@ class WorkingUtil {
 		if (buf.length > 0) {
 			try {
 				let charsetResults = charsetDetector(buf);
-				this._log.debug("Charset detection upon upload:", charsetResults);
+				this._log.debug("Top charset match:", charsetResults?.[0]);
 				encoding = charsetResults?.[0]?.charsetName || "UTF-8";
 				if (encoding !== "UTF-8"){
-					this._log.info("Converting charset:", encoding);
+					this._log.trace("Converting charset:", encoding);
 					buf = new Iconv(encoding, "UTF-8").convert(buf);
 				}
 			} catch(err) {
