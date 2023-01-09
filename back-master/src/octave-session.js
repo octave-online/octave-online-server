@@ -62,6 +62,8 @@ class OctaveSession extends OnlineOffline {
 		this._plotPngStore = {};
 		this._plotSvgStore = {};
 
+		this._suppressedWarningsStore = {};
+
 		this._redisQueue = new RedisQueue(sessCode);
 		this._redisQueue.on("message", this.sendMessage.bind(this));
 
@@ -616,15 +618,6 @@ class OctaveSession extends OnlineOffline {
 
 		// Special pre-processing of a few events here
 		switch (name) {
-			case "err":
-				// Filter out some error messages
-				if (/warning: readline is not linked/.test(content)) return;
-				if (/warning: docstring file/.test(content)) return;
-				if (/error: unable to open .+macros\.texi/.test(content)) return;
-				if (/^\/tmp\/octave-help-/.test(content)) return;
-				if (/built-in-docstrings' not found/.test(content)) return;
-				break;
-
 			case "show-static-plot":
 				// Convert PNG file links to embedded base 64 data
 				if (this._convertPlotImages(content)) return;
@@ -635,9 +628,30 @@ class OctaveSession extends OnlineOffline {
 				if (this._onDeletedBinary(content)) return;
 				break;
 
+			case "display-warning":
+				let opWarningMatch = /(the '.*' operator)/.exec(content.message);
+				if (opWarningMatch) {
+					if (this._suppressedWarningsStore[opWarningMatch[0]]) {
+						this._mlog.trace("Suppressed duplicate warning:", content.id);
+						return;
+					}
+					this._suppressedWarningsStore[opWarningMatch[0]] = true;
+				}
+				name = "err";
+				content = content.formatted;
+
 			case "display-exception":
 				name = "err";
 				content = content.ee_str;
+
+			case "err":
+				// Filter out some error messages
+				if (/warning: readline is not linked/.test(content)) return;
+				if (/warning: docstring file/.test(content)) return;
+				if (/error: unable to open .+macros\.texi/.test(content)) return;
+				if (/^\/tmp\/octave-help-/.test(content)) return;
+				if (/built-in-docstrings' not found/.test(content)) return;
+				break;
 
 			default:
 				break;
