@@ -27,6 +27,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 </p>
 <form action="./tok" method="post">
 	<input type="hidden" name="s" value="<%= query ? query.s : "(empty)" %>" />
+	<div class="g-recaptcha" data-sitekey="<%= config.recaptcha.siteKey %>"></div>
 	<p>
 		<input type="submit" value="Send Code" />
 	</p>
@@ -39,5 +40,8 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 	If you need help, contact support:
 </p>
 <iframe src="<%= config.email.supportUrl %>" id="support"></iframe>
+
+<script type="text/javascript" src="https://www.recaptcha.net/recaptcha/api.js" async>
+</script>
 
 <%- include("partials/foot") %>
