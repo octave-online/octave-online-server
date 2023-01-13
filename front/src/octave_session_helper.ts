@@ -21,7 +21,7 @@
 import Crypto = require("crypto");
 import { EventEmitter } from "events";
 
-import { newRedisMessenger, redisUtil, rack, logger, ILogger, config2 } from "./shared_wrap";
+import { newRedisMessenger, redisUtil, logger, ILogger, config2 } from "./shared_wrap";
 
 type Err = Error|null;
 
@@ -72,6 +72,7 @@ class OctaveSessionHelper extends EventEmitter {
 	public askForOctave(sessCode: string, content: any, next: (err: Err) => void) {
 		const millisecondBoost = content.user ? config2.tier(content.user.tier)["sessionManager.queueBoostTime"] : 0;
 		this._log.trace("Millisecond boost:", millisecondBoost, content.user ? content.user.consoleText : "(no user)");
+		/*
 		if (content.flavor) {
 			redisMessenger.putSessCodeFlavor(sessCode, millisecondBoost, content.flavor, content);
 			// TODO: Move this call somewhere it could be configurable.
@@ -80,8 +81,11 @@ class OctaveSessionHelper extends EventEmitter {
 				this._log.trace("Spinning up new server with flavor", content.flavor);
 			});
 		} else {
-			redisMessenger.putSessCode(sessCode, millisecondBoost, content);
+		*/
+		redisMessenger.putSessCode(sessCode, millisecondBoost, content);
+		/*
 		}
+		*/
 		// TODO: Should we do something more interesting for the callback?
 		process.nextTick(() => {
 			next(null);

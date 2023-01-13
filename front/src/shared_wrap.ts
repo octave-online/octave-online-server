@@ -22,7 +22,7 @@ import { EventEmitter } from "events";
 
 import * as Shared from "@oo/shared";
 
-export { config, config2, rack, redisUtil } from "@oo/shared";
+export { config, config2, redisUtil } from "@oo/shared";
 
 // Workaround for EventEmitter not being added to shared/index.d.ts
 

@@ -18,25 +18,21 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import Async = require("async");
 import SocketIO = require("socket.io");
 import SocketIOWildcard = require("socketio-wildcard");
 
 import * as ExpressApp from "./express_setup";
 import * as Middleware from "./session_middleware";
 import { SocketHandler } from "./socket_connect";
-import { config, rack, logger } from "./shared_wrap";
+import { config, logger } from "./shared_wrap";
 
-type Err = Error|null|undefined;
-
-const ALL_FLAVORS = Object.keys(config.flavors);
 const log = logger("oo-socketio");
 
 // TODO: Consider using proper TypeScript types:
 // https://socket.io/docs/v4/typescript/
 
 export function init(){
-	const io = new SocketIO.Server(ExpressApp.server, {
+	/* const io = */ new SocketIO.Server(ExpressApp.server, {
 			path: config.front.socket_io_path,
 			allowEIO3: true
 		})
@@ -48,14 +44,18 @@ export function init(){
 		})
 		.on("connection", SocketHandler.onConnection);
 
+	/*
 	if (config.rackspace.username !== "xxxxxxxxx") {
 		// eslint-disable-next-line @typescript-eslint/no-use-before-define
 		watchFlavorServers(io);
 	}
+	*/
 
 	log.info("Initialized Socket.IO Server", config.front.socket_io_path);
 }
 
+/*
+const ALL_FLAVORS = Object.keys(config.flavors);
 export function watchFlavorServers(io: SocketIO.Server) {
 	Async.forever(
 		(next: () => void) => {
@@ -82,8 +82,9 @@ export function watchFlavorServers(io: SocketIO.Server) {
 				setTimeout(next, config.front.flavor_log_interval);
 			});
 		},
-		(err: Err) => {
+		(err: Error|null|undefined) => {
 			log.error("FOREVER ERROR", err);
 		}
 	);
 }
+*/
