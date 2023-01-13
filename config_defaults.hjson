@@ -442,6 +442,8 @@ auth: {
 	}
 	password: {
 		salt_rounds: 10
+		# Additional delay, in milliseconds, during auth requests
+		delay: 100
 	}
 	# Basic Auth users for utils-admin and utils-auth
 	utils_admin: {

@@ -160,15 +160,20 @@ const passwordStrategy = new (Local.Strategy)({
 function(username, password, done) {
 	findWithPassword(username, password, function(err, status, user) {
 		if (err) return done(err);
-		if (status === PasswordStatus.UNKNOWN) {
-			log.info("Password Callback Unknown User", status, username);
-			return done(null, false);
-		} else if (status === PasswordStatus.INCORRECT) {
-			log.info("Password Callback Incorrect", status, user!.consoleText);
-		} else {
-			log.info("Password Callback Success", status, user!.consoleText);
-			return done(null, user);
-		}
+		log.trace("Password delay", config.auth.password.delay);
+		setTimeout(() => {
+			if (status === PasswordStatus.UNKNOWN) {
+				log.info("Password Callback Unknown User", status, username);
+				return done(null, false);
+			} else if (status === PasswordStatus.INCORRECT) {
+				log.info("Password Callback Incorrect", status, user!.consoleText);
+				return done(null, false);
+			} else if (status == PasswordStatus.VALID) {
+				log.info("Password Callback Success", status, user!.consoleText);
+				return done(null, user);
+			}
+			return done("Invalid password status: " + status);
+		}, config.auth.password.delay);
 	});
 }
 );
