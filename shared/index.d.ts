@@ -3,13 +3,29 @@
 export class JSONStreamSafe {
     constructor(...args: any[]);
 
+    static captureRejectionSymbol: any;
+
+    static captureRejections: boolean;
+
     static defaultMaxListeners: number;
 
-    static init(): void;
+    static errorMonitor: any;
+
+    static getEventListeners(emitterOrTarget: any, type: any): any;
+
+    static init(opts: any): void;
+
+    static kMaxEventTargetListeners: any;
+
+    static kMaxEventTargetListenersWarned: any;
 
     static listenerCount(emitter: any, type: any): any;
 
-    static once(emitter: any, name: any): any;
+    static on(emitter: any, event: any, options: any): any;
+
+    static once(emitter: any, name: any, options: any): any;
+
+    static setMaxListeners(n: any, eventTargets: any): void;
 
     static usingDomains: boolean;
 
@@ -24,13 +40,29 @@ export class OnlineOffline {
 
     isOnline(...args: any[]): void;
 
+    static captureRejectionSymbol: any;
+
+    static captureRejections: boolean;
+
     static defaultMaxListeners: number;
 
-    static init(): void;
+    static errorMonitor: any;
+
+    static getEventListeners(emitterOrTarget: any, type: any): any;
+
+    static init(opts: any): void;
+
+    static kMaxEventTargetListeners: any;
+
+    static kMaxEventTargetListenersWarned: any;
 
     static listenerCount(emitter: any, type: any): any;
 
-    static once(emitter: any, name: any): any;
+    static on(emitter: any, event: any, options: any): any;
+
+    static once(emitter: any, name: any, options: any): any;
+
+    static setMaxListeners(n: any, eventTargets: any): void;
 
     static usingDomains: boolean;
 
@@ -51,13 +83,29 @@ export class Queue {
 
     size(...args: any[]): void;
 
+    static captureRejectionSymbol: any;
+
+    static captureRejections: boolean;
+
     static defaultMaxListeners: number;
 
-    static init(): void;
+    static errorMonitor: any;
+
+    static getEventListeners(emitterOrTarget: any, type: any): any;
+
+    static init(opts: any): void;
+
+    static kMaxEventTargetListeners: any;
+
+    static kMaxEventTargetListenersWarned: any;
 
     static listenerCount(emitter: any, type: any): any;
 
-    static once(emitter: any, name: any): any;
+    static on(emitter: any, event: any, options: any): any;
+
+    static once(emitter: any, name: any, options: any): any;
+
+    static setMaxListeners(n: any, eventTargets: any): void;
 
     static usingDomains: boolean;
 
@@ -144,13 +192,29 @@ export class RedisMessenger {
 
     workspaceMsg(...args: any[]): void;
 
+    static captureRejectionSymbol: any;
+
+    static captureRejections: boolean;
+
     static defaultMaxListeners: number;
 
-    static init(): void;
+    static errorMonitor: any;
+
+    static getEventListeners(emitterOrTarget: any, type: any): any;
+
+    static init(opts: any): void;
+
+    static kMaxEventTargetListeners: any;
+
+    static kMaxEventTargetListenersWarned: any;
 
     static listenerCount(emitter: any, type: any): any;
 
-    static once(emitter: any, name: any): any;
+    static on(emitter: any, event: any, options: any): any;
+
+    static once(emitter: any, name: any, options: any): any;
+
+    static setMaxListeners(n: any, eventTargets: any): void;
 
     static usingDomains: boolean;
 
@@ -163,13 +227,29 @@ export class RedisQueue {
 
     reset(...args: any[]): void;
 
+    static captureRejectionSymbol: any;
+
+    static captureRejections: boolean;
+
     static defaultMaxListeners: number;
 
-    static init(): void;
+    static errorMonitor: any;
+
+    static getEventListeners(emitterOrTarget: any, type: any): any;
+
+    static init(opts: any): void;
+
+    static kMaxEventTargetListeners: any;
+
+    static kMaxEventTargetListenersWarned: any;
 
     static listenerCount(emitter: any, type: any): any;
 
-    static once(emitter: any, name: any): any;
+    static on(emitter: any, event: any, options: any): any;
+
+    static once(emitter: any, name: any, options: any): any;
+
+    static setMaxListeners(n: any, eventTargets: any): void;
 
     static usingDomains: boolean;
 
@@ -184,13 +264,29 @@ export class StdioMessenger {
 
     setWriteStream(...args: any[]): void;
 
+    static captureRejectionSymbol: any;
+
+    static captureRejections: boolean;
+
     static defaultMaxListeners: number;
 
-    static init(): void;
+    static errorMonitor: any;
+
+    static getEventListeners(emitterOrTarget: any, type: any): any;
+
+    static init(opts: any): void;
+
+    static kMaxEventTargetListeners: any;
+
+    static kMaxEventTargetListenersWarned: any;
 
     static listenerCount(emitter: any, type: any): any;
 
-    static once(emitter: any, name: any): any;
+    static on(emitter: any, event: any, options: any): any;
+
+    static once(emitter: any, name: any, options: any): any;
+
+    static setMaxListeners(n: any, eventTargets: any): void;
 
     static usingDomains: boolean;
 
@@ -212,6 +308,7 @@ export const config: {
             oauth_secret: string;
         };
         password: {
+            delay: number;
             salt_rounds: number;
         };
         utils_admin: {
@@ -231,6 +328,7 @@ export const config: {
         theme_color: string;
         title_key: string;
         uservoice: string;
+        welcome_back_ms: number;
     };
     docker: {
         cpuShares: number;
@@ -285,6 +383,7 @@ export const config: {
         view_cache_clear_interval: number;
     };
     gcp: {
+        archive_bucket: string;
         artifacts_bucket: string;
         credentials: {
             auth_provider_x509_cert_url: string;
@@ -392,6 +491,9 @@ export const config: {
     recaptcha: {
         secretKey: string;
         siteKey: string;
+    };
+    redirect: {
+        hostname: string;
     };
     redis: {
         expire: {
@@ -509,7 +611,7 @@ export function timeLimit(milliseconds: any, defaults: any, callback: any, ...ar
 
 export namespace JSONStreamSafe {
     class EventEmitter {
-        constructor();
+        constructor(opts: any);
 
         addListener(type: any, listener: any): any;
 
@@ -543,13 +645,29 @@ export namespace JSONStreamSafe {
 
         static EventEmitter: any;
 
+        static captureRejectionSymbol: any;
+
+        static captureRejections: boolean;
+
         static defaultMaxListeners: number;
 
-        static init(): void;
+        static errorMonitor: any;
+
+        static getEventListeners(emitterOrTarget: any, type: any): any;
+
+        static init(opts: any): void;
+
+        static kMaxEventTargetListeners: any;
+
+        static kMaxEventTargetListenersWarned: any;
 
         static listenerCount(emitter: any, type: any): any;
 
-        static once(emitter: any, name: any): any;
+        static on(emitter: any, event: any, options: any): any;
+
+        static once(emitter: any, name: any, options: any): any;
+
+        static setMaxListeners(n: any, eventTargets: any): void;
 
         static usingDomains: boolean;
 
@@ -559,7 +677,7 @@ export namespace JSONStreamSafe {
 
 export namespace OnlineOffline {
     class EventEmitter {
-        constructor();
+        constructor(opts: any);
 
         addListener(type: any, listener: any): any;
 
@@ -593,13 +711,29 @@ export namespace OnlineOffline {
 
         static EventEmitter: any;
 
+        static captureRejectionSymbol: any;
+
+        static captureRejections: boolean;
+
         static defaultMaxListeners: number;
 
-        static init(): void;
+        static errorMonitor: any;
+
+        static getEventListeners(emitterOrTarget: any, type: any): any;
+
+        static init(opts: any): void;
+
+        static kMaxEventTargetListeners: any;
+
+        static kMaxEventTargetListenersWarned: any;
 
         static listenerCount(emitter: any, type: any): any;
 
-        static once(emitter: any, name: any): any;
+        static on(emitter: any, event: any, options: any): any;
+
+        static once(emitter: any, name: any, options: any): any;
+
+        static setMaxListeners(n: any, eventTargets: any): void;
 
         static usingDomains: boolean;
 
@@ -609,7 +743,7 @@ export namespace OnlineOffline {
 
 export namespace Queue {
     class EventEmitter {
-        constructor();
+        constructor(opts: any);
 
         addListener(type: any, listener: any): any;
 
@@ -643,13 +777,29 @@ export namespace Queue {
 
         static EventEmitter: any;
 
+        static captureRejectionSymbol: any;
+
+        static captureRejections: boolean;
+
         static defaultMaxListeners: number;
 
-        static init(): void;
+        static errorMonitor: any;
+
+        static getEventListeners(emitterOrTarget: any, type: any): any;
+
+        static init(opts: any): void;
+
+        static kMaxEventTargetListeners: any;
+
+        static kMaxEventTargetListenersWarned: any;
 
         static listenerCount(emitter: any, type: any): any;
 
-        static once(emitter: any, name: any): any;
+        static on(emitter: any, event: any, options: any): any;
+
+        static once(emitter: any, name: any, options: any): any;
+
+        static setMaxListeners(n: any, eventTargets: any): void;
 
         static usingDomains: boolean;
 
@@ -659,7 +809,7 @@ export namespace Queue {
 
 export namespace RedisMessenger {
     class EventEmitter {
-        constructor();
+        constructor(opts: any);
 
         addListener(type: any, listener: any): any;
 
@@ -693,13 +843,29 @@ export namespace RedisMessenger {
 
         static EventEmitter: any;
 
+        static captureRejectionSymbol: any;
+
+        static captureRejections: boolean;
+
         static defaultMaxListeners: number;
 
-        static init(): void;
+        static errorMonitor: any;
+
+        static getEventListeners(emitterOrTarget: any, type: any): any;
+
+        static init(opts: any): void;
+
+        static kMaxEventTargetListeners: any;
+
+        static kMaxEventTargetListenersWarned: any;
 
         static listenerCount(emitter: any, type: any): any;
 
-        static once(emitter: any, name: any): any;
+        static on(emitter: any, event: any, options: any): any;
+
+        static once(emitter: any, name: any, options: any): any;
+
+        static setMaxListeners(n: any, eventTargets: any): void;
 
         static usingDomains: boolean;
 
@@ -709,7 +875,7 @@ export namespace RedisMessenger {
 
 export namespace RedisQueue {
     class EventEmitter {
-        constructor();
+        constructor(opts: any);
 
         addListener(type: any, listener: any): any;
 
@@ -743,13 +909,29 @@ export namespace RedisQueue {
 
         static EventEmitter: any;
 
+        static captureRejectionSymbol: any;
+
+        static captureRejections: boolean;
+
         static defaultMaxListeners: number;
 
-        static init(): void;
+        static errorMonitor: any;
+
+        static getEventListeners(emitterOrTarget: any, type: any): any;
+
+        static init(opts: any): void;
+
+        static kMaxEventTargetListeners: any;
+
+        static kMaxEventTargetListenersWarned: any;
 
         static listenerCount(emitter: any, type: any): any;
 
-        static once(emitter: any, name: any): any;
+        static on(emitter: any, event: any, options: any): any;
+
+        static once(emitter: any, name: any, options: any): any;
+
+        static setMaxListeners(n: any, eventTargets: any): void;
 
         static usingDomains: boolean;
 
@@ -759,7 +941,7 @@ export namespace RedisQueue {
 
 export namespace StdioMessenger {
     class EventEmitter {
-        constructor();
+        constructor(opts: any);
 
         addListener(type: any, listener: any): any;
 
@@ -793,13 +975,29 @@ export namespace StdioMessenger {
 
         static EventEmitter: any;
 
+        static captureRejectionSymbol: any;
+
+        static captureRejections: boolean;
+
         static defaultMaxListeners: number;
 
-        static init(): void;
+        static errorMonitor: any;
+
+        static getEventListeners(emitterOrTarget: any, type: any): any;
+
+        static init(opts: any): void;
+
+        static kMaxEventTargetListeners: any;
+
+        static kMaxEventTargetListenersWarned: any;
 
         static listenerCount(emitter: any, type: any): any;
 
-        static once(emitter: any, name: any): any;
+        static on(emitter: any, event: any, options: any): any;
+
+        static once(emitter: any, name: any, options: any): any;
+
+        static setMaxListeners(n: any, eventTargets: any): void;
 
         static usingDomains: boolean;
 
@@ -819,21 +1017,14 @@ export namespace gitarchive {
 
     function generateFilename(name: any): any;
 
+    function repoContainsRefs(tld: any, name: any): any;
+
+    function restoreRepoFromZipFile(log: any, tld: any, name: any, branchName: any, zipFileBlob: any): void;
+
 }
 
 export namespace metrics {
     function gauge(id: any, value: any): any;
-
-}
-
-export namespace rack {
-    function createFlavorServer(flavor: any, next: any): any;
-
-    function deleteSelf(personality: any, next: any): any;
-
-    function getFlavorServers(flavor: any, next: any): any;
-
-    function listFlavors(next: any): void;
 
 }
 
