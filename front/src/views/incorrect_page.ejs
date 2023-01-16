@@ -27,7 +27,7 @@ with Octave Online Server.  If not, see <https://www.gnu.org/licenses/>.
 </p>
 <form action="./tok" method="post">
 	<input type="hidden" name="s" value="<%= query ? query.s : "(empty)" %>" />
-	<div class="g-recaptcha" data-sitekey="<%= config.recaptcha.siteKey %>"></div>
+	<div class="g-recaptcha" data-sitekey="<%= config.recaptcha.siteKey %>" style="display: inline-block;"></div>
 	<p>
 		<input type="submit" value="Send Code" />
 	</p>
