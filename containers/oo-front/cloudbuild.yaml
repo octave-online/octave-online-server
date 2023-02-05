@@ -51,9 +51,10 @@ steps:
         npm install -g npm@8 && \
         node -v &&
         npm -v &&
-        cd client &&
+        cd shared &&
         npm ci &&
-        npm install ../shared &&
+        cd ../client &&
+        npm ci &&
         npm run bower -- --allow-root install &&
         npm run grunt
       );
