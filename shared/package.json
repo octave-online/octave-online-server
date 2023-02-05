@@ -17,7 +17,7 @@
     "async": "^1.5.2",
     "debug-logger": "^0.4.1",
     "deepmerge": "^2.1.1",
-    "hjson": "^3.1.1",
+    "hjson": "^3.2.2",
     "jszip": "^3.7.1",
     "lynx": "^0.2.0",
     "redis": "^3.1.2",
