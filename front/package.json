@@ -11,8 +11,7 @@
   "author": "Shane F. Carr",
   "license": "AGPL-3.0",
   "engines": {
-    "node": "18.x",
-    "npm": "8.x"
+    "node": "18.x"
   },
   "dependencies": {
     "@oo/shared": "file:../shared",
