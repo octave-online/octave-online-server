@@ -48,6 +48,7 @@ steps:
     - -c
     - |
       (
+        npm install -g npm@8 && \
         node -v &&
         npm -v &&
         cd client &&
