@@ -7,6 +7,10 @@
   "author": "Octave Online LLC",
   "license": "AGPL-3.0",
   "private": true,
+  "engines": {
+    "node": "18.x",
+    "npm": "8.x"
+  },
   "dependencies": {
     "@oo/shared": "file:../shared",
     "async": "^1.5.2",

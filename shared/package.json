@@ -9,6 +9,10 @@
   "author": "Octave Online LLC",
   "license": "AGPL-3.0",
   "private": true,
+  "engines": {
+    "node": "18.x",
+    "npm": "8.x"
+  },
   "dependencies": {
     "async": "^1.5.2",
     "debug-logger": "^0.4.1",
