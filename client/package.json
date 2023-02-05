@@ -7,7 +7,6 @@
     "grunt": "grunt",
     "bower": "bower",
     "stylus-watch": "npm run stylus-watch:server",
-    "stylus-watch:server": "stylus --watch -o app/css/themes app/styl/themes/server",
     "stylus-watch:server": "stylus --watch -o app/css/themes app/styl/themes/server"
   },
   "author": "Octave Online LLC",
