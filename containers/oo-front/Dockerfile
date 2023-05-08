@@ -20,44 +20,8 @@
 # BOILERPLATE #
 ###############
 
-FROM ubuntu:jammy
-
+FROM node:18
 WORKDIR /root
-
-# Disable all prompts when using apt-get
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Core tmpfs directories:
-VOLUME \
-	/run \
-	/tmp
-
-# Essential setup
-RUN \
-	mkdir -p /srv/oo && \
-	apt-get update && \
-	apt-get install -y \
-		curl \
-		ca-certificates \
-		openssl \
-		apt-transport-https \
-		gnupg \
-		supervisor
-
-# NodeSource
-RUN \
-	curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - && \
-	echo 'deb https://deb.nodesource.com/node_16.x jammy main' > /etc/apt/sources.list.d/nodesource.list && \
-	echo 'deb-src https://deb.nodesource.com/node_16.x jammy main' >> /etc/apt/sources.list.d/nodesource.list
-
-####################
-# MAIN BUILD RULES #
-####################
-
-RUN apt-get update && \
-	apt-get install --no-install-recommends -y \
-		nodejs \
-		git
 
 # Install oo-front
 # Note: paths are relative to repository root
