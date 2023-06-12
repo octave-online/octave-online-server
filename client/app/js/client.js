@@ -459,6 +459,7 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 
 		// Console Methods
 		console: {
+			currentInContentAdTimestamp: 0,
 			write: function(content){
 				$("#console").append(document.createTextNode(content));
 				OctMethods.console.scroll();
@@ -546,6 +547,11 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 				if(!OctMethods.prompt.enabled) return;
 
 				var currentLine = OctMethods.prompt.currentLine;
+
+				// In-content ad opportunity
+				if (window.oo_inConsoleAd && currentLine >= 3) {
+					window.oo_inConsoleAd();
+				}
 
 				// Show the command on screen
 				OctMethods.console.writeCommand(currentLine, cmd);
