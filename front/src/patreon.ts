@@ -184,20 +184,23 @@ export function phase2(req: any, res: any, next: any) {
 		}],
 		patreonInfo: ["tokenObject", ({tokenObject}, _next) => {
 			log.trace(tokenObject);
-			fetch("https://www.patreon.com/api/oauth2/v2/identity" + new URLSearchParams({
+			const fullUrl = "https://www.patreon.com/api/oauth2/v2/identity?" + new URLSearchParams({
 				"include": "memberships,memberships.currently_entitled_tiers",
 				"fields[member]": "currently_entitled_amount_cents"
-			}), {
+			});
+			log.trace("Requesting URL:", fullUrl);
+			fetch(fullUrl, {
 				headers: {
 					"Authorization": "Bearer " + tokenObject.access_token
 				},
 			})
-			.then((response) => response.json())
 			.then((response) => {
 				if (!response.ok) {
 					return _next(new Error("Not 2xx response", { cause: response }));
 				}
-				const body: any = response.body;
+				return response.json();
+			})
+			.then((body) => {
 				try {
 					const user_id = (body.data.id) as string;
 					log.info("Processing Patreon link for user_id:", user_id);
@@ -243,7 +246,7 @@ export function phase2(req: any, res: any, next: any) {
 		}]
 	}, (err: any) => {
 		if (err) {
-			log.error("PATREON PHASE 2 ERROR", err, err.options);
+			log.error("PATREON PHASE 2 ERROR", err, err.cause, err.options);
 		}
 		next(err);
 	});
