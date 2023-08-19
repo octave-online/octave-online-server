@@ -54,6 +54,6 @@ let gcp: any | undefined;
 try {
 	gcp = require("../../shared/gcp/index.js");
 } catch(e) {
-	logger("shared_wrap").warn("gcp is unavailable");
+	logger("shared_wrap").warn("gcp is unavailable:", e);
 }
 export { gcp };
