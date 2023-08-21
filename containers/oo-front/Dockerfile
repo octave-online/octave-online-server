@@ -30,6 +30,7 @@ COPY config*.hjson /srv/oo/projects/
 COPY shared /srv/oo/projects/shared
 COPY client /srv/oo/projects/client
 COPY front /srv/oo/projects/front
+COPY entrypoint /srv/oo/projects/entrypoint
 RUN \
 	cd /srv/oo/projects/shared && \
 		npm ci && \
