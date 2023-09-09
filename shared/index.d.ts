@@ -323,6 +323,7 @@ export const config: {
         app_name: string;
         description_key: string;
         gacode: string;
+        gtagid: string;
         onboarding: boolean;
         theme_collection: string;
         theme_color: string;

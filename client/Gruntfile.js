@@ -173,6 +173,12 @@ module.exports = function (grunt) {
 						flags: "g"
 					},
 					{
+						name: "gtagid",
+						search: "\\{!gtagid!\\}",
+						replace: config.client.gtagid,
+						flags: "g"
+					},
+					{
 						name: "uservoice",
 						search: "\\{!uservoice!\\}",
 						replace: config.client.uservoice,

@@ -120,5 +120,5 @@ front: {
 # # # # # # # # # # # # #
 
 client: {
-	gacode: xxxxxxxxx
+	gtagid: xxxxxxxxx
 }

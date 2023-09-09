@@ -595,8 +595,11 @@ client: {
 		'''
 
 	# OTHER CLIENT OPTIONS
-	# Application identifier for Google Analytics
+	# Application identifier for Google Universal Analytics (deprecated)
 	gacode: xxxxxxxxx
+	# Google Tag ID (GA4 Measurement ID). Instructions for how to get this:
+	# <https://support.google.com/analytics/answer/9539598>
+	gtagid: xxxxxxxxx
 	# Application identifier for UserVoice
 	uservoice: xxxxxxxxx
 }
