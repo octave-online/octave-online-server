@@ -44,6 +44,11 @@ require.config({
 			"http://www.google-analytics.com/analytics",
 			"/js-default/analytics"
 		],
+		"gtag": [
+			"https://www.googletagmanager.com/gtag/js?id={!gtagid!}",
+			"http://www.googletagmanager.com/gtag/js?id={!gtagid!}",
+			"/js-default/gtag"
+		],
 		"webfont": [
 			"https://ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont",
 			"http://ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont",

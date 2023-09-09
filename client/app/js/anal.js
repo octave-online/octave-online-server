@@ -20,24 +20,26 @@
 
 define(function(){
 
-	var garef = null;
-	var q = [];
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){ dataLayer.push(arguments); }
+	gtag("js", new Date());
+
+	// Set up Analytics
+	gtag("config", "{!gtagid!}");
 
 	function sendEvent(event_category, event_action, event_label, value) {
-		_ga("send", "event", event_category, event_action, event_label, value);
+		// analytics.js:
+		// garef("send", "event", event_category, event_action, event_label, value);
+		// gtag.js:
+		gtag("event", event_action, {
+			event_category,
+			event_label,
+			value
+		});
 	}
 
 	// Wait to load Google Analytics to not slow down the module
-	require(["js/runtime"], function(){ require(["analytics"], function(_garef){
-		// If _garef is null, the user might be blocking Google Analytics.
-		// Suppress console errors by passing a noop function.
-		garef = _garef ? _garef : function(){};
-
-		// Set up Analytics
-		window.GoogleAnalyticsObject = "ga";
-		garef("create", "{!gacode!}", "auto");
-		garef("set", "anonymizeIp", true);
-
+	require(["js/runtime"], function(){ require(["gtag"], function(){
 		// Record browser window size
 		var width = window.innerWidth || document.body.clientWidth;
 		var height = window.innerHeight || document.body.clientHeight;
@@ -46,28 +48,15 @@ define(function(){
 		sendEvent("browser-size", "width", width);
 		sendEvent("browser-size", "height", height);
 		sendEvent("browser-size", "combined", width+"x"+height);
-
-		// Send queued-up messages to GA
-		for (var i=0; i<q.length; i++) {
-			garef.apply(this, q[i]);
-		}
 	}); });
-
-	// Function to either call ga() or add to the waiting list
-	function _ga() {
-		if (garef) {
-			garef.apply(this, arguments);
-		} else {
-			q.push(arguments);
-		}
-	}
 
 	var numExtraTime = 0;
 
 	// Return methods to register certain events
 	return {
 		pageview: function(){
-			_ga("send", "pageview");
+			// Obsolete in gtag.js
+			// _ga("send", "pageview");
 		},
 		signedin: function(){
 			sendEvent("accounts", "signed-in");
