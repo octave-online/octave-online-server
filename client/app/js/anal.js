@@ -23,6 +23,10 @@ define(function(){
 	var garef = null;
 	var q = [];
 
+	function sendEvent(event_category, event_action, event_label, value) {
+		_ga("send", "event", event_category, event_action, event_label, value);
+	}
+
 	// Wait to load Google Analytics to not slow down the module
 	require(["js/runtime"], function(){ require(["analytics"], function(_garef){
 		// If _garef is null, the user might be blocking Google Analytics.
@@ -39,9 +43,9 @@ define(function(){
 		var height = window.innerHeight || document.body.clientHeight;
 		width = Math.round(width/50)*50;
 		height = Math.round(height/50)*50;
-		garef("send", "event", "browser-size", "width", width);
-		garef("send", "event", "browser-size", "height", height);
-		garef("send", "event", "browser-size", "combined", width+"x"+height);
+		sendEvent("browser-size", "width", width);
+		sendEvent("browser-size", "height", height);
+		sendEvent("browser-size", "combined", width+"x"+height);
 
 		// Send queued-up messages to GA
 		for (var i=0; i<q.length; i++) {
@@ -66,40 +70,40 @@ define(function(){
 			_ga("send", "pageview");
 		},
 		signedin: function(){
-			_ga("send", "event", "accounts", "signed-in");
+			sendEvent("accounts", "signed-in");
 		},
 		welcomeback: function() {
-			_ga("send", "event", "accounts", "welcome-back");
+			sendEvent("accounts", "welcome-back");
 		},
 		sitecontrol: function(which){
-			_ga("send", "event", "site-control", which);
+			sendEvent("site-control", which);
 		},
 		command: function(cmd){
-			_ga("send", "event", "command", "user-cmd", cmd.substr(0,5), cmd.length);
+			sendEvent("command", "user-cmd", cmd.substr(0,5), cmd.length);
 		},
 		runfile: function(){
-			_ga("send", "event", "command", "run-file");
+			sendEvent("command", "run-file");
 		},
 		sigint: function(){
-			_ga("send", "event", "signal", "user-interrupt");
+			sendEvent("signal", "user-interrupt");
 		},
 		patience: function(){
-			_ga("send", "event", "loading", "patience-message");
+			sendEvent("loading", "patience-message");
 		},
 		dismiss: function(what){
-			_ga("send", "event", "dismiss", "promo", what);
+			sendEvent("dismiss", "promo", what);
 		},
 		duration: function(duration){
-			_ga("send", "event", "command", "duration", "millis", duration);
+			sendEvent("command", "duration", "millis", duration);
 		},
 		extraTime: function(){
-			_ga("send", "event", "extra-time", "from-prompt", numExtraTime++);
+			sendEvent("extra-time", "from-prompt", numExtraTime++);
 		},
 		acknowledgePayload: function(){
-			_ga("send", "event", "extra-time", "acknowledge-payload");
+			sendEvent("extra-time", "acknowledge-payload");
 		},
 		alert: function(message){
-			_ga("send", "event", "alert", "alert", message.substr(0,20), message.length);
+			sendEvent("alert", "alert", message.substr(0,20), message.length);
 		}
 	};
 });
