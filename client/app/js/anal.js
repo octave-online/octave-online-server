@@ -32,9 +32,9 @@ define(function(){
 		// garef("send", "event", event_category, event_action, event_label, value);
 		// gtag.js:
 		gtag("event", event_action, {
-			event_category,
-			event_label,
-			value
+			event_category: event_category,
+			event_label: event_label,
+			value: value,
 		});
 	}
 
