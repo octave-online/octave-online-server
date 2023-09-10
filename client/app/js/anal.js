@@ -21,11 +21,24 @@
 define(function(){
 
 	window.dataLayer = window.dataLayer || [];
+	var dataLayer;
 	function gtag(){ dataLayer.push(arguments); }
-	gtag("js", new Date());
 
 	// Set up Analytics
-	gtag("config", "{!gtagid!}");
+	if (window.oo_configGtag) {
+		var cache = [];
+		dataLayer = cache;
+		window.oo_configGtag(function(config) {
+			dataLayer = window.dataLayer;
+			gtag("js", new Date());
+			gtag("config", "{!gtagid!}", config);
+			Array.prototype.push.apply(dataLayer, cache);
+		});
+	} else {
+		dataLayer = window.dataLayer;
+		gtag("js", new Date());
+		gtag("config", "{!gtagid!}");
+	}
 
 	function sendEvent(event_category, event_action, event_label, value) {
 		// analytics.js:
