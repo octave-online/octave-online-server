@@ -1020,6 +1020,9 @@ define(["jquery", "knockout", "canvg", "base64", "js/download", "ace/ext/static_
 						$("#abox").hideSafe();
 						$("#main").css("top", 0);
 						$("#main").css("right", 0);
+						if (window.oo_disabledAds) {
+							window.oo_disabledAds();
+						}
 					} else if (window.oo_enableAds) {
 						window.oo_enableAds();
 					}
