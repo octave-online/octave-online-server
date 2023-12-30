@@ -39,7 +39,10 @@ FROM $FULL_BASE_IMAGE
 # RUN hg clone --insecure -r 117ebe363f56 http://www.octave.org/hg/octave
 
 ### 7.4 ###
-RUN hg clone -r 601e7a142a15 https://hg.octave.org/octave
+# RUN hg clone -r 601e7a142a15 https://hg.octave.org/octave
+
+### 8.4 ###
+RUN hg clone --insecure -r 78c13a2594f3 http://hg.octave.org/octave
 
 RUN cd octave && \
 	./bootstrap && \
