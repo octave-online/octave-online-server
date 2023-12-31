@@ -125,7 +125,7 @@ RUN cd pkg-downloads && wget $PKG_BASE_URL/mapping-1.4.2.tar.gz && \
 RUN cd pkg-downloads && wget $PKG_BASE_URL/financial-0.5.3.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install financial-0.5.3.tar.gz;"
 
-RUN cd pkg-downloads && wget https://github.com/ltfat/ltfat/releases/download/v2.5.0/ltfat-2.6.0-of.tar.gz && \
+RUN cd pkg-downloads && wget https://github.com/ltfat/ltfat/releases/download/v2.6.0/ltfat-2.6.0-of.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install ltfat-2.6.0-of.tar.gz;"
 
 # Workaround for bug in package ltfat:
