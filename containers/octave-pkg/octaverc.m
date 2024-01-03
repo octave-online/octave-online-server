@@ -62,10 +62,16 @@ pkg load linear-algebra;
 pkg load miscellaneous;
 pkg load mvn;
 pkg load signal;
-pkg load statistics;
 pkg load struct;
 pkg load symbolic;
 pkg load video;
+
+% 2023-01-03: The statistics package contains known shadows in Octave 8.4.
+% See: https://github.com/gnu-octave/statistics/issues/121
+% Remove this condition upon upgrading to Octave 9.
+warning("off","Octave:shadowed-function");
+pkg load statistics;
+warning("on","Octave:shadowed-function");
 
 % Packages not auto-loaded because of the JVM dependency or other performance tradeoff:
 % pkg load data-smoothing;
