@@ -59,8 +59,10 @@ RUN cd pkg-downloads && wget $PKG_BASE_URL/symbolic-3.1.1.tar.gz && \
 RUN cd pkg-downloads && wget https://github.com/gnu-octave/pkg-control/releases/download/control-3.6.1/control-3.6.1.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install control-3.6.1.tar.gz;"
 
-RUN cd pkg-downloads && wget $PKG_BASE_URL/signal-1.4.5.tar.gz && \
-	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install signal-1.4.5.tar.gz;"
+# NOTE: There is an open Merge Request to fix a variables issue in signal-1.4.5
+# https://sourceforge.net/p/octave/signal/merge-requests/4/
+RUN cd pkg-downloads && wget $PKG_BASE_URL/signal-1.4.4.tar.gz && \
+	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install signal-1.4.4.tar.gz;"
 
 RUN cd pkg-downloads && wget $PKG_BASE_URL/communications-1.2.6.tar.gz && \
 	LC_ALL=C /usr/local/bin/octave -q --eval "pkg install communications-1.2.6.tar.gz;"
